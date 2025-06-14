@@ -1,14 +1,21 @@
 {
   "name": "@googledrive/index",
-  "version": "2.3.6",
-  "private": false,
-  "scripts": {
-    "deploy": "wrangler publish",
-    "start": "wrangler dev"
+  "version": "1.0.0",
+  "description": "Google Drive Index",
+  "main": "dist/index.min.js",
+  "files": ["dist"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Karthick36/Google-Drive-Index"
   },
+  "scripts": {
+    "build": "mkdir -p dist && minify src/app.js > dist/index.min.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["google-drive", "index", "cloud-storage"],
+  "author": "Karthick36",
+  "license": "MIT",
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20230419.0",
-    "typescript": "^5.0.4",
-    "wrangler": "^3.4.0"
+    "minify": "^9.1.0"
   }
 }
