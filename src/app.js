@@ -1446,39 +1446,40 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         }
     }
     // Add the container and card elements
-    var content = `
-    <div class="container text-center"><br>
-      <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-          ${navigation}
-        </ol>
-      </nav>
-      <div class="card text-center">
-        <div class="text-center">
-          <div class="${UI.file_view_alert_class}" id="file_details" role="alert">${name}<br>${size}</div>${player}</div>
-        </br>
-        ${UI.disable_video_download ? `` : `
-          <div class="card-body">
-          <div class="input-group mb-4">
-          <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
-          </div>
-          <div class="btn-group text-center">
-              <a href="${url}" type="button" class="btn btn-danger">Download</a>
-              <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="sr-only"></span>
-              </button>
-              <div class="dropdown-menu">
-              <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-              </div>
-          </div>          
-          </div>
-          </div>
-          `}
+  var content = `
+  <div class="container text-center"><br>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      ${navigation}
+    </ol>
+  </nav>
+  <div class="card text-center">
+    <div class="text-center">
+      <div class="${UI.file_view_alert_class}" id="file_details" role="alert">${name}<br>${size}</div>${player}</div>
+    </br>
+    ${UI.disable_video_download ? `` : `
+      <div class="card-body">
+      <!-- Hidden URL input box -->
+      <div class="input-group mb-4" style="display: none;">
+        <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
       </div>
-    </div>
-  `;
+      <div class="btn-group text-center">
+          <a href="${url}" type="button" class="btn btn-danger">Download</a>
+          <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="sr-only"></span>
+          </button>
+          <div class="dropdown-menu">
+          <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
+          </div>
+      </div>          
+      </div>
+      </div>
+      `}
+  </div>
+</div>
+`;
     $("#content").html(content);
 
     // Load Video.js and initialize the player
@@ -1562,47 +1563,48 @@ function file_audio(name, encoded_name, size, url, file_id, cookie_folder_id) {
     }
 
     // Add the container and card elements
-    var content = `
-    <div class="container text-center"><br>
-      <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-          ${navigation}
-        </ol>
-      </nav>
-      <div class="card text-center">
-        <div class="text-center">
-          <div class="${UI.file_view_alert_class}" id="file_details" role="alert">${name}<br>${size}</div>
-          ${UI.disable_player ? `` : `
-          <video id="aplayer" poster="${UI.audioposter}" muted=true class="video-js vjs-default-skin" controls preload="auto" width="100%" height="100%" data-setup='{"fluid": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000;">
-            <source src="${url}" type="audio/mpeg" />
-            <source src="${url}" type="audio/ogg" />
-            <source src="${url}" type="audio/wav" />
-          </video>`}
-        </div>
-        </br>
-        ${UI.disable_audio_download ? `` : `
-          <div class="card-body">
-          <div class="input-group mb-4">
-          <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
-          </div>
-          <div class="btn-group text-center">
-              <a href="${url}" type="button" class="btn btn-danger">Download</a>
-              <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="sr-only"></span>
-              </button>
-              <div class="dropdown-menu">
-              <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-              </div>
-          </div>
-          <br>
-          </div>
-          </div>
-          `}
-      </div>
+var content = `
+<div class="container text-center"><br>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      ${navigation}
+    </ol>
+  </nav>
+  <div class="card text-center">
+    <div class="text-center">
+      <div class="${UI.file_view_alert_class}" id="file_details" role="alert">${name}<br>${size}</div>
+      ${UI.disable_player ? `` : `
+      <video id="aplayer" poster="${UI.audioposter}" muted=true class="video-js vjs-default-skin" controls preload="auto" width="100%" height="100%" data-setup='{"fluid": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000;">
+        <source src="${url}" type="audio/mpeg" />
+        <source src="${url}" type="audio/ogg" />
+        <source src="${url}" type="audio/wav" />
+      </video>`}
     </div>
-  `;
+    </br>
+    ${UI.disable_audio_download ? `` : `
+      <div class="card-body">
+      <!-- URL input box hidden with style="display: none" -->
+      <div class="input-group mb-4" style="display: none;">
+        <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
+      </div>
+      <div class="btn-group text-center">
+          <a href="${url}" type="button" class="btn btn-danger">Download</a>
+          <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="sr-only"></span>
+          </button>
+          <div class="dropdown-menu">
+          <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
+          </div>
+      </div>
+      <br>
+      </div>
+      </div>
+      `}
+  </div>
+</div>
+`;
     $("#content").html(content);
 
     // Load Video.js and initialize the player
