@@ -42,7 +42,53 @@ const audio_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height
 const markdown_icon = `<svg width="1.5em" height="1.5em" viewBox="0 0 1024 1024"><path d="M265.61429932 63.6656706h493.57455644c111.51629209 0 201.91670068 90.40220771 201.91670068 201.91580157v493.57545556c0 111.51449297-90.40040859 201.91670068-201.91670068 201.91670069H265.61429932c-111.51539297 0-201.91580068-90.40220771-201.91580069-201.91670069V265.58147217c0-111.51359385 90.40040859-201.91580068 201.91580069-201.91580157z" fill="#707070"></path><path d="M763.60576133 722.16141084L670.49099316 599.42972305h48.19382491V302.57788818h89.84188652v296.85183487h48.19382491L763.60576133 722.16141084zM519.02738545 472.82885791c0-13.71570117 0.30399346-28.21926709 0.91827773-43.48821445l-13.67612753 19.09855107c-0.1726831 0.54323174-0.34626533 1.10265205-0.52074757 1.62609698l-7.15195107 10.50577734-109.52234384 166.63092451-40.52562364-62.91054668h-0.25092949l-28.34248359-44.38850449-41.19926749-63.95563828h0.36425304l-8.60086846-13.47016729-0.46318536-1.8752291-14.42082305-21.30475518c1.05318633 33.22347451 1.60451191 57.42426622 1.60451192 72.50254365v229.53787296h-89.15835059V303.99532753h140.37862325l77.89348828 115.26944679h1.3346956l80.12037832-115.26944678H610.08255019v417.34224141H519.02828457V472.82885791z" fill="#ffffff"></path></svg>`
 const pdf_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_44)"><g transform="matrix(1,0,0,1,0,0)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,24,24)"><path fill="rgb(255,87,34)" fill-opacity="1" d=" M16,21 C16,21 -16,21 -16,21 C-16,21 -16,-21 -16,-21 C-16,-21 6,-21 6,-21 C6,-21 16,-11 16,-11 C16,-11 16,21 16,21z"></path></g><g opacity="1" transform="matrix(1,0,0,1,33.75,9.25)"><path fill="rgb(251,233,231)" fill-opacity="1" d=" M4.75,4.75 C4.75,4.75 -4.75,4.75 -4.75,4.75 C-4.75,4.75 -4.75,-4.75 -4.75,-4.75 C-4.75,-4.75 4.75,4.75 4.75,4.75z"></path></g></g><g transform="matrix(1,0,0,1,24,24)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(255,255,255)" fill-opacity="1" d=" M-8,15 C-8.399999618530273,15 -8.699999809265137,14.899999618530273 -9,14.800000190734863 C-10.100000381469727,14.199999809265137 -10.199999809265137,13.300000190734863 -10,12.600000381469727 C-9.600000381469727,11.399999618530273 -7.400000095367432,9.899999618530273 -4.5,8.600000381469727 C-4.5,8.600000381469727 -4.5,8.600000381469727 -4.5,8.600000381469727 C-3.200000047683716,6.199999809265137 -2.200000047683716,3.700000047683716 -1.600000023841858,1.600000023841858 C-2.5999999046325684,-0.30000001192092896 -3.0999999046325684,-2.0999999046325684 -3.0999999046325684,-3.4000000953674316 C-3.0999999046325684,-4.099999904632568 -2.9000000953674316,-4.699999809265137 -2.5999999046325684,-5.199999809265137 C-2.200000047683716,-5.699999809265137 -1.600000023841858,-6 -0.800000011920929,-6 C0.10000000149011612,-6 0.800000011920929,-5.5 1.100000023841858,-4.599999904632568 C1.600000023841858,-3.4000000953674316 1.2999999523162842,-1.2000000476837158 0.6000000238418579,1.2999999523162842 C1.600000023841858,3 2.799999952316284,4.599999904632568 4.099999904632568,5.800000190734863 C6,5.400000095367432 7.699999809265137,5.199999809265137 8.800000190734863,5.400000095367432 C10.699999809265137,5.699999809265137 11,7 11,7.5 C11,9.600000381469727 8.800000190734863,9.600000381469727 8,9.600000381469727 C6.5,9.600000381469727 5,9 3.700000047683716,7.900000095367432 C3.700000047683716,7.900000095367432 3.700000047683716,7.900000095367432 3.700000047683716,7.900000095367432 C1.2999999523162842,8.5 -1.100000023841858,9.300000190734863 -3,10.199999809265137 C-4,11.899999618530273 -5,13.300000190734863 -5.900000095367432,14.100000381469727 C-6.800000190734863,14.800000190734863 -7.5,15 -8,15z M-6.800000190734863,12.100000381469727 C-7.300000190734863,12.399999618530273 -7.699999809265137,12.699999809265137 -7.900000095367432,13 C-7.699999809265137,12.899999618530273 -7.300000190734863,12.699999809265137 -6.800000190734863,12.100000381469727z M6.800000190734863,7.400000095367432 C7.199999809265137,7.5 7.599999904632568,7.599999904632568 8,7.599999904632568 C8.600000381469727,7.599999904632568 8.899999618530273,7.5 9,7.5 C9,7.5 9,7.5 9,7.5 C8.899999618530273,7.400000095367432 8.199999809265137,7.199999809265137 6.800000190734863,7.400000095367432z M-0.20000000298023224,3.799999952316284 C-0.6000000238418579,5 -1.2000000476837158,6.300000190734863 -1.7000000476837158,7.5 C-0.5,7.099999904632568 0.699999988079071,6.699999809265137 1.899999976158142,6.400000095367432 C1.100000023841858,5.599999904632568 0.4000000059604645,4.699999809265137 -0.20000000298023224,3.799999952316284z M-0.800000011920929,-4 C-0.8999999761581421,-4 -0.8999999761581421,-4 -0.8999999761581421,-4 C-1,-3.9000000953674316 -1.100000023841858,-3.200000047683716 -0.699999988079071,-1.7000000476837158 C-0.6000000238418579,-2.9000000953674316 -0.6000000238418579,-3.799999952316284 -0.800000011920929,-4z"></path></g></g></g></svg>`
 const file_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_63)"><g transform="matrix(1,0,0,1,7.75,2.75)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,16.25,21.25)"><path fill="rgb(144,201,248)" fill-opacity="1" d=" M16,21 C16,21 -16,21 -16,21 C-16,21 -16,-21 -16,-21 C-16,-21 6,-21 6,-21 C6,-21 16,-11 16,-11 C16,-11 16,21 16,21z"></path></g></g><g transform="matrix(1,0,0,1,15,21)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,1 C1,1 18,1 18,1"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,5 C1,5 14,5 14,5"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,9 C1,9 18,9 18,9"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,13 C1,13 14,13 14,13"></path></g></g><g transform="matrix(1,0,0,1,28.75,4.25)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,5,5)"><path fill="rgb(224,245,253)" fill-opacity="1" d=" M4.75,4.75 C4.75,4.75 -4.75,4.75 -4.75,4.75 C-4.75,4.75 -4.75,-4.75 -4.75,-4.75 C-4.75,-4.75 0,0 0,0 C0,0 4.75,4.75 4.75,4.75z"></path></g></g></g></svg>`
-
+// player function
+function playWith(player, url) {
+    const playerApps = {
+        mxplayer: {
+            intent: `intent:${url}#Intent;package=com.mxtech.videoplayer.ad;end`,
+            store: 'https://play.google.com/store/apps/details?id=com.mxtech.videoplayer.ad'
+        },
+        vlc: {
+            intent: `intent:${url}#Intent;package=org.videolan.vlc;end`,
+            store: 'https://play.google.com/store/apps/details?id=org.videolan.vlc'
+        },
+        playit: {
+            intent: `intent:${url}#Intent;package=com.playit.videoplayer;end`,
+            store: 'https://play.google.com/store/apps/details?id=com.playit.videoplayer'
+        },
+        xplayer: {
+            intent: `intent:${url}#Intent;package=video.player.videoplayer;end`,
+            store: 'https://play.google.com/store/apps/details?id=video.player.videoplayer'
+        },
+        kmplayer: {
+            intent: `intent:${url}#Intent;package=com.kmplayer;end`,
+            store: 'https://play.google.com/store/apps/details?id=com.kmplayer'
+        },
+        splayer: {
+            intent: `intent:${url}#Intent;package=com.young.simple.player;end`,
+            store: 'https://play.google.com/store/apps/details?id=com.young.simple.player'
+        }
+    };
+    
+    if (!playerApps[player]) return;
+    
+    try {
+        // First try with full intent
+        window.location.href = playerApps[player].intent;
+    } catch (e) {
+        // Fallback to Play Store immediately on error
+        window.location.href = playerApps[player].store;
+        return;
+    }
+    
+    // Fallback to Play Store if player not installed
+    setTimeout(() => {
+        if (!document.hidden) {
+            window.location.href = playerApps[player].store;
+        }
+    }, 500);
+}
 // Don't know new OS thing, so I just copied it from the original source code and edited something.
 const Os = {
     isWindows: navigator.userAgent.toUpperCase().indexOf('WIN') > -1, // .includes
@@ -1456,7 +1502,37 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
   <div class="card text-center">
     <div class="text-center">
       <div class="${UI.file_view_alert_class}" id="file_details" role="alert">${name}<br>${size}</div>${player}</div>
-    </br>
+    </br>`;
+		// Player buttons HTML
+const playerButtonsHTML = `
+<div class="player-section-title">Play With</div>
+<div class="player-buttons">
+    <div class="player-btn" onclick="playWith('mxplayer', '${url}')">
+        <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player">
+        <span>MX Player</span>
+    </div>
+    <div class="player-btn" onclick="playWith('vlc', '${url}')">
+        <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player">
+        <span>VLC Player</span>
+    </div>
+    <div class="player-btn" onclick="playWith('playit', '${url}')">
+        <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit">
+        <span>Playit</span>
+    </div>
+    <div class="player-btn" onclick="playWith('xplayer', '${url}')">
+        <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer">
+        <span>XPlayer</span>
+    </div>
+    <div class="player-btn" onclick="playWith('kmplayer', '${url}')">
+        <img src="https://i.ibb.co/6n0BfVW/kmplayer.png" alt="KM Player">
+        <span>KM Player</span>
+    </div>
+    <div class="player-btn" onclick="playWith('splayer', '${url}')">
+        <img src="https://i.ibb.co/2k1Cx3K/splayer.png" alt="S Player">
+        <span>S Player</span>
+    </div>
+</div>`;
+	  ${playerButtonsHTML}
     ${UI.disable_video_download ? `` : `
       <div class="card-body">
       <!-- Hidden URL input box -->
@@ -1481,6 +1557,63 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
 </div>
 `;
     $("#content").html(content);
+		// Player buttons CSS
+const playerButtonsCSS = `
+.player-buttons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.player-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 12px;
+    width: 90px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.player-btn:hover {
+    transform: translateY(-5px);
+    background: rgba(75, 191, 235, 0.2);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.player-btn img {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 8px;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+.player-btn span {
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    color: #e0e0e0;
+}
+
+.player-section-title {
+    text-align: center;
+    margin: 20px 0 10px;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #4bbfeb;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}`;
+
+// Add CSS to head
+const style = document.createElement('style');
+style.innerHTML = playerButtonsCSS;
+document.head.appendChild(style);
 
     // Load Video.js and initialize the player
     var videoJsScript = document.createElement('script');
@@ -1573,6 +1706,15 @@ var content = `
   <div class="card text-center">
     <div class="text-center">
       <div class="${UI.file_view_alert_class}" id="file_details" role="alert">${name}<br>${size}</div>
+	       ${UI.disable_player ? `` : `
+  <video id="aplayer" poster="${UI.audioposter}" muted=true class="video-js vjs-default-skin" controls preload="auto" width="100%" height="100%" data-setup='{"fluid": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000;">
+    <source src="${url}" type="audio/mpeg" />
+    <source src="${url}" type="audio/ogg" />
+    <source src="${url}" type="audio/wav" />
+  </video>`}
+</div>
+</br>
+${playerButtonsHTML}  <!-- SAME AS VIDEO BUTTONS -->
       ${UI.disable_player ? `` : `
       <video id="aplayer" poster="${UI.audioposter}" muted=true class="video-js vjs-default-skin" controls preload="auto" width="100%" height="100%" data-setup='{"fluid": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000;">
         <source src="${url}" type="audio/mpeg" />
@@ -1581,6 +1723,7 @@ var content = `
       </video>`}
     </div>
     </br>
+	  ${playerButtonsHTML}
     ${UI.disable_audio_download ? `` : `
       <div class="card-body">
       <!-- URL input box hidden with style="display: none" -->
@@ -1606,6 +1749,13 @@ var content = `
 </div>
 `;
     $("#content").html(content);
+		// Player buttons CSS (same as video)
+const playerButtonsCSS = `...`; // SAME CSS AS IN file_video
+
+// Add CSS to head
+const style = document.createElement('style');
+style.innerHTML = playerButtonsCSS;
+document.head.appendChild(style);
 
     // Load Video.js and initialize the player
     var videoJsScript = document.createElement('script');
@@ -1621,8 +1771,6 @@ var content = `
     videoJsStylesheet.rel = 'stylesheet';
     document.head.appendChild(videoJsStylesheet);
 }
-
-
 
 // Document display pdf
 function file_pdf(name, encoded_name, size, url, file_id, cookie_folder_id) {
