@@ -1465,7 +1465,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
       </div>
       <div class="btn-group text-center">
           <a href="${url}" type="button" class="btn btn-secondary">Download</a>
-          <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <span class="sr-only"></span>
           </button>
           <div class="dropdown-menu">
@@ -1594,7 +1594,7 @@ var content = `
       </div>
       <div class="btn-group text-center">
           <a href="${url}" type="button" class="btn btn-secondary">Download</a>
-          <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <span class="sr-only"></span>
           </button>
           <div class="dropdown-menu">
