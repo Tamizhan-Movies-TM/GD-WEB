@@ -1470,7 +1470,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
           </button>
           <div class="dropdown-menu">
 					<a class="dropdown-item" href="intent:${url}#Intent;type=video/play;package=com.mxtech.videoplayer.ad;scheme=https;S.title=${encoded_name};end">MX Player Free</a>
-		      <a class="dropdown-item" href="intent://${url.replace('https://', '')}/#Intent;type=video/any;package=com.playit.videoplayer;scheme=https;S.title=${encoded_name};end">PlayIt</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">PlayIt</a>
           <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
           <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
           <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
@@ -1596,7 +1596,7 @@ var content = `
           </button>
           <div class="dropdown-menu">
 					<a class="dropdown-item" href="intent:${url}#Intent;type=video/play;package=com.mxtech.videoplayer.ad;scheme=https;S.title=${encoded_name};end">MX Player Free</a>
-		      <a class="dropdown-item" href="intent://${url.replace('https://', '')}/#Intent;type=video/any;package=com.playit.videoplayer;scheme=https;S.title=${encoded_name};end">PlayIt</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=audio/*;S.title=${encoded_name};end">PlayIt</a>
           <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
           <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
           <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
