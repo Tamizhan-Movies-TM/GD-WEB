@@ -1,21 +1,39 @@
 {
   "name": "@googledrive/index",
   "version": "1.0.0",
-  "description": "Google Drive Index",
+  "description": "A beautiful and performant Google Drive Index with dark mode.",
   "main": "dist/index.min.js",
-  "files": ["dist"],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Karthick36/Google-Drive-Index"
-  },
+  "files": [
+    "dist",
+    "assets"
+  ],
   "scripts": {
-    "build": "mkdir -p dist && minify src/app.js > dist/index.min.js",
+    "build": "npm run clean && npm run minify-js && npm run minify-css && npm run copy-assets",
+    "clean": "rm -rf dist && mkdir dist",
+    "minify-js": "terser src/app.js -c -m -o dist/index.min.js",
+    "minify-css": "cleancss -O2 src/style.css -o dist/index.min.css",
+    "copy-assets": "cp -r assets dist/",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["google-drive", "index", "cloud-storage"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Karthick36/Google-Drive-Index.git"
+  },
+  "keywords": [
+    "google-drive",
+    "index",
+    "cloud-storage",
+    "drive-index",
+    "file-manager"
+  ],
   "author": "Karthick36",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Karthick36/Google-Drive-Index/issues"
+  },
+  "homepage": "https://github.com/Karthick36/Google-Drive-Index#readme",
   "devDependencies": {
-    "minify": "^9.1.0"
+    "clean-css-cli": "^5.6.1",
+    "terser": "^5.16.1"
   }
 }
