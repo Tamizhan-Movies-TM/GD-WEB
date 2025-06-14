@@ -1285,8 +1285,8 @@ function file_others(name, encoded_name, size, url, file_id, cookie_folder_id) {
             </div>
             <div class="card-text text-center">
             <div class="btn-group text-center">
-                <a href="${url}" type="button" class="btn btn-success">Download</a>
-                <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <a href="${url}" type="button" class="btn btn-Success">Download</a>
+                <button type="button" class="btn btn-Success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <span class="sr-only"></span>
                 </button>
                 <div class="dropdown-menu">
@@ -1357,8 +1357,8 @@ function file_code(name, encoded_name, size, bytes, url, ext, file_id, cookie_fo
           </div>
           <div class="card-text text-center">
             <div class="btn-group text-center">
-              <a href="${url}" type="button" class="btn btn-success">Download</a>
-              <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <a href="${url}" type="button" class="btn btn-Success">Download</a>
+              <button type="button" class="btn btn-Success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="sr-only"></span>
               </button>
               <div class="dropdown-menu">
@@ -1463,8 +1463,8 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
           <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
           </div>
           <div class="btn-group text-center">
-              <a href="${url}" type="button" class="btn btn-primary">Download</a>
-              <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <a href="${url}" type="button" class="btn btn-Success">Download</a>
+              <button type="button" class="btn btn-Success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
               </button>
               <div class="dropdown-menu">
@@ -1586,8 +1586,8 @@ function file_audio(name, encoded_name, size, url, file_id, cookie_folder_id) {
           <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
           </div>
           <div class="btn-group text-center">
-              <a href="${url}" type="button" class="btn btn-primary">Download</a>
-              <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <a href="${url}" type="button" class="btn btn-Success">Download</a>
+              <button type="button" class="btn btn-Success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
               </button>
               <div class="dropdown-menu">
@@ -1668,7 +1668,7 @@ function file_pdf(name, encoded_name, size, url, file_id, cookie_folder_id) {
     </div>
     <div class="card-text text-center">
     <div class="btn-group text-center">
-        <a href="${url}" type="button" class="btn btn-primary">Success</a>
+        <a href="${url}" type="button" class="btn btn-Success">Download</a>
         <button type="button" class="btn btn-Success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span class="sr-only"></span>
         </button>
@@ -1735,8 +1735,8 @@ function file_image(name, encoded_name, size, url, file_id, cookie_folder_id) {
           </div>
           <div class="card-text text-center">
             <div class="btn-group text-center">
-              <a href="${url}" type="button" class="btn btn-primary">Download</a>
-              <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <a href="${url}" type="button" class="btn btn-Success">Download</a>
+              <button type="button" class="btn btn-Success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="sr-only"></span>
               </button>
               <div class="dropdown-menu">
