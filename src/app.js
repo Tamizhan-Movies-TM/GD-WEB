@@ -1668,8 +1668,8 @@ function file_pdf(name, encoded_name, size, url, file_id, cookie_folder_id) {
     </div>
     <div class="card-text text-center">
     <div class="btn-group text-center">
-        <a href="${url}" type="button" class="btn btn-primary">Download</a>
-        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <a href="${url}" type="button" class="btn btn-primary">Success</a>
+        <button type="button" class="btn btn-Success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span class="sr-only"></span>
         </button>
         <div class="dropdown-menu">
