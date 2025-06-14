@@ -1286,7 +1286,7 @@ function file_others(name, encoded_name, size, url, file_id, cookie_folder_id) {
             <div class="card-text text-center">
             <div class="btn-group text-center">
                 <a href="${url}" type="button" class="btn btn-success">Download</a>
-                <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <span class="sr-only"></span>
                 </button>
                 <div class="dropdown-menu">
@@ -1358,7 +1358,7 @@ function file_code(name, encoded_name, size, bytes, url, ext, file_id, cookie_fo
           <div class="card-text text-center">
             <div class="btn-group text-center">
               <a href="${url}" type="button" class="btn btn-danger">Download</a>
-              <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="sr-only"></span>
               </button>
               <div class="dropdown-menu">
@@ -1464,7 +1464,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
           </div>
           <div class="btn-group text-center">
               <a href="${url}" type="button" class="btn btn-danger">Download</a>
-              <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
               </button>
               <div class="dropdown-menu">
