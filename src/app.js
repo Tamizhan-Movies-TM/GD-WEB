@@ -334,13 +334,40 @@ function list(path, id = '', fallback = false) {
         <button id="handle-multiple-items-copy" style="padding: 5px 10px; font-size: 12px;" class="btn btn-success">Copy</button>
       </div>
     </div>
-    <!-- REMOVE THE ENTIRE BREADCRUMB SECTION BELOW -->
-    <div id="list" class="list-group text-break"></div>
-    <div class="${UI.file_count_alert_class} text-center d-none" role="alert" id="count"><span class="number text-center"></span> | <span class="totalsize text-center"></span></div>
-    <div id="readme_md" style="display:none; padding: 20px 20px;"></div>
+    <div class="${UI.path_nav_alert_class} d-flex align-items-center" role="alert" style="margin-bottom: 0; padding-bottom: 0rem;">
+      <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+        <ol class="breadcrumb" id="folderne">
+          <li class="breadcrumb-item"><a href="/">Home</a></li>`;
+
+    var navfulllink = window.location.pathname;
+    var navarray = navfulllink.trim('/').split('/');
+    var currentPath = '/';
+
+    if (navarray.length > 1) {
+        for (var i in navarray) {
+            var pathPart = navarray[i];
+            var decodedPathPart = decodeURIComponent(pathPart).replace(/\//g, '%2F');
+            var trimmedPathPart = decodedPathPart.replace(/\?.+/g, "$'");
+
+            var displayedPathPart = trimmedPathPart.length > 15 ? trimmedPathPart.slice(0, 5) + '...' : trimmedPathPart.slice(0, 15);
+
+            currentPath += pathPart + '/';
+
+            if (displayedPathPart === '') {
+                break;
+            }
+
+            containerContent += `<li class="breadcrumb-item"><a href="${currentPath}">${displayedPathPart}</a></li>`;
+        }
+    }
+
+    containerContent += `</ol>
+    </nav>
+  </div>
+  <div id="list" class="list-group text-break"></div>
+  <div class="${UI.file_count_alert_class} text-center d-none" role="alert" id="count"><span class="number text-center"></span> | <span class="totalsize text-center"></span></div>
+  <div id="readme_md" style="display:none; padding: 20px 20px;"></div>
 </div>`;
-    // ... rest of the function remains unchanged ...
-}
 
     $('#content').html(containerContent);
 
