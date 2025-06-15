@@ -644,7 +644,6 @@ function append_files_to_fallback_list(path, files) {
         $list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
-					  $('.breadcrumb').closest(`.${UI.path_nav_alert_class}`).addClass('hide-breadcrumb-text');
             total_size = formatFileSize(totalsize) || '0 Bytes';
             total_items = $list.find('.countitems').length;
             total_files = $list.find('.size_items').length;
@@ -787,7 +786,6 @@ function append_files_to_list(path, files) {
     $list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
     // When it is the last page, count and display the total number of items
     if (is_lastpage_loaded) {
-			$('.breadcrumb').closest(`.${UI.path_nav_alert_class}`).addClass('hide-breadcrumb-text');
         total_size = formatFileSize(totalsize) || '0 Bytes';
         total_items = $list.find('.countitems').length;
         total_files = $list.find('.size_items').length;
@@ -1813,14 +1811,7 @@ String.prototype.trim = function(char) {
     }
     return this.replace(/^\s+|\s+$/g, '');
 };
-// Add this at the very bottom of your file
-$(function() {
-    setInterval(() => {
-        if ($('.hide-breadcrumb-text').length) {
-            console.log('Breadcrumb text is currently hidden');
-        }
-    }, 3000);
-});
+
 
 // README.md HEAD.md support
 function markdown(el, data) {
