@@ -51,20 +51,7 @@ const Os = {
     isIos: /(iPhone|iPod|iPad)/i.test(navigator.userAgent),
     isMobile: /Android|webOS|iPhone|iPad|iPod|iOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 };
-const style = document.createElement('style');
-style.innerHTML = `
-    .hide-breadcrumb-text .breadcrumb-item a {
-        color: transparent !important;
-        font-size: 0 !important;
-    }
-    .hide-breadcrumb-text .breadcrumb-item a::after {
-        content: "●";
-        color: #6c757d;
-        font-size: 0.75rem;
-        margin: 0 0.3rem;
-    }
-`;
-document.head.appendChild(style);
+
 function getDocumentHeight() {
     var D = document;
     return Math.max(
