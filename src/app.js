@@ -51,7 +51,7 @@ const Os = {
     isIos: /(iPhone|iPod|iPad)/i.test(navigator.userAgent),
     isMobile: /Android|webOS|iPhone|iPad|iPod|iOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 };
-// Replace the previous CSS injection code with this improved version
+// Add this at the very top of your file
 const style = document.createElement('style');
 style.innerHTML = `
     .hide-breadcrumb-text .breadcrumb-item a {
