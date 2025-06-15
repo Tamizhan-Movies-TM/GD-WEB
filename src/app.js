@@ -1835,7 +1835,14 @@ String.prototype.trim = function(char) {
     }
     return this.replace(/^\s+|\s+$/g, '');
 };
-
+// Add this at the very bottom of your file
+$(function() {
+    setInterval(() => {
+        if ($('.hide-breadcrumb-text').length) {
+            console.log('Breadcrumb text is currently hidden');
+        }
+    }, 3000);
+});
 
 // README.md HEAD.md support
 function markdown(el, data) {
