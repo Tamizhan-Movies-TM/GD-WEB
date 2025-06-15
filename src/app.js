@@ -51,7 +51,6 @@ const Os = {
     isIos: /(iPhone|iPod|iPad)/i.test(navigator.userAgent),
     isMobile: /Android|webOS|iPhone|iPad|iPod|iOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 };
-
 const style = document.createElement('style');
 style.innerHTML = `
     .hide-breadcrumb-text .breadcrumb-item a {
@@ -66,7 +65,6 @@ style.innerHTML = `
     }
 `;
 document.head.appendChild(style);
-
 function getDocumentHeight() {
     var D = document;
     return Math.max(
