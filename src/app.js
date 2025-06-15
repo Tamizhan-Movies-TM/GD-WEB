@@ -51,28 +51,6 @@ const Os = {
     isIos: /(iPhone|iPod|iPad)/i.test(navigator.userAgent),
     isMobile: /Android|webOS|iPhone|iPad|iPod|iOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 };
-// Add this at the very top of your file
-const style = document.createElement('style');
-style.innerHTML = `
-    .hide-breadcrumb-text .breadcrumb-item a {
-        color: transparent !important;
-        font-size: 0 !important;
-        position: relative;
-    }
-    .hide-breadcrumb-text .breadcrumb-item a::after {
-        content: "●";
-        color: #6c757d;
-        font-size: 0.75rem;
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
-    .hide-breadcrumb-text .breadcrumb-item:not(:first-child)::before {
-        content: "" !important;
-    }
-`;
-document.head.appendChild(style);
 
 function getDocumentHeight() {
     var D = document;
