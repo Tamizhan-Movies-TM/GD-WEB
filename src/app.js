@@ -52,6 +52,21 @@ const Os = {
     isMobile: /Android|webOS|iPhone|iPad|iPod|iOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 };
 
+const style = document.createElement('style');
+style.innerHTML = `
+    .hide-breadcrumb-text .breadcrumb-item a {
+        color: transparent !important;
+        font-size: 0 !important;
+    }
+    .hide-breadcrumb-text .breadcrumb-item a::after {
+        content: "●";
+        color: #6c757d;
+        font-size: 0.75rem;
+        margin: 0 0.3rem;
+    }
+`;
+document.head.appendChild(style);
+
 function getDocumentHeight() {
     var D = document;
     return Math.max(
@@ -644,6 +659,7 @@ function append_files_to_fallback_list(path, files) {
         $list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
+					  $('.breadcrumb').closest(`.${UI.path_nav_alert_class}`).addClass('hide-breadcrumb-text');
             total_size = formatFileSize(totalsize) || '0 Bytes';
             total_items = $list.find('.countitems').length;
             total_files = $list.find('.size_items').length;
@@ -786,6 +802,7 @@ function append_files_to_list(path, files) {
     $list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
     // When it is the last page, count and display the total number of items
     if (is_lastpage_loaded) {
+			$('.breadcrumb').closest(`.${UI.path_nav_alert_class}`).addClass('hide-breadcrumb-text');
         total_size = formatFileSize(totalsize) || '0 Bytes';
         total_items = $list.find('.countitems').length;
         total_files = $list.find('.size_items').length;
