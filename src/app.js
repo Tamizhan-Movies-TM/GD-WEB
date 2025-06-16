@@ -1376,7 +1376,7 @@ function file_code(name, encoded_name, size, bytes, url, ext, file_id, cookie_fo
     $('#content').html(content);
     var spinner = '<div class="d-flex justify-content-center"><div class="spinner-border m-5" role="status"><span class="sr-only"></span></div></div>';
     $("#code_spinner").html(spinner);
-    if (bytes <= 1024 * 1024 * 2) {
+    if (rawSize <= 1024 * 1024 * 2) {
         $.get(url, function(data) {
             $('#editor').html($('<div/>').text(data).html());
             $("#code_spinner").html("");
