@@ -1816,6 +1816,8 @@ window.onpopstate = function() {
 }
 
 $(function() {
+	  if (typeof marked !== 'undefined') {
+        marked.setOptions({ sanitize: true });
     init();
     var path = window.location.pathname;
     /*$("body").on("click", '.folder', function () {
