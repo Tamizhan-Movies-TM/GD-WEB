@@ -1448,11 +1448,6 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     // Add the container and card elements
   var content = `
   <div class="container text-center"><br>
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-      ${navigation}
-    </ol>
-  </nav>
   <div class="card text-center">
     <div class="text-center">
       <div class="${UI.file_view_alert_class}" id="file_details" role="alert">${name}<br>${size}</div>${player}</div>
