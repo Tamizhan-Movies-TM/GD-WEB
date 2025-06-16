@@ -689,7 +689,7 @@ function append_files_to_list(path, files) {
         item['modifiedTime'] = utc2delhi(item['modifiedTime']);
         // replace / with %2F
         if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-            html += `<a href="${p}" style="color: ${UI.folder_text_color};" class="countitems list-group-item list-group-item-action"> ${folder_icon} ${item.name} ${UI.display_time ? `<span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</a>`;
+            html += `<a href="${p}" style="color: ${UI.folder_text_color};" class="countitems list-group-item list-group-item-action"> ${folder_icon} ${escapeHtml(item.name) ${UI.display_time ? `<span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</a>`;
         } else {
             var totalsize = totalsize + Number(item.size);
             item['size'] = formatFileSize(item['size']);
