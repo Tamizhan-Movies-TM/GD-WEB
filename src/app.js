@@ -548,7 +548,7 @@ function append_files_to_fallback_list(path, files) {
             item['modifiedTime'] = utc2delhi(item['modifiedTime']);
             // replace / with %2F
             if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-                html += `<a href="${p}" style="color: ${UI.folder_text_color};" class="countitems list-group-item list-group-item-action"> ${folder_icon} ${item.name} ${UI.display_time ? `<span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</a>`;
+                html += `<a href="${p}" style="color: ${UI.folder_text_color};" class="countitems list-group-item list-group-item-action"> ${folder_icon} ${escapeHtml(item.name) ${UI.display_time ? `<span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</a>`;
             } else {
                 var totalsize = totalsize + Number(item.size);
                 item['size'] = formatFileSize(item['size']);
@@ -977,7 +977,7 @@ function append_search_result_to_list(files) {
 
             item['modifiedTime'] = utc2delhi(item['modifiedTime']);
             if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-                html += `<a style="color: ${UI.folder_text_color};" onclick="onSearchResultItemClick('${item['id']}', false)" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems list-group-item list-group-item-action"> ${folder_icon} ${item.name} ${UI.display_time ? `<span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</a>`;
+                html += `<a style="color: ${UI.folder_text_color};" onclick="onSearchResultItemClick('${item['id']}', false)" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems list-group-item list-group-item-action"> ${folder_icon} ${escapeHtml(item.name) ${UI.display_time ? `<span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</a>`;
             } else {
                 var is_file = true;
                 var totalsize = totalsize + Number(item.size);
