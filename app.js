@@ -246,23 +246,21 @@ function list(path, id = '', fallback = false) {
         <ol class="breadcrumb" id="folderne">
           <li class="breadcrumb-item"><a href="/">Home</a></li>`;
 
-    var navfulllink = window.location.pathname;
-    var navarray = navfulllink.trim('/').split('/');
+    var navfulllink = path; // FIX: Use the actual path instead of window.location
+    var navarray = navfulllink.replace(/^\//, '').split('/');
     var currentPath = '/';
 
-    if (navarray.length > 1) {
-        for (var i in navarray) {
+    if (navarray.length > 1 || navarray[0] !== '') {
+        for (var i = 0; i < navarray.length; i++) {
             var pathPart = navarray[i];
-            var decodedPathPart = decodeURIComponent(pathPart).replace(/\//g, '%2F');
-            var trimmedPathPart = decodedPathPart.replace(/\?.+/g, "$'");
-
-            var displayedPathPart = trimmedPathPart.length > 15 ? trimmedPathPart.slice(0, 5) + '...' : trimmedPathPart.slice(0, 15);
+            if (pathPart === '') continue;
+            
+            var decodedPathPart = decodeURIComponent(pathPart);
+            var displayedPathPart = decodedPathPart.length > 15 ? 
+                decodedPathPart.slice(0, 5) + '...' + decodedPathPart.slice(-5) : 
+                decodedPathPart;
 
             currentPath += pathPart + '/';
-
-            if (displayedPathPart === '') {
-                break;
-            }
 
             containerContent += `<li class="breadcrumb-item"><a href="${currentPath}">${displayedPathPart}</a></li>`;
         }
@@ -274,10 +272,9 @@ function list(path, id = '', fallback = false) {
   <div id="list" class="list-group text-break"></div>
   <div class="${UI.file_count_alert_class} text-center d-none" role="alert" id="count"><span class="number text-center"></span> | <span class="totalsize text-center"></span></div>
   <div id="readme_md" style="display:none; padding: 20px 20px;"></div>
-</div>`;
 
     $('#content').html(containerContent);
-
+}
     var password = localStorage.getItem('password' + path);
 
     $('#list').html(`<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`);
