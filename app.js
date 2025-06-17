@@ -122,6 +122,27 @@ function render(path) {
     }
 }
 
+// This is the critical fix - handles clicks on files/folders
+$(document).on('click', '#content a', function(e) {
+    e.preventDefault();
+    var href = $(this).attr('href');
+    if (href.indexOf('://') > -1 || href.startsWith('mailto:') || href.startsWith('tel:')) {
+        window.open(href, '_blank');
+    } else if (href === '#') {
+        // do nothing
+    } else {
+        render(href);
+    }
+});
+
+// Initialize and render
+$(function() {
+    init();
+    var path = window.location.pathname;
+    render(path);
+});
+```
+
 // ======== MODIFIED FILE FUNCTION ======== //
 async function file(path) {
     // Create virtual path for file
