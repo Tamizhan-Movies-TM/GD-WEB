@@ -1391,11 +1391,11 @@ function file_code(name, encoded_name, size, bytes, url, ext, file_id, cookie_fo
 
 function file_video(name, encoded_name, size, poster, url, mimeType, file_id, cookie_folder_id) {
     // Define all player icons
-    const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const download_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 5px;">
+    const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px;">`;
+    const playit_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="Playit" style="height: 32px; width: 32px;">`;
+    const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px;">`;
+    const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px;">`;
+    const download_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
       <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
       <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
     </svg>`;
@@ -1455,8 +1455,8 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     <div class="container text-center"><br>
       <div class="card text-center">
         <div class="text-center">
-          <div class="${UI.file_view_alert_class}" id="file_details" role="alert">
-            <div class="fs-5 fw-bold">${name}</div>
+          <div class="${UI.file_view_alert_class} mb-3" id="file_details" role="alert">
+            <h4 class="mb-1">${name}</h4>
             <div class="text-muted">${size}</div>
           </div>
           ${player}
@@ -1464,48 +1464,51 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         </br>
         ${UI.disable_video_download ? `` : `
           <div class="card-body">
-            <!-- Player Buttons Grid -->
-            <div class="container">
-              <div class="row row-cols-2 g-2">
-                <!-- Player Buttons -->
-                <div class="col">
-                  <button type="button" class="btn btn-outline-primary w-100 py-2"
+            <!-- Player Buttons Section -->
+            <div class="container px-0">
+              <!-- VLC & MX Player Row -->
+              <div class="row mb-4 pb-2 border-bottom">
+                <div class="col-6 text-center">
+                  <button type="button" class="btn btn-outline-primary w-100"
                     onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                     ${vlc_icon}
-                    <div class="mt-1">VLC Player</div>
+                    <div class="mt-2 fw-bold">VLC Player</div>
                   </button>
                 </div>
                 
-                <div class="col">
-                  <button type="button" class="btn btn-outline-primary w-100 py-2"
+                <div class="col-6 text-center">
+                  <button type="button" class="btn btn-outline-primary w-100"
                     onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                     ${mxplayer_icon}
-                    <div class="mt-1">MX Player</div>
+                    <div class="mt-2 fw-bold">MX Player</div>
                   </button>
                 </div>
-                
-                <div class="col">
-                  <button type="button" class="btn btn-outline-primary w-100 py-2"
+              </div>
+              
+              <!-- XPlayer & Playit Row -->
+              <div class="row mb-4 pb-2 border-bottom">
+                <div class="col-6 text-center">
+                  <button type="button" class="btn btn-outline-primary w-100"
                     onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                     ${xplayer_icon}
-                    <div class="mt-1">XPlayer</div>
+                    <div class="mt-2 fw-bold">XPlayer</div>
                   </button>
                 </div>
                 
-                <div class="col">
-                  <button type="button" class="btn btn-outline-primary w-100 py-2"
+                <div class="col-6 text-center">
+                  <button type="button" class="btn btn-outline-primary w-100"
                     onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                     ${playit_icon}
-                    <div class="mt-1">Playit</div>
+                    <div class="mt-2 fw-bold">Playit</div>
                   </button>
                 </div>
               </div>
               
               <!-- Download Button -->
-              <div class="mt-3">
+              <div class="mt-4">
                 <a href="${url}" class="btn btn-secondary w-100 py-3">
                   ${download_icon}
-                  <span class="ms-2 fs-5">Download</span>
+                  <span class="ms-2 fs-5 fw-bold">Download</span>
                 </a>
               </div>
             </div>
