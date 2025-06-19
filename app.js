@@ -1388,7 +1388,15 @@ function file_code(name, encoded_name, size, bytes, url, ext, file_id, cookie_fo
 
 
 // Document display video |mp4|webm|avi|
+const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
 const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
+const playit_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`;
+const download_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 5px;">
+  <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+  <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+</svg>`;
+
 function file_video(name, encoded_name, size, poster, url, mimeType, file_id, cookie_folder_id) {
     var url_base64 = btoa(url);
     // Split the file path into parts
@@ -1442,7 +1450,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     }
 	
     // Add the container and card elements
-   var content = `
+    var content = `
     <div class="container text-center"><br>
       <div class="card text-center">
         <div class="text-center">
@@ -1454,29 +1462,35 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             <div class="input-group mb-4" style="display: none;">
               <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
             </div>
-            <div class="d-flex flex-wrap justify-content-center">
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+              <!-- VLC Player Button -->
+              <button type="button" class="btn btn-outline-primary"
+                onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                ${vlc_icon} VLC
+              </button>
+              
+              <!-- Playit Button -->
+              <button type="button" class="btn btn-outline-primary"
+                onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                ${playit_icon} Playit
+              </button>
+              
+              <!-- XPlayer Button -->
+              <button type="button" class="btn btn-outline-primary"
+                onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                ${xplayer_icon} XPlayer
+              </button>
+              
               <!-- MX Player Button -->
-              <div class="btn-group me-2">
-                <button type="button" class="btn btn-outline-primary"
-                  onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                  ${mxplayer_icon} MX Player
-                </button>
-              </div>
-            
-              <!-- Download and Dropdown Button Group -->
-              <div class="btn-group">
-                <a href="${url}" type="button" class="btn btn-secondary">Download Video</a>
-                <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  <span class="sr-only"></span>
-                </button>
-                <div class="dropdown-menu">
-                  <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
-                  <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
-                  <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
-                  <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
-                  <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-                </div>
-              </div>
+              <button type="button" class="btn btn-outline-primary"
+                onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                ${mxplayer_icon} MX Player
+              </button>
+              
+              <!-- Download Button -->
+              <a href="${url}" class="btn btn-secondary">
+                ${download_icon} Download
+              </a>
             </div>
             <br>
           </div>          
@@ -1486,7 +1500,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     `;
 
     $("#content").html(content);
-
+}
     // Load Video.js and initialize the player
     var videoJsScript = document.createElement('script');
     videoJsScript.src = player_js;
