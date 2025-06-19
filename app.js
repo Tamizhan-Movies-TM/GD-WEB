@@ -34,7 +34,7 @@ function init() {
 }
 
 const folder_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_11)"><g transform="matrix(1,0,0,1,0,0)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,24,24)"><path fill="rgb(255,159,0)" fill-opacity="1" d=" M16,-12 C16,-12 -2,-12 -2,-12 C-2,-12 -6,-16 -6,-16 C-6,-16 -16,-16 -16,-16 C-18.200000762939453,-16 -20,-14.199999809265137 -20,-12 C-20,-12 -20,12 -20,12 C-20,14.208999633789062 -18.208999633789062,16 -16,16 C-16,16 13.682000160217285,16 13.682000160217285,16 C13.682000160217285,16 20,5 20,5 C20,5 20,-8 20,-8 C20,-10.199999809265137 18.200000762939453,-12 16,-12z"></path></g></g><g transform="matrix(1,0,0,1,0,0)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,24,26)"><path fill="rgb(255,201,40)" fill-opacity="1" d=" M16,-14 C16,-14 -16,-14 -16,-14 C-18.200000762939453,-14 -20,-12.199999809265137 -20,-10 C-20,-10 -20,10 -20,10 C-20,12.199999809265137 -18.200000762939453,14 -16,14 C-16,14 16,14 16,14 C18.200000762939453,14 20,12.199999809265137 20,10 C20,10 20,-10 20,-10 C20,-12.199999809265137 18.200000762939453,-14 16,-14z"></path></g></g></g></svg>`
-const video_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_11)"><g transform="matrix(1,0,0,1,24,24)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(63,81,181)" fill-opacity="1" d=" M16,17 C16,17 -16,17 -16,17 C-16,17 -16,-9 -16,-9 C-16,-9 20,-9 20,-9 C20,-9 20,13 20,13 C20,15.199999809265137 18.200000762939453,17 16,17z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M16,-9 C16,-9 12,-3 12,-3 C12,-3 16,-3 16,-3 C16,-3 20,-9 20,-9 C20,-9 16,-9 16,-9z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M8,-9 C8,-9 4,-3 4,-3 C4,-3 8,-3 8,-3 C8,-3 12,-9 12,-9 C12,-9 8,-9 8,-9z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M0,-9 C0,-9 -4,-3 -4,-3 C-4,-3 0,-3 0,-3 C0,-3 4,-9 4,-9 C4,-9 0,-9 0,-9z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M-8,-9 C-8,-9 -12,-3 -12,-3 C-12,-3 -8,-3 -8,-3 C-8,-3 -4,-9 -4,-9 C-4,-9 -8,-9 -8,-9z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M-16,-9 C-16,-9 -20,-3 -20,-3 C-20,-3 -16,-3 -16,-3 C-16,-3 -12,-9 -12,-9 C-12,-9 -16,-9 -16,-9z"></path></g></g></g><g transform="matrix(1,0,0,1,24,24)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(63,81,181)" fill-opacity="1" d=" M19.399999618530273,-15.699999809265137 C19.399999618530273,-15.699999809265137 -20,-9 -20,-9 C-20,-9 -20.299999237060547,-11 -20.299999237060547,-11 C-20.700000762939453,-13.199999809265137 -19.200000762939453,-15.199999809265137 -17,-15.600000381469727 C-17,-15.600000381469727 14.600000381469727,-20.899999618530273 14.600000381469727,-20.899999618530273 C16.799999237060547,-21.299999237060547 18.799999237060547,-19.799999237060547 19.200000762939453,-17.600000381469727 C19.200000762939453,-17.600000381469727 19.399999618530273,-15.699999809265137 19.399999618530273,-15.699999809265137z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M-5.199999809265137,-17.600000381469727 C-5.199999809265137,-17.600000381469727 -0.30000001192092896,-12.300000190734863 -0.30000001192092896,-12.300000190734863 C-0.30000001192092896,-12.300000190734863 3.700000047683716,-13 3.700000047683716,-13 C3.700000047683716,-13 -1.2999999523162842,-18.299999237060547 -1.2999999523162842,-18.299999237060547 C-1.2999999523162842,-18.299999237060547 -5.199999809265137,-17.600000381469727 -5.199999809265137,-17.600000381469727z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M-13.100000381469727,-16.299999237060547 C-13.100000381469727,-16.299999237060547 -8.199999809265137,-11 -8.199999809265137,-11 C-8.199999809265137,-11 -4.199999809265137,-11.699999809265137 -4.199999809265137,-11.699999809265137 C-4.199999809265137,-11.699999809265137 -9.199999809265137,-16.899999618530273 -9.199999809265137,-16.899999618530273 C-9.199999809265137,-16.899999618530273 -13.100000381469727,-16.299999237060547 -13.100000381469727,-16.299999237060547z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M2.700000047683716,-18.899999618530273 C2.700000047683716,-18.899999618530273 7.599999904632568,-13.699999809265137 7.599999904632568,-13.699999809265137 C7.599999904632568,-13.699999809265137 11.5,-14.300000190734863 11.5,-14.300000190734863 C11.5,-14.300000190734863 6.599999904632568,-19.600000381469727 6.599999904632568,-19.600000381469727 C6.599999904632568,-19.600000381469727 2.700000047683716,-18.899999618530273 2.700000047683716,-18.899999618530273z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M10.5,-20.200000762939453 C10.5,-20.200000762939453 15.5,-15 15.5,-15 C15.5,-15 19.399999618530273,-15.699999809265137 19.399999618530273,-15.699999809265137 C19.399999618530273,-15.699999809265137 14.5,-20.899999618530273 14.5,-20.899999618530273 C14.5,-20.899999618530273 10.5,-20.200000762939453 10.5,-20.200000762939453z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M-16.5,-14 C-17.327999114990234,-14 -18,-13.32800006866455 -18,-12.5 C-18,-11.67199993133545 -17.327999114990234,-11 -16.5,-11 C-15.67199993133545,-11 -15,-11.67199993133545 -15,-12.5 C-15,-13.32800006866455 -15.67199993133545,-14 -16.5,-14z"></path></g></g></g></svg>`
+const video_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_11)"><g transform="matrix(1,0,0,1,24,24)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(63,81,181)" fill-opacity="1" d=" M16,17 C16,17 -16,17 -16,17 C-18.200000762939453,17 -20,15.199999809265137 -20,13 C-20,13 -20,-9 -20,-9 C-20,-9 20,-9 20,-9 C20,-9 20,13 20,13 C20,15.199999809265137 18.200000762939453,17 16,17z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M16,-9 C16,-9 12,-3 12,-3 C12,-3 16,-3 16,-3 C16,-3 20,-9 20,-9 C20,-9 16,-9 16,-9z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M8,-9 C8,-9 4,-3 4,-3 C4,-3 8,-3 8,-3 C8,-3 12,-9 12,-9 C12,-9 8,-9 8,-9z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M0,-9 C0,-9 -4,-3 -4,-3 C-4,-3 0,-3 0,-3 C0,-3 4,-9 4,-9 C4,-9 0,-9 0,-9z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M-8,-9 C-8,-9 -12,-3 -12,-3 C-12,-3 -8,-3 -8,-3 C-8,-3 -4,-9 -4,-9 C-4,-9 -8,-9 -8,-9z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M-16,-9 C-16,-9 -20,-3 -20,-3 C-20,-3 -16,-3 -16,-3 C-16,-3 -12,-9 -12,-9 C-12,-9 -16,-9 -16,-9z"></path></g></g></g><g transform="matrix(1,0,0,1,24,24)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(63,81,181)" fill-opacity="1" d=" M19.399999618530273,-15.699999809265137 C19.399999618530273,-15.699999809265137 -20,-9 -20,-9 C-20,-9 -20.299999237060547,-11 -20.299999237060547,-11 C-20.700000762939453,-13.199999809265137 -19.200000762939453,-15.199999809265137 -17,-15.600000381469727 C-17,-15.600000381469727 14.600000381469727,-20.899999618530273 14.600000381469727,-20.899999618530273 C16.799999237060547,-21.299999237060547 18.799999237060547,-19.799999237060547 19.200000762939453,-17.600000381469727 C19.200000762939453,-17.600000381469727 19.399999618530273,-15.699999809265137 19.399999618530273,-15.699999809265137z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M-5.199999809265137,-17.600000381469727 C-5.199999809265137,-17.600000381469727 -0.30000001192092896,-12.300000190734863 -0.30000001192092896,-12.300000190734863 C-0.30000001192092896,-12.300000190734863 3.700000047683716,-13 3.700000047683716,-13 C3.700000047683716,-13 -1.2999999523162842,-18.299999237060547 -1.2999999523162842,-18.299999237060547 C-1.2999999523162842,-18.299999237060547 -5.199999809265137,-17.600000381469727 -5.199999809265137,-17.600000381469727z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M-13.100000381469727,-16.299999237060547 C-13.100000381469727,-16.299999237060547 -8.199999809265137,-11 -8.199999809265137,-11 C-8.199999809265137,-11 -4.199999809265137,-11.699999809265137 -4.199999809265137,-11.699999809265137 C-4.199999809265137,-11.699999809265137 -9.199999809265137,-16.899999618530273 -9.199999809265137,-16.899999618530273 C-9.199999809265137,-16.899999618530273 -13.100000381469727,-16.299999237060547 -13.100000381469727,-16.299999237060547z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M2.700000047683716,-18.899999618530273 C2.700000047683716,-18.899999618530273 7.599999904632568,-13.699999809265137 7.599999904632568,-13.699999809265137 C7.599999904632568,-13.699999809265137 11.5,-14.300000190734863 11.5,-14.300000190734863 C11.5,-14.300000190734863 6.599999904632568,-19.600000381469727 6.599999904632568,-19.600000381469727 C6.599999904632568,-19.600000381469727 2.700000047683716,-18.899999618530273 2.700000047683716,-18.899999618530273z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M10.5,-20.200000762939453 C10.5,-20.200000762939453 15.5,-15 15.5,-15 C15.5,-15 19.399999618530273,-15.699999809265137 19.399999618530273,-15.699999809265137 C19.399999618530273,-15.699999809265137 14.5,-20.899999618530273 14.5,-20.899999618530273 C14.5,-20.899999618530273 10.5,-20.200000762939453 10.5,-20.200000762939453z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M-16.5,-14 C-17.327999114990234,-14 -18,-13.32800006866455 -18,-12.5 C-18,-11.67199993133545 -17.327999114990234,-11 -16.5,-11 C-15.67199993133545,-11 -15,-11.67199993133545 -15,-12.5 C-15,-13.32800006866455 -15.67199993133545,-14 -16.5,-14z"></path></g></g></g></svg>`
 const code_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_2)"><g transform="matrix(1,0,0,1,0,0)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,24,21)"><path fill="rgb(83,109,121)" fill-opacity="1" d=" M-18,-13 C-18,-13 18,-13 18,-13 C18,-13 18,13 18,13 C18,13 -18,13 -18,13 C-18,13 -18,-13 -18,-13z"></path></g><g opacity="1" transform="matrix(1,0,0,1,24,20.5)"><path fill="rgb(186,222,250)" fill-opacity="1" d=" M-16,-10.5 C-16,-10.5 16,-10.5 16,-10.5 C16,-10.5 16,10.5 16,10.5 C16,10.5 -16,10.5 -16,10.5 C-16,10.5 -16,-10.5 -16,-10.5z"></path></g><g opacity="1" transform="matrix(1,0,0,1,24,37)"><path fill="rgb(69,90,99)" fill-opacity="1" d=" M-3,-3 C-3,-3 3,-3 3,-3 C3,-3 3,0 3,0 C3,0 -3,0 -3,0 C-3,0 -3,-3 -3,-3z M9,0 C9,0 -9,0 -9,0 C-11,0 -11,2 -11,2 C-11,2 -11,3 -11,3 C-11,3 11,3 11,3 C11,3 11,2 11,2 C11,2 11,0 9,0z"></path></g></g><g transform="matrix(0.8999999761581421,0,0,0.8999999761581421,2.2750015258789062,-1.0999984741210938)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,15.315999984741211,24.465999603271484)"><path fill="rgb(21,101,192)" fill-opacity="1" d=" M-0.8989999890327454,0.02500000037252903 C-0.8989999890327454,0.02500000037252903 3.684000015258789,2.0399999618530273 3.684000015258789,2.0399999618530273 C3.684000015258789,2.0399999618530273 3.684000015258789,4.894999980926514 3.684000015258789,4.894999980926514 C3.684000015258789,4.894999980926514 -3.684000015258789,1.2100000381469727 -3.684000015258789,1.2100000381469727 C-3.684000015258789,1.2100000381469727 -3.684000015258789,-1.1990000009536743 -3.684000015258789,-1.1990000009536743 C-3.684000015258789,-1.1990000009536743 3.684000015258789,-4.894999980926514 3.684000015258789,-4.894999980926514 C3.684000015258789,-4.894999980926514 3.684000015258789,-2.0399999618530273 3.684000015258789,-2.0399999618530273 C3.684000015258789,-2.0399999618530273 -0.8989999890327454,0.02500000037252903 -0.8989999890327454,0.02500000037252903z"></path></g><g opacity="1" transform="matrix(-1,0,0,-1,32.70000076293945,24.465999603271484)"><path fill="rgb(21,101,192)" fill-opacity="1" d=" M-0.8989999890327454,0.02500000037252903 C-0.8989999890327454,0.02500000037252903 3.684000015258789,2.0399999618530273 3.684000015258789,2.0399999618530273 C3.684000015258789,2.0399999618530273 3.684000015258789,4.894999980926514 3.684000015258789,4.894999980926514 C3.684000015258789,4.894999980926514 -3.684000015258789,1.2100000381469727 -3.684000015258789,1.2100000381469727 C-3.684000015258789,1.2100000381469727 -3.684000015258789,-1.1990000009536743 -3.684000015258789,-1.1990000009536743 C-3.684000015258789,-1.1990000009536743 3.684000015258789,-4.894999980926514 3.684000015258789,-4.894999980926514 C3.684000015258789,-4.894999980926514 3.684000015258789,-2.0399999618530273 3.684000015258789,-2.0399999618530273 C3.684000015258789,-2.0399999618530273 -0.8989999890327454,0.02500000037252903 -0.8989999890327454,0.02500000037252903z"></path></g><g opacity="1" transform="matrix(1,0,0,1,24.240999221801758,24)"><path fill="rgb(21,101,192)" fill-opacity="1" d=" M-1.1649999618530273,7.986000061035156 C-1.1649999618530273,7.986000061035156 -3.259000062942505,7.986000061035156 -3.259000062942505,7.986000061035156 C-3.259000062942505,7.986000061035156 1.1619999408721924,-7.916999816894531 1.1619999408721924,-7.916999816894531 C1.1619999408721924,-7.916999816894531 3.259000062942505,-7.916999816894531 3.259000062942505,-7.916999816894531 C3.259000062942505,-7.916999816894531 -1.1649999618530273,7.986000061035156 -1.1649999618530273,7.986000061035156z"></path></g></g></g></svg>`
 const zip_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 32 32"><g transform="translate(0 -1020.362)"><path fill="#e9eded" fill-rule="evenodd" stroke="#4bbfeb" stroke-linecap="round" stroke-linejoin="round" d="m 26.49822,1027.8658 0,21.5 c 0,0.831 -0.66899,1.5 -1.49998,1.5 l -18.00004,0 c -0.83099,0 -1.49998,-0.669 -1.49998,-1.5 l 0,-26 c 0,-0.831 0.66899,-1.5 1.49998,-1.5 l 13.50002,0 z"/><path fill="#4bbfeb" d="m 4.99822,1044.3658 0,2 0,2 0,1 c 0,1.108 0.89198,2 2,2 l 18,0 c 1.10802,0 2,-0.892 2,-2 l 0,-1 0,-2 0,-2 -2,0 -18,0 -2,0 z"/><path fill="#4bbfeb" stroke="#4bbfeb" stroke-linecap="round" stroke-linejoin="round" d="m 26.49466,1027.8658 -4.49997,0 c -0.83099,0 -1.49998,-0.6691 -1.49998,-1.5 l 0,-4.5"/><path style="line-height:normal;text-indent:0;text-align:start;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000;text-transform:none;block-progression:tb;isolation:auto;mix-blend-mode:normal" fill="#4bbfeb" fill-rule="evenodd" d="M 15.498047 7 L 15.498047 8 L 14.498047 8 L 14.498047 9 L 15.498047 9 L 15.498047 10 L 14.498047 10 L 14.498047 11 L 15.498047 11 L 15.498047 12 L 14.498047 12 L 14.498047 13 L 15.498047 13 L 15.498047 14 L 14.498047 14 L 14.498047 15 L 15.498047 15 L 15.498047 16 L 14.498047 16 L 14.498047 17 L 15.498047 17 L 15.498047 18 L 14.998047 18 A 0.50004997 0.50004997 0 0 0 14.498047 18.5 L 14.498047 19.464844 A 0.50004997 0.50004997 0 0 0 14.498047 19.5 L 14.498047 20 L 14.498047 20.5 C 14.498047 21.3224 15.175696 22 15.998047 22 C 16.820398 22 17.498047 21.3224 17.498047 20.5 L 17.498047 20.033203 A 0.50004997 0.50004997 0 0 0 17.498047 20 L 17.498047 19.5 L 17.498047 18.5 A 0.50004997 0.50004997 0 0 0 16.998047 18 L 16.498047 18 L 16.498047 17 L 17.498047 17 L 17.498047 16 L 16.498047 16 L 16.498047 15 L 17.498047 15 L 17.498047 14 L 16.498047 14 L 16.498047 13 L 17.498047 13 L 17.498047 12 L 16.498047 12 L 16.498047 11 L 17.498047 11 L 17.498047 10 L 16.498047 10 L 16.498047 9 L 17.498047 9 L 17.498047 8 L 16.498047 8 L 16.498047 7 L 15.498047 7 z M 15.498047 19 L 16.498047 19 L 16.498047 19.5 L 16.498047 20.5 C 16.498047 20.7857 16.283696 21 15.998047 21 C 15.712398 21 15.498047 20.7857 15.498047 20.5 L 15.498047 20.033203 A 0.50004997 0.50004997 0 0 0 15.498047 20 L 15.498047 19.5 L 15.498047 19 z " color="#000" font-family="sans-serif" font-weight="400" overflow="visible" transform="translate(0 1020.362)"/><path style="line-height:normal;text-indent:0;text-align:start;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000;text-transform:none;block-progression:tb;isolation:auto;mix-blend-mode:normal" fill="#e9eded" fill-rule="evenodd" d="M 13.490234 24.990234 A 0.50005 0.50005 0 0 0 12.998047 25.496094 L 12.998047 29.498047 A 0.50005 0.50005 0 1 0 13.998047 29.498047 L 13.998047 25.496094 A 0.50005 0.50005 0 0 0 13.490234 24.990234 z M 11.511719 24.998047 A 0.50005 0.50005 0 0 0 11.460938 25 L 8.5058594 25 A 0.50005 0.50005 0 1 0 8.5058594 26 L 10.498047 26 L 8.1347656 29.154297 A 0.50005 0.50005 0 0 0 8.4375 29.992188 A 0.50019268 0.50019268 0 0 0 8.4472656 29.994141 A 0.50005 0.50005 0 0 0 8.5058594 29.998047 L 11.494141 29.998047 A 0.50005 0.50005 0 1 0 11.494141 28.998047 L 9.5019531 28.998047 L 11.865234 25.841797 A 0.50005 0.50005 0 0 0 11.75 25.066406 A 0.50005 0.50005 0 0 0 11.720703 25.050781 A 0.50005 0.50005 0 0 0 11.705078 25.042969 A 0.50005 0.50005 0 0 0 11.675781 25.03125 A 0.50005 0.50005 0 0 0 11.658203 25.025391 A 0.50005 0.50005 0 0 0 11.511719 24.998047 z M 16.498047 25.003906 C 15.723646 25.003906 15.086569 25.606569 15.013672 26.363281 C 15.013355 26.366575 15.012014 26.369747 15.011719 26.373047 A 0.50005 0.50005 0 0 0 14.998047 26.498047 C 14.998039 26.500027 14.998047 26.501925 14.998047 26.503906 L 14.998047 29.498047 A 0.50005 0.50005 0 1 0 15.998047 29.498047 L 15.998047 27.910156 C 16.155295 27.966775 16.322382 28.003906 16.498047 28.003906 C 17.320552 28.003906 17.998047 27.326406 17.998047 26.503906 C 17.998047 25.681406 17.320552 25.003906 16.498047 25.003906 z M 16.498047 26.003906 C 16.780112 26.003906 16.998047 26.221906 16.998047 26.503906 C 16.998047 26.786006 16.780112 27.003906 16.498047 27.003906 C 16.215982 27.003906 15.998047 26.786006 15.998047 26.503906 L 15.998047 26.498047 C 16.001131 26.218978 16.217997 26.003906 16.498047 26.003906 z " color="#000" font-family="sans-serif" font-weight="400" overflow="visible" transform="translate(0 1020.362)"/></g></svg>`
 const image_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_19)"><g transform="matrix(1,0,0,1,24,24)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(245,124,0)" fill-opacity="1" d=" M16,17 C16,17 -16,17 -16,17 C-18.200000762939453,17 -20,15.199999809265137 -20,13 C-20,13 -20,-13 -20,-13 C-20,-15.199999809265137 -18.200000762939453,-17 -16,-17 C-16,-17 16,-17 16,-17 C18.200000762939453,-17 20,-15.199999809265137 20,-13 C20,-13 20,13 20,13 C20,15.199999809265137 18.200000762939453,17 16,17z"></path></g></g><g transform="matrix(1,0,0,1,35,16)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(255,249,196)" fill-opacity="1" d=" M0,-3 C-1.656999945640564,-3 -3,-1.656999945640564 -3,0 C-3,1.656999945640564 -1.656999945640564,3 0,3 C1.656999945640564,3 3,1.656999945640564 3,0 C3,-1.656999945640564 1.656999945640564,-3 0,-3z"></path></g></g><g transform="matrix(1,0,0,1,0,0)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,20,24)"><path fill="rgb(148,42,9)" fill-opacity="1" d=" M0,-8 C0,-8 -11,8 -11,8 C-11,8 11,8 11,8 C11,8 0,-8 0,-8z"></path></g><g opacity="1" transform="matrix(1,0,0,1,31,27)"><path fill="rgb(191,54,12)" fill-opacity="1" d=" M0,-5 C0,-5 -8,5 -8,5 C-8,5 8,5 8,5 C8,5 0,-5 0,-5z"></path></g></g></g></svg>`
@@ -75,41 +75,25 @@ function getQueryVariable(variable) {
     return (false);
 }
 
-// ===========================================
-// URL PROTECTION FUNCTIONS
-// ===========================================
-function encodeFilePath(path) {
-    return btoa(encodeURIComponent(path));
-}
-
-function decodeFilePath(encoded) {
-    return decodeURIComponent(atob(encoded));
-}
-
-function loadFileView(fullPath) {
-    const encoded = encodeFilePath(fullPath);
-    history.pushState(null, null, `#view=${encoded}`);
-    render(fullPath);
-}
-
-// ===========================================
-// MODIFIED RENDER FUNCTION
-// ===========================================
+// ================ NEW: TOKEN-BASED URL HANDLING ================ //
 function render(path) {
-    // Check for protected file view first
-    if (window.location.hash.startsWith('#view=')) {
-        const base64Path = window.location.hash.substring(6);
-        const decodedPath = decodeFilePath(base64Path);
-        file(decodedPath);
+    const urlParams = new URLSearchParams(window.location.search);
+    const fileToken = urlParams.get('file');
+    
+    // Handle token-based URLs
+    if (fileToken) {
+        renderByFileId(fileToken);
         return;
     }
     
+    // Existing rendering logic
     if (path.indexOf("?") > 0) {
         path = path.substr(0, path.indexOf("?"));
     }
     title(path);
     nav(path);
     
+    // ... rest of existing render function ...
     var reg = /\/\d+:$/g;
     if (path.includes("/fallback")) {
         window.scroll_status = {
@@ -139,6 +123,75 @@ function render(path) {
         file(path);
     }
 }
+
+// Render file by token ID
+async function renderByFileId(fileId) {
+    $('#content').html(`<div class="d-flex justify-content-center" style="height: 150px">
+        <div class="spinner-border ${UI.loading_spinner_class} m-5" role="status">
+            <span class="sr-only"></span>
+        </div>
+    </div>`);
+    
+    try {
+        const response = await fetch(`/${window.current_drive_order}:token`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: fileId })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch file by ID');
+        }
+        
+        const fileData = await response.json();
+        renderFile(fileData);
+        
+        // Update URL to clean token format
+        const cleanUrl = `${window.location.origin}/${window.current_drive_order}:/view?file=${fileId}`;
+        history.replaceState(null, null, cleanUrl);
+    } catch (error) {
+        $('#content').html(`<div class="alert alert-danger">Error loading file: ${error.message}</div>`);
+    }
+}
+
+// Unified file rendering function
+function renderFile(fileData) {
+    const mimeType = fileData.mimeType;
+    const fileExtension = fileData.fileExtension;
+    const name = fileData.name;
+    const encoded_name = encodeURIComponent(name);
+    const size = formatFileSize(fileData.size);
+    const url = UI.second_domain_for_dl ? UI.downloaddomain + fileData.link : window.location.origin + fileData.link;
+    const file_id = fileData.id;
+
+    const code = ["php", "css", "go", "java", "js", "json", "txt", "sh", "md", "html", "xml", "py", "rb", "c", "cpp", "h", "hpp"];
+    const video = ["mp4", "webm", "avi", "mpg", "mpeg", "mkv", "rm", "rmvb", "mov", "wmv", "asf", "ts", "flv", "3gp", "m4v"];
+    const audio = ["mp3", "flac", "wav", "ogg", "m4a", "aac", "wma", "alac"];
+    const image = ["bmp", "jpg", "jpeg", "png", "gif", "svg", "tiff", "ico"];
+    const pdf = ["pdf"];
+    
+    if (mimeType === "application/vnd.google-apps.folder") {
+        window.location.href = window.location.pathname + "/";
+    } else if (fileExtension) {
+        if (mimeType.includes("video") || video.includes(fileExtension)) {
+            const poster = fileData.thumbnailLink ? fileData.thumbnailLink.replace("s220", "s0") : UI.poster;
+            file_video(name, encoded_name, size, poster, url, mimeType, file_id);
+        } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
+            file_audio(name, encoded_name, size, url, file_id);
+        } else if (mimeType.includes("image") || image.includes(fileExtension)) {
+            file_image(name, encoded_name, size, url, file_id);
+        } else if (mimeType.includes("pdf") || pdf.includes(fileExtension)) {
+            file_pdf(name, encoded_name, size, url, file_id);
+        } else if (code.includes(fileExtension)) {
+            file_code(name, encoded_name, size, url, file_id);
+        } else {
+            file_others(name, encoded_name, size, url, file_id);
+        }
+    }
+}
+// ================ END OF TOKEN-BASED URL HANDLING ================ //
 
 // Render title
 function title(path) {
@@ -179,6 +232,7 @@ function nav(path) {
     });
     html += `</div></li>`;
 
+
     html += `<li class="nav-item">
     <a class="nav-link" href="${UI.contact_link}" target="_blank">${UI.nav_link_4}</a>
   </li>${UI.show_logout_button ?'<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>': ''}`;
@@ -195,7 +249,9 @@ function nav(path) {
 </nav>
 `;
 
+    // Personal or team
     if (model.root_type < 2) {
+        // Show search box
         html += search_bar;
     }
 
@@ -248,6 +304,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
             })
             .then(function(res) {
                 if (res && res.error && res.error.code === 401) {
+                    // Password verification failed
                     askPassword(path);
                 } else if (res && res.data === null) {
                     document.getElementById('spinner').remove();
@@ -273,6 +330,8 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
     console.log("Performing Request again")
     performRequest();
 }
+
+
 
 /**
  * Search POST request
@@ -327,6 +386,7 @@ function requestSearch(params, resultCallback, retries = 3) {
     $('#update').html(`<div class='alert alert-info' role='alert'> Connecting...</div></div></div>`);
     performRequest(retries);
 }
+
 
 // Render file list
 function list(path, id = '', fallback = false) {
@@ -475,27 +535,49 @@ function list(path, id = '', fallback = false) {
             null);
     }
 
+
     const copyBtn = document.getElementById("handle-multiple-items-copy");
+
+    // Add a click event listener to the copy button
     copyBtn.addEventListener("click", () => {
+        // Get all the checked checkboxes
         const checkedItems = document.querySelectorAll('input[type="checkbox"]:checked');
+
+        // Create an array to store the selected items' data
         const selectedItemsData = [];
 
+        // Loop through each checked checkbox
         if (checkedItems.length === 0) {
             alert("No items selected!");
             return;
         }
         checkedItems.forEach((item) => {
+            // Get the value of the checkbox (in this case, the URL)
             const itemData = item.value;
+            // Push the value to the array
             selectedItemsData.push(itemData);
         });
 
+        // Join the selected items' data with a newline character
         const dataToCopy = selectedItemsData.join("\n");
+
+        // Create a temporary input element
         const tempInput = document.createElement("textarea");
         tempInput.value = dataToCopy;
+
+        // Add the temporary input element to the document
         document.body.appendChild(tempInput);
+
+        // Select the text inside the temporary input element
         tempInput.select();
+
+        // Copy the selected text to the clipboard
         document.execCommand("copy");
+
+        // Remove the temporary input element from the document
         document.body.removeChild(tempInput);
+
+        // Alert the user that the data has been copied
         alert("Selected items copied to clipboard!");
     });
 }
@@ -521,6 +603,7 @@ function append_files_to_fallback_list(path, files) {
     try {
         console.log('append_files_to_fallback_list');
         var $list = $('#list');
+        // Is it the last page of data?
         var is_lastpage_loaded = null === $list.data('nextPageToken');
         var is_firstpage = '0' == $list.data('curPageIndex');
 
@@ -532,6 +615,7 @@ function append_files_to_fallback_list(path, files) {
             var item = files[i];
             var p = "/fallback?id=" + item.id
             item['modifiedTime'] = utc2delhi(item['modifiedTime']);
+            // replace / with %2F
             if (item['mimeType'] == 'application/vnd.google-apps.folder') {
                 html += `<a href="${p}" style="color: ${UI.folder_text_color};" class="countitems list-group-item list-group-item-action"> ${folder_icon} ${item.name} ${UI.display_time ? `<span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</a>`;
             } else {
@@ -542,6 +626,7 @@ function append_files_to_fallback_list(path, files) {
                 var link = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
                 var pn = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
                 var c = "file";
+                // README is displayed after the last page is loaded, otherwise it will affect the scroll event
                 if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
                     get_file(p, item, function(data) {
                         markdown("#readme_md", data);
@@ -555,8 +640,11 @@ function append_files_to_fallback_list(path, files) {
                     });
                 }
                 var ext = item.fileExtension
+                //if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
+                //targetFiles.push(filepath);
                 pn += "?a=view";
                 c += " view";
+                //}
                 html += `<div class="list-group-item list-group-item-action">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}`
 
                 if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
@@ -577,16 +665,34 @@ function append_files_to_fallback_list(path, files) {
                     html += file_icon
                 }
 
-                html += ` <a class="countitems size_items list-group-item-action" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="javascript:void(0)" onclick="loadFileView('${encodeURIComponent(pn)}')">${item.name}</a>${UI.display_download ? `<a href="${link}"><svg class="float-end"width="25px" style="margin-left: 8px;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path> </svg></a>` : ``}${UI.display_size ? `<span class="badge bg-primary float-end"> ` + item['size'] + ` </span>` : ``}${UI.display_time ? ` <span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</div>`;
+                html += ` <a class="countitems size_items list-group-item-action" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${p}&a=view">${item.name}</a>${UI.display_download ? `<a href="${link}"><svg class="float-end"width="25px" style="margin-left: 8px;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path> </svg></a>` : ``}${UI.display_size ? `<span class="badge bg-primary float-end"> ` + item['size'] + ` </span>` : ``}${UI.display_time ? ` <span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</div>`;
             }
         }
         if (is_file && UI.allow_selecting_files) {
             document.getElementById('select_items').style.display = 'block';
         }
 
+
+        /*let targetObj = {};
+        targetFiles.forEach((myFilepath, myIndex) => {
+            if (!targetObj[myFilepath]) {
+                targetObj[myFilepath] = {
+                    filepath: myFilepath,
+                    prev: myIndex === 0 ? null : targetFiles[myIndex - 1],
+                    next: myIndex === targetFiles.length - 1 ? null : targetFiles[myIndex + 1],
+                }
+            }
+        })
+        // console.log(targetObj)
+        if (Object.keys(targetObj).length) {
+            localStorage.setItem(path, JSON.stringify(targetObj));
+            // console.log(path)
+        }*/
+
         if (targetFiles.length > 0) {
             let old = localStorage.getItem(path);
             let new_children = targetFiles;
+            // Reset on page 1; otherwise append
             if (!is_firstpage && old) {
                 let old_children;
                 try {
@@ -603,7 +709,9 @@ function append_files_to_fallback_list(path, files) {
             localStorage.setItem(path, JSON.stringify(new_children))
         }
 
+        // When it is page 1, remove the horizontal loading bar
         $list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
+        // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
             total_size = formatFileSize(totalsize) || '0 Bytes';
             total_items = $list.find('.countitems').length;
@@ -635,6 +743,7 @@ function append_files_to_fallback_list(path, files) {
  */
 function append_files_to_list(path, files) {
     var $list = $('#list');
+    // Is it the last page of data?
     var is_lastpage_loaded = null === $list.data('nextPageToken');
     var is_firstpage = '0' == $list.data('curPageIndex');
 
@@ -647,6 +756,7 @@ function append_files_to_list(path, files) {
         var ep = encodeURIComponent(item.name).replace(/\//g, '%2F') + '/';
         var p = path + ep.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
         item['modifiedTime'] = utc2delhi(item['modifiedTime']);
+        // replace / with %2F
         if (item['mimeType'] == 'application/vnd.google-apps.folder') {
             html += `<a href="${p}" style="color: ${UI.folder_text_color};" class="countitems list-group-item list-group-item-action"> ${folder_icon} ${item.name} ${UI.display_time ? `<span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</a>`;
         } else {
@@ -657,6 +767,7 @@ function append_files_to_list(path, files) {
             var link = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
             var pn = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
             var c = "file";
+            // README is displayed after the last page is loaded, otherwise it will affect the scroll event
             if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
                 get_file(p, item, function(data) {
                     markdown("#readme_md", data);
@@ -671,8 +782,11 @@ function append_files_to_list(path, files) {
             }
             var ext = item.fileExtension
             console.log(ext)
+            //if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
+            //targetFiles.push(filepath);
             pn += "?a=view";
             c += " view";
+            //}
             html += `<div class="list-group-item list-group-item-action">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}`
 
             if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
@@ -693,16 +807,34 @@ function append_files_to_list(path, files) {
                 html += file_icon
             }
 
-            html += ` <a class="countitems size_items list-group-item-action" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="javascript:void(0)" onclick="loadFileView('${encodeURIComponent(pn)}')">${item.name}</a>${UI.display_download ? `<a href="${link}"><svg class="float-end"width="25px" style="margin-left: 8px;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path> </svg></a>` : ``}${UI.display_size ? `<span class="badge bg-primary float-end"> ` + item['size'] + ` </span>` : ``}${UI.display_time ? ` <span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</div>`;
+            html += ` <a class="countitems size_items list-group-item-action" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}">${item.name}</a>${UI.display_download ? `<a href="${link}"><svg class="float-end"width="25px" style="margin-left: 8px;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path> </svg></a>` : ``}${UI.display_size ? `<span class="badge bg-primary float-end"> ` + item['size'] + ` </span>` : ``}${UI.display_time ? ` <span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</div>`;
         }
     }
     if (is_file && UI.allow_selecting_files) {
         document.getElementById('select_items').style.display = 'block';
     }
 
+
+    /*let targetObj = {};
+    targetFiles.forEach((myFilepath, myIndex) => {
+        if (!targetObj[myFilepath]) {
+            targetObj[myFilepath] = {
+                filepath: myFilepath,
+                prev: myIndex === 0 ? null : targetFiles[myIndex - 1],
+                next: myIndex === targetFiles.length - 1 ? null : targetFiles[myIndex + 1],
+            }
+        }
+    })
+    // console.log(targetObj)
+    if (Object.keys(targetObj).length) {
+        localStorage.setItem(path, JSON.stringify(targetObj));
+        // console.log(path)
+    }*/
+
     if (targetFiles.length > 0) {
         let old = localStorage.getItem(path);
         let new_children = targetFiles;
+        // Reset on page 1; otherwise append
         if (!is_firstpage && old) {
             let old_children;
             try {
@@ -719,7 +851,9 @@ function append_files_to_list(path, files) {
         localStorage.setItem(path, JSON.stringify(new_children))
     }
 
+    // When it is page 1, remove the horizontal loading bar
     $list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
+    // When it is the last page, count and display the total number of items
     if (is_lastpage_loaded) {
         total_size = formatFileSize(totalsize) || '0 Bytes';
         total_items = $list.find('.countitems').length;
@@ -742,7 +876,7 @@ function append_files_to_list(path, files) {
 }
 
 /**
- * Render the search results list.
+ * Render the search results list. There is a lot of repetitive code, but there are different logics in it.
  */
 function render_search_result_list() {
     var content = `
@@ -772,31 +906,49 @@ function render_search_result_list() {
     $('#readme_md').hide().html('');
     $('#head_md').hide().html('');
 
+    /**
+     * Callback after successful search request returns data
+     * The result returned by @param res (object)
+     * @param path the requested path
+     * @param prevReqParams parameters used in request
+     */
     function searchSuccessCallback(res, prevReqParams) {
+
+        // Temporarily store nextPageToken and currentPageIndex in the list element
         $('#list')
             .data('nextPageToken', res['nextPageToken'])
             .data('curPageIndex', res['curPageIndex']);
 
+        // Remove loading spinner
         $('#spinner').remove();
 
         if (res['nextPageToken'] === null) {
+            // If it is the last page, unbind the scroll event, reset scroll_status, and append the data
             $(window).off('scroll');
             window.scroll_status.event_bound = false;
             window.scroll_status.loading_lock = false;
             append_search_result_to_list(res['data']['files']);
         } else {
+            // If it is not the last page, append data and bind the scroll event (if not already bound), update scroll_status
             append_search_result_to_list(res['data']['files']);
             if (window.scroll_status.event_bound !== true) {
+                // Bind event, if not yet bound
                 $(window).on('scroll', function() {
                     var scrollTop = $(this).scrollTop();
                     var scrollHeight = getDocumentHeight();
                     var windowHeight = $(this).height();
+                    // Roll to the bottom
                     if (scrollTop + windowHeight > scrollHeight - (Os.isMobile ? 130 : 80)) {
+                        /*
+     When the event of scrolling to the bottom is triggered, if it is already loading at this time, the event is ignored;
+                 Otherwise, go to loading and occupy the loading lock, indicating that loading is in progress
+             */
                         if (window.scroll_status.loading_lock === true) {
                             return;
                         }
                         window.scroll_status.loading_lock = true;
 
+                        // Show a loading spinner
                         $(`<div id="spinner" class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`)
                             .insertBefore('#readme_md');
 
@@ -804,6 +956,7 @@ function render_search_result_list() {
                         requestSearch({
                                 q: window.MODEL.q,
                                 page_token: $list.data('nextPageToken'),
+                                // Request next page
                                 page_index: $list.data('curPageIndex') + 1
                             },
                             searchSuccessCallback
@@ -814,35 +967,58 @@ function render_search_result_list() {
             }
         }
 
+        // After loading successfully and rendering new data successfully, release the loading lock so that you can continue to process the "scroll to bottom" event
         if (window.scroll_status.loading_lock === true) {
             window.scroll_status.loading_lock = false
         }
     }
 
+    // Start requesting data from page 1
     requestSearch({
         q: window.MODEL.q
     }, searchSuccessCallback);
 
     const copyBtn = document.getElementById("handle-multiple-items-copy");
+
+    // Add a click event listener to the copy button
     copyBtn.addEventListener("click", () => {
+        // Get all the checked checkboxes
         const checkedItems = document.querySelectorAll('input[type="checkbox"]:checked');
+
+        // Create an array to store the selected items' data
         const selectedItemsData = [];
         if (checkedItems.length === 0) {
             alert("No items selected!");
             return;
         }
+        // Loop through each checked checkbox
         checkedItems.forEach((item) => {
+            // Get the value of the checkbox (in this case, the URL)
             const itemData = item.value;
+            // Push the value to the array
             selectedItemsData.push(itemData);
         });
 
+        // Join the selected items' data with a newline character
         const dataToCopy = selectedItemsData.join("\n");
+
+        // Create a temporary input element
         const tempInput = document.createElement("textarea");
         tempInput.value = dataToCopy;
+
+        // Add the temporary input element to the document
         document.body.appendChild(tempInput);
+
+        // Select the text inside the temporary input element
         tempInput.select();
+
+        // Copy the selected text to the clipboard
         document.execCommand("copy");
+
+        // Remove the temporary input element from the document
         document.body.removeChild(tempInput);
+
+        // Alert the user that the data has been copied
         alert("Selected items copied to clipboard!");
     });
 }
@@ -855,7 +1031,9 @@ function append_search_result_to_list(files) {
     try {
         var cur = window.current_drive_order || 0;
         var $list = $('#list');
+        // Is it the last page of data?
         var is_lastpage_loaded = null === $list.data('nextPageToken');
+        // var is_firstpage = '0' == $list.data('curPageIndex');
 
         html = "";
         var totalsize = 0;
@@ -902,7 +1080,9 @@ function append_search_result_to_list(files) {
         if (is_file && UI.allow_selecting_files) {
             document.getElementById('select_items').style.display = 'block';
         }
+        // When it is page 1, remove the horizontal loading bar
         $list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
+        // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
             total_size = formatFileSize(totalsize) || '0 Bytes';
             total_items = $list.find('.countitems').length;
@@ -940,6 +1120,7 @@ function onSearchResultItemClick(file_id, can_preview) {
     var p = {
         id: file_id
     };
+    // Request a path
     fetch(`/${cur}:id2path`, {
             method: 'POST',
             body: JSON.stringify(p),
@@ -986,7 +1167,7 @@ function get_file(path, file, callback) {
 }
 
 async function fallback(id, type) {
-    if (type) {
+    if (type) { // is a file id
         var cookie_folder_id = await getCookie("root_id") || '';
         $('#content').html(`<div class="d-flex justify-content-center" style="height: 150px"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`);
         fetch("/0:fallback", {
@@ -1054,7 +1235,7 @@ async function fallback(id, type) {
         </div>`;
                 $("#content").html(content);
             });
-    } else {
+    } else { // is a folder id
         return list(id, true);
     }
 }
@@ -1130,11 +1311,12 @@ async function file(path) {
             $("#content").html(content);
         });
 }
-
 // Document display |zip|.exe/others direct downloads
 function file_others(name, encoded_name, size, url, file_id, cookie_folder_id) {
+    // Split the file path into parts
     var path = window.location.pathname;
     var pathParts = path.split('/');
+    // Generate the navigation based on path parts
     var navigation = '';
     var new_path = '';
     for (var i = 0; i < pathParts.length; i++) {
@@ -1154,6 +1336,7 @@ function file_others(name, encoded_name, size, url, file_id, cookie_folder_id) {
         navigation += '<a href="' + new_path + '" class="breadcrumb-item">' + part + '</a>';
     }
 
+    // Add the container and card elements
     var content = `
     <div class="container"><br>
       <nav aria-label="breadcrumb">
@@ -1200,8 +1383,10 @@ function file_code(name, encoded_name, size, bytes, url, ext, file_id, cookie_fo
         "md": "Markdown",
     };
 
+    // Split the file path into parts
     var path = window.location.pathname;
     var pathParts = path.split('/');
+    // Generate the navigation based on path parts
     var navigation = '';
     var new_path = '';
     for (var i = 0; i < pathParts.length; i++) {
@@ -1221,6 +1406,7 @@ function file_code(name, encoded_name, size, bytes, url, ext, file_id, cookie_fo
         navigation += '<a href="' + new_path + '" class="breadcrumb-item">' + part + '</a>';
     }
 
+    // Add the container and card elements
     var content = `
     <div class="container"><br>
       <nav aria-label="breadcrumb">
@@ -1274,11 +1460,15 @@ function file_code(name, encoded_name, size, bytes, url, ext, file_id, cookie_fo
     }
 }
 
+
+
 // Document display video |mp4|webm|avi|
 function file_video(name, encoded_name, size, poster, url, mimeType, file_id, cookie_folder_id) {
+    var url_base64 = btoa(url);
     // Split the file path into parts
     var path = window.location.pathname;
     var pathParts = path.split('/');
+    // Generate the navigation based on path parts
     var navigation = '';
     var new_path = '';
     for (var i = 0; i < pathParts.length; i++) {
@@ -1324,6 +1514,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             player_css = ''
         }
     }
+    // Add the container and card elements
   var content = `
   <div class="container text-center"><br>
   <div class="card text-center">
@@ -1332,6 +1523,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     </br>
     ${UI.disable_video_download ? `` : `
       <div class="card-body">
+      <!-- Hidden URL input box -->
       <div class="input-group mb-4" style="display: none;">
         <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
       </div>
@@ -1356,9 +1548,11 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
 `;
     $("#content").html(content);
 
+    // Load Video.js and initialize the player
     var videoJsScript = document.createElement('script');
     videoJsScript.src = player_js;
     videoJsScript.onload = function() {
+        // Video.js is loaded, initialize the player
         if (player_config.player == "plyr") {
             const player = new Plyr('#player');
         } else if (player_config.player == "videojs") {
@@ -1407,10 +1601,14 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     document.head.appendChild(videoJsStylesheet);
 }
 
+
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, file_id, cookie_folder_id) {
+    var url_base64 = btoa(url);
+    // Split the file path into parts
     var path = window.location.pathname;
     var pathParts = path.split('/');
+    // Generate the navigation based on path parts
     var navigation = '';
     var new_path = '';
     for (var i = 0; i < pathParts.length; i++) {
@@ -1430,6 +1628,7 @@ function file_audio(name, encoded_name, size, url, file_id, cookie_folder_id) {
         navigation += '<a href="' + new_path + '" class="breadcrumb-item">' + part + '</a>';
     }
 
+    // Add the container and card elements
 var content = `
 <div class="container text-center"><br>
   <nav aria-label="breadcrumb">
@@ -1450,6 +1649,7 @@ var content = `
     </br>
     ${UI.disable_audio_download ? `` : `
       <div class="card-body">
+      <!-- URL input box hidden with style="display: none" -->
       <div class="input-group mb-4" style="display: none;">
         <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
       </div>
@@ -1476,9 +1676,11 @@ var content = `
 `;
     $("#content").html(content);
 
+    // Load Video.js and initialize the player
     var videoJsScript = document.createElement('script');
     videoJsScript.src = 'https://vjs.zencdn.net/' + UI.videojs_version + '/video.min.js';
     videoJsScript.onload = function() {
+        // Video.js is loaded, initialize the player
         const player = videojs('aplayer');
     };
     document.head.appendChild(videoJsScript);
@@ -1489,10 +1691,14 @@ var content = `
     document.head.appendChild(videoJsStylesheet);
 }
 
+
+
 // Document display pdf
 function file_pdf(name, encoded_name, size, url, file_id, cookie_folder_id) {
+    // Split the file path into parts
     var path = window.location.pathname;
     var pathParts = path.split('/');
+    // Generate the navigation based on path parts
     var navigation = '';
     var new_path = '';
     for (var i = 0; i < pathParts.length; i++) {
@@ -1512,6 +1718,7 @@ function file_pdf(name, encoded_name, size, url, file_id, cookie_folder_id) {
         navigation += '<a href="' + new_path + '" class="breadcrumb-item">' + part + '</a>';
     }
 
+    // Add the container and card elements
     var content = `
     <div class="container text-center"><br>
       <nav aria-label="breadcrumb">
@@ -1554,8 +1761,10 @@ function file_pdf(name, encoded_name, size, url, file_id, cookie_folder_id) {
 
 // image display
 function file_image(name, encoded_name, size, url, file_id, cookie_folder_id) {
+    // Split the file path into parts
     var path = window.location.pathname;
     var pathParts = path.split('/');
+    // Generate the navigation based on path parts
     var navigation = '';
     var new_path = '';
     for (var i = 0; i < pathParts.length; i++) {
@@ -1575,6 +1784,7 @@ function file_image(name, encoded_name, size, url, file_id, cookie_folder_id) {
         navigation += '<a href="' + new_path + '" class="breadcrumb-item">' + part + '</a>';
     }
 
+    // Add the container and card elements // wait until image is loaded and then hide spinner
     var content = `
     <div class="container text-center"><br>
       <nav aria-label="breadcrumb">
@@ -1617,9 +1827,11 @@ function file_image(name, encoded_name, size, url, file_id, cookie_folder_id) {
 
 // Time conversion
 function utc2delhi(utc_datetime) {
+    // Convert UTC datetime to local Delhi time
     var utcDate = new Date(utc_datetime);
     var delhiDate = new Date(utcDate.getTime() + 5.5 * 60 * 60 * 1000);
 
+    // Format the Delhi date and time
     var year = delhiDate.getFullYear();
     var month = ('0' + (delhiDate.getMonth() + 1)).slice(-2);
     var date = ('0' + delhiDate.getDate()).slice(-2);
@@ -1629,6 +1841,7 @@ function utc2delhi(utc_datetime) {
 
     return `${date}-${month}-${year} ${hour}:${minute}:${second}`;
 }
+
 
 // bytes adaptive conversion to KB, MB, GB
 function formatFileSize(bytes) {
@@ -1650,12 +1863,14 @@ function formatFileSize(bytes) {
     return bytes;
 }
 
+
 String.prototype.trim = function(char) {
     if (char) {
         return this.replace(new RegExp('^\\' + char + '+|\\' + char + '+$', 'g'), '');
     }
     return this.replace(/^\s+|\s+$/g, '');
 };
+
 
 // README.md HEAD.md support
 function markdown(el, data) {
@@ -1671,18 +1886,24 @@ window.onpopstate = function() {
 
 $(function() {
     init();
-    let hash = window.location.hash;
-    if (hash.startsWith('#view=')) {
-        const base64Path = hash.substring(6);
-        const decodedPath = decodeFilePath(base64Path);
-        render(decodedPath);
-    } else {
-        var path = window.location.pathname;
-        render(path);
-    }
+    var path = window.location.pathname;
+    /*$("body").on("click", '.folder', function () {
+        var url = $(this).attr('href');
+        history.pushState(null, null, url);
+        render(url);
+        return false;
+    });
+    $("body").on("click", '.view', function () {
+        var url = $(this).attr('href');
+        history.pushState(null, null, url);
+        render(url);
+        return false;
+    });*/
+
+    render(path);
 });
 
-// Copy to Clipboard for Direct Links
+// Copy to Clipboard for Direct Links, This will be modified soon with other UI
 function copyFunction() {
     var copyText = document.getElementById("dlurl");
     copyText.select();
@@ -1703,11 +1924,12 @@ function outFunc() {
     tooltip.innerHTML = "Copy";
 }
 
+// function to update the list of checkboxes
 function updateCheckboxes() {
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
     const selectAllCheckbox = document.getElementById('select-all-checkboxes');
 
-    if (checkboxes.length > 0 && selectAllCheckbox) {
+    if (checkboxes.length > 0 && selectAllCheckbox) { // Check if checkboxes and selectAllCheckbox exist
         selectAllCheckbox.addEventListener('click', () => {
             checkboxes.forEach((checkbox) => {
                 checkbox.checked = selectAllCheckbox.checked;
@@ -1778,13 +2000,17 @@ async function copyFile(driveid) {
     }
 }
 
+
+// create a MutationObserver to listen for changes to the DOM
 const observer = new MutationObserver(() => {
     updateCheckboxes();
 });
 
+// define the options for the observer (listen for changes to child elements)
 const options = {
     childList: true,
     subtree: true
 };
 
+// observe changes to the body element
 observer.observe(document.documentElement, options);
