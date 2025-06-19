@@ -1453,8 +1453,8 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
       <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
       </div>
       <div class="btn-group text-center">
-          <a href="${url}" type="button" class="btn btn-outline-success">Download Video</a>
-          <button type="button" class="btn btn-outline-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <a href="${url}" type="button" class="btn btn-secondary">Download Video</a>
+          <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <span class="sr-only"></span>
           </button>
           <div class="dropdown-menu">
@@ -1464,14 +1464,14 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
           <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
           <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
 					</div>
-		    <div class="progress">
-        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%;"></div>
        </div>
       </div>          
       </div>
       </div>
       `}
   </div>
+	<div class="progress">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%;"></div>
 </div>
 `;
     $("#content").html(content);
