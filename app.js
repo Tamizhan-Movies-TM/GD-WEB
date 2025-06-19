@@ -1499,6 +1499,18 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     </div>
     
     <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #6c757d;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --card-bg: #ffffff;
+            --border: #e0e0e0;
+            --player-bg: #f8f9ff;
+            --player-hover: #edf0ff;
+        }
+        
         .video-player-container {
             max-width: 800px;
             margin: 0 auto;
@@ -1506,10 +1518,11 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         }
         
         .video-card {
-            background: #ffffff;
+            background: var(--card-bg);
             border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             overflow: hidden;
+            border: 1px solid var(--border);
         }
         
         .player-section {
@@ -1524,112 +1537,136 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             left: 0;
             width: 100%;
             height: 100%;
+            object-fit: cover;
         }
         
         .file-info {
-            padding: 20px 15px 15px;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 20px 20px 15px;
+            background: var(--light);
+            border-bottom: 1px solid var(--border);
         }
         
         .file-title {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: 600;
             margin: 0;
-            color: #333;
+            color: var(--dark);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         
         .file-size {
-            font-size: 0.9rem;
-            color: #666;
-            margin-top: 5px;
+            font-size: 0.95rem;
+            color: var(--secondary);
+            margin-top: 8px;
+            font-weight: 500;
         }
         
         .player-options {
-            padding: 20px 15px;
+            padding: 25px 15px;
+            background: var(--light);
         }
         
         .player-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+            gap: 18px;
         }
         
         .player-option {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 15px;
-            border-radius: 12px;
-            background: #f9f9f9;
+            padding: 18px 10px;
+            border-radius: 14px;
+            background: var(--player-bg);
             cursor: pointer;
             transition: all 0.3s ease;
-            border: 1px solid #eee;
+            border: 1px solid var(--border);
         }
         
         .player-option:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            background: #fff;
-            border-color: #e0e0e0;
+            transform: translateY(-4px);
+            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.15);
+            background: var(--player-hover);
+            border-color: #d0d7ff;
         }
         
         .player-icon {
-            height: 42px;
-            width: 42px;
-            margin-bottom: 10px;
+            height: 46px;
+            width: 46px;
+            margin-bottom: 12px;
+            transition: transform 0.3s ease;
+        }
+        
+        .player-option:hover .player-icon {
+            transform: scale(1.1);
         }
         
         .player-label {
             font-weight: 600;
-            font-size: 0.95rem;
-            color: #444;
+            font-size: 1rem;
+            color: var(--dark);
         }
         
         .download-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 15px 20px;
-            padding: 16px;
-            background: #4a6ee0;
+            margin: 0 20px 25px;
+            padding: 18px;
+            background: var(--primary);
             color: white;
-            border-radius: 12px;
+            border-radius: 14px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(74, 110, 224, 0.25);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
         }
         
         .download-btn:hover {
-            background: #3a5bc7;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(74, 110, 224, 0.35);
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
             color: white;
         }
         
         .download-icon {
-            margin-right: 10px;
+            margin-right: 12px;
+            transition: transform 0.3s ease;
+        }
+        
+        .download-btn:hover .download-icon {
+            transform: translateY(3px);
         }
         
         @media (max-width: 576px) {
             .player-grid {
                 grid-template-columns: 1fr;
-                gap: 12px;
+                gap: 15px;
             }
             
             .player-option {
                 flex-direction: row;
                 justify-content: flex-start;
-                padding: 12px 15px;
+                padding: 15px 20px;
             }
             
             .player-icon {
-                margin-right: 12px;
+                margin-right: 15px;
                 margin-bottom: 0;
+                height: 40px;
+                width: 40px;
+            }
+            
+            .video-player-container {
+                padding: 10px;
+            }
+            
+            .file-info {
+                padding: 15px;
             }
         }
     </style>
