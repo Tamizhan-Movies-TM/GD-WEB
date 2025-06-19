@@ -1391,11 +1391,11 @@ function file_code(name, encoded_name, size, bytes, url, ext, file_id, cookie_fo
 
 function file_video(name, encoded_name, size, poster, url, mimeType, file_id, cookie_folder_id) {
     // Define all player icons
-    const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px;">`;
-    const playit_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="Playit" style="height: 32px; width: 32px;">`;
-    const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px;">`;
-    const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px;">`;
-    const download_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+    const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 40px; width: 40px;">`;
+    const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 40px; width: 40px;">`;
+    const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 40px; width: 40px;">`;
+    const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 40px; width: 40px;">`;
+    const download_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
       <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
       <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
     </svg>`;
@@ -1453,60 +1453,74 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     // Add the container and card elements
     var content = `
     <div class="container text-center"><br>
-      <div class="card text-center">
+      <div class="card text-center border-0 shadow-sm">
         <div class="text-center">
-          <div class="${UI.file_view_alert_class} mb-3" id="file_details" role="alert">
-            <h4 class="mb-1">${name}</h4>
+          <div class="${UI.file_view_alert_class} mb-3 border-0" id="file_details" role="alert">
+            <div class="fs-5 fw-bold text-truncate px-2">${name}</div>
             <div class="text-muted">${size}</div>
           </div>
           ${player}
         </div>
         </br>
         ${UI.disable_video_download ? `` : `
-          <div class="card-body">
+          <div class="card-body pt-0">
             <!-- Player Buttons Section -->
             <div class="container px-0">
               <!-- VLC & MX Player Row -->
-              <div class="row mb-4 pb-2 border-bottom">
+              <div class="row mb-4">
                 <div class="col-6 text-center">
-                  <button type="button" class="btn btn-outline-primary w-100"
-                    onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    ${vlc_icon}
-                    <div class="mt-2 fw-bold">VLC Player</div>
-                  </button>
+                  <div class="player-card p-3 rounded bg-light">
+                    <button type="button" class="btn btn-link p-0 border-0"
+                      onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                      ${vlc_icon}
+                      <div class="mt-2 fw-bold text-dark">VLC Player</div>
+                    </button>
+                  </div>
                 </div>
                 
                 <div class="col-6 text-center">
-                  <button type="button" class="btn btn-outline-primary w-100"
-                    onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    ${mxplayer_icon}
-                    <div class="mt-2 fw-bold">MX Player</div>
-                  </button>
+                  <div class="player-card p-3 rounded bg-light">
+                    <button type="button" class="btn btn-link p-0 border-0"
+                      onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                      ${mxplayer_icon}
+                      <div class="mt-2 fw-bold text-dark">MX Player</div>
+                    </button>
+                  </div>
                 </div>
               </div>
               
+              <!-- Divider -->
+              <div class="divider my-3 position-relative text-center">
+                <hr class="position-absolute top-50 start-0 end-0">
+                <span class="position-relative px-2 bg-white text-muted">OR</span>
+              </div>
+              
               <!-- XPlayer & Playit Row -->
-              <div class="row mb-4 pb-2 border-bottom">
+              <div class="row mb-4">
                 <div class="col-6 text-center">
-                  <button type="button" class="btn btn-outline-primary w-100"
-                    onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    ${xplayer_icon}
-                    <div class="mt-2 fw-bold">XPlayer</div>
-                  </button>
+                  <div class="player-card p-3 rounded bg-light">
+                    <button type="button" class="btn btn-link p-0 border-0"
+                      onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                      ${xplayer_icon}
+                      <div class="mt-2 fw-bold text-dark">XPlayer</div>
+                    </button>
+                  </div>
                 </div>
                 
                 <div class="col-6 text-center">
-                  <button type="button" class="btn btn-outline-primary w-100"
-                    onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    ${playit_icon}
-                    <div class="mt-2 fw-bold">Playit</div>
-                  </button>
+                  <div class="player-card p-3 rounded bg-light">
+                    <button type="button" class="btn btn-link p-0 border-0"
+                      onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                      ${playit_icon}
+                      <div class="mt-2 fw-bold text-dark">Playit</div>
+                    </button>
+                  </div>
                 </div>
               </div>
               
               <!-- Download Button -->
-              <div class="mt-4">
-                <a href="${url}" class="btn btn-secondary w-100 py-3">
+              <div class="mt-4 pt-2">
+                <a href="${url}" class="btn btn-primary w-100 py-3 rounded-pill shadow-sm">
                   ${download_icon}
                   <span class="ms-2 fs-5 fw-bold">Download</span>
                 </a>
@@ -1516,6 +1530,20 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         `}
       </div>
     </div>
+    
+    <style>
+      .player-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #e9ecef;
+      }
+      .player-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      .divider span {
+        z-index: 1;
+      }
+    </style>
     `;
 
     $("#content").html(content);
