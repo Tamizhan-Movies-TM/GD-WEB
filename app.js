@@ -1449,8 +1449,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     ${UI.disable_video_download ? `` : `
       <div class="card-body">
       <!-- Hidden URL input box -->
-      <div class="input-group mb-4" style="display: none;">
-        <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
+      <div style="display: none;">
       </div>
       <div class="btn-group text-center">
           <a href="${url}" type="button" class="btn btn-secondary">Download</a>
