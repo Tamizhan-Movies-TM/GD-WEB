@@ -1497,7 +1497,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
                   <button type="button" class="btn btn-outline-primary w-100 h-100"
                     onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                     ${playit_icon}
-                    <div class="mt-1">Play in PlayIt</div>
+                    <div class="mt-1">PlayIt</div>
                   </button>
                 </div>
                 
