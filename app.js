@@ -1463,36 +1463,13 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
           <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
           <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
           <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-					</div>
+				</div>
        </div>
       </div>          
-      </div>
-      </div>
+     </div>
+    </div>
       `}
-  </div>
-	// Button animation effect
-document.querySelectorAll('.ai-button').forEach(button => {
-  button.addEventListener('click', (e) => {
-    // Create ripple element
-    const ripple = document.createElement('span');
-    ripple.classList.add('ripple-effect');
-    
-    // Position ripple at click location
-    const rect = button.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    const x = e.clientX - rect.left - size/2;
-    const y = e.clientY - rect.top - size/2;
-    
-    // Set ripple styles
-    ripple.style.width = ripple.style.height = `${size}px`;
-    ripple.style.left = `${x}px`;
-    ripple.style.top = `${y}px`;
-    
-    // Add and remove ripple
-    button.appendChild(ripple);
-    setTimeout(() => ripple.remove(), 600);
-  });
-});
+ </div>
 </div>
 `;
     $("#content").html(content);
