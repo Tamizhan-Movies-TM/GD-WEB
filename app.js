@@ -1453,7 +1453,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
       <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
       </div>
       <div class="btn-group text-center">
-          <a href="${url}" type="button" class="btn btn-outline-success">button</a>
+          <a href="${url}" type="button" class="btn btn-outline-success">Download Video</a>
           <button type="button" class="btn btn-outline-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <span class="sr-only"></span>
           </button>
