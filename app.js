@@ -1455,59 +1455,58 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     <div class="container text-center"><br>
       <div class="card text-center">
         <div class="text-center">
-          <div class="${UI.file_view_alert_class}" id="file_details" role="alert">${name}<br>${size}</div>${player}</div>
+          <div class="${UI.file_view_alert_class}" id="file_details" role="alert">
+            <div class="fs-5 fw-bold">${name}</div>
+            <div class="text-muted">${size}</div>
+          </div>
+          ${player}
+        </div>
         </br>
         ${UI.disable_video_download ? `` : `
           <div class="card-body">
-            <!-- Hidden URL input box -->
-            <div class="input-group mb-4" style="display: none;">
-              <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
-            </div>
-            
             <!-- Player Buttons Grid -->
             <div class="container">
-              <div class="row justify-content-center g-3">
-                <!-- Row 1 -->
-                <div class="col-6">
-                  <button type="button" class="btn btn-outline-primary w-100 h-100"
+              <div class="row row-cols-2 g-2">
+                <!-- Player Buttons -->
+                <div class="col">
+                  <button type="button" class="btn btn-outline-primary w-100 py-2"
                     onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                     ${vlc_icon}
                     <div class="mt-1">VLC Player</div>
                   </button>
                 </div>
                 
-                <div class="col-6">
-                  <button type="button" class="btn btn-outline-primary w-100 h-100"
+                <div class="col">
+                  <button type="button" class="btn btn-outline-primary w-100 py-2"
                     onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                     ${mxplayer_icon}
                     <div class="mt-1">MX Player</div>
                   </button>
                 </div>
                 
-                <!-- Row 2 -->
-                <div class="col-6">
-                  <button type="button" class="btn btn-outline-primary w-100 h-100"
+                <div class="col">
+                  <button type="button" class="btn btn-outline-primary w-100 py-2"
                     onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                     ${xplayer_icon}
                     <div class="mt-1">XPlayer</div>
                   </button>
                 </div>
                 
-                <div class="col-6">
-                  <button type="button" class="btn btn-outline-primary w-100 h-100"
+                <div class="col">
+                  <button type="button" class="btn btn-outline-primary w-100 py-2"
                     onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                     ${playit_icon}
-                    <div class="mt-1">PlayIt</div>
+                    <div class="mt-1">Playit</div>
                   </button>
                 </div>
-                
-                <!-- Row 3 - Download Button -->
-                <div class="col-12 mt-3">
-                  <a href="${url}" class="btn btn-secondary w-100 py-3">
-                    ${download_icon}
-                    <span class="ms-2">Download</span>
-                  </a>
-                </div>
+              </div>
+              
+              <!-- Download Button -->
+              <div class="mt-3">
+                <a href="${url}" class="btn btn-secondary w-100 py-3">
+                  ${download_icon}
+                  <span class="ms-2 fs-5">Download</span>
+                </a>
               </div>
             </div>
           </div>
