@@ -1470,8 +1470,29 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
       </div>
       `}
   </div>
-	<div class="progress">
-        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%;"></div>
+	// Button animation effect
+document.querySelectorAll('.ai-button').forEach(button => {
+  button.addEventListener('click', (e) => {
+    // Create ripple element
+    const ripple = document.createElement('span');
+    ripple.classList.add('ripple-effect');
+    
+    // Position ripple at click location
+    const rect = button.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = e.clientX - rect.left - size/2;
+    const y = e.clientY - rect.top - size/2;
+    
+    // Set ripple styles
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    
+    // Add and remove ripple
+    button.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  });
+});
 </div>
 `;
     $("#content").html(content);
