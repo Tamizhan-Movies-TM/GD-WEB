@@ -1467,7 +1467,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             
             <!-- Player Options -->
             <div class="player-options">
-                <div class="player-row">
+                <div class="player-grid">
                     <div class="player-option" onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                         ${vlc_icon}
                         <span class="player-label">VLC Player</span>
@@ -1477,13 +1477,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
                         ${mxplayer_icon}
                         <span class="player-label">MX Player</span>
                     </div>
-                </div>
-                
-                <div class="divider">
-                    <span>OR</span>
-                </div>
-                
-                <div class="player-row">
+                    
                     <div class="player-option" onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                         ${xplayer_icon}
                         <span class="player-label">XPlayer</span>
@@ -1557,17 +1551,16 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             padding: 20px 15px;
         }
         
-        .player-row {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 20px;
+        .player-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
         }
         
         .player-option {
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 45%;
             padding: 15px;
             border-radius: 12px;
             background: #f9f9f9;
@@ -1593,32 +1586,6 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             font-weight: 600;
             font-size: 0.95rem;
             color: #444;
-        }
-        
-        .divider {
-            position: relative;
-            margin: 25px 0;
-            text-align: center;
-        }
-        
-        .divider span {
-            position: relative;
-            padding: 0 15px;
-            background: #fff;
-            color: #999;
-            font-size: 0.85rem;
-            z-index: 1;
-        }
-        
-        .divider:before {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #eee;
-            z-index: 0;
         }
         
         .download-btn {
@@ -1649,14 +1616,12 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         }
         
         @media (max-width: 576px) {
-            .player-row {
-                flex-direction: column;
+            .player-grid {
+                grid-template-columns: 1fr;
                 gap: 12px;
-                margin-bottom: 15px;
             }
             
             .player-option {
-                width: 100%;
                 flex-direction: row;
                 justify-content: flex-start;
                 padding: 12px 15px;
@@ -1672,7 +1637,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
 
     $("#content").html(content);
 
-    // Player initialization code (based on your player_config)
+    // Player initialization code
     const playerScript = document.createElement('script');
     playerScript.src = player.js;
     playerScript.onload = function() {
