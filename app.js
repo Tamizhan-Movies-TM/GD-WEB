@@ -1449,7 +1449,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             player_css = ''
         }
     }
-	    // Add the container and card elements
+    // Add the container and card elements
     var content = `
     <div class="container text-center video-player-container">
         <div class="video-card">
@@ -1577,7 +1577,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px 15px;
+            padding: 15px 10px;
             border-radius: 14px;
             background: rgba(30, 41, 59, 0.9);
             cursor: pointer;
@@ -1586,6 +1586,20 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             position: relative;
             overflow: hidden;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .player-option:nth-child(1) {
+            animation-delay: 0s;
+        }
+        .player-option:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+        .player-option:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+        .player-option:nth-child(4) {
+            animation-delay: 0.9s;
         }
         
         .player-option:before {
@@ -1602,8 +1616,9 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         }
         
         .player-option:hover {
+            animation: none;
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
             background: rgba(30, 41, 59, 1);
         }
         
@@ -1612,9 +1627,9 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         }
         
         .player-icon {
-            height: 48px;
-            width: 48px;
-            margin-bottom: 12px;
+            height: 36px;
+            width: 36px;
+            margin-bottom: 8px;
             transition: all 0.3s ease;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
@@ -1625,7 +1640,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         
         .player-label {
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.9rem;
             color: #e2e8f0;
         }
         
@@ -1678,6 +1693,36 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             transform: translateY(3px);
         }
         
+        /* Floating animation */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        /* Moving shadow effect */
+        .player-option:hover::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            transition: all 0.8s ease;
+            animation: shine 0.8s forwards;
+        }
+        
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
             70% { box-shadow: 0 0 0 12px rgba(79, 70, 229, 0); }
@@ -1693,14 +1738,14 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             .player-option {
                 flex-direction: row;
                 justify-content: flex-start;
-                padding: 18px;
+                padding: 15px;
             }
             
             .player-icon {
                 margin-right: 18px;
                 margin-bottom: 0;
-                height: 42px;
-                width: 42px;
+                height: 32px;
+                width: 32px;
             }
             
             .video-player-container {
