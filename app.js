@@ -1389,6 +1389,7 @@ function file_code(name, encoded_name, size, bytes, url, ext, file_id, cookie_fo
 
 // Document display video |mp4|webm|avi|
 const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+const mxplayer_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
 function file_video(name, encoded_name, size, poster, url, mimeType, file_id, cookie_folder_id) {
     var url_base64 = btoa(url);
     // Split the file path into parts
@@ -1462,7 +1463,15 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
                   ${mxplayer_icon} MX Player
                 </button>
               </div>
-              
+            <div class="d-flex flex-wrap justify-content-center">
+              <!-- VLC Player Button -->
+              <div class="btn-group me-2">
+                <button type="button" class="btn btn-outline-info"
+                  onclick="window.location.href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                  ${vlcplayer_icon} VLC Player
+                </button>
+              </div>
+
               <!-- Download and Dropdown Button Group -->
               <div class="btn-group">
                 <a href="${url}" type="button" class="btn btn-secondary">Download Video</a>
