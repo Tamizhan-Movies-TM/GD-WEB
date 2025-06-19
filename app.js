@@ -1481,7 +1481,7 @@ const Example = () => {
   );
 };
 
-const TARGET_TEXT = "Encrypt data";
+const TARGET_TEXT = "Encrypt Download";
 const CYCLES_PER_LETTER = 2;
 const SHUFFLE_TIME = 50;
 
