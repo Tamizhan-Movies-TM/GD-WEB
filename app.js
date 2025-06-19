@@ -1500,11 +1500,19 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     
     <style>
         body {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            background-size: 400% 400%;
             min-height: 100vh;
             padding: 20px 0;
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            animation: gradientBG 15s ease infinite;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
         
         .video-player-container {
@@ -1516,12 +1524,10 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         .video-card {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
             overflow: hidden;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            transform: translateY(0);
-            animation: float 6s ease-in-out infinite;
         }
         
         .player-section {
@@ -1543,7 +1549,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         
         .file-info {
             padding: 25px 20px;
-            background: linear-gradient(to right, #f5f7fa, #e4e7f0);
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
         
@@ -1560,7 +1566,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         
         .file-size {
             font-size: 1.05rem;
-            color: #7f8c8d;
+            color: #6c757d;
             margin-top: 10px;
             font-weight: 500;
             letter-spacing: 0.5px;
@@ -1586,7 +1592,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             background: white;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: none;
+            border: 2px solid #dee2e6;
             box-shadow: 0 7px 20px rgba(0, 0, 0, 0.08);
             position: relative;
             overflow: hidden;
@@ -1599,15 +1605,16 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             left: 0;
             width: 100%;
             height: 4px;
-            background: linear-gradient(to right, #6a11cb, #2575fc);
+            background: linear-gradient(to right, #1a2a6c, #b21f1f);
             transform: scaleX(0);
             transform-origin: left;
             transition: transform 0.4s ease;
         }
         
         .player-option:hover {
-            transform: translateY(-8px) scale(1.03);
+            transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+            border-color: #adb5bd;
         }
         
         .player-option:hover:before {
@@ -1623,7 +1630,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         }
         
         .player-option:hover .player-icon {
-            transform: rotate(5deg) scale(1.1);
+            transform: scale(1.1);
         }
         
         .player-label {
@@ -1639,18 +1646,18 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             justify-content: center;
             margin: 0 30px 30px;
             padding: 20px;
-            background: linear-gradient(to right, #6a11cb, #2575fc);
+            background: linear-gradient(to right, #1a2a6c, #b21f1f);
             color: white;
             border-radius: 15px;
             text-decoration: none;
             font-weight: 700;
             font-size: 1.25rem;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 7px 25px rgba(106, 17, 203, 0.5);
+            box-shadow: 0 7px 25px rgba(26, 42, 108, 0.5);
             position: relative;
             overflow: hidden;
             border: none;
-            animation: pulse 2s infinite;
+            animation: bounce 2s infinite;
         }
         
         .download-btn:before {
@@ -1669,8 +1676,8 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         }
         
         .download-btn:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 10px 35px rgba(106, 17, 203, 0.7);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 35px rgba(26, 42, 108, 0.7);
         }
         
         .download-icon {
@@ -1679,19 +1686,13 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         }
         
         .download-btn:hover .download-icon {
-            transform: translateY(5px) rotate(5deg);
+            transform: translateY(5px);
         }
         
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
-            100% { transform: translateY(0px); }
-        }
-        
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(106, 17, 203, 0.6); }
-            70% { box-shadow: 0 0 0 15px rgba(106, 17, 203, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(106, 17, 203, 0); }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
         }
         
         @media (max-width: 768px) {
