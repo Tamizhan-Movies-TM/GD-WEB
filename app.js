@@ -1449,8 +1449,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             player_css = ''
         }
     }
-	
-    // Add the container and card elements
+	    // Add the container and card elements
     var content = `
     <div class="container text-center video-player-container">
         <div class="video-card">
@@ -1500,19 +1499,12 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     
     <style>
         body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
-            background-size: 400% 400%;
+            background: #0f172a;
             min-height: 100vh;
             padding: 20px 0;
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            animation: gradientBG 15s ease infinite;
-        }
-        
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            background-image: radial-gradient(circle at 10% 20%, rgba(15, 23, 42, 0.8) 0%, rgba(15, 23, 42, 1) 90%);
         }
         
         .video-player-container {
@@ -1522,19 +1514,19 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         }
         
         .video-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             overflow: hidden;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .player-section {
             background: #000;
             padding-top: 56.25%; /* 16:9 Aspect Ratio */
             position: relative;
-            border-radius: 20px 20px 0 0;
+            border-radius: 16px 16px 0 0;
             overflow: hidden;
         }
         
@@ -1548,52 +1540,50 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         }
         
         .file-info {
-            padding: 25px 20px;
-            background: linear-gradient(to right, #f8f9fa, #e9ecef);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         .file-title {
-            font-size: 1.3rem;
-            font-weight: 700;
+            font-size: 1.25rem;
+            font-weight: 600;
             margin: 0;
-            color: #2c3e50;
+            color: #e2e8f0;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
         
         .file-size {
-            font-size: 1.05rem;
-            color: #6c757d;
-            margin-top: 10px;
+            font-size: 1rem;
+            color: #94a3b8;
+            margin-top: 8px;
             font-weight: 500;
-            letter-spacing: 0.5px;
         }
         
         .player-options {
-            padding: 30px 20px;
+            padding: 25px 20px;
             background: transparent;
         }
         
         .player-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 25px;
+            gap: 20px;
         }
         
         .player-option {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 25px 15px;
-            border-radius: 18px;
-            background: white;
+            padding: 20px 15px;
+            border-radius: 14px;
+            background: rgba(30, 41, 59, 0.9);
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 2px solid #dee2e6;
-            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             position: relative;
             overflow: hidden;
         }
@@ -1604,17 +1594,17 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             top: 0;
             left: 0;
             width: 100%;
-            height: 4px;
-            background: linear-gradient(to right, #1a2a6c, #b21f1f);
+            height: 3px;
+            background: linear-gradient(to right, #6366f1, #8b5cf6);
             transform: scaleX(0);
             transform-origin: left;
-            transition: transform 0.4s ease;
+            transition: transform 0.3s ease;
         }
         
         .player-option:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-            border-color: #adb5bd;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            background: rgba(30, 41, 59, 1);
         }
         
         .player-option:hover:before {
@@ -1622,11 +1612,11 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         }
         
         .player-icon {
-            height: 50px;
-            width: 50px;
-            margin-bottom: 15px;
-            transition: all 0.4s ease;
-            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.1));
+            height: 48px;
+            width: 48px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
         
         .player-option:hover .player-icon {
@@ -1634,30 +1624,29 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         }
         
         .player-label {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: #2c3e50;
-            letter-spacing: 0.3px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #e2e8f0;
         }
         
         .download-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 30px 30px;
-            padding: 20px;
-            background: linear-gradient(to right, #1a2a6c, #b21f1f);
+            margin: 0 25px 25px;
+            padding: 18px;
+            background: linear-gradient(to right, #4f46e5, #7c3aed);
             color: white;
-            border-radius: 15px;
+            border-radius: 12px;
             text-decoration: none;
-            font-weight: 700;
-            font-size: 1.25rem;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 7px 25px rgba(26, 42, 108, 0.5);
+            font-weight: 600;
+            font-size: 1.15rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(79, 70, 229, 0.4);
             position: relative;
             overflow: hidden;
             border: none;
-            animation: bounce 2s infinite;
+            animation: pulse 2s infinite;
         }
         
         .download-btn:before {
@@ -1676,42 +1665,42 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         }
         
         .download-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 35px rgba(26, 42, 108, 0.7);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.6);
         }
         
         .download-icon {
-            margin-right: 15px;
-            transition: transform 0.4s ease;
+            margin-right: 12px;
+            transition: transform 0.3s ease;
         }
         
         .download-btn:hover .download-icon {
-            transform: translateY(5px);
+            transform: translateY(3px);
         }
         
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-20px); }
-            60% { transform: translateY(-10px); }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+            70% { box-shadow: 0 0 0 12px rgba(79, 70, 229, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
         }
         
         @media (max-width: 768px) {
             .player-grid {
                 grid-template-columns: 1fr;
-                gap: 20px;
+                gap: 16px;
             }
             
             .player-option {
                 flex-direction: row;
                 justify-content: flex-start;
-                padding: 20px;
+                padding: 18px;
             }
             
             .player-icon {
-                margin-right: 20px;
+                margin-right: 18px;
                 margin-bottom: 0;
-                height: 45px;
-                width: 45px;
+                height: 42px;
+                width: 42px;
             }
             
             .video-player-container {
@@ -1719,26 +1708,12 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             }
             
             .file-info {
-                padding: 20px 15px;
-            }
-            
-            .download-btn {
-                margin: 0 20px 25px;
-                padding: 18px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .file-title {
-                font-size: 1.1rem;
-            }
-            
-            .player-option {
                 padding: 18px 15px;
             }
             
-            .player-label {
-                font-size: 1rem;
+            .download-btn {
+                margin: 0 20px 20px;
+                padding: 16px;
             }
         }
     </style>
