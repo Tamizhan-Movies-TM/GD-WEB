@@ -1463,38 +1463,53 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             <div class="input-group mb-4" style="display: none;">
               <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
             </div>
-            <div class="d-flex flex-wrap justify-content-center gap-2">
-              <!-- VLC Player Button -->
-              <button type="button" class="btn btn-outline-primary"
-                onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${vlc_icon} VLC Player
-              </button>
-              
-              <!-- MX Player Button -->
-              <button type="button" class="btn btn-outline-primary"
-                onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${mxplayer_icon} MX Player
-              </button>
-              
-              <!-- XPlayer Button -->
-              <button type="button" class="btn btn-outline-primary"
-                onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${xplayer_icon} XPlayer
-              </button>
-
-			        <!-- Playit Button -->
-              <button type="button" class="btn btn-outline-primary"
-                onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${playit_icon} Play in Playit
-              </button>
-
-							
-              <!-- Download Button -->
-              <a href="${url}" class="btn btn-secondary">
-                ${download_icon} Download
-              </a>
+            
+            <!-- Player Buttons Grid -->
+            <div class="container">
+              <div class="row justify-content-center g-3">
+                <!-- Row 1 -->
+                <div class="col-6">
+                  <button type="button" class="btn btn-outline-primary w-100 h-100"
+                    onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                    ${vlc_icon}
+                    <div class="mt-1">VLC Player</div>
+                  </button>
+                </div>
+                
+                <div class="col-6">
+                  <button type="button" class="btn btn-outline-primary w-100 h-100"
+                    onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                    ${mxplayer_icon}
+                    <div class="mt-1">MX Player</div>
+                  </button>
+                </div>
+                
+                <!-- Row 2 -->
+                <div class="col-6">
+                  <button type="button" class="btn btn-outline-primary w-100 h-100"
+                    onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                    ${xplayer_icon}
+                    <div class="mt-1">XPlayer</div>
+                  </button>
+                </div>
+                
+                <div class="col-6">
+                  <button type="button" class="btn btn-outline-primary w-100 h-100"
+                    onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                    ${playit_icon}
+                    <div class="mt-1">Play in PlayIt</div>
+                  </button>
+                </div>
+                
+                <!-- Row 3 - Download Button -->
+                <div class="col-12 mt-3">
+                  <a href="${url}" class="btn btn-secondary w-100 py-3">
+                    ${download_icon}
+                    <span class="ms-2">Download</span>
+                  </a>
+                </div>
+              </div>
             </div>
-            <br>
           </div>
         `}
       </div>
