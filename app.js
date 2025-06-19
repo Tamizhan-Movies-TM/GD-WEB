@@ -1392,9 +1392,9 @@ function file_code(name, encoded_name, size, bytes, url, ext, file_id, cookie_fo
 function file_video(name, encoded_name, size, poster, url, mimeType, file_id, cookie_folder_id) {
     // Define all player icons
     const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const playit_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const download_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 5px;">
       <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
       <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
@@ -1467,19 +1467,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
               <!-- VLC Player Button -->
               <button type="button" class="btn btn-outline-primary"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${vlc_icon} VLC
-              </button>
-              
-              <!-- Playit Button -->
-              <button type="button" class="btn btn-outline-primary"
-                onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${playit_icon} Playit
-              </button>
-              
-              <!-- XPlayer Button -->
-              <button type="button" class="btn btn-outline-primary"
-                onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${xplayer_icon} XPlayer
+                ${vlc_icon} VLC Player
               </button>
               
               <!-- MX Player Button -->
@@ -1488,6 +1476,19 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
                 ${mxplayer_icon} MX Player
               </button>
               
+              <!-- XPlayer Button -->
+              <button type="button" class="btn btn-outline-primary"
+                onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                ${xplayer_icon} XPlayer
+              </button>
+
+			        <!-- Playit Button -->
+              <button type="button" class="btn btn-outline-primary"
+                onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                ${playit_icon} Play in Playit
+              </button>
+
+							
               <!-- Download Button -->
               <a href="${url}" class="btn btn-secondary">
                 ${download_icon} Download
