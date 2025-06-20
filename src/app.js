@@ -121,7 +121,6 @@ function render(path) {
     }
 }
 
-
 // Render title
 function title(path) {
     path = decodeURI(path);
@@ -261,9 +260,6 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
     performRequest();
 }
 
-
-
-
 /**
  * Search POST request
  * @param params Form params
@@ -317,7 +313,6 @@ function requestSearch(params, resultCallback, retries = 3) {
     $('#update').html(`<div class='alert alert-info' role='alert'> Connecting...</div></div></div>`);
     performRequest(retries);
 }
-
 
 // Render file list
 function list(path, id = '', fallback = false) {
@@ -465,7 +460,6 @@ function list(path, id = '', fallback = false) {
             handleSuccessResult,
             null);
     }
-
 
     const copyBtn = document.getElementById("handle-multiple-items-copy");
 
@@ -1391,8 +1385,6 @@ function file_code(name, encoded_name, size, bytes, url, ext, file_id, cookie_fo
     }
 }
 
-
-
 // Document display video |mp4|webm|avi|
 function file_video(name, encoded_name, size, poster, url, mimeType, file_id, cookie_folder_id) {
     // Define all player icons
@@ -1729,8 +1721,6 @@ var content = `
     document.head.appendChild(videoJsStylesheet);
 }
 
-
-
 // Document display pdf
 function file_pdf(name, encoded_name, size, url, file_id, cookie_folder_id) {
     // Split the file path into parts
@@ -1880,7 +1870,6 @@ function utc2delhi(utc_datetime) {
     return `${date}-${month}-${year} ${hour}:${minute}:${second}`;
 }
 
-
 // bytes adaptive conversion to KB, MB, GB
 function formatFileSize(bytes) {
     if (bytes >= 1099511627776) {
@@ -1900,7 +1889,6 @@ function formatFileSize(bytes) {
     }
     return bytes;
 }
-
 
 String.prototype.trim = function(char) {
     if (char) {
@@ -2037,7 +2025,6 @@ async function copyFile(driveid) {
         document.getElementById('spinner').style.display = 'none';
     }
 }
-
 
 // create a MutationObserver to listen for changes to the DOM
 const observer = new MutationObserver(() => {
