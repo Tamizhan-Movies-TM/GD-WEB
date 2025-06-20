@@ -1463,35 +1463,35 @@ var content = `
               <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
             </div>
             
-            <!-- First row of buttons -->
+            <!-- First row of buttons - fixed width -->
             <div class="d-flex justify-content-center gap-3 mb-3">
-              <button type="button" class="btn btn-outline-primary flex-fill"
+              <button type="button" class="btn btn-outline-warning" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 ${vlc_icon} VLC Player
               </button>
 
-              <button type="button" class="btn btn-outline-primary flex-fill"
+              <button type="button" class="btn btn-outline-info" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 ${mxplayer_icon} MX Player
               </button> 
             </div>
             
-            <!-- Second row of buttons -->
+            <!-- Second row of buttons - fixed width -->
             <div class="d-flex justify-content-center gap-3 mb-4">
-              <button type="button" class="btn btn-outline-primary flex-fill"
+              <button type="button" class="btn btn-outline-success" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 ${xplayer_icon} XPlayer
               </button>
 
-              <button type="button" class="btn btn-outline-primary flex-fill"
+              <button type="button" class="btn btn-outline-danger" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 ${playit_icon} Playit
               </button>
             </div>
             
-            <!-- Download button -->
-            <div class="mt-2">
-              <a href="${url}" class="btn btn-secondary btn-lg w-100">
+            <!-- Download button - centered with consistent styling -->
+            <div class="d-flex justify-content-center">
+              <a href="${url}" class="btn btn-secondary" style="width: 160px;">
                 ${download_icon} Download
               </a>
             </div>
