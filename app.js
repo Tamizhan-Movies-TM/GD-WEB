@@ -1472,7 +1472,7 @@ var content = `
               <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 <span class="d-flex align-items-center">
-                ${mxplayer_icon} MX Player
+                ${mxplayer_icon}  MX Player
                 </span>
               </button> 
             </div>
@@ -1489,7 +1489,7 @@ var content = `
               <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                <span class="d-flex align-items-center"> 
-               ${playit_icon} PLAYit
+               ${playit_icon}  PLAYit
 							 </span>
               </button>
             </div>
