@@ -1482,7 +1482,7 @@ var content = `
 
               <button type="button" class="btn btn-outline-danger" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${playit_icon} Playit
+                ${playit_icon} PLAYit
               </button>
             </div>
             
