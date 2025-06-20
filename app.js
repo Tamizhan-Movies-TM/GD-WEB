@@ -1394,10 +1394,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
-    const download_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 5px;">
-      <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-      <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-    </svg>`;
+    const download_icon = `<img src="https://i.ibb.co/DgDQMRDN/download.png" alt="Download" style="height: 24px; width: 24px; margin-right: 5px;">`;
     var url_base64 = btoa(url);
     // Split the file path into parts
     var path = window.location.pathname;
@@ -1489,10 +1486,10 @@ var content = `
               </button>
             </div>
             
-            <!-- Download button - centered with consistent styling -->
+              <!-- UPDATED DOWNLOAD BUTTON -->
             <div class="d-flex justify-content-center">
-              <a href="${url}" class="btn btn-secondary" style="width: 160px;">
-                ${download_icon} Download
+              <a href="${url}" class="btn btn-warning btn-lg fw-bold" style="padding: 12px 24px; font-size: 1.2rem;">
+                ${new_download_icon} DOWNLOAD VIDEO
               </a>
             </div>
           </div>
