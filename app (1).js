@@ -581,8 +581,7 @@ function append_files_to_list(path, files) {
             var ext = item.fileExtension
                 //if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
                 //targetFiles.push(filepath);
-                pn += "?a=view";
-                c += " view";
+                 var basePath = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
                    // Generate masked URL for file
             const fileId = generateUniqueId();
             storePathMapping(fileId, pn);
