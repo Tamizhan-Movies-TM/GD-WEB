@@ -1498,13 +1498,16 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     </div>
     
     <style>
-        body {
-            background: #0f172a;
-            min-height: 100vh;
-            padding: 20px 0;
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-image: radial-gradient(circle at 10% 20%, rgba(15, 23, 42, 0.8) 0%, rgba(15, 23, 42, 1) 90%);
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #6c757d;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --card-bg: #ffffff;
+            --border: #e0e0e0;
+            --player-bg: #f8f9ff;
+            --player-hover: #edf0ff;
         }
         
         .video-player-container {
@@ -1514,20 +1517,17 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         }
         
         .video-card {
-            background: rgba(30, 41, 59, 0.8);
+            background: var(--card-bg);
             border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             overflow: hidden;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
         }
         
         .player-section {
             background: #000;
             padding-top: 56.25%; /* 16:9 Aspect Ratio */
             position: relative;
-            border-radius: 16px 16px 0 0;
-            overflow: hidden;
         }
         
         .player-section video {
@@ -1540,98 +1540,63 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         }
         
         .file-info {
-            padding: 20px;
-            background: rgba(15, 23, 42, 0.6);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px 20px 15px;
+            background: var(--light);
+            border-bottom: 1px solid var(--border);
         }
         
         .file-title {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 600;
             margin: 0;
-            color: #e2e8f0;
+            color: var(--dark);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         
         .file-size {
-            font-size: 1rem;
-            color: #94a3b8;
+            font-size: 0.95rem;
+            color: var(--secondary);
             margin-top: 8px;
             font-weight: 500;
         }
         
         .player-options {
-            padding: 25px 20px;
-            background: transparent;
+            padding: 25px 15px;
+            background: var(--light);
         }
         
         .player-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            gap: 18px;
         }
         
         .player-option {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 15px 10px;
+            padding: 18px 10px;
             border-radius: 14px;
-            background: rgba(30, 41, 59, 0.9);
+            background: var(--player-bg);
             cursor: pointer;
             transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            position: relative;
-            overflow: hidden;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        .player-option:nth-child(1) {
-            animation-delay: 0s;
-        }
-        .player-option:nth-child(2) {
-            animation-delay: 0.3s;
-        }
-        .player-option:nth-child(3) {
-            animation-delay: 0.6s;
-        }
-        .player-option:nth-child(4) {
-            animation-delay: 0.9s;
-        }
-        
-        .player-option:before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: linear-gradient(to right, #6366f1, #8b5cf6);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease;
+            border: 1px solid var(--border);
         }
         
         .player-option:hover {
-            animation: none;
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
-            background: rgba(30, 41, 59, 1);
-        }
-        
-        .player-option:hover:before {
-            transform: scaleX(1);
+            transform: translateY(-4px);
+            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.15);
+            background: var(--player-hover);
+            border-color: #d0d7ff;
         }
         
         .player-icon {
-            height: 36px;
-            width: 36px;
-            margin-bottom: 8px;
-            transition: all 0.3s ease;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            height: 46px;
+            width: 46px;
+            margin-bottom: 12px;
+            transition: transform 0.3s ease;
         }
         
         .player-option:hover .player-icon {
@@ -1640,48 +1605,31 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
         
         .player-label {
             font-weight: 600;
-            font-size: 0.9rem;
-            color: #e2e8f0;
+            font-size: 1rem;
+            color: var(--dark);
         }
         
         .download-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 25px 25px;
+            margin: 0 20px 25px;
             padding: 18px;
-            background: linear-gradient(to right, #4f46e5, #7c3aed);
+            background: var(--primary);
             color: white;
-            border-radius: 12px;
+            border-radius: 14px;
             text-decoration: none;
             font-weight: 600;
             font-size: 1.15rem;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 20px rgba(79, 70, 229, 0.4);
-            position: relative;
-            overflow: hidden;
-            border: none;
-            animation: pulse 2s infinite;
-        }
-        
-        .download-btn:before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: 0.5s;
-        }
-        
-        .download-btn:hover:before {
-            left: 100%;
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
         }
         
         .download-btn:hover {
+            background: var(--primary-dark);
             transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.6);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
+            color: white;
         }
         
         .download-icon {
@@ -1693,72 +1641,31 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             transform: translateY(3px);
         }
         
-        /* Floating animation */
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-            100% { transform: translateY(0px); }
-        }
-        
-        /* Moving shadow effect */
-        .player-option:hover::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255, 255, 255, 0.1),
-                transparent
-            );
-            transition: all 0.8s ease;
-            animation: shine 0.8s forwards;
-        }
-        
-        @keyframes shine {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-        
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
-            70% { box-shadow: 0 0 0 12px rgba(79, 70, 229, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
-        }
-        
-        @media (max-width: 768px) {
+        @media (max-width: 576px) {
             .player-grid {
                 grid-template-columns: 1fr;
-                gap: 16px;
+                gap: 15px;
             }
             
             .player-option {
                 flex-direction: row;
                 justify-content: flex-start;
-                padding: 15px;
+                padding: 15px 20px;
             }
             
             .player-icon {
-                margin-right: 18px;
+                margin-right: 15px;
                 margin-bottom: 0;
-                height: 32px;
-                width: 32px;
+                height: 40px;
+                width: 40px;
             }
             
             .video-player-container {
-                padding: 15px;
+                padding: 10px;
             }
             
             .file-info {
-                padding: 18px 15px;
-            }
-            
-            .download-btn {
-                margin: 0 20px 20px;
-                padding: 16px;
+                padding: 15px;
             }
         }
     </style>
