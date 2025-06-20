@@ -1394,7 +1394,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
-    const new_download_icon = `<img src="https://i.ibb.co/DgDQMRDN/download.png" alt="Download" style="height: 38px; width: 38px; margin-right: 5px;">`;
+    const new_download_icon = `<img src="https://i.ibb.co/DgDQMRDN/download.png" alt="Download" style="height: 35px; width: 35px; margin-right: 5px;">`;
     var url_base64 = btoa(url);
     // Split the file path into parts
     var path = window.location.pathname;
@@ -1488,7 +1488,7 @@ var content = `
             
               <!-- UPDATED DOWNLOAD BUTTON -->
             <div class="d-flex justify-content-center">
-              <a href="${url}" class="btn btn-outline-secondary btn-lg fw-bold" style="padding: 12px 24px; font-size: 1.2rem;">
+              <a href="${url}" class="btn btn-outline-primary btn-lg fw-bold" style="padding: 12px 20px; font-size: 1.0rem;">
                 ${new_download_icon} DOWNLOAD VIDEO
               </a>
             </div>
