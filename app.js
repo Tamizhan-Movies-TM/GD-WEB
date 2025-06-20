@@ -1486,9 +1486,9 @@ var content = `
               </button>
             </div>
             
-              <!-- UPDATED DOWNLOAD BUTTON WITH LOADING EFFECT -->
+              <!-- DOWNLOAD BUTTON -->
             <div class="d-flex justify-content-center">
-              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
+              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
                 ${new_download_icon} DOWNLOAD
                 <div id="download-spinner" class="spinner" style="display: none;">
                   <div class="spinner-circle"></div>
@@ -1521,6 +1521,17 @@ var content = `
       @keyframes spinner-rotate {
         to { transform: rotate(360deg); }
       }
+      
+      /* Center button content */
+      .d-flex.align-items-center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .gap-2 {
+        gap: 8px;
+      }
     </style>
     `;
 
@@ -1539,8 +1550,8 @@ var content = `
             spinner.style.display = 'block';
             button.disabled = true;
             
-            // Change button text to "Downloading..."
-            button.innerHTML = 'DOWNLOADING...';
+            // Change button text
+            button.innerHTML = `${new_download_icon} DOWNLOADING...`;
             
             // Simulate download process (1.5 seconds)
             setTimeout(() => {
@@ -1561,7 +1572,6 @@ var content = `
             }, 1500);
         });
     }
-
     // Load Video.js and initialize the player
     var videoJsScript = document.createElement('script');
     videoJsScript.src = player_js;
