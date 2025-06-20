@@ -1486,19 +1486,81 @@ var content = `
               </button>
             </div>
             
-              <!-- UPDATED DOWNLOAD BUTTON -->
+              <!-- UPDATED DOWNLOAD BUTTON WITH LOADING EFFECT -->
             <div class="d-flex justify-content-center">
-              <a href="${url}" class="btn btn-outline-primary btn-lg fw-bold" style="padding: 10px 24px; font-size: 1.0rem;">
+              <button id="download-btn" class="btn btn-warning btn-lg fw-bold" style="padding: 12px 24px; font-size: 1.2rem; position: relative;">
                 ${new_download_icon} DOWNLOAD VIDEO
-              </a>
+                <div id="download-spinner" class="spinner" style="display: none;">
+                  <div class="spinner-circle"></div>
+                </div>
+              </button>
             </div>
           </div>
         `}
       </div>
     </div>
+    
+    <style>
+      /* Loading spinner styles */
+      .spinner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      
+      .spinner-circle {
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spinner-rotate 1s linear infinite;
+      }
+      
+      @keyframes spinner-rotate {
+        to { transform: rotate(360deg); }
+      }
+    </style>
     `;
 
+    // Set the content
     $("#content").html(content);
+    
+    // Add event listener for the download button
+    if (!UI.disable_video_download) {
+        document.getElementById('download-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const button = this;
+            const spinner = button.querySelector('#download-spinner');
+            
+            // Show spinner and disable button
+            spinner.style.display = 'block';
+            button.disabled = true;
+            
+            // Change button text to "Downloading..."
+            button.innerHTML = 'DOWNLOADING...';
+            
+            // Simulate download process (1.5 seconds)
+            setTimeout(() => {
+                // Create a hidden link to trigger the actual download
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = name;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                // Hide spinner and restore button after 0.5s
+                setTimeout(() => {
+                    spinner.style.display = 'none';
+                    button.disabled = false;
+                    button.innerHTML = `${new_download_icon} DOWNLOAD VIDEO`;
+                }, 500);
+            }, 1500);
+        });
+    }
 
     // Load Video.js and initialize the player
     var videoJsScript = document.createElement('script');
