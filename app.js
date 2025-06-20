@@ -1450,7 +1450,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     }
   
    // Add the container and card elements
-    var content = `
+var content = `
     <div class="container text-center"><br>
       <div class="card text-center">
         <div class="text-center">
@@ -1462,32 +1462,36 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             <div class="input-group mb-4" style="display: none;">
               <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
             </div>
-            <div class="d-flex flex-wrap justify-content-center gap-2 mb-3"> <!-- Added mb-3 for bottom margin -->
-              <!-- Player buttons with fixed width -->
-              <button type="button" class="btn btn-outline-primary" style="width: 160px;"
+            
+            <!-- First row of buttons -->
+            <div class="d-flex justify-content-center gap-3 mb-3">
+              <button type="button" class="btn btn-outline-primary flex-fill"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 ${vlc_icon} VLC Player
               </button>
 
-              <button type="button" class="btn btn-outline-primary" style="width: 160px;"
+              <button type="button" class="btn btn-outline-primary flex-fill"
                 onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 ${mxplayer_icon} MX Player
               </button> 
-               
-              <button type="button" class="btn btn-outline-primary" style="width: 160px;"
+            </div>
+            
+            <!-- Second row of buttons -->
+            <div class="d-flex justify-content-center gap-3 mb-4">
+              <button type="button" class="btn btn-outline-primary flex-fill"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 ${xplayer_icon} XPlayer
               </button>
 
-              <button type="button" class="btn btn-outline-primary" style="width: 160px;"
+              <button type="button" class="btn btn-outline-primary flex-fill"
                 onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 ${playit_icon} Playit
               </button>
             </div>
             
-            <!-- Download button moved down with increased size -->
-            <div class="mt-3"> <!-- Added mt-3 for top margin -->
-              <a href="${url}" class="btn btn-secondary btn-lg"> <!-- Added btn-lg for larger size -->
+            <!-- Download button -->
+            <div class="mt-2">
+              <a href="${url}" class="btn btn-secondary btn-lg w-100">
                 ${download_icon} Download
               </a>
             </div>
