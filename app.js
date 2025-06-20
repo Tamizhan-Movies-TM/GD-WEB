@@ -1464,7 +1464,7 @@ var content = `
             <div class="d-flex justify-content-center gap-3 mb-3">
               <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span class="d-flex align-items-center gap-1">
+               <span class="d-flex align-items-center">
                 ${vlc_icon} VLC Player
                </span>
               </button>
