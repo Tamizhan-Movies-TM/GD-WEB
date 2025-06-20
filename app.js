@@ -1448,7 +1448,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             player_css = ''
         }
     }
-    // Add the container and card elements
+  
    // Add the container and card elements
     var content = `
     <div class="container text-center"><br>
@@ -1466,7 +1466,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
               <!-- VLC Player Button -->
               <button type="button" class="btn btn-outline-primary"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${vlc_icon} VLC
+                ${vlc_icon} VLC Player
               </button>
 
               <!-- MX Player Button -->
