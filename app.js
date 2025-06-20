@@ -1488,7 +1488,7 @@ var content = `
             
               <!-- UPDATED DOWNLOAD BUTTON WITH LOADING EFFECT -->
             <div class="d-flex justify-content-center">
-              <button id="download-btn" class="btn btn-outline-primary btn-lg fw-bold" style="padding: 10px 24px; font-size: 1.0rem; position: relative;">
+              <button id="download-btn" class="btn btn-outline-primary btn-lg fw-bold" style="padding: 8px 25px; font-size: 1.0rem; position: relative;">
                 ${new_download_icon} DOWNLOAD VIDEO
                 <div id="download-spinner" class="spinner" style="display: none;">
                   <div class="spinner-circle"></div>
