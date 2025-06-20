@@ -1388,18 +1388,8 @@ function file_code(name, encoded_name, size, bytes, url, ext, file_id, cookie_fo
 
 
 // Document display video |mp4|webm|avi|
-
 function file_video(name, encoded_name, size, poster, url, mimeType, file_id, cookie_folder_id) {
-    // Define all player icons
-    const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" class="player-icon">`;
-    const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" class="player-icon">`;
-    const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" class="player-icon">`;
-    const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" class="player-icon">`;
-    const download_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16" class="download-icon">
-        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-    </svg>`;
-	var url_base64 = btoa(url);
+    var url_base64 = btoa(url);
     // Split the file path into parts
     var path = window.location.pathname;
     var pathParts = path.split('/');
@@ -1448,232 +1438,93 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
             player_css = ''
         }
-    }   
-	
-	// Add the container and card elements
-    var content = `
-    <div class="container text-center video-player-container">
-        <div class="video-card">
-            <!-- Player Section -->
-            <div class="player-section">
-                ${player}
-            </div>
-            
-            <!-- File Info -->
-            <div class="file-info">
-                <h4 class="file-title">${name}</h4>
-                <div class="file-size">${size}</div>
-            </div>
-            
-            <!-- Player Options -->
-            <div class="player-options">
-                <div class="player-grid">
-                    <div class="player-option" onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                        ${vlc_icon}
-                        <span class="player-label">VLC Player</span>
-                    </div>
-                    
-                    <div class="player-option" onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                        ${mxplayer_icon}
-                        <span class="player-label">MX Player</span>
-                    </div>
-                    
-                    <div class="player-option" onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                        ${xplayer_icon}
-                        <span class="player-label">XPlayer</span>
-                    </div>
-                    
-                    <div class="player-option" onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                        ${playit_icon}
-                        <span class="player-label">Playit</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Download Button -->
-            <a href="${url}" class="download-btn">
-                ${download_icon}
-                <span>Download</span>
-            </a>
-        </div>
-    </div>
-    
-    <style>
-        .video-player-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .video-card {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
-        }
-        
-        .player-section {
-            background: #000;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
-            position: relative;
-        }
-        
-        .player-section video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .file-info {
-            padding: 20px 15px 15px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .file-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin: 0;
-            color: #333;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .file-size {
-            font-size: 0.9rem;
-            color: #666;
-            margin-top: 5px;
-        }
-        
-        .player-options {
-            padding: 20px 15px;
-        }
-        
-        .player-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-        
-        .player-option {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 15px;
-            border-radius: 12px;
-            background: #f9f9f9;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid #eee;
-        }
-        
-        .player-option:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            background: #fff;
-            border-color: #e0e0e0;
-        }
-        
-        .player-icon {
-            height: 42px;
-            width: 42px;
-            margin-bottom: 10px;
-        }
-        
-        .player-label {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #444;
-        }
-        
-        .download-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 15px 20px;
-            padding: 16px;
-            background: #4a6ee0;
-            color: white;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(74, 110, 224, 0.25);
-        }
-        
-        .download-btn:hover {
-            background: #3a5bc7;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(74, 110, 224, 0.35);
-            color: white;
-        }
-        
-        .download-icon {
-            margin-right: 10px;
-        }
-        
-        @media (max-width: 576px) {
-            .player-grid {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-            
-            .player-option {
-                flex-direction: row;
-                justify-content: flex-start;
-                padding: 12px 15px;
-            }
-            
-            .player-icon {
-                margin-right: 12px;
-                margin-bottom: 0;
-            }
-        }
-    </style>
-    `;
-
+    }
+    // Add the container and card elements
+  var content = `
+  <div class="container text-center"><br>
+  <div class="card text-center">
+    <div class="text-center">
+      <div class="${UI.file_view_alert_class}" id="file_details" role="alert">${name}<br>${size}</div>${player}</div>
+    </br>
+    ${UI.disable_video_download ? `` : `
+      <div class="card-body">
+      <!-- Hidden URL input box -->
+      <div class="input-group mb-4" style="display: none;">
+        <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
+      </div>
+      <div class="btn-group text-center">
+          <a href="${url}" type="button" class="btn btn-secondary">Download</a>
+          <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="sr-only"></span>
+          </button>
+          <div class="dropdown-menu">
+					<a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
+					<a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
+					</div>
+      </div>          
+      </div>
+      </div>
+      `}
+  </div>
+</div>
+`;
     $("#content").html(content);
 
-    // Player initialization code
-    const playerScript = document.createElement('script');
-    playerScript.src = player.js;
-    playerScript.onload = function() {
-        if (player_config.player === "plyr") {
-            new Plyr('#player');
-        } else if (player_config.player === "videojs") {
-            videojs('vplayer');
-        } else if (player_config.player === "dplayer") {
-            new DPlayer({
+    // Load Video.js and initialize the player
+    var videoJsScript = document.createElement('script');
+    videoJsScript.src = player_js;
+    videoJsScript.onload = function() {
+        // Video.js is loaded, initialize the player
+        if (player_config.player == "plyr") {
+            const player = new Plyr('#player');
+        } else if (player_config.player == "videojs") {
+            const player = new videojs('vplayer');
+        } else if (player_config.player == "dplayer") {
+            const dp = new DPlayer({
                 container: document.getElementById('player-container'),
                 screenshot: true,
                 video: {
                     url: url,
                     pic: poster,
-                    thumbnails: poster
-                }
+                    thumbnails: poster,
+                },
             });
-        } else if (player_config.player === "jwplayer") {
+        } else if (player_config.player == "jwplayer") {
             jwplayer("player").setup({
                 file: url,
+                type: mimeType,
+                autostart: false,
                 image: poster,
                 width: "100%",
-                aspectratio: "16:9"
+                aspectratio: "16:9",
+                title: name,
+                description: "Powered by Google Drive Index",
+                tracks: [{
+                    file: url,
+                    kind: "captions",
+                    label: "Default",
+                    "default": true,
+                }],
+                captions: {
+                    color: "#f3f378",
+                    fontSize: 14,
+                    backgroundOpacity: 50,
+                    edgeStyle: "raised",
+                },
             });
         }
+
     };
-    document.head.appendChild(playerScript);
+    document.head.appendChild(videoJsScript);
 
-    const playerStylesheet = document.createElement('link');
-    playerStylesheet.href = player.cs;
-    playerStylesheet.rel = 'stylesheet';
-    document.head.appendChild(playerStylesheet);
+    var videoJsStylesheet = document.createElement('link');
+    videoJsStylesheet.href = player_css;
+    videoJsStylesheet.rel = 'stylesheet';
+    document.head.appendChild(videoJsStylesheet);
 }
-document.head.appendChild(playerStylesheet);
-}
-
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, file_id, cookie_folder_id) {
