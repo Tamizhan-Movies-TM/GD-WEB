@@ -1488,7 +1488,7 @@ var content = `
             
               <!-- UPDATED DOWNLOAD BUTTON WITH LOADING EFFECT -->
             <div class="d-flex justify-content-center">
-              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold" style="padding: 8px 25px; font-size: 1.1rem; position: relative;">
+              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
                 ${new_download_icon} DOWNLOAD
                 <div id="download-spinner" class="spinner" style="display: none;">
                   <div class="spinner-circle"></div>
@@ -1556,7 +1556,7 @@ var content = `
                 setTimeout(() => {
                     spinner.style.display = 'none';
                     button.disabled = false;
-                    button.innerHTML = `${new_download_icon} DOWNLOAD VIDEO`;
+                    button.innerHTML = `${new_download_icon} DOWNLOAD`;
                 }, 500);
             }, 1500);
         });
