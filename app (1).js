@@ -33,6 +33,19 @@ function init() {
     $('body').html(html);
 }
 
+  // ================== URL MASKING SYSTEM ==================
+function generateUniqueId() {
+    return Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+}
+
+function storePathMapping(id, path) {
+    localStorage.setItem(id, path);
+}
+
+function getPathFromId(id) {
+    return localStorage.getItem(id);
+}
+
 const folder_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_11)"><g transform="matrix(1,0,0,1,0,0)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,24,24)"><path fill="rgb(255,159,0)" fill-opacity="1" d=" M16,-12 C16,-12 -2,-12 -2,-12 C-2,-12 -6,-16 -6,-16 C-6,-16 -16,-16 -16,-16 C-18.200000762939453,-16 -20,-14.199999809265137 -20,-12 C-20,-12 -20,12 -20,12 C-20,14.208999633789062 -18.208999633789062,16 -16,16 C-16,16 13.682000160217285,16 13.682000160217285,16 C13.682000160217285,16 20,5 20,5 C20,5 20,-8 20,-8 C20,-10.199999809265137 18.200000762939453,-12 16,-12z"></path></g></g><g transform="matrix(1,0,0,1,0,0)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,24,26)"><path fill="rgb(255,201,40)" fill-opacity="1" d=" M16,-14 C16,-14 -16,-14 -16,-14 C-18.200000762939453,-14 -20,-12.199999809265137 -20,-10 C-20,-10 -20,10 -20,10 C-20,12.199999809265137 -18.200000762939453,14 -16,14 C-16,14 16,14 16,14 C18.200000762939453,14 20,12.199999809265137 20,10 C20,10 20,-10 20,-10 C20,-12.199999809265137 18.200000762939453,-14 16,-14z"></path></g></g></g></svg>`
 const video_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_11)"><g transform="matrix(1,0,0,1,24,24)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(63,81,181)" fill-opacity="1" d=" M16,17 C16,17 -16,17 -16,17 C-18.200000762939453,17 -20,15.199999809265137 -20,13 C-20,13 -20,-9 -20,-9 C-20,-9 20,-9 20,-9 C20,-9 20,13 20,13 C20,15.199999809265137 18.200000762939453,17 16,17z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M16,-9 C16,-9 12,-3 12,-3 C12,-3 16,-3 16,-3 C16,-3 20,-9 20,-9 C20,-9 16,-9 16,-9z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M8,-9 C8,-9 4,-3 4,-3 C4,-3 8,-3 8,-3 C8,-3 12,-9 12,-9 C12,-9 8,-9 8,-9z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M0,-9 C0,-9 -4,-3 -4,-3 C-4,-3 0,-3 0,-3 C0,-3 4,-9 4,-9 C4,-9 0,-9 0,-9z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M-8,-9 C-8,-9 -12,-3 -12,-3 C-12,-3 -8,-3 -8,-3 C-8,-3 -4,-9 -4,-9 C-4,-9 -8,-9 -8,-9z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M-16,-9 C-16,-9 -20,-3 -20,-3 C-20,-3 -16,-3 -16,-3 C-16,-3 -12,-9 -12,-9 C-12,-9 -16,-9 -16,-9z"></path></g></g></g><g transform="matrix(1,0,0,1,24,24)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(63,81,181)" fill-opacity="1" d=" M19.399999618530273,-15.699999809265137 C19.399999618530273,-15.699999809265137 -20,-9 -20,-9 C-20,-9 -20.299999237060547,-11 -20.299999237060547,-11 C-20.700000762939453,-13.199999809265137 -19.200000762939453,-15.199999809265137 -17,-15.600000381469727 C-17,-15.600000381469727 14.600000381469727,-20.899999618530273 14.600000381469727,-20.899999618530273 C16.799999237060547,-21.299999237060547 18.799999237060547,-19.799999237060547 19.200000762939453,-17.600000381469727 C19.200000762939453,-17.600000381469727 19.399999618530273,-15.699999809265137 19.399999618530273,-15.699999809265137z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M-5.199999809265137,-17.600000381469727 C-5.199999809265137,-17.600000381469727 -0.30000001192092896,-12.300000190734863 -0.30000001192092896,-12.300000190734863 C-0.30000001192092896,-12.300000190734863 3.700000047683716,-13 3.700000047683716,-13 C3.700000047683716,-13 -1.2999999523162842,-18.299999237060547 -1.2999999523162842,-18.299999237060547 C-1.2999999523162842,-18.299999237060547 -5.199999809265137,-17.600000381469727 -5.199999809265137,-17.600000381469727z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M-13.100000381469727,-16.299999237060547 C-13.100000381469727,-16.299999237060547 -8.199999809265137,-11 -8.199999809265137,-11 C-8.199999809265137,-11 -4.199999809265137,-11.699999809265137 -4.199999809265137,-11.699999809265137 C-4.199999809265137,-11.699999809265137 -9.199999809265137,-16.899999618530273 -9.199999809265137,-16.899999618530273 C-9.199999809265137,-16.899999618530273 -13.100000381469727,-16.299999237060547 -13.100000381469727,-16.299999237060547z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M2.700000047683716,-18.899999618530273 C2.700000047683716,-18.899999618530273 7.599999904632568,-13.699999809265137 7.599999904632568,-13.699999809265137 C7.599999904632568,-13.699999809265137 11.5,-14.300000190734863 11.5,-14.300000190734863 C11.5,-14.300000190734863 6.599999904632568,-19.600000381469727 6.599999904632568,-19.600000381469727 C6.599999904632568,-19.600000381469727 2.700000047683716,-18.899999618530273 2.700000047683716,-18.899999618530273z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M10.5,-20.200000762939453 C10.5,-20.200000762939453 15.5,-15 15.5,-15 C15.5,-15 19.399999618530273,-15.699999809265137 19.399999618530273,-15.699999809265137 C19.399999618530273,-15.699999809265137 14.5,-20.899999618530273 14.5,-20.899999618530273 C14.5,-20.899999618530273 10.5,-20.200000762939453 10.5,-20.200000762939453z"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(159,168,218)" fill-opacity="1" d=" M-16.5,-14 C-17.327999114990234,-14 -18,-13.32800006866455 -18,-12.5 C-18,-11.67199993133545 -17.327999114990234,-11 -16.5,-11 C-15.67199993133545,-11 -15,-11.67199993133545 -15,-12.5 C-15,-13.32800006866455 -15.67199993133545,-14 -16.5,-14z"></path></g></g></g></svg>`
 const code_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_2)"><g transform="matrix(1,0,0,1,0,0)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,24,21)"><path fill="rgb(83,109,121)" fill-opacity="1" d=" M-18,-13 C-18,-13 18,-13 18,-13 C18,-13 18,13 18,13 C18,13 -18,13 -18,13 C-18,13 -18,-13 -18,-13z"></path></g><g opacity="1" transform="matrix(1,0,0,1,24,20.5)"><path fill="rgb(186,222,250)" fill-opacity="1" d=" M-16,-10.5 C-16,-10.5 16,-10.5 16,-10.5 C16,-10.5 16,10.5 16,10.5 C16,10.5 -16,10.5 -16,10.5 C-16,10.5 -16,-10.5 -16,-10.5z"></path></g><g opacity="1" transform="matrix(1,0,0,1,24,37)"><path fill="rgb(69,90,99)" fill-opacity="1" d=" M-3,-3 C-3,-3 3,-3 3,-3 C3,-3 3,0 3,0 C3,0 -3,0 -3,0 C-3,0 -3,-3 -3,-3z M9,0 C9,0 -9,0 -9,0 C-11,0 -11,2 -11,2 C-11,2 -11,3 -11,3 C-11,3 11,3 11,3 C11,3 11,2 11,2 C11,2 11,0 9,0z"></path></g></g><g transform="matrix(0.8999999761581421,0,0,0.8999999761581421,2.2750015258789062,-1.0999984741210938)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,15.315999984741211,24.465999603271484)"><path fill="rgb(21,101,192)" fill-opacity="1" d=" M-0.8989999890327454,0.02500000037252903 C-0.8989999890327454,0.02500000037252903 3.684000015258789,2.0399999618530273 3.684000015258789,2.0399999618530273 C3.684000015258789,2.0399999618530273 3.684000015258789,4.894999980926514 3.684000015258789,4.894999980926514 C3.684000015258789,4.894999980926514 -3.684000015258789,1.2100000381469727 -3.684000015258789,1.2100000381469727 C-3.684000015258789,1.2100000381469727 -3.684000015258789,-1.1990000009536743 -3.684000015258789,-1.1990000009536743 C-3.684000015258789,-1.1990000009536743 3.684000015258789,-4.894999980926514 3.684000015258789,-4.894999980926514 C3.684000015258789,-4.894999980926514 3.684000015258789,-2.0399999618530273 3.684000015258789,-2.0399999618530273 C3.684000015258789,-2.0399999618530273 -0.8989999890327454,0.02500000037252903 -0.8989999890327454,0.02500000037252903z"></path></g><g opacity="1" transform="matrix(-1,0,0,-1,32.70000076293945,24.465999603271484)"><path fill="rgb(21,101,192)" fill-opacity="1" d=" M-0.8989999890327454,0.02500000037252903 C-0.8989999890327454,0.02500000037252903 3.684000015258789,2.0399999618530273 3.684000015258789,2.0399999618530273 C3.684000015258789,2.0399999618530273 3.684000015258789,4.894999980926514 3.684000015258789,4.894999980926514 C3.684000015258789,4.894999980926514 -3.684000015258789,1.2100000381469727 -3.684000015258789,1.2100000381469727 C-3.684000015258789,1.2100000381469727 -3.684000015258789,-1.1990000009536743 -3.684000015258789,-1.1990000009536743 C-3.684000015258789,-1.1990000009536743 3.684000015258789,-4.894999980926514 3.684000015258789,-4.894999980926514 C3.684000015258789,-4.894999980926514 3.684000015258789,-2.0399999618530273 3.684000015258789,-2.0399999618530273 C3.684000015258789,-2.0399999618530273 -0.8989999890327454,0.02500000037252903 -0.8989999890327454,0.02500000037252903z"></path></g><g opacity="1" transform="matrix(1,0,0,1,24.240999221801758,24)"><path fill="rgb(21,101,192)" fill-opacity="1" d=" M-1.1649999618530273,7.986000061035156 C-1.1649999618530273,7.986000061035156 -3.259000062942505,7.986000061035156 -3.259000062942505,7.986000061035156 C-3.259000062942505,7.986000061035156 1.1619999408721924,-7.916999816894531 1.1619999408721924,-7.916999816894531 C1.1619999408721924,-7.916999816894531 3.259000062942505,-7.916999816894531 3.259000062942505,-7.916999816894531 C3.259000062942505,-7.916999816894531 -1.1649999618530273,7.986000061035156 -1.1649999618530273,7.986000061035156z"></path></g></g></g></svg>`
@@ -75,20 +88,18 @@ function getQueryVariable(variable) {
     return (false);
 }
 
-// ================== URL MASKING SYSTEM ==================
-function generateUniqueId() {
-    return Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
-}
-
-function storePathMapping(id, path) {
-    localStorage.setItem(id, path);
-}
-
-function getPathFromId(id) {
-    return localStorage.getItem(id);
-}
-
 function render(path) {
+    // Handle root path explicitly
+    const curDrive = window.current_drive_order || 0;
+    const rootPath = `/${curDrive}:/`;
+    
+    if (path === "/" || path === rootPath) {
+        const rootId = generateUniqueId();
+        storePathMapping(rootId, rootPath);
+        history.replaceState(null, null, `/view?=folder/${rootId}`);
+        path = `/view?=folder/${rootId}`;
+    }
+    
     // Handle masked URLs
     if (path.startsWith("/view")) {
         const urlParams = new URLSearchParams(window.location.search);
@@ -118,14 +129,11 @@ function render(path) {
     }
     title(path);
     nav(path);
-    // .../0: This
+    
     var reg = /\/\d+:$/g;
     if (path.includes("/fallback")) {
-        // Used to store the state of some scroll events
         window.scroll_status = {
-            // Whether the scroll event is bound
             event_bound: false,
-            // "Scroll to the bottom, loading more data" event lock
             loading_lock: false
         };
         const can_preview = getQueryVariable('a');
@@ -136,20 +144,14 @@ function render(path) {
             return list(null, id, true);
         }
     } else if (window.MODEL.is_search_page) {
-        // Used to store the state of some scroll events
         window.scroll_status = {
-            // Whether the scroll event is bound
             event_bound: false,
-            // "Scroll to the bottom, loading more data" event lock
             loading_lock: false
         };
         render_search_result_list()
     } else if (path.match(reg) || path.slice(-1) == '/') {
-        // Used to store the state of some scroll events
         window.scroll_status = {
-            // Whether the scroll event is bound
             event_bound: false,
-            // "Scroll to the bottom, loading more data" event lock
             loading_lock: false
         };
         list(path);
@@ -214,9 +216,7 @@ function nav(path) {
 </nav>
 `;
 
-    // Personal or team
     if (model.root_type < 2) {
-        // Show search box
         html += search_bar;
     }
 
@@ -387,7 +387,7 @@ function list(path, id = '', fallback = false) {
             if (displayedPathPart === '') {
                 break;
             }
-
+            
             // Generate masked URL for breadcrumb
             const breadcrumbId = generateUniqueId();
             storePathMapping(breadcrumbId, currentPath);
@@ -429,7 +429,6 @@ function list(path, id = '', fallback = false) {
                 append_files_to_list(path, res['data']['files']);
             }
         } else {
-            console.log('doing something...')
             if (fallback) {
                 append_files_to_fallback_list(path, res['data']['files']);
             } else {
@@ -453,7 +452,6 @@ function list(path, id = '', fallback = false) {
 
                         let $list = $('#list');
                         if (fallback) {
-                            console.log('fallback inside handleSuccessResult');
                             requestListPath(path, {
                                     id: id,
                                     password: prevReqParams['password'],
@@ -484,7 +482,6 @@ function list(path, id = '', fallback = false) {
     }
 
     if (fallback) {
-        console.log('fallback inside list');
         requestListPath(path, {
                 id: id,
                 password: password
@@ -492,7 +489,6 @@ function list(path, id = '', fallback = false) {
             handleSuccessResult,
             null, null, fallback = true);
     } else {
-        console.log("handling this")
         requestListPath(path, {
                 password: password
             },
@@ -501,47 +497,25 @@ function list(path, id = '', fallback = false) {
     }
     
     const copyBtn = document.getElementById("handle-multiple-items-copy");
-
-    // Add a click event listener to the copy button
     copyBtn.addEventListener("click", () => {
-        // Get all the checked checkboxes
         const checkedItems = document.querySelectorAll('input[type="checkbox"]:checked');
-
-        // Create an array to store the selected items' data
         const selectedItemsData = [];
 
-        // Loop through each checked checkbox
         if (checkedItems.length === 0) {
             alert("No items selected!");
             return;
         }
         checkedItems.forEach((item) => {
-            // Get the value of the checkbox (in this case, the URL)
-            const itemData = item.value;
-            // Push the value to the array
-            selectedItemsData.push(itemData);
+            selectedItemsData.push(item.value);
         });
 
-        // Join the selected items' data with a newline character
         const dataToCopy = selectedItemsData.join("\n");
-
-        // Create a temporary input element
         const tempInput = document.createElement("textarea");
         tempInput.value = dataToCopy;
-
-        // Add the temporary input element to the document
         document.body.appendChild(tempInput);
-
-        // Select the text inside the temporary input element
         tempInput.select();
-
-        // Copy the selected text to the clipboard
         document.execCommand("copy");
-
-        // Remove the temporary input element from the document
         document.body.removeChild(tempInput);
-
-        // Alert the user that the data has been copied
         alert("Selected items copied to clipboard!");
     });
 }
@@ -563,55 +537,58 @@ function askPassword(path) {
  * @param path
  * @param files request result
  */
-function append_files_to_fallback_list(path, files) {
-    try {
-        console.log('append_files_to_fallback_list');
-        var $list = $('#list');
-        // Is it the last page of data?
-        var is_lastpage_loaded = null === $list.data('nextPageToken');
-        var is_firstpage = '0' == $list.data('curPageIndex');
+function append_files_to_list(path, files) {
+    var $list = $('#list');
+    var is_lastpage_loaded = null === $list.data('nextPageToken');
+    var is_firstpage = '0' == $list.data('curPageIndex');
 
-        html = "";
-        let targetFiles = [];
-        var totalsize = 0;
-        var is_file = false
-        for (i in files) {
-            var item = files[i];
-            var p = "/fallback?id=" + item.id
-            item['modifiedTime'] = utc2delhi(item['modifiedTime']);
-            // replace / with %2F
-            if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-                html += `<a href="${p}" style="color: ${UI.folder_text_color};" class="countitems list-group-item list-group-item-action"> ${folder_icon} ${item.name} ${UI.display_time ? `<span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</a>`;
-            } else {
-                var totalsize = totalsize + Number(item.size);
-                item['size'] = formatFileSize(item['size']);
-                var is_file = true
-                var epn = item.name;
-                var link = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
-                var pn = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
-                var c = "file";
-                // README is displayed after the last page is loaded, otherwise it will affect the scroll event
-                if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
-                    get_file(p, item, function(data) {
-                        markdown("#readme_md", data);
-                        $("img").addClass("img-fluid")
-                    });
-                }
-                if (item.name == "HEAD.md" && UI.render_head_md) {
-                    get_file(p, item, function(data) {
-                        markdown("#head_md", data);
-                        $("img").addClass("img-fluid")
-                    });
-                }
-                var ext = item.fileExtension
+    html = "";
+    let targetFiles = [];
+    var totalsize = 0;
+    var is_file = false
+    for (i in files) {
+        var item = files[i];
+        var ep = encodeURIComponent(item.name).replace(/\//g, '%2F') + '/';
+        var p = path + ep.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+        item['modifiedTime'] = utc2delhi(item['modifiedTime']);
+        
+        if (item['mimeType'] == 'application/vnd.google-apps.folder') {
+            // Generate masked URL for folder
+            const folderId = generateUniqueId();
+            storePathMapping(folderId, p);
+            html += `<a href="/view?=folder/${folderId}" style="color: ${UI.folder_text_color};" class="countitems list-group-item list-group-item-action"> ${folder_icon} ${item.name} ${UI.display_time ? `<span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</a>`;
+        } else {
+            var totalsize = totalsize + Number(item.size);
+            item['size'] = formatFileSize(item['size']);
+            var is_file = true
+            var epn = item.name;
+            var link = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+            var pn = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+            var c = "file";
+            
+            if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
+                get_file(p, item, function(data) {
+                    markdown("#readme_md", data);
+                    $("img").addClass("img-fluid")
+                });
+            }
+            if (item.name == "HEAD.md" && UI.render_head_md) {
+                get_file(p, item, function(data) {
+                    markdown("#head_md", data);
+                    $("img").addClass("img-fluid")
+                });
+            }
+            var ext = item.fileExtension
                 //if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
                 //targetFiles.push(filepath);
                 pn += "?a=view";
                 c += " view";
-                //}
-                html += `<div class="list-group-item list-group-item-action">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}`
-
-                if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
+                   // Generate masked URL for file
+            const fileId = generateUniqueId();
+            storePathMapping(fileId, pn);
+            html += `<div class="list-group-item list-group-item-action">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}`
+                
+					      if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
                     html += video_icon
                 } else if ("|html|php|css|go|java|js|json|txt|sh|".indexOf(`|${ext}|`) >= 0) {
                     html += code_icon
@@ -629,12 +606,12 @@ function append_files_to_fallback_list(path, files) {
                     html += file_icon
                 }
 
-                html += ` <a class="countitems size_items list-group-item-action" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${p}&a=view">${item.name}</a>${UI.display_download ? `<a href="${link}"><svg class="float-end"width="25px" style="margin-left: 8px;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path> </svg></a>` : ``}${UI.display_size ? `<span class="badge bg-primary float-end"> ` + item['size'] + ` </span>` : ``}${UI.display_time ? ` <span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</div>`;
-            }
-        }
+                html += ` <a class="countitems size_items list-group-item-action" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="/view?=file/${fileId}">${item.name}</a>${UI.display_download ? `<a href="${link}"><svg class="float-end"width="25px" style="margin-left: 8px;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path> </svg></a>` : ``}${UI.display_size ? `<span class="badge bg-primary float-end"> ` + item['size'] + ` </span>` : ``}${UI.display_time ? ` <span class="badge bg-info float-end"> ` + item['modifiedTime'] + ` </span>` : ``}</div>`;
+          }
+      }
         if (is_file && UI.allow_selecting_files) {
-            document.getElementById('select_items').style.display = 'block';
-        }
+        document.getElementById('select_items').style.display = 'block';
+      }
         
         
         /*let targetObj = {};
@@ -675,27 +652,27 @@ function append_files_to_fallback_list(path, files) {
 
         // When it is page 1, remove the horizontal loading bar
         $list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
-        // When it is the last page, count and display the total number of items
-        if (is_lastpage_loaded) {
-            total_size = formatFileSize(totalsize) || '0 Bytes';
-            total_items = $list.find('.countitems').length;
-            total_files = $list.find('.size_items').length;
-            if (total_items == 0) {
-                $('#count').removeClass('d-none').find('.number').text("Empty Folder");
-            } else if (total_items == 1) {
-                $('#count').removeClass('d-none').find('.number').text(total_items + " item");
-            } else {
-                $('#count').removeClass('d-none').find('.number').text(total_items + " items");
-            }
-            if (total_files == 0) {
-                $('#count').removeClass('d-none').find('.totalsize').text("Zero Files");
-            } else if (total_files == 1) {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " File with Size " + total_size);
-            } else {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " Files with Size " + total_size);
-            }
+    
+    if (is_lastpage_loaded) {
+        total_size = formatFileSize(totalsize) || '0 Bytes';
+        total_items = $list.find('.countitems').length;
+        total_files = $list.find('.size_items').length;
+        if (total_items == 0) {
+            $('#count').removeClass('d-none').find('.number').text("Empty Folder");
+        } else if (total_items == 1) {
+            $('#count').removeClass('d-none').find('.number').text(total_items + " item");
+        } else {
+            $('#count').removeClass('d-none').find('.number').text(total_items + " items");
         }
-    } catch (e) {
+        if (total_files == 0) {
+            $('#count').removeClass('d-none').find('.totalsize').text("Zero Files");
+        } else if (total_files == 1) {
+            $('#count').removeClass('d-none').find('.totalsize').text(total_files + " File with Size " + total_size);
+        } else {
+            $('#count').removeClass('d-none').find('.totalsize').text(total_files + " Files with Size " + total_size);
+        }
+    }
+ } catch (e) {
         console.log(e);
     }
 }
@@ -849,34 +826,56 @@ function append_files_to_list(path, files) {
 /**
  * Render the search results list. There is a lot of repetitive code, but there are different logics in it.
  */
-function render_search_result_list() {
-    var content = `
-  <div class="container"><br>
-  <div id="update"></div>
-  <div class="container" id="select_items" style="padding: 0px 50px 10px; display:none;">
-  <div class="d-flex align-items-center justify-content-between">
-    <div class="form-check mr-3">
-      <input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" id="select-all-checkboxes">
-      <label class="form-check-label" for="select-all-checkboxes">Select all</label>
-    </div>
-    <button id="handle-multiple-items-copy" style="padding: 5px 10px; font-size: 12px;" class="btn btn-success">Copy</button>
-  </div>
-  </div>
-  <div class="card">
-  <div class="${UI.path_nav_alert_class} d-flex align-items-center" role="alert" style="margin-bottom: 0;">Search Results</div>
-  <div id="list" class="list-group text-break">
-  </div>
-  </div>
-  <div class="${UI.file_count_alert_class} text-center d-none" role="alert" id="count"><span class="number text-center"></span> | <span class="totalsize text-center"></span></div>
-  <div id="readme_md" style="display:none; padding: 20px 20px;"></div>
-  </div>
-  `;
-    $('#content').html(content);
-
-    $('#list').html(`<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`);
-    $('#readme_md').hide().html('');
-    $('#head_md').hide().html('');
-
+// ... [onSearchResultItemClick modified for masked URLs] ...
+function onSearchResultItemClick(file_id, can_preview) {
+    var cur = window.current_drive_order;
+    var title = `Loading...`;
+    $('#SearchModelLabel').html(title);
+    var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
+    $('#modal-body-space').html(content);
+    var p = {
+        id: file_id
+    };
+    
+    fetch(`/${cur}:id2path`, {
+            method: 'POST',
+            body: JSON.stringify(p),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+        .then(function(response) {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Request failed.');
+            }
+        })
+        .then(function(obj) {
+            var href = `${obj.path}`;
+            var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+            title = `Result`;
+            $('#SearchModelLabel').html(title);
+            
+            // Generate masked URL
+            const id = generateUniqueId();
+            if (can_preview) {
+                storePathMapping(id, encodedUrl + '?a=view');
+                content = `<a class="btn btn-info" href="/view?=file/${id}">Open</a> <a class="btn btn-secondary" href="/view?=file/${id}" target="_blank">Open in New Tab</a>`;
+            } else {
+                storePathMapping(id, encodedUrl);
+                content = `<a class="btn btn-info" href="/view?=folder/${id}">Open</a> <a class="btn btn-secondary" href="/view?=folder/${id}" target="_blank">Open in New Tab</a>`;
+            }
+            $('#modal-body-space').html(content);
+        })
+        .catch(function(error) {
+            console.log(error);
+            title = `Fallback Method`;
+            $('#SearchModelLabel').html(title);
+            content = `<a class="btn btn-info" href="/fallback?id=${file_id}&${can_preview ? 'a=view' : ''}">Open</a> <a class="btn btn-secondary" href="/fallback?id=${file_id}&${can_preview ? 'a=view' : ''}" target="_blank">Open in New Tab</a>`;
+            $('#modal-body-space').html(content);
+        });
+}
     /**
      * Callback after successful search request returns data
      * The result returned by @param res (object)
