@@ -1394,7 +1394,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
     const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
-    const new_download_icon = `<img src="https://i.ibb.co/DgDQMRDN/download.png" alt="Download" style="height: 34px; width: 34px; margin-right: 5px;">`;
+    const new_download_icon = `<img src="https://i.ibb.co/DgDQMRDN/download.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
     var url_base64 = btoa(url);
     // Split the file path into parts
     var path = window.location.pathname;
