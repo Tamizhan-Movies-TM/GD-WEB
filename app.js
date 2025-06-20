@@ -1462,37 +1462,35 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             <div class="input-group mb-4" style="display: none;">
               <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
             </div>
-            <div class="d-flex flex-wrap justify-content-center gap-2">
-              <!-- VLC Player Button -->
-              <button type="button" class="btn btn-outline-primary"
+            <div class="d-flex flex-wrap justify-content-center gap-2 mb-3"> <!-- Added mb-3 for bottom margin -->
+              <!-- Player buttons with fixed width -->
+              <button type="button" class="btn btn-outline-primary" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 ${vlc_icon} VLC Player
               </button>
 
-              <!-- MX Player Button -->
-              <button type="button" class="btn btn-outline-primary"
+              <button type="button" class="btn btn-outline-primary" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 ${mxplayer_icon} MX Player
               </button> 
                
-              <!-- XPlayer Button -->
-              <button type="button" class="btn btn-outline-primary"
+              <button type="button" class="btn btn-outline-primary" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 ${xplayer_icon} XPlayer
               </button>
 
-              <!-- Playit Button -->
-              <button type="button" class="btn btn-outline-primary"
+              <button type="button" class="btn btn-outline-primary" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 ${playit_icon} Playit
               </button>
-              
-              <!-- Download Button -->
-              <a href="${url}" class="btn btn-secondary">
+            </div>
+            
+            <!-- Download button moved down with increased size -->
+            <div class="mt-3"> <!-- Added mt-3 for top margin -->
+              <a href="${url}" class="btn btn-secondary btn-lg"> <!-- Added btn-lg for larger size -->
                 ${download_icon} Download
               </a>
             </div>
-            <br>
           </div>
         `}
       </div>
