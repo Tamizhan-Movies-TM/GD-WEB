@@ -1395,6 +1395,12 @@ function file_code(name, encoded_name, size, bytes, url, ext, file_id, cookie_fo
 
 // Document display video |mp4|webm|avi|
 function file_video(name, encoded_name, size, poster, url, mimeType, file_id, cookie_folder_id) {
+    // Define all player icons
+    const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
+    const new_download_icon = `<img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
     var url_base64 = btoa(url);
     // Split the file path into parts
     var path = window.location.pathname;
@@ -1445,40 +1451,141 @@ function file_video(name, encoded_name, size, poster, url, mimeType, file_id, co
             player_css = ''
         }
     }
-    // Add the container and card elements
-  var content = `
-  <div class="container text-center"><br>
-  <div class="card text-center">
-    <div class="text-center">
-      <div class="${UI.file_view_alert_class}" id="file_details" role="alert">${name}<br>${size}</div>${player}</div>
-    </br>
-    ${UI.disable_video_download ? `` : `
-      <div class="card-body">
-      <!-- Hidden URL input box -->
-      <div class="input-group mb-4" style="display: none;">
-        <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
-      </div>
-      <div class="btn-group text-center">
-          <a href="${url}" type="button" class="btn btn-secondary">Download</a>
-          <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <span class="sr-only"></span>
-          </button>
-          <div class="dropdown-menu">
-					<a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
-					<a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
-          <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
-          <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
-          <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-					</div>
-      </div>          
-      </div>
-      </div>
-      `}
-  </div>
-</div>
-`;
-    $("#content").html(content);
+  
+   // Add the container and card elements
+var content = `
+    <div class="container text-center"><br>
+      <div class="card text-center">
+        <div class="text-center">
+          <div class="${UI.file_view_alert_class}" id="file_details" role="alert">${name}<br>${size}</div>${player}</div>
+        </br>
+        ${UI.disable_video_download ? `` : `
+          <div class="card-body">
+            <!-- Hidden URL input box -->
+            <div class="input-group mb-4" style="display: none;">
+              <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
+            </div>
+            
+            <!-- First row of buttons - fixed width -->
+            <div class="d-flex justify-content-center gap-3 mb-3">
+              <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+               <span class="d-flex align-items-center">
+                ${vlc_icon} VLC Player
+               </span>
+              </button>
 
+              <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                <span class="d-flex align-items-center gap-1">
+                ${mxplayer_icon} MX Player
+                </span>
+              </button> 
+            </div>
+            
+            <!-- Second row of buttons - fixed width -->
+            <div class="d-flex justify-content-center gap-3 mb-4">
+              <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+               <span class="d-flex align-items-center gap-1">
+               ${xplayer_icon} XPlayer
+               </span>
+              </button>
+
+              <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+               <span class="d-flex align-items-center gap-1"> 
+               ${playit_icon} PLAYit
+							 </span>
+              </button>
+            </div>
+            
+              <!-- DOWNLOAD BUTTON -->
+            <div class="d-flex justify-content-center">
+              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
+                ${new_download_icon} DOWNLOAD
+                <div id="download-spinner" class="spinner" style="display: none;">
+                  <div class="spinner-circle"></div>
+                </div>
+              </button>
+            </div>
+          </div>
+        `}
+      </div>
+    </div>
+    
+    <style>
+      /* Loading spinner styles */
+      .spinner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      
+      .spinner-circle {
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spinner-rotate 1s linear infinite;
+      }
+      
+      @keyframes spinner-rotate {
+        to { transform: rotate(360deg); }
+      }
+      
+      /* Center button content */
+      .d-flex.align-items-center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .gap-2 {
+        gap: 8px;
+      }
+    </style>
+    `;
+
+    // Set the content
+    $("#content").html(content);
+    
+    // Add event listener for the download button
+    if (!UI.disable_video_download) {
+        document.getElementById('download-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const button = this;
+            const spinner = button.querySelector('#download-spinner');
+            
+            // Show spinner and disable button
+            spinner.style.display = 'block';
+            button.disabled = true;
+            
+            // Change button text
+            button.innerHTML = `${new_download_icon} DOWNLOADING...`;
+            
+            // Simulate download process (1.5 seconds)
+            setTimeout(() => {
+                // Create a hidden link to trigger the actual download
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = name;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                // Hide spinner and restore button after 0.5s
+                setTimeout(() => {
+                    spinner.style.display = 'none';
+                    button.disabled = false;
+                    button.innerHTML = `${new_download_icon} DOWNLOAD`;
+                }, 500);
+            }, 1500);
+        });
+		}
     // Load Video.js and initialize the player
     var videoJsScript = document.createElement('script');
     videoJsScript.src = player_js;
