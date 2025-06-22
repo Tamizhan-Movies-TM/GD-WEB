@@ -1410,9 +1410,13 @@ async function file(path) {
 }
 
 const trakteerWidget = `<div class="col-md-12">
-<div class="card" style="padding: 0 0 0.3rem 0;border-radius:.5rem;width:100%;overflow:hidden;">
-  <iframe src="https://stream.trakteer.id/running-text-default.html?rt_font=Lato&amp;rt_count=6&amp;rt_speed=normal&amp;rt_theme=default&amp;rt_1_clr1=rgba%280%2C+0%2C+0%2C+0%29&amp;rt_2_clr1=rgba%28190%2C+30%2C+45%2C+1%29&amp;rt_2_clr2=rgba%28255%2C+255%2C+255%2C+1%29&amp;rt_2_clr3=rgba%28255%2C+200%2C+73%2C+1%29&amp;rt_septype=image&amp;rt_messages=Donasi+kuy&amp;rt_txtshadow=false&amp;creator_name=jovanzers&amp;page_url=trakteer.id/jovanzers&amp;mod=3&amp;key=trstream-0Cd1Li6Gi6gLtK6GT84w&amp;hash=q07y4nqv7kp4wkxv" height="40px" width="100%" style="border:none; color-scheme: light;"></iframe>
-</div>
+  <div style="width: fit-content; margin-left: auto; margin-bottom: 15px;">
+    <div style="height:40px; line-height:40px; padding:0 20px; border-radius:4px; background-image: url('https://kaceku.onrender.com/static/img/pattern-32-inv.svg'), linear-gradient(#61045F, transparent), linear-gradient(to top left, lime, transparent), linear-gradient(to top right, blue, transparent); background-size: contain; background-position: left; background-repeat: repeat-x; background-blend-mode: darken;">
+      <marquee behavior="scroll" direction="left" scrollamount="6" style="color:white; font-weight:bold; font-size: 16px; text-shadow: 0 0 5px rgba(0,0,0,0.7);">
+        வணக்கம்&nbsp;&nbsp;&nbsp;நண்பர்களே,&nbsp;&nbsp;&nbsp;தமிழன்&nbsp;&nbsp;&nbsp;திரைப்படங்களுக்கு&nbsp;&nbsp;&nbsp;உங்களை&nbsp;&nbsp;&nbsp;அன்புடன்&nbsp;&nbsp;&nbsp;வரவேற்கிறோம்!&nbsp;&nbsp;&nbsp;உங்கள்&nbsp;&nbsp;&nbsp;அன்பு&nbsp;&nbsp;&nbsp;மற்றும்&nbsp;&nbsp;&nbsp;ஆதரவுக்கு&nbsp;&nbsp;&nbsp;நன்றி.
+      </marquee>
+    </div>
+  </div>
 </div>`;
 
 const copyButton = `<button onclick="copyFunction()" onmouseout="outFunc()" class="btn btn-primary"><span class="tooltiptext" id="myTooltip"><i class="fas fa-copy fa-fw"></i>Copy</span></button>`
