@@ -1740,7 +1740,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
             <span class="tth">Format</span>
             </th>
             <td>${fileExtension.toUpperCase()}</td>
-            	</tr>
+            </tr>
 						<tr>
 							<th>
 								<i class="fa-solid fa-box-archive fa-fw"></i>
