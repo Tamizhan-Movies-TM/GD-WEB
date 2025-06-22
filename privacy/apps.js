@@ -10,14 +10,13 @@ function init() {
 <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
 <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
 	<div class="row align-items-start g-3">
-		`+trakteerWidget;
 		if (!window.location.href.toLowerCase().includes(':search?q=') && window.location.pathname.toLowerCase() !== '/fallback') {
 			html += `
 		<div class="col-md-12">
 			<div class="card">
 				<nav style="--bs-breadcrumb-divider: '/';" aria-label="breadcrumb">
 					<ol class="breadcrumb" id="folderne">
-						<li class="breadcrumb-item"><a href="/">❤️ Roots</a></li>`;
+						<li class="breadcrumb-item"><a href="/">Home</a></li>`;
 							var navfulllink = window.location.pathname;
 							var navarray = navfulllink.trim('/').split('/');
 							var currentPath = '/';
