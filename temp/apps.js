@@ -44,10 +44,10 @@ function init() {
 									}
 								}
 							}
-							html += `</ol>
-				</nav>
-			</div>
-    </div>`;
+		html += `</ol>
+    </nav>
+    </div>
+    </div>`; 
     }
     html += `<footer class="footer text-center mt-auto container-fluid ${UI.footer_style_class}" style="position: fixed; bottom: 0; left: 0; right: 0; ${UI.hide_footer ? 'display:none;': 'display:block;'}">
     <div class="container">
@@ -68,27 +68,31 @@ function init() {
       </div>
     </div>
    </footer>`;
-	  <script>
-		let btt = document.getElementById("back-to-top");
-		window.onscroll = function () {
-			scrollFunction();
-		};
-		function scrollFunction() {
-			if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
-				btt.style.display = "block";
-			} else {
-				btt.style.display = "none";
-			}
-		}
-		btt.addEventListener("click", backToTop);
-		function backToTop() {
-			document.body.scrollTop = 0;
-			document.documentElement.scrollTop = 0;
-		}
-	  </script>
-      </div>
+   <script>
+    // Back-to-top script
+    document.addEventListener('DOMContentLoaded', function() {
+        const btt = document.getElementById("back-to-top");
+        
+        if (!btt) return; // Exit if button doesn't exist
+        
+        // Modern scroll event with throttling
+        window.addEventListener('scroll', function() {
+            btt.style.display = (window.scrollY > 300) ? "block" : "none";
+        }, { passive: true });
+        
+        // Smooth scroll to top
+        btt.addEventListener("click", function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    });
+</script>
+ </div>
 	</div>
-</footer>`;
+ </footer>`;
 	$('body').html(html);
 }
 
