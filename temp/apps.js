@@ -47,26 +47,27 @@ function init() {
 							html += `</ol>
 				</nav>
 			</div>
-		</div>`;
-		}
-html += `<div id="content" style="${UI.fixed_footer ? 'padding-bottom: 100px;' : ''}"></div>`;
-</div>
-	<div class="row g-3 mt-0">
-<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ?'position: fixed;': ''} ${UI.hide_footer ? ' display:none;': ' display:block;'}">
-    <div class="container" style="padding-top: 15px;">
-      <div class="row">
-      <div class="col-lg-4 col-md-12 text-lg-start">
-      © ${new Date().getFullYear()} <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
-      ${UI.credit ? '<p>Redesigned with <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-heart-fill" fill="red" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z" /> </svg> by <a href="https://www.npmjs.com/package/@googledrive/index" target="_blank">TheFirstSpeedster</a>, based on Open Source Softwares.</p>' : ''}
+    </div>`;
+    }
+    html += `<footer class="footer text-center mt-auto container-fluid ${UI.footer_style_class}" style="position: fixed; bottom: 0; left: 0; right: 0; ${UI.hide_footer ? 'display:none;': 'display:block;'}">
+    <div class="container">
+      <div class="row justify-content-center align-items-center">
+        <div class="col-auto">
+          © ${new Date().getFullYear()} <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
+        </div>
+        <div class="col-auto">
+          <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> ∙ 
+          <a href="${UI.contact_link}">Contact</a>
+        </div>
+        ${UI.credit ? `<div class="col-auto">
+          Redesigned by ${UI.company_name}
+        </div>` : ''}
+        <div class="col-auto">
+        <a href="javascript:void(0)" title="Page view counter"><img src="https://hitscounter.dev/api/hit?url=${encodeURIComponent(window.location.origin)}&label=hits&icon=bar-chart-fill&color=%23198754" alt="Visitor counter" width="80" height="20" loading="lazy"></a>
+       </div>
       </div>
-      <div class="col-lg-4 col-md-12">
-      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> ∙ <a href="${UI.contact_link}">Contact</a>
-      </div>
-      <div class="col-lg-4 col-md-12 text-lg-end">
-        <p>
-          <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
-        </p>
-      </div>
+    </div>
+   </footer>`;
 	  <script>
 		let btt = document.getElementById("back-to-top");
 		window.onscroll = function () {
