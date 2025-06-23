@@ -69,18 +69,15 @@ function init() {
     </div>
    </footer>`;
    <script>
-    // Back-to-top script
     document.addEventListener('DOMContentLoaded', function() {
         const btt = document.getElementById("back-to-top");
         
         if (!btt) return; // Exit if button doesn't exist
         
-        // Modern scroll event with throttling
         window.addEventListener('scroll', function() {
             btt.style.display = (window.scrollY > 300) ? "block" : "none";
         }, { passive: true });
-        
-        // Smooth scroll to top
+      
         btt.addEventListener("click", function(e) {
             e.preventDefault();
             window.scrollTo({
