@@ -1730,10 +1730,10 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 						</tr>
 						<tr>
 							<th>
-								<i class="fa-solid fa-tag fa-fw"></i>
-								<span class="tth">Type</span>
-							</th>
-							<td>${mimeType}</td>
+								<i class="fa-solid fa-video fa-fw"></i>
+               <span class="tth">Format</span>
+               </th>
+              <td>${fileExtension.toUpperCase()}</td>
 						</tr>
 						<tr>
 							<th>
@@ -1885,9 +1885,9 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
 						<tr>
 							<th>
 								<i class="fa-solid fa-video fa-fw"></i>
-    <span class="tth">Format</span>
-   </th>
-   <td>${fileExtension.toUpperCase()}</td>
+               <span class="tth">Format</span>
+               </th>
+              <td>${fileExtension.toUpperCase()}</td>
 						</tr>
 						<tr>
 							<th>
