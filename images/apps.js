@@ -1,96 +1,94 @@
-// Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.
+/ Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.
 // v2.3.5
 // Initialize the page
+// Add HTML escaping function (security fix)
+function escapeHtml(unsafe) {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function init() {
-	document.siteName = $('title').html();
-	var html = `<header>
-   <div id="nav">
-   </div>
-</header>
-<div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
-<div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
-	<div class="row align-items-start g-3">
-		`+TamizhanWidget;
-		if (!window.location.href.toLowerCase().includes(':search?q=') && window.location.pathname.toLowerCase() !== '/fallback') {
-			html += `
-		<div class="col-md-12">
-			<div class="card">
-				<nav style="--bs-breadcrumb-divider: '/';" aria-label="breadcrumb">
-					<ol class="breadcrumb" id="folderne">
-						<li class="breadcrumb-item"><a href="/"> ❤️ Home</a></li>`;
-							var navfulllink = window.location.pathname;
-							var navarray = navfulllink.trim('/').split('/');
-							var currentPath = '/';
+  document.siteName = $('title').html();
+  var html = `<header><div id="nav"></div></header>
+  <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
+  <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
+    <div class="row align-items-start g-3">
+      ${TamizhanWidget}`;
 
-							if (navarray.length > 0) {
-								for (var i in navarray) {
-									var pathPart = navarray[i];
-									var decodedPathPart = decodeURIComponent(pathPart).replace(/\//g, '%2F');
-									var trimmedPathPart = decodedPathPart.replace(/\?.+/g, "$'");
-									var displayedPathPart = trimmedPathPart.length > 50 ? trimmedPathPart.slice(0, 50) + '...' : trimmedPathPart.slice(0, 50);
-									currentPath += pathPart + '/';
-									
-									if (parseInt(i) === navarray.length - 1) {
-										if (window.location.href.toLowerCase().includes('a=view')) {
-											break;
-										}
-										html += `<li class="breadcrumb-item active" aria-current="page">${displayedPathPart}</li>`;
-									} else {
-										html += `<li class="breadcrumb-item"><a href="${currentPath}">${displayedPathPart}</a></li>`;
-									}
+  if (!window.location.href.toLowerCase().includes(':search?q=') && 
+      window.location.pathname.toLowerCase() !== '/fallback') {
+    
+    html += `<div class="col-md-12"><div class="card"><nav style="--bs-breadcrumb-divider: '/';" aria-label="breadcrumb">
+            <ol class="breadcrumb" id="folderne">
+            <li class="breadcrumb-item"><a href="/">❤️ Home</a></li>`;
+    
+    const navfulllink = window.location.pathname;
+    // Fixed path trimming (handles leading/trailing slashes)
+    const navarray = navfulllink.replace(/^\/+|\/+$/g, '').split('/');
+    let currentPath = '/';
 
-									if (displayedPathPart === '') {
-										break;
-									}
-								}
-							}
-		html += `</ol>
-    </nav>
-    </div>
-    </div>`; 
+    if (navarray.length > 0 && navarray[0] !== '') {
+      for (let i = 0; i < navarray.length; i++) {
+        const pathPart = navarray[i];
+        let decodedPathPart;
+        
+        try {
+          decodedPathPart = decodeURIComponent(pathPart);
+        } catch(e) {
+          decodedPathPart = pathPart;
+        }
+        
+        // Escape HTML output (security fix)
+        const safePathPart = escapeHtml(decodedPathPart);
+        const displayedPathPart = safePathPart.length > 50 
+          ? safePathPart.substring(0, 50) + '...' 
+          : safePathPart;
+        
+        // Proper path encoding
+        currentPath += encodeURIComponent(pathPart) + '/';
+        
+        if (i === navarray.length - 1) {
+          if (window.location.href.toLowerCase().includes('a=view')) break;
+          html += `<li class="breadcrumb-item active" aria-current="page">${displayedPathPart}</li>`;
+        } else {
+          html += `<li class="breadcrumb-item"><a href="${currentPath}">${displayedPathPart}</a></li>`;
+        }
+        
+        if (displayedPathPart === '') break;
+      }
     }
-    html += `<footer class="footer text-center mt-auto container-fluid ${UI.footer_style_class}" style="position: fixed; bottom: 0; left: 0; right: 0; ${UI.hide_footer ? 'display:none;': 'display:block;'}">
-    <div class="container">
-      <div class="row justify-content-center align-items-center">
-        <div class="col-auto">
-          © ${new Date().getFullYear()} <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
-        </div>
-        <div class="col-auto">
-          <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> ∙ 
-          <a href="${UI.contact_link}">Contact</a>
-        </div>
-        ${UI.credit ? `<div class="col-auto">
-          Redesigned by ${UI.company_name}
-        </div>` : ''}
-        <div class="col-auto">
-        <a href="javascript:void(0)" title="Page view counter"><img src="https://hitscounter.dev/api/hit?url=${encodeURIComponent(window.location.origin)}&label=hits&icon=bar-chart-fill&color=%23198754" alt="Visitor counter" width="80" height="20" loading="lazy"></a>
-       </div>
-      </div>
+    html += `</ol></nav></div></div>`;
+  }
+
+  html += `<div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
     </div>
-   </footer>`;
-   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const btt = document.getElementById("back-to-top");
-        
-        if (!btt) return; // Exit if button doesn't exist
-        
-        window.addEventListener('scroll', function() {
-            btt.style.display = (window.scrollY > 300) ? "block" : "none";
-        }, { passive: true });
-      
-        btt.addEventListener("click", function(e) {
-            e.preventDefault();
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        });
-    });
-</script>
- </div>
-	</div>
- </footer>`;
-	$('body').html(html);
+    <div class="row g-3 mt-0">      
+      <footer class="footer text-center mt-auto container ${UI.footer_style_class}" 
+              style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
+        <div class="container" style="padding-top: 15px;">
+          <div class="row">
+            <div class="col-lg-4 col-md-12 text-lg-start">
+              © ${new Date().getFullYear()} <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
+              ${UI.credit ? '<p>Redesigned by © Copyright 2025 - All Rights Reserved.</p>' : ''}
+            </div>
+            <div class="col-lg-4 col-md-12">
+              <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> ∙ 
+              <a href="${UI.contact_link}">Contact</a>
+            </div>
+            <div class="col-lg-4 col-md-12 text-lg-end">
+              <p>
+                <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F${window.location.host}&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </footer>`;
+  
+  $('body').html(html);
 }
 
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.3 78" style="width: 1.3em;">
