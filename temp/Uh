@@ -1,0 +1,14 @@
+// ... existing code ...
+
+// Replace the trakteerWidget variable with the new marquee widget
+const trakteerWidget = `<div class="col-md-12">
+  <div style="width: fit-content; margin-left: auto; margin-bottom: 15px;">
+    <div style="height:40px; line-height:40px; padding:0 20px; border-radius:4px; background-image: url('https://kaceku.onrender.com/static/img/pattern-32-inv.svg'), linear-gradient(#61045F, transparent), linear-gradient(to top left, lime, transparent), linear-gradient(to top right, blue, transparent); background-size: contain; background-position: left; background-repeat: repeat-x; background-blend-mode: darken;">
+      <marquee behavior="scroll" direction="left" scrollamount="6" style="color:white; font-weight:bold; font-size: 16px; text-shadow: 0 0 5px rgba(0,0,0,0.7);">
+        வணக்கம்&nbsp;&nbsp;&nbsp;நண்பர்களே,&nbsp;&nbsp;&nbsp;தமிழன்&nbsp;&nbsp;&nbsp;திரைப்படங்களுக்கு&nbsp;&nbsp;&nbsp;உங்களை&nbsp;&nbsp;&nbsp;அன்புடன்&nbsp;&nbsp;&nbsp;வரவேற்கிறோம்!&nbsp;&nbsp;&nbsp;உங்கள்&nbsp;&nbsp;&nbsp;அன்பு&nbsp;&nbsp;&nbsp;மற்றும்&nbsp;&nbsp;&nbsp;ஆதரவுக்கு&nbsp;&nbsp;&nbsp;நன்றி.
+      </marquee>
+    </div>
+  </div>
+</div>`;
+
+// ... rest of the existing code remains unchanged ...
