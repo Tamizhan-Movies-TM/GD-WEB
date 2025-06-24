@@ -17,7 +17,7 @@ function init() {
 			<div class="card">
 				<nav style="--bs-breadcrumb-divider: '/';" aria-label="breadcrumb">
 					<ol class="breadcrumb" id="folderne">
-						<li class="breadcrumb-item"><a href="/">❤️ Roots</a></li>`;
+						<li class="breadcrumb-item"><a href="/">❤️ Home</a></li>`;
 							var navfulllink = window.location.pathname;
 							var navarray = navfulllink.trim('/').split('/');
 							var currentPath = '/';
