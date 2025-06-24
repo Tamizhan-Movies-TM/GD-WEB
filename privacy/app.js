@@ -10,14 +10,14 @@ function init() {
 <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
 <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
 	<div class="row align-items-start g-3">
-		`+trakteerWidget;
+		`+TamizhanWidget;
 		if (!window.location.href.toLowerCase().includes(':search?q=') && window.location.pathname.toLowerCase() !== '/fallback') {
 			html += `
 		<div class="col-md-12">
 			<div class="card">
 				<nav style="--bs-breadcrumb-divider: '/';" aria-label="breadcrumb">
 					<ol class="breadcrumb" id="folderne">
-						<li class="breadcrumb-item"><a href="/">❤️ Roots</a></li>`;
+						<li class="breadcrumb-item"><a href="/">❤️ Home/a></li>`;
 							var navfulllink = window.location.pathname;
 							var navarray = navfulllink.trim('/').split('/');
 							var currentPath = '/';
@@ -51,75 +51,52 @@ function init() {
 		}
 	html += `<div id="content" style="${UI.fixed_footer ?' padding-bottom: clamp(170px, 100%, 300px);': ''}"></div>
 	</div>
-	<div class="row g-3 mt-0">
-        <div class="col-lg-6 col-md-12">
-          	<div class="card text-white mb-3 h-100">
-				<div class="card-header">
-					<i class="fa-solid fa-mug-hot fa-fw"></i>Donate a coffee
-				</div>
-            	<div class="card-body d-flex align-items-center justify-content-center">
-					<div class="donate btn p-0">
-						<a class="btn" href="https://trakteer.id/jovanzers/tip" title="Click me!" style="background: #BE1E2D;" target="_blank">
-						<i class="fab fa-paypal"></i>Trakteer </a>
-						<div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
-							<div style="padding-bottom: 1rem;">Thank you very much ❤</div>
-							<img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
-						</div>
-					</div>
-            	</div>
-        	</div>
+	  <div class="container" style="max-width: 576px; padding: 1rem;"> <!-- Adjust max-width as needed -->
+      <div class="row g-3 mt-0 mx-auto"> <!-- mx-auto centers the row -->
+        <div class="col-12"> <!-- Full width column since we're controlling size with container -->
+          <div class="card text-white mb-3 h-100">
+            <div class="card-header">
+              <i class="fa-brands fa-telegram"></i>&nbsp;&nbsp;Telegram&nbsp;&nbsp;Channel
+             </div>
+             <div class="card-body d-flex align-items-center justify-content-center">
+               <div class="donate btn p-0">
+                 <a class="btn" href="https://telegram.me/hollywood_tamizhan_movies" title="Click me!" style="background: #0088cc;" target="_blank">
+                  <i class="fa-brands fa-telegram"></i>&nbsp;&nbsp;Join&nbsp;&nbsp;Our&nbsp;&nbsp;Channel
+                </a>
+                <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
+                  <div style="padding-bottom: 1rem;">♥️ Welcome ♥️</div>
+                  <img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
+					  	</div>
+          </div>
         </div>
-        <div class="col-lg-6 col-md-12">
-          	<div class="card text-white mb-3 h-100">
-            	<div class="card-header">
-              		<i class="fa-regular fa-snowflake fa-fw"></i>Sponsors
-            	</div>
-            	<div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
-					<a href="https://akannikah.id" target="_blank" title="Akannikah.id">
-						<img class="image" alt="Akannikah.id" style="height: 32px;" src="https://kaceku.onrender.com/static/img/Akannikah.id.png">
-					</a>
-					<a href="https://merakit.co.id" target="_blank" title="Merakit Indonesia">
-						<img class="image" alt="Merakit Indonesia" src="https://kaceku.onrender.com/static/img/merakit.co.id.png">
-					</a>
-					<a href="https://eksan127.blogspot.com" target="_blank" title="Eksan127">
-						<img class="image" alt="Eksan127" src="https://kaceku.onrender.com/static/img/eksan127.png">
-					</a>
-					<a href="https://azhe.my.id" target="_blank" title="azhe403">azhe403</a>
-            	</div>
-          	</div>
-        </div>
-    </div>	
-</div>
-<div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="SearchModelLabel"></h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true"></span>
-        </button>
-      </div>
-      <div class="modal-body" id="modal-body-space">
-      </div>
-      <div class="modal-footer justify-content-center" id="modal-body-space-buttons">
       </div>
     </div>
+      <div class="modal fade" id="SearchModel" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="SearchModelLabel"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true"></span>
+            </button>
+            </div>
+            <div class="modal-body" id="modal-body-space">
+            </div>
+            <div class="modal-footer justify-content-center" id="modal-body-space-buttons">
+         </div>
+       </div>
+    </div>
   </div>
-</div>
-<button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
-<script type='text/javascript' class='troverlay'>(function() {var trbtnId = trbtnOverlay.init('Donasi','#be1e2d','https://trakteer.id/jovanzers/tip/embed/modal','https://cdn.trakteer.id/images/mix/cendol.png','40','floating-left');trbtnOverlay.draw(trbtnId);})();</script>
-<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ?'position: fixed;': ''} ${UI.hide_footer ? ' display:none;': ' display:block;'}">
-    <div class="container" style="padding-top: 15px;">
-      <div class="row">
-      <div class="col-lg-4 col-md-12 text-lg-start">
-      © ${new Date().getFullYear()} <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
-      ${UI.credit ? '<p>Redesigned with <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-heart-fill" fill="red" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z" /> </svg> by <a href="https://www.npmjs.com/package/@googledrive/index" target="_blank">TheFirstSpeedster</a>, based on Open Source Softwares.</p>' : ''}
-      </div>
-      <div class="col-lg-4 col-md-12">
-      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> ∙ <a href="${UI.contact_link}">Contact</a>
-      </div>
-      <div class="col-lg-4 col-md-12 text-lg-end">
-        <p>
+  <button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
+     <footer class="footer text-center container ${uiConfig.footer_style_class}" style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; ${uiConfig.hide_footer ? ' display:none;' : ' display:block;'}">
+     <div class="container" style="padding-top: 15px;">
+       <div class="row">
+         <div class="col-12 text-center">
+           <p class="mb-1">© Tamizhan Movies,&nbsp;&nbsp;All Copy Rights Reserved &#174;</p>
+           <p class="mb-1"><a href="${uiConfig.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">2025&nbsp;-&nbsp;DMCA</a> · <a href="${uiConfig.contact_link}">Contact</a></p>
+           <p class="mb-1">
+             <a href="#"><img id="hits" src=""/></a>
+          <p>
           <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
         </p>
       </div>
@@ -1446,9 +1423,13 @@ async function file(path) {
 }
 
 const trakteerWidget = `<div class="col-md-12">
-<div class="card" style="padding: 0 0 0.3rem 0;border-radius:.5rem;width:100%;overflow:hidden;">
-  <iframe src="https://stream.trakteer.id/running-text-default.html?rt_font=Lato&amp;rt_count=6&amp;rt_speed=normal&amp;rt_theme=default&amp;rt_1_clr1=rgba%280%2C+0%2C+0%2C+0%29&amp;rt_2_clr1=rgba%28190%2C+30%2C+45%2C+1%29&amp;rt_2_clr2=rgba%28255%2C+255%2C+255%2C+1%29&amp;rt_2_clr3=rgba%28255%2C+200%2C+73%2C+1%29&amp;rt_septype=image&amp;rt_messages=Donasi+kuy&amp;rt_txtshadow=false&amp;creator_name=jovanzers&amp;page_url=trakteer.id/jovanzers&amp;mod=3&amp;key=trstream-0Cd1Li6Gi6gLtK6GT84w&amp;hash=q07y4nqv7kp4wkxv" height="40px" width="100%" style="border:none; color-scheme: light;"></iframe>
-</div>
+  <div style="width: fit-content; margin-left: auto; margin-bottom: 15px;">
+    <div style="height:40px; line-height:40px; padding:0 20px; border-radius:4px; background-image: url('https://kaceku.onrender.com/static/img/pattern-32-inv.svg'), linear-gradient(#61045F, transparent), linear-gradient(to top left, lime, transparent), linear-gradient(to top right, blue, transparent); background-size: contain; background-position: left; background-repeat: repeat-x; background-blend-mode: darken;">
+      <marquee behavior="scroll" direction="left" scrollamount="6" style="color:white; font-weight:bold; font-size: 16px; text-shadow: 0 0 5px rgba(0,0,0,0.7);">
+        வணக்கம்&nbsp;&nbsp;&nbsp;நண்பர்களே,&nbsp;&nbsp;&nbsp;தமிழன்&nbsp;&nbsp;&nbsp;திரைப்படங்களுக்கு&nbsp;&nbsp;&nbsp;உங்களை&nbsp;&nbsp;&nbsp;அன்புடன்&nbsp;&nbsp;&nbsp;வரவேற்கிறோம்!&nbsp;&nbsp;&nbsp;உங்கள்&nbsp;&nbsp;&nbsp;அன்பு&nbsp;&nbsp;&nbsp;மற்றும்&nbsp;&nbsp;&nbsp;ஆதரவுக்கு&nbsp;&nbsp;&nbsp;நன்றி.
+      </marquee>
+    </div>
+  </div>
 </div>`;
 
 const copyButton = `<button onclick="copyFunction()" onmouseout="outFunc()" class="btn btn-primary"><span class="tooltiptext" id="myTooltip"><i class="fas fa-copy fa-fw"></i>Copy</span></button>`
@@ -2129,7 +2110,8 @@ async function getCookie(name) {
 async function copyFile(driveid) {
 	try {
 		const copystatus = document.getElementById('copystatus');
-		copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> Processing... </div>`;
+		copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> Processing.
+	.. </div>`;
 
 		const user_folder_id = document.getElementById('user_folder_id').value;
 		if (user_folder_id === '') {
