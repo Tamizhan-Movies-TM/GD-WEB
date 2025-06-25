@@ -51,19 +51,21 @@ function init() {
 		}
 	html += `<div id="content" style="${UI.fixed_footer ?' padding-bottom: clamp(170px, 100%, 300px);': ''}"></div>
 	</div>
-	<div class="row g-3 mt-0">
-        <div class="col-lg-6 col-md-12">
-          	<div class="card text-white mb-3 h-100">
-				<div class="card-header">
-					<i class="fa-solid fa-mug-hot fa-fw"></i>Donate a coffee
-				</div>
-            	<div class="card-body d-flex align-items-center justify-content-center">
-					<div class="donate btn p-0">
-						<a class="btn" href="https://trakteer.id/jovanzers/tip" title="Click me!" style="background: #BE1E2D;" target="_blank">
-						<i class="fab fa-paypal"></i>Trakteer </a>
-						<div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
-							<div style="padding-bottom: 1rem;">Thank you very much ❤</div>
-							<img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
+	  <div class="container" style="max-width: 576px; padding: 1rem;"> <!-- Adjust max-width as needed -->
+      <div class="row g-3 mt-0 mx-auto"> <!-- mx-auto centers the row -->
+        <div class="col-12"> <!-- Full width column since we're controlling size with container -->
+          <div class="card text-white mb-3 h-100">
+            <div class="card-header">
+              <i class="fa-brands fa-telegram"></i>&nbsp;&nbsp;Telegram&nbsp;&nbsp;Channel
+             </div>
+             <div class="card-body d-flex align-items-center justify-content-center">
+               <div class="donate btn p-0">
+                 <a class="btn" href="https://telegram.me/hollywood_tamizhan_movies" title="Click me!" style="background: #0088cc;" target="_blank">
+                  <i class="fa-brands fa-telegram"></i>&nbsp;&nbsp;Join&nbsp;&nbsp;Our&nbsp;&nbsp;Channel
+                </a>
+                <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
+                  <div style="padding-bottom: 1rem;">♥️ Welcome ♥️</div>
+                  <img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
 						</div>
 					</div>
             	</div>
