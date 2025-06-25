@@ -1,4 +1,4 @@
-// Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.
+// Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
 // v2.3.5
 // Initialize the page
 function init() {
@@ -29,7 +29,7 @@ function init() {
 									var trimmedPathPart = decodedPathPart.replace(/\?.+/g, "$'");
 									var displayedPathPart = trimmedPathPart.length > 50 ? trimmedPathPart.slice(0, 50) + '...' : trimmedPathPart.slice(0, 50);
 									currentPath += pathPart + '/';
-									
+
 									if (parseInt(i) === navarray.length - 1) {
 										if (window.location.href.toLowerCase().includes('a=view')) {
 											break;
@@ -1674,6 +1674,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 }
 
 
+
 // Document display video |mp4|webm|avi|
 function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	// Define all player icons
@@ -1720,7 +1721,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 		<div class="card-body row g-3">
 			<div class="col-lg-4 col-md-12">
 				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-				  ${player}
+					${player}
 				</div>
 			</div>
 			<div class="col-lg-8 col-md-12">
@@ -2048,7 +2049,7 @@ function utc2jakarta(utc_datetime) {
 // MIME type formatting
 function formatMimeType(mime) {
   if (!mime) return '';
-  
+
   // Video type mapping
   const videoFormats = {
     'mp4': 'MP4',
@@ -2068,7 +2069,7 @@ function formatMimeType(mime) {
     const format = videoFormats[subtype] || subtype.toUpperCase();
     return `${format} - ${mime}`;
   }
-  
+
   return mime;
 }
 
