@@ -88,17 +88,21 @@ function init() {
   </div>
 </div>
 <button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
-     <footer class="footer text-center container ${uiConfig.footer_style_class}" style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; ${uiConfig.hide_footer ? ' display:none;' : ' display:block;'}">
-     <div class="container" style="padding-top: 15px;">
-       <div class="row">
-         <div class="col-12 text-center">
-           <p class="mb-1">© Tamizhan Movies,&nbsp;&nbsp;All Copy Rights Reserved &#174;</p>
-           <p class="mb-1"><a href="${uiConfig.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">2025&nbsp;-&nbsp;DMCA</a> · <a href="${uiConfig.contact_link}">Contact</a></p>
-           <p class="mb-1">
-             <a href="#"><img id="hits" src=""/></a>
-           </p>
+<script type='text/javascript' class='troverlay'>(function() {var trbtnId = trbtnOverlay.init('Donasi','#be1e2d','https://trakteer.id/jovanzers/tip/embed/modal','https://cdn.trakteer.id/images/mix/cendol.png','40','floating-left');trbtnOverlay.draw(trbtnId);})();</script>
+<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ?'position: fixed;': ''} ${UI.hide_footer ? ' display:none;': ' display:block;'}">
+    <div class="container" style="padding-top: 15px;">
+      <div class="row">
+      <div class="col-lg-4 col-md-12 text-lg-start">
+      © ${new Date().getFullYear()} <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
+      ${UI.credit ? '<p>Redesigned with <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-heart-fill" fill="red" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z" /> </svg> by <a href="https://www.npmjs.com/package/@googledrive/index" target="_blank">TheFirstSpeedster</a>, based on Open Source Softwares.</p>' : ''}
+      </div>
+      <div class="col-lg-4 col-md-12">
+      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> ∙ <a href="${UI.contact_link}">Contact</a>
+      </div>
+      <div class="col-lg-4 col-md-12 text-lg-end">
+        <p>
           <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
-          </p>
+        </p>
       </div>
 	  <script>
 		let btt = document.getElementById("back-to-top");
@@ -123,7 +127,6 @@ function init() {
 </footer>`;
 	$('body').html(html);
 }
-
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.3 78" style="width: 1.3em;">
 <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"></path>
 <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"></path>
