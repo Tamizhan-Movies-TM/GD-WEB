@@ -49,82 +49,102 @@ function init() {
 			</div>
 		</div>`;
 		}
-	html += `<div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
+	html += `<div id="content" style="${UI.fixed_footer ?' padding-bottom: clamp(170px, 100%, 300px);': ''}"></div>
 	</div>
-	  <div class="container" style="max-width: 576px; padding: 1rem;"> <!-- Adjust max-width as needed -->
-      <div class="row g-3 mt-0 mx-auto"> <!-- mx-auto centers the row -->
-        <div class="col-12"> <!-- Full width column since we're controlling size with container -->
-          <div class="card text-white mb-3 h-100">
-            <div class="card-header">
-              <i class="fa-brands fa-telegram"></i>&nbsp;&nbsp;Telegram&nbsp;&nbsp;Channel
-             </div>
-             <div class="card-body d-flex align-items-center justify-content-center">
-               <div class="donate btn p-0">
-                 <a class="btn" href="https://telegram.me/hollywood_tamizhan_movies" title="Click me!" style="background: #0088cc;" target="_blank">
-                  <i class="fa-brands fa-telegram"></i>&nbsp;&nbsp;Join&nbsp;&nbsp;Our&nbsp;&nbsp;Channel
-                </a>
-                <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
-                <div style="padding-bottom: 1rem;">♥️ Welcome ♥️</div>
-               <img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
+	<div class="row g-3 mt-0">
+        <div class="col-lg-6 col-md-12">
+          	<div class="card text-white mb-3 h-100">
+				<div class="card-header">
+					<i class="fa-solid fa-mug-hot fa-fw"></i>Donate a coffee
+				</div>
+            	<div class="card-body d-flex align-items-center justify-content-center">
+					<div class="donate btn p-0">
+						<a class="btn" href="https://trakteer.id/jovanzers/tip" title="Click me!" style="background: #BE1E2D;" target="_blank">
+						<i class="fab fa-paypal"></i>Trakteer </a>
+						<div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
+							<div style="padding-bottom: 1rem;">Thank you very much ❤</div>
+							<img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
 						</div>
 					</div>
+            	</div>
+        	</div>
         </div>
+        <div class="col-lg-6 col-md-12">
+          	<div class="card text-white mb-3 h-100">
+            	<div class="card-header">
+              		<i class="fa-regular fa-snowflake fa-fw"></i>Sponsors
+            	</div>
+            	<div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
+					<a href="https://akannikah.id" target="_blank" title="Akannikah.id">
+						<img class="image" alt="Akannikah.id" style="height: 32px;" src="https://kaceku.onrender.com/static/img/Akannikah.id.png">
+					</a>
+					<a href="https://merakit.co.id" target="_blank" title="Merakit Indonesia">
+						<img class="image" alt="Merakit Indonesia" src="https://kaceku.onrender.com/static/img/merakit.co.id.png">
+					</a>
+					<a href="https://eksan127.blogspot.com" target="_blank" title="Eksan127">
+						<img class="image" alt="Eksan127" src="https://kaceku.onrender.com/static/img/eksan127.png">
+					</a>
+					<a href="https://azhe.my.id" target="_blank" title="azhe403">azhe403</a>
+            	</div>
+          	</div>
+        </div>
+    </div>	
+</div>
+<div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="SearchModelLabel"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"></span>
+        </button>
       </div>
-    </div>
-      <div class="modal fade" id="SearchModel" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-            <h5 class="modal-title" id="SearchModelLabel"></h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true"></span>
-            </button>
-            </div>
-           <div class="modal-body" id="modal-body-space">
-          </div>
-        <div class="modal-footer justify-content-center" id="modal-body-space-buttons">
+      <div class="modal-body" id="modal-body-space">
+      </div>
+      <div class="modal-footer justify-content-center" id="modal-body-space-buttons">
       </div>
     </div>
   </div>
 </div>
 <button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
-<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.hide_footer ? 'display:none;' : 'display:block;'}">
+<script type='text/javascript' class='troverlay'>(function() {var trbtnId = trbtnOverlay.init('Donasi','#be1e2d','https://trakteer.id/jovanzers/tip/embed/modal','https://cdn.trakteer.id/images/mix/cendol.png','40','floating-left');trbtnOverlay.draw(trbtnId);})();</script>
+<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ?'position: fixed;': ''} ${UI.hide_footer ? ' display:none;': ' display:block;'}">
     <div class="container" style="padding-top: 15px;">
       <div class="row">
-        <div class="col-lg-4 col-md-12 text-lg-start">
-          © ${new Date().getFullYear()} <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
-          ${UI.credit ? '<p>© Tamizhan Movies,&nbsp;&nbsp;All Copy Rights Reserved &#174;</p>' : ''}
-        </div>
-        <div class="col-lg-4 col-md-12">
-          <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">2025&nbsp;-&nbsp;DMCA</a> ∙ <a href="${UI.contact_link}">Contact</a>
-        </div>
-        <div class="col-lg-4 col-md-12 text-lg-end">
-          <p>
-            <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
-          </p>
-        </div>
+      <div class="col-lg-4 col-md-12 text-lg-start">
+      © ${new Date().getFullYear()} <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
+      ${UI.credit ? '<p>Redesigned with <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-heart-fill" fill="red" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z" /> </svg> by <a href="https://www.npmjs.com/package/@googledrive/index" target="_blank">TheFirstSpeedster</a>, based on Open Source Softwares.</p>' : ''}
       </div>
-    </div>
-</footer>
-<script>
-  let btt = document.getElementById("back-to-top");
-  window.onscroll = function () {
-    scrollFunction();
-  };
-  function scrollFunction() {
-    if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
-      btt.style.display = "block";
-    } else {
-      btt.style.display = "none";
-    }
-  }
-  btt.addEventListener("click", backToTop);
-  function backToTop() {
-    document.body.scrollTop = 0;
-    document.documentElement.scrollTop = 0;
-  }
-</script>`;
-$('body').html(html);
+      <div class="col-lg-4 col-md-12">
+      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> ∙ <a href="${UI.contact_link}">Contact</a>
+      </div>
+      <div class="col-lg-4 col-md-12 text-lg-end">
+        <p>
+          <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
+        </p>
+      </div>
+	  <script>
+		let btt = document.getElementById("back-to-top");
+		window.onscroll = function () {
+			scrollFunction();
+		};
+		function scrollFunction() {
+			if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+				btt.style.display = "block";
+			} else {
+				btt.style.display = "none";
+			}
+		}
+		btt.addEventListener("click", backToTop);
+		function backToTop() {
+			document.body.scrollTop = 0;
+			document.documentElement.scrollTop = 0;
+		}
+	  </script>
+      </div>
+	</div>
+</footer>`;
+	$('body').html(html);
 }
 
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.3 78" style="width: 1.3em;">
