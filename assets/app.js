@@ -73,11 +73,11 @@ function init() {
     <div class="container" style="padding-top: 15px;">
       <div class="row">
       <div class="col-lg-4 col-md-12 text-lg-start">
-      © ${new Date().getFullYear()} <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
-      ${UI.credit ? '<p>© Tamizhan Movies,&nbsp;&nbsp;All Copy Rights Reserved &#174;</p>' : ''}
+      ${new Date().getFullYear() - } <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
+      ${UI.credit ? '<p>© All Copy Rights Reserved ®™</p>' : ''}
       </div>
       <div class="col-lg-4 col-md-12">
-      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">2025&nbsp;-&nbsp;DMCA</a> ∙ <a href="${UI.contact_link}">Contact</a>
+      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> ∙ <a href="${UI.contact_link}">Contact</a>
       </div>
       <div class="col-lg-4 col-md-12 text-lg-end">
         <p>
