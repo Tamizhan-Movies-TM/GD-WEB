@@ -1737,10 +1737,10 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 						</tr>
 						<tr>
 							<th>
-								<i class="fa-solid fa-tag fa-fw"></i>
-								<span class="tth">Type</span>
-							</th>
-							<td>${mimeType}</td>
+							<i class="fa-solid fa-tag fa-fw"></i>
+              <span class="tth">Type</span>
+              </th>
+             <td>${formatMimeType(mimeType)}</td>
 						</tr>
 						<tr>
 							<th>
