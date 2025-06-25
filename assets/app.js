@@ -1987,9 +1987,6 @@ function utc2jakarta(utc_datetime) {
 function formatMimeType(mime) {
   if (!mime) return '';
   
- function formatMimeType(mime) {
-  if (!mime) return '';
-  
   // Video type mapping
   const videoFormats = {
     'mp4': 'MP4',
