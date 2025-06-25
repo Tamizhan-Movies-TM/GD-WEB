@@ -49,7 +49,7 @@ function init() {
 			</div>
 		</div>`;
 		}
-	html += `<div id="content" style="${UI.fixed_footer ?' padding-bottom: clamp(170px, 100%, 300px);': ''}"></div>
+	html += `<div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
 	</div>
 	  <div class="container" style="max-width: 576px; padding: 1rem;"> <!-- Adjust max-width as needed -->
       <div class="row g-3 mt-0 mx-auto"> <!-- mx-auto centers the row -->
@@ -64,8 +64,8 @@ function init() {
                   <i class="fa-brands fa-telegram"></i>&nbsp;&nbsp;Join&nbsp;&nbsp;Our&nbsp;&nbsp;Channel
                 </a>
                 <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
-                  <div style="padding-bottom: 1rem;">♥️ Welcome ♥️</div>
-                  <img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
+                <div style="padding-bottom: 1rem;">♥️ Welcome ♥️</div>
+               <img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
 						</div>
 					</div>
         </div>
@@ -87,45 +87,46 @@ function init() {
     </div>
   </div>
 </div>
-button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
-<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ?'position: fixed;': ''} ${UI.hide_footer ? ' display:none;': ' display:block;'}">
+<button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
+<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.hide_footer ? 'display:none;' : 'display:block;'}">
     <div class="container" style="padding-top: 15px;">
       <div class="row">
-      <div class="col-lg-4 col-md-12 text-lg-start">
-      © ${new Date().getFullYear()} <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
-      ${UI.credit ? '<p>© Tamizhan Movies,&nbsp;&nbsp;All Copy Rights Reserved &#174;</p>' : ''}
+        <div class="col-lg-4 col-md-12 text-lg-start">
+          © ${new Date().getFullYear()} <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
+          ${UI.credit ? '<p>© Tamizhan Movies,&nbsp;&nbsp;All Copy Rights Reserved &#174;</p>' : ''}
+        </div>
+        <div class="col-lg-4 col-md-12">
+          <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">2025&nbsp;-&nbsp;DMCA</a> ∙ <a href="${UI.contact_link}">Contact</a>
+        </div>
+        <div class="col-lg-4 col-md-12 text-lg-end">
+          <p>
+            <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
+          </p>
+        </div>
       </div>
-      <div class="col-lg-4 col-md-12">
-      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">2025&nbsp;-&nbsp;DMCA</a> ∙ <a href="${UI.contact_link}">Contact</a>
-      </div>
-      <div class="col-lg-4 col-md-12 text-lg-end">
-        <p>
-          <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
-        </p>
-      </div>
-	  <script>
-		let btt = document.getElementById("back-to-top");
-		window.onscroll = function () {
-			scrollFunction();
-		};
-		function scrollFunction() {
-			if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
-				btt.style.display = "block";
-			} else {
-				btt.style.display = "none";
-			}
-		}
-		btt.addEventListener("click", backToTop);
-		function backToTop() {
-			document.body.scrollTop = 0;
-			document.documentElement.scrollTop = 0;
-		}
-	  </script>
-      </div>
-	</div>
-</footer>`;
-	$('body').html(html);
+    </div>
+</footer>
+<script>
+  let btt = document.getElementById("back-to-top");
+  window.onscroll = function () {
+    scrollFunction();
+  };
+  function scrollFunction() {
+    if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+      btt.style.display = "block";
+    } else {
+      btt.style.display = "none";
+    }
+  }
+  btt.addEventListener("click", backToTop);
+  function backToTop() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+  }
+</script>`;
+$('body').html(html);
 }
+
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.3 78" style="width: 1.3em;">
 <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"></path>
 <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"></path>
