@@ -2004,7 +2004,7 @@ function formatMimeType(mime) {
   if (mime.startsWith('video/')) {
     const subtype = mime.split('/')[1];
     const format = videoFormats[subtype] || subtype.toUpperCase();
-    return `${mime} - (${format})`;
+    return `${format} - ${mime}`;
   }
   
   return mime;
