@@ -1475,7 +1475,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 								<i class="fa-solid fa-tag fa-fw"></i>
 								<span class="tth">Type</span>
 							</th>
-							<td>${mimeType}</td>
+							<td>${formatMimeType(mimeType)}</td>
 						</tr>
 						<tr>
 							<th>
@@ -1587,7 +1587,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 								<i class="fa-solid fa-tag fa-fw"></i>
 								<span class="tth">Type</span>
 							</th>
-							<td>${mimeType}</td>
+							<td>${formatMimeType(mimeType)}</td>
 						</tr>
 						<tr>
 							<th>
@@ -1894,7 +1894,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
 								<i class="fa-solid fa-tag fa-fw"></i>
 								<span class="tth">Type</span>
 							</th>
-							<td>${mimeType}</td>
+							<td>${formatMimeType(mimeType)}</td>
 						</tr>
 						<tr>
 							<th>
@@ -1983,6 +1983,32 @@ function utc2jakarta(utc_datetime) {
 	return `${date}-${month}-${year} ${hour}:${minute}`;
 }
 
+// MIME type formatting
+function formatMimeType(mime) {
+  if (!mime) return '';
+  
+  // Video type mapping
+  const videoFormats = {
+    'mp4': 'MP4',
+    'x-matroska': 'MKV', 
+    'quicktime': 'MOV',
+    'avi': 'AVI',
+    'mpeg': 'MPEG',
+    'webm': 'WEBM',
+    'ogg': 'OGG',
+    'x-ms-wmv': 'WMV',
+    'flv': 'FLV'
+  };
+
+  // Check if video type
+  if (mime.startsWith('video/')) {
+    const subtype = mime.split('/')[1];
+    const format = videoFormats[subtype] || subtype.toUpperCase();
+    return `${mime} (${format})`;
+  }
+  
+  return mime;
+}
 
 // bytes adaptive conversion to KB, MB, GB
 function formatFileSize(bytes) {
