@@ -2004,7 +2004,7 @@ function formatMimeType(mime) {
   if (mime.startsWith('video/')) {
     const subtype = mime.split('/')[1];
     const format = videoFormats[subtype] || subtype.toUpperCase();
-    return `${format} - ${mime}`;
+    return `${format} ${mime}`;
   }
 
 // bytes adaptive conversion to KB, MB, GB
