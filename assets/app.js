@@ -68,42 +68,21 @@ function init() {
                   <img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
 						</div>
 					</div>
-            	</div>
-        	</div>
         </div>
-        <div class="col-lg-6 col-md-12">
-          	<div class="card text-white mb-3 h-100">
-            	<div class="card-header">
-              		<i class="fa-regular fa-snowflake fa-fw"></i>Sponsors
-            	</div>
-            	<div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
-					<a href="https://akannikah.id" target="_blank" title="Akannikah.id">
-						<img class="image" alt="Akannikah.id" style="height: 32px;" src="https://kaceku.onrender.com/static/img/Akannikah.id.png">
-					</a>
-					<a href="https://merakit.co.id" target="_blank" title="Merakit Indonesia">
-						<img class="image" alt="Merakit Indonesia" src="https://kaceku.onrender.com/static/img/merakit.co.id.png">
-					</a>
-					<a href="https://eksan127.blogspot.com" target="_blank" title="Eksan127">
-						<img class="image" alt="Eksan127" src="https://kaceku.onrender.com/static/img/eksan127.png">
-					</a>
-					<a href="https://azhe.my.id" target="_blank" title="azhe403">azhe403</a>
-            	</div>
-          	</div>
-        </div>
-    </div>	
-</div>
-<div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="SearchModelLabel"></h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true"></span>
-        </button>
       </div>
-      <div class="modal-body" id="modal-body-space">
-      </div>
-      <div class="modal-footer justify-content-center" id="modal-body-space-buttons">
+    </div>
+      <div class="modal fade" id="SearchModel" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="SearchModelLabel"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true"></span>
+            </button>
+            </div>
+           <div class="modal-body" id="modal-body-space">
+          </div>
+        <div class="modal-footer justify-content-center" id="modal-body-space-buttons">
       </div>
     </div>
   </div>
