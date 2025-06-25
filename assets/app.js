@@ -2238,7 +2238,7 @@ const observer = new MutationObserver(() => {
 
 // define the options for the observer (listen for changes to child elements)
 const options = {
-	childList: true,
+	childList: true,More actions
 	subtree: true
 };
 
