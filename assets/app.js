@@ -1674,7 +1674,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 }
 
 
-
 // Document display video |mp4|webm|avi|
 function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	// Define all player icons
@@ -1721,12 +1720,12 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 		<div class="card-body row g-3">
 			<div class="col-lg-4 col-md-12">
 				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-					${player}
-				</div>
-			</div>
-			<div class="col-lg-8 col-md-12">
-				<table class="table table-dark">
-					<tbody>
+				    ${player}  
+            </div>
+          </div>
+        <div class="col-lg-4 col-md-12">
+         <table class="table table-dark">
+          <tbody>
 						<tr>
 							<th>
 								<i class="fa-regular fa-folder-closed fa-fw"></i>
