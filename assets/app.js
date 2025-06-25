@@ -1987,6 +1987,9 @@ function utc2jakarta(utc_datetime) {
 function formatMimeType(mime) {
   if (!mime) return '';
   
+ function formatMimeType(mime) {
+  if (!mime) return '';
+  
   // Video type mapping
   const videoFormats = {
     'mp4': 'MP4',
@@ -2004,11 +2007,9 @@ function formatMimeType(mime) {
   if (mime.startsWith('video/')) {
     const subtype = mime.split('/')[1];
     const format = videoFormats[subtype] || subtype.toUpperCase();
-    return `${mime} (${format})`;
+    // Changed to show format abbreviation first
+    return `${format} - ${mime}`;
   }
-  
-  return mime;
-}
 
 // bytes adaptive conversion to KB, MB, GB
 function formatFileSize(bytes) {
