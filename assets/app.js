@@ -1723,7 +1723,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 				    ${player}Add commentMore actions
 				</div>
 			</div>
-			<div class="col-lg-8 col-md-8">
+			<div class="col-lg-10 col-md-12">
 				<table class="table table-dark">
 					<tbody>
 						<tr>
