@@ -73,7 +73,7 @@ function init() {
     <div class="container" style="padding-top: 15px;">
       <div class="row">
       <div class="col-lg-4 col-md-12 text-lg-start">
-      <i class="fa-solid fa-clapperboard"></i> ${new Date().getFullYear()} - <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
+      <i class="fa-solid fa-copyright"></i> ${new Date().getFullYear()} - <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
       ${UI.credit ? '<p>© All Copy Rights Reserved ™</p>' : ''}
 			</div>
       <div class="col-lg-4 col-md-12">
