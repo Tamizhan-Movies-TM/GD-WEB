@@ -1720,10 +1720,10 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 		<div class="card-body row g-3">
 			<div class="col-lg-4 col-md-12">
 				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-				    ${player}
+				  ${player}
 				</div>
 			</div>
-			<div class="col-lg-12 col-md-12">
+			<div class="col-lg-8 col-md-12">
 				<table class="table table-dark">
 					<tbody>
 						<tr>
