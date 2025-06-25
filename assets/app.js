@@ -1,4 +1,4 @@
-// Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
+// Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.
 // v2.3.5
 // Initialize the page
 function init() {
@@ -29,7 +29,7 @@ function init() {
 									var trimmedPathPart = decodedPathPart.replace(/\?.+/g, "$'");
 									var displayedPathPart = trimmedPathPart.length > 50 ? trimmedPathPart.slice(0, 50) + '...' : trimmedPathPart.slice(0, 50);
 									currentPath += pathPart + '/';
-
+									
 									if (parseInt(i) === navarray.length - 1) {
 										if (window.location.href.toLowerCase().includes('a=view')) {
 											break;
@@ -2049,7 +2049,7 @@ function utc2jakarta(utc_datetime) {
 // MIME type formatting
 function formatMimeType(mime) {
   if (!mime) return '';
-
+  
   // Video type mapping
   const videoFormats = {
     'mp4': 'MP4',
@@ -2069,7 +2069,7 @@ function formatMimeType(mime) {
     const format = videoFormats[subtype] || subtype.toUpperCase();
     return `${format} - ${mime}`;
   }
-
+  
   return mime;
 }
 
@@ -2238,7 +2238,7 @@ const observer = new MutationObserver(() => {
 
 // define the options for the observer (listen for changes to child elements)
 const options = {
-	childList: true,More actions
+	childList: true,
 	subtree: true
 };
 
