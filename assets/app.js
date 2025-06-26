@@ -1678,7 +1678,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
     const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
     const new_download_icon = `<img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
 	var url_base64 = btoa(url);
-	/ Split the file path into parts
+	 // Split the file path into parts
     var path = window.location.pathname;
     var pathParts = path.split('/');
     // Generate the navigation based on path parts
