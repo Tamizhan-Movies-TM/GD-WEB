@@ -1678,28 +1678,6 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
     const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
     const new_download_icon = `<img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
 	var url_base64 = btoa(url);
-	 // Split the file path into parts
-    var path = window.location.pathname;
-    var pathParts = path.split('/');
-    // Generate the navigation based on path parts
-    var navigation = '';
-    var new_path = '';
-    for (var i = 0; i < pathParts.length; i++) {
-        var part = pathParts[i];
-        if (i == pathParts.length - 1) {
-            new_path += part + '?a=view'
-        } else {
-            new_path += part + '/'
-        }
-        if (part.length > 15) {
-            part = decodeURIComponent(part);
-            part = part.substring(0, 10) + '...';
-        }
-        if (part == '') {
-            part = 'Home'
-        }
-        navigation += '<a href="' + new_path + '" class="breadcrumb-item">' + part + '</a>';
-    }
 	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
     let player
 	if (!UI.disable_player) {
