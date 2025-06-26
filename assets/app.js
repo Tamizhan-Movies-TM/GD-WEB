@@ -1760,97 +1760,132 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 					</tbody>
 				</table>
 				${UI.disable_video_download ? `` : `
-				 <div class="card-body">
-            <!-- Hidden URL input box -->
-            <div class="input-group mb-4" style="display: none;">
-              <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
-            </div>
-            
-            <!-- First row of buttons - fixed width -->
-            <div class="d-flex justify-content-center gap-3 mb-3">
-              <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
-                onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span class="d-flex align-items-center">
-                ${vlc_icon} VLC Player
-               </span>
-              </button>
-
-              <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
-                onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                <span class="d-flex align-items-center gap-1">
-                ${mxplayer_icon} MX Player
-                </span>
-              </button> 
-            </div>
-            
-            <!-- Second row of buttons - fixed width -->
-            <div class="d-flex justify-content-center gap-3 mb-4">
-              <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
-                onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span class="d-flex align-items-center gap-1">
-               ${xplayer_icon} XPlayer
-               </span>
-              </button>
-
-              <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
-                onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span class="d-flex align-items-center gap-1"> 
-               ${playit_icon} PLAYit
-							 </span>
-              </button>
-            </div>
-            
-              <!-- DOWNLOAD BUTTON -->
-            <div class="d-flex justify-content-center">
-              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
-                ${new_download_icon} DOWNLOAD
-                <div id="download-spinner" class="spinner" style="display: none;">
-                  <div class="spinner-circle"></div>
-                </div>
-              </button>
-            </div>
-          </div>
-        `}
-      </div>
+<div class="card-body">
+    <!-- Hidden URL input box -->
+    <div class="input-group mb-4" style="display: none;">
+        <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
     </div>
     
-    <style>
-      /* Loading spinner styles */
-      .spinner {
+    <!-- First row of buttons - fixed width with vapor effect -->
+    <div class="d-flex justify-content-center gap-3 mb-3">
+        <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center vapor-btn" style="width: 160px;"
+            onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center">
+                ${vlc_icon} VLC Player
+            </span>
+        </button>
+
+        <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center vapor-btn" style="width: 160px;"
+            onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1">
+                ${mxplayer_icon} MX Player
+            </span>
+        </button> 
+    </div>
+    
+    <!-- Second row of buttons - fixed width with vapor effect -->
+    <div class="d-flex justify-content-center gap-3 mb-4">
+        <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center vapor-btn" style="width: 160px;"
+            onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1">
+                ${xplayer_icon} XPlayer
+            </span>
+        </button>
+
+        <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center vapor-btn" style="width: 160px;"
+            onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1"> 
+                ${playit_icon} PLAYit
+            </span>
+        </button>
+    </div>
+    
+    <!-- DOWNLOAD BUTTON with vapor effect -->
+    <div class="d-flex justify-content-center">
+        <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2 vapor-btn" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
+            ${new_download_icon} DOWNLOAD
+            <div id="download-spinner" class="spinner" style="display: none;">
+                <div class="spinner-circle"></div>
+            </div>
+        </button>
+    </div>
+</div>
+`}
+
+<style>
+    /* Vapor theme inspired effects */
+    .vapor-btn {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border-width: 2px;
+        text-shadow: 0 0 5px rgba(255,255,255,0.3);
+    }
+    
+    .vapor-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 255, 255, 0.4);
+    }
+    
+    .vapor-btn::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+            to bottom right,
+            rgba(255,255,255,0) 0%,
+            rgba(255,255,255,0) 40%,
+            rgba(255,255,255,0.1) 50%,
+            rgba(255,255,255,0) 60%,
+            rgba(255,255,255,0) 100%
+        );
+        transform: rotate(30deg);
+        transition: all 0.5s ease;
+    }
+    
+    .vapor-btn:hover::before {
+        left: 100%;
+    }
+    
+    /* Loading spinner styles */
+    .spinner {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-      }
-      
-      .spinner-circle {
+    }
+    
+    .spinner-circle {
         width: 24px;
         height: 24px;
         border: 3px solid rgba(255,255,255,0.3);
         border-radius: 50%;
         border-top-color: #fff;
         animation: spinner-rotate 1s linear infinite;
-      }
-      
-      @keyframes spinner-rotate {
+    }
+    
+    @keyframes spinner-rotate {
         to { transform: rotate(360deg); }
-      }
-      
-      /* Center button content */
-      .d-flex.align-items-center {
+    }
+    
+    /* Center button content */
+    .d-flex.align-items-center {
         display: flex;
         align-items: center;
         justify-content: center;
-      }
-      
-      .gap-2 {
+    }
+    
+    .gap-2 {
         gap: 8px;
-      }
-    </style>
-    `;
+    }
+</style>
+`;
 
-    // Set the content
-    $("#content").html(content);
+// Set the content
+$("#content").html(content);
 
 	// Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
