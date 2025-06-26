@@ -1744,7 +1744,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 						</tr>
 						<tr>
 							<th>
-								<i class="fa-solid fa-box-archive fa-fw"></i>
+			         <i class="fa-solid fa-box-archive fa-fw"></i>
 								<span class="tth">Size</span>
 							</th>
 							<td>${size}</td>
@@ -1760,222 +1760,40 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 					</tbody>
 				</table>
 				${UI.disable_video_download ? `` : `
-        <div class="card-body">
-            <!-- First row of buttons -->
-            <div class="d-flex justify-content-center gap-3 mb-3">
-                <button type="button" class="btn btn-vlc" 
-                    onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center">
-                        ${vlc_icon} VLC Player
-                    </span>
-                </button>
-
-                <button type="button" class="btn btn-mxplayer" 
-                    onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center gap-1">
-                        ${mxplayer_icon} MX Player
-                    </span>
-                </button> 
-            </div>
-            
-            <!-- Second row of buttons -->
-            <div class="d-flex justify-content-center gap-3 mb-4">
-                <button type="button" class="btn btn-xplayer" 
-                    onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center gap-1">
-                        ${xplayer_icon} XPlayer
-                    </span>
-                </button>
-
-                <button type="button" class="btn btn-playit" 
-                    onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center gap-1"> 
-                        ${playit_icon} PLAYit
-                    </span>
-                </button>
-            </div>
-            
-            <!-- DOWNLOAD BUTTON -->
-            <div class="d-flex justify-content-center">
-                <button id="download-btn" class="btn btn-download">
-                    ${new_download_icon} DOWNLOAD
-                    <div id="download-spinner" class="spinner" style="display: none;">
-                        <div class="spinner-circle"></div>
-                    </div>
-                </button>
-            </div>
-        </div>
-        `}
-    </div>
-</div>
-
-<style>
-    /* Vapor-inspired button colors */
-    .btn-vlc {
-        background-color: #ff8800; /* VLC orange */
-        color: white;
-        border: none;
-        transition: all 0.3s;
-    }
-    .btn-vlc:hover {
-        background-color: #e67e00;
-        color: white;
-    }
-
-    .btn-mxplayer {
-        background-color: #00a8ff; /* MX Player blue */
-        color: white;
-        border: none;
-        transition: all 0.3s;
-    }
-    .btn-mxplayer:hover {
-        background-color: #0097e6;
-        color: white;
-    }
-
-    .btn-xplayer {
-        background-color: #4cd137; /* XPlayer green */
-        color: white;
-        border: none;
-        transition: all 0.3s;
-    }
-    .btn-xplayer:hover {
-        background-color: #44bd32;
-        color: white;
-    }
-
-    .btn-playit {
-        background-color: #e84118; /* PLAYit red */
-        color: white;
-        border: none;
-        transition: all 0.3s;
-    }
-    .btn-playit:hover {
-        background-color: #c23616;
-        color: white;
-    }
-
-    .btn-download {
-        background-color: #9c88ff; /* Vapor purple */
-        color: white;
-        border: none;
-        padding: 10px 24px;
-        font-size: 1.1rem;
-        font-weight: bold;
-        transition: all 0.3s;
-    }
-    .btn-download:hover {
-        background-color: #8c7ae6;
-        color: white;
-    }
-
-    /* Loading spinner styles */
-    .spinner {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
-    
-    .spinner-circle {
-        width: 24px;
-        height: 24px;
-        border: 3px solid rgba(255,255,255,0.3);
-        border-radius: 50%;
-        border-top-color: #fff;
-        animation: spinner-rotate 1s linear infinite;
-${UI.disable_video_download ? `` : `
-          <div class="card-body">
-            <!-- Hidden URL input box -->
-            <div class="input-group mb-4" style="display: none;">
-              <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
-            </div>
-            
-            <!-- First row of buttons - fixed width -->
-            <div class="d-flex justify-content-center gap-3 mb-3">
-              <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
-                onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span class="d-flex align-items-center">
-                ${vlc_icon} VLC Player
-               </span>
-              </button>
-
-              <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
-                onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                <span class="d-flex align-items-center gap-1">
-                ${mxplayer_icon} MX Player
-                </span>
-              </button> 
-            </div>
-            
-            <!-- Second row of buttons - fixed width -->
-            <div class="d-flex justify-content-center gap-3 mb-4">
-              <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
-                onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span class="d-flex align-items-center gap-1">
-               ${xplayer_icon} XPlayer
-               </span>
-              </button>
-
-              <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
-                onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span class="d-flex align-items-center gap-1"> 
-               ${playit_icon} PLAYit
-							 </span>
-              </button>
-            </div>
-            
-              <!-- DOWNLOAD BUTTON -->
-            <div class="d-flex justify-content-center">
-              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
-                ${new_download_icon} DOWNLOAD
-                <div id="download-spinner" class="spinner" style="display: none;">
-                  <div class="spinner-circle"></div>
-                </div>
-              </button>
-            </div>
-          </div>
-        `}
-      </div>
-    </div>
-    
-    <style>
-      /* Loading spinner styles */
-      .spinner {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
-      
-      .spinner-circle {
-        width: 24px;
-        height: 24px;
-        border: 3px solid rgba(255,255,255,0.3);
-        border-radius: 50%;
-        border-top-color: #fff;
-        animation: spinner-rotate 1s linear infinite;
-      }
-      
-      @keyframes spinner-rotate {
-        to { transform: rotate(360deg); }
-      }
-      
-      /* Center button content */
-      .d-flex.align-items-center {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      
-      .gap-2 {
-        gap: 8px;
-      }
-    </style>
-    `;
-
-    // Set the content
-    $("#content").html(content);
+				<div class="input-group">
+					<span class="input-group-text" id="">Full URL</span>
+					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
+				</div>`}
+			</div>
+			${UI.disable_video_download ? `` : `
+			<div class="col-md-12">
+				<div class="text-center">
+					<p class="mb-2">Download via</p>
+					<div class="btn-group text-center"> ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://kaceku.onrender.com/f/${file_id}" id="file_drive_link" target="_blank">`+gdrive_icon+`Google Drive</a>` : ``} <a href="${url}" type="button" class="btn btn-success">
+							<i class="fas fa-bolt fa-fw"></i>Index Link</a>
+						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<span class="sr-only"></span>
+						</button>
+						<div class="dropdown-menu">
+							<a class="dropdown-item" href="iina://weblink?url=${url}">IINA</a>
+							<a class="dropdown-item" href="potplayer://${url}">PotPlayer</a>
+							<a class="dropdown-item" href="vlc://${url}">VLC Mobile</a>
+							<a class="dropdown-item" href="${url}">VLC Desktop</a>
+							<a class="dropdown-item" href="nplayer-${url}">nPlayer</a>
+							<a class="dropdown-item" href="intent://${url}#Intent;type=video/any;package=is.xyz.mpv;scheme=https;end;">mpv-android</a>
+							<a class="dropdown-item" href="mpv://${url_base64}">mpv x64</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;S.title=${encoded_name};end">MX Player (Free)</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.pro;S.title=${encoded_name};end">MX Player (Pro)</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
+						</div>
+					</div> `+ copyFileBox +`
+				</div>
+			</div>`}
+		</div>
+	</div>`;
+	$("#content").html(content);
 	
 	// Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
