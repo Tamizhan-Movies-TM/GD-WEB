@@ -1884,30 +1884,98 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
         border-radius: 50%;
         border-top-color: #fff;
         animation: spinner-rotate 1s linear infinite;
-    }
+${UI.disable_video_download ? `` : `
+          <div class="card-body">
+            <!-- Hidden URL input box -->
+            <div class="input-group mb-4" style="display: none;">
+              <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
+            </div>
+            
+            <!-- First row of buttons - fixed width -->
+            <div class="d-flex justify-content-center gap-3 mb-3">
+              <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+               <span class="d-flex align-items-center">
+                ${vlc_icon} VLC Player
+               </span>
+              </button>
+
+              <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                <span class="d-flex align-items-center gap-1">
+                ${mxplayer_icon} MX Player
+                </span>
+              </button> 
+            </div>
+            
+            <!-- Second row of buttons - fixed width -->
+            <div class="d-flex justify-content-center gap-3 mb-4">
+              <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+               <span class="d-flex align-items-center gap-1">
+               ${xplayer_icon} XPlayer
+               </span>
+              </button>
+
+              <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+               <span class="d-flex align-items-center gap-1"> 
+               ${playit_icon} PLAYit
+							 </span>
+              </button>
+            </div>
+            
+              <!-- DOWNLOAD BUTTON -->
+            <div class="d-flex justify-content-center">
+              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
+                ${new_download_icon} DOWNLOAD
+                <div id="download-spinner" class="spinner" style="display: none;">
+                  <div class="spinner-circle"></div>
+                </div>
+              </button>
+            </div>
+          </div>
+        `}
+      </div>
+    </div>
     
-    @keyframes spinner-rotate {
+    <style>
+      /* Loading spinner styles */
+      .spinner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      
+      .spinner-circle {
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spinner-rotate 1s linear infinite;
+      }
+      
+      @keyframes spinner-rotate {
         to { transform: rotate(360deg); }
-    }
-    
-    /* Center button content */
-    .d-flex.align-items-center {
+      }
+      
+      /* Center button content */
+      .d-flex.align-items-center {
         display: flex;
         align-items: center;
         justify-content: center;
-    }
-    
-    .gap-1 {
-        gap: 4px;
-    }
-    .gap-2 {
+      }
+      
+      .gap-2 {
         gap: 8px;
-    }
-</style>
-`;
+      }
+    </style>
+    `;
 
-// Set the content
-$("#content").html(content);
+    // Set the content
+    $("#content").html(content);
 	
 	// Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
