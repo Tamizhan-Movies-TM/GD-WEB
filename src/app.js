@@ -156,9 +156,11 @@ function nav(path) {
 
     html += `<li class="nav-item">
     <a class="nav-link" href="${UI.contact_link}" target="_blank">${UI.nav_link_4}</a>
+  </li>
   <li class="nav-item">
-  <a class="nav-link" href="${UI.nav_link_1}">Login</a>
-</li>
+    <a class="nav-link" href="${UI.nav_link_1}">Login</a>
+  </li>`;
+	
     var search_text = model.is_search_page ? (model.q || '') : '';
     var search_bar = `
 </ul>
