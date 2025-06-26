@@ -76,8 +76,9 @@ function init() {
       <i class="fa-brands fa-pied-piper-alt"></i> ${new Date().getFullYear()} - <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
 	    </div>
       <div class="col-lg-4 col-md-12">
-      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> <a ${UI.credit ? '<p>© All Copy Rights Reserved ™</p>'</a>
-	    </div>
+      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> 
+      ${UI.credit ? '<span>© All Rights Reserved ™</span>' : ''}
+      </div>
        <div class="col-lg-4 col-md-12 text-lg-end">
         <p>
         <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
