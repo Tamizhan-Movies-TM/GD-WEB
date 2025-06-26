@@ -1700,6 +1700,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
         }
         navigation += '<a href="' + new_path + '" class="breadcrumb-item">' + part + '</a>';
     }
+	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
     let player
 	if (!UI.disable_player) {
 		if (player_config.player == "plyr") {
