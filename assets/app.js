@@ -14,7 +14,8 @@ function init() {
 		if (!window.location.href.toLowerCase().includes(':search?q=') && window.location.pathname.toLowerCase() !== '/fallback') {
 			html += `
 		<div class="col-md-12">
-			<div class="card" 
+			<div class="card">
+				<nav style="--bs-breadcrumb-divider: '/';" aria-label="breadcrumb">
 					<ol class="breadcrumb" id="folderne">
 						<li class="breadcrumb-item"><a href="/">❤️ Roots</a></li>`;
 							var navfulllink = window.location.pathname;
