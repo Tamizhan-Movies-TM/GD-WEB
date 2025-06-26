@@ -42,15 +42,8 @@ function init() {
 									if (displayedPathPart === '') {
 										break;
 									}
-                    }
-                        }
-                        html += `</ol>
-                     </nav>
-                  </div>
-              </div>`;
-            }
-						}
-						}
+								}
+							}
 							html += `</ol>
 				</nav>
 			</div>
