@@ -78,7 +78,8 @@ function init() {
 			</div>
       <div class="col-lg-4 col-md-12">
       <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> ∙ <a href="${UI.contact_link}">Contact</a>
-      </div>
+      '<p>© All Copy Rights Reserved ™</p>'
+			</div>
       <div class="col-lg-4 col-md-12 text-lg-end">
         <p>
           <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
