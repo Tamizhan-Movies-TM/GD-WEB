@@ -13,10 +13,6 @@ function init() {
 		`+trakteerWidget;
 		if (!window.location.href.toLowerCase().includes(':search?q=') && window.location.pathname.toLowerCase() !== '/fallback') {
 			html += `
-		<div class="col-md-12">
-			<div class="card">
-				<nav style="--bs-breadcrumb-divider: '/';">
-					<ol class="breadcrumb" id="folderne">
 						<li class="breadcrumb-item"><a href="/">❤️ Home</a></li>`;
 							var navfulllink = window.location.pathname;
 							var navarray = navfulllink.trim('/').split('/');
