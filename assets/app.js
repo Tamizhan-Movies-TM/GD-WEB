@@ -12,37 +12,37 @@ function init() {
 	<div class="row align-items-start g-3">
 		`+trakteerWidget;
 		if (!window.location.href.toLowerCase().includes(':search?q=') && window.location.pathname.toLowerCase() !== '/fallback') {
-    html += `
-        <div class="col-md-12">
-            <div class="card">
-                <nav style="--bs-breadcrumb-divider: '/';" aria-label="breadcrumb">
-                    <ol class="breadcrumb" id="folderne">
-                        <li class="breadcrumb-item"><a href="/">❤️ Home</a></li>`;
-                        var navfulllink = window.location.pathname;
-                        var navarray = navfulllink.trim('/').split('/');
-                        var currentPath = '/';
+			html += `
+		<div class="col-md-12">
+			<div class="card" style="display: none;">  <!-- Added style="display: none;" -->
+				<nav style="--bs-breadcrumb-divider: '/';" aria-label="breadcrumb">
+					<ol class="breadcrumb" id="folderne">
+						<li class="breadcrumb-item"><a href="/">❤️ Roots</a></li>`;
+							var navfulllink = window.location.pathname;
+							var navarray = navfulllink.trim('/').split('/');
+							var currentPath = '/';
 
-                        if (navarray.length > 0) {
-                            for (var i in navarray) {
-                                var pathPart = navarray[i];
-                                var decodedPathPart = decodeURIComponent(pathPart).replace(/\//g, '%2F');
-                                var trimmedPathPart = decodedPathPart.replace(/\?.+/g, "$'");
-                                var displayedPathPart = trimmedPathPart.length > 50 ? trimmedPathPart.slice(0, 50) + '...' : trimmedPathPart.slice(0, 50);
-                                currentPath += pathPart + '/';
-                                
-                                if (parseInt(i) === navarray.length - 1) {
-                                    if (window.location.href.toLowerCase().includes('a=view')) {
-                                        break;
-                                    }
-                                    html += `<li class="breadcrumb-item active" aria-current="page">${displayedPathPart}</li>`;
-                                } else {
-                                    html += `<li class="breadcrumb-item"><a href="${currentPath}">${displayedPathPart}</a></li>`;
-                                }
+							if (navarray.length > 0) {
+								for (var i in navarray) {
+									var pathPart = navarray[i];
+									var decodedPathPart = decodeURIComponent(pathPart).replace(/\//g, '%2F');
+									var trimmedPathPart = decodedPathPart.replace(/\?.+/g, "$'");
+									var displayedPathPart = trimmedPathPart.length > 50 ? trimmedPathPart.slice(0, 50) + '...' : trimmedPathPart.slice(0, 50);
+									currentPath += pathPart + '/';
+									
+									if (parseInt(i) === navarray.length - 1) {
+										if (window.location.href.toLowerCase().includes('a=view')) {
+											break;
+										}
+										html += `<li class="breadcrumb-item active" aria-current="page">${displayedPathPart}</li>`;
+									} else {
+										html += `<li class="breadcrumb-item"><a href="${currentPath}">${displayedPathPart}</a></li>`;
+									}
 
-                                if (displayedPathPart === '') {
-                                    break;
-                                }
-                            }
+									if (displayedPathPart === '') {
+										break;
+									}
+                    }
                         }
                         html += `</ol>
                      </nav>
