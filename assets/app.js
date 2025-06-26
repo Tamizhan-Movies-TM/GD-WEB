@@ -1760,127 +1760,113 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 					</tbody>
 				</table>
 				${UI.disable_video_download ? `` : `
-<div class="card-body">
-    <!-- Hidden URL input box -->
-    <div class="input-group mb-4" style="display: none;">
-        <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
-    </div>
-    
-    <!-- First row of buttons - Vapor theme colors -->
-    <div class="d-flex justify-content-center gap-3 mb-3">
-        <button type="button" class="btn btn-vapor-purple d-flex justify-content-center align-items-center" style="width: 160px;"
-            onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-            <span class="d-flex align-items-center">
-                ${vlc_icon} VLC Player
-            </span>
-        </button>
+        <div class="card-body">
+            <!-- First row of buttons -->
+            <div class="d-flex justify-content-center gap-3 mb-3">
+                <button type="button" class="btn btn-vlc" 
+                    onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                    <span class="d-flex align-items-center">
+                        ${vlc_icon} VLC Player
+                    </span>
+                </button>
 
-        <button type="button" class="btn btn-vapor-pink d-flex justify-content-center align-items-center" style="width: 160px;"
-            onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-            <span class="d-flex align-items-center gap-1">
-                ${mxplayer_icon} MX Player
-            </span>
-        </button> 
-    </div>
-    
-    <!-- Second row of buttons - Vapor theme colors -->
-    <div class="d-flex justify-content-center gap-3 mb-4">
-        <button type="button" class="btn btn-vapor-cyan d-flex justify-content-center align-items-center" style="width: 160px;"
-            onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-            <span class="d-flex align-items-center gap-1">
-                ${xplayer_icon} XPlayer
-            </span>
-        </button>
-
-        <button type="button" class="btn btn-vapor-blue d-flex justify-content-center align-items-center" style="width: 160px;"
-            onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-            <span class="d-flex align-items-center gap-1"> 
-                ${playit_icon} PLAYit
-            </span>
-        </button>
-    </div>
-    
-    <!-- DOWNLOAD BUTTON with Vapor theme colors -->
-    <div class="d-flex justify-content-center">
-        <button id="download-btn" class="btn btn-vapor-primary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
-            ${new_download_icon} DOWNLOAD
-            <div id="download-spinner" class="spinner" style="display: none;">
-                <div class="spinner-circle"></div>
+                <button type="button" class="btn btn-mxplayer" 
+                    onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                    <span class="d-flex align-items-center gap-1">
+                        ${mxplayer_icon} MX Player
+                    </span>
+                </button> 
             </div>
-        </button>
+            
+            <!-- Second row of buttons -->
+            <div class="d-flex justify-content-center gap-3 mb-4">
+                <button type="button" class="btn btn-xplayer" 
+                    onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                    <span class="d-flex align-items-center gap-1">
+                        ${xplayer_icon} XPlayer
+                    </span>
+                </button>
+
+                <button type="button" class="btn btn-playit" 
+                    onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                    <span class="d-flex align-items-center gap-1"> 
+                        ${playit_icon} PLAYit
+                    </span>
+                </button>
+            </div>
+            
+            <!-- DOWNLOAD BUTTON -->
+            <div class="d-flex justify-content-center">
+                <button id="download-btn" class="btn btn-download">
+                    ${new_download_icon} DOWNLOAD
+                    <div id="download-spinner" class="spinner" style="display: none;">
+                        <div class="spinner-circle"></div>
+                    </div>
+                </button>
+            </div>
+        </div>
+        `}
     </div>
 </div>
-`}
 
 <style>
-    /* Vapor theme button colors - only for these buttons */
-    .btn-vapor-primary {
-        background-color: #6f42c1;
-        border-color: #6f42c1;
+    /* Vapor-inspired button colors */
+    .btn-vlc {
+        background-color: #ff8800; /* VLC orange */
         color: white;
+        border: none;
+        transition: all 0.3s;
     }
-    .btn-vapor-primary:hover {
-        background-color: #5a32a3;
-        border-color: #5a32a3;
-    }
-    
-    .btn-vapor-purple {
-        background-color: #d63384;
-        border-color: #d63384;
+    .btn-vlc:hover {
+        background-color: #e67e00;
         color: white;
-    }
-    .btn-vapor-purple:hover {
-        background-color: #b02a6f;
-        border-color: #b02a6f;
-    }
-    
-    .btn-vapor-pink {
-        background-color: #e83e8c;
-        border-color: #e83e8c;
-        color: white;
-    }
-    .btn-vapor-pink:hover {
-        background-color: #c7256e;
-        border-color: #c7256e;
-    }
-    
-    .btn-vapor-cyan {
-        background-color: #20c997;
-        border-color: #20c997;
-        color: white;
-    }
-    .btn-vapor-cyan:hover {
-        background-color: #17a673;
-        border-color: #17a673;
-    }
-    
-    .btn-vapor-blue {
-        background-color: #0dcaf0;
-        border-color: #0dcaf0;
-        color: white;
-    }
-    .btn-vapor-blue:hover {
-        background-color: #0aa2c0;
-        border-color: #0aa2c0;
     }
 
-    /* Glow effect for all vapor buttons */
-    .btn-vapor-primary,
-    .btn-vapor-purple,
-    .btn-vapor-pink,
-    .btn-vapor-cyan,
-    .btn-vapor-blue {
-        text-shadow: 0 0 8px rgba(255,255,255,0.4);
-        transition: all 0.3s ease;
+    .btn-mxplayer {
+        background-color: #00a8ff; /* MX Player blue */
+        color: white;
+        border: none;
+        transition: all 0.3s;
     }
-    
-    .btn-vapor-primary:hover,
-    .btn-vapor-purple:hover,
-    .btn-vapor-pink:hover,
-    .btn-vapor-cyan:hover,
-    .btn-vapor-blue:hover {
-        box-shadow: 0 0 12px currentColor;
-        transform: translateY(-2px);
+    .btn-mxplayer:hover {
+        background-color: #0097e6;
+        color: white;
+    }
+
+    .btn-xplayer {
+        background-color: #4cd137; /* XPlayer green */
+        color: white;
+        border: none;
+        transition: all 0.3s;
+    }
+    .btn-xplayer:hover {
+        background-color: #44bd32;
+        color: white;
+    }
+
+    .btn-playit {
+        background-color: #e84118; /* PLAYit red */
+        color: white;
+        border: none;
+        transition: all 0.3s;
+    }
+    .btn-playit:hover {
+        background-color: #c23616;
+        color: white;
+    }
+
+    .btn-download {
+        background-color: #9c88ff; /* Vapor purple */
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    .btn-download:hover {
+        background-color: #8c7ae6;
+        color: white;
     }
 
     /* Loading spinner styles */
@@ -1911,6 +1897,9 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
         justify-content: center;
     }
     
+    .gap-1 {
+        gap: 4px;
+    }
     .gap-2 {
         gap: 8px;
     }
@@ -1919,6 +1908,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 
 // Set the content
 $("#content").html(content);
+	
 	// Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
