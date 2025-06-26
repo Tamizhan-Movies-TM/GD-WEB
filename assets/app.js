@@ -77,7 +77,7 @@ function init() {
 	    </div>
       <div class="col-lg-4 col-md-12">
       <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> 
-      ${UI.credit ? '<span>© All Rights Reserved ™</span>' : ''}
+      ${UI.credit ? '<span>© All Copy Rights Reserved ®™</span>' : ''}
       </div>
        <div class="col-lg-4 col-md-12 text-lg-end">
         <p>
