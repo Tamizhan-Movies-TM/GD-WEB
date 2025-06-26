@@ -1766,16 +1766,16 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
         <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
     </div>
     
-    <!-- First row of buttons - fixed width with vapor effect -->
+    <!-- First row of buttons - Vapor theme colors -->
     <div class="d-flex justify-content-center gap-3 mb-3">
-        <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center vapor-btn" style="width: 160px;"
+        <button type="button" class="btn btn-vapor-purple d-flex justify-content-center align-items-center" style="width: 160px;"
             onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
             <span class="d-flex align-items-center">
                 ${vlc_icon} VLC Player
             </span>
         </button>
 
-        <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center vapor-btn" style="width: 160px;"
+        <button type="button" class="btn btn-vapor-pink d-flex justify-content-center align-items-center" style="width: 160px;"
             onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
             <span class="d-flex align-items-center gap-1">
                 ${mxplayer_icon} MX Player
@@ -1783,16 +1783,16 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
         </button> 
     </div>
     
-    <!-- Second row of buttons - fixed width with vapor effect -->
+    <!-- Second row of buttons - Vapor theme colors -->
     <div class="d-flex justify-content-center gap-3 mb-4">
-        <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center vapor-btn" style="width: 160px;"
+        <button type="button" class="btn btn-vapor-cyan d-flex justify-content-center align-items-center" style="width: 160px;"
             onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
             <span class="d-flex align-items-center gap-1">
                 ${xplayer_icon} XPlayer
             </span>
         </button>
 
-        <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center vapor-btn" style="width: 160px;"
+        <button type="button" class="btn btn-vapor-blue d-flex justify-content-center align-items-center" style="width: 160px;"
             onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
             <span class="d-flex align-items-center gap-1"> 
                 ${playit_icon} PLAYit
@@ -1800,9 +1800,9 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
         </button>
     </div>
     
-    <!-- DOWNLOAD BUTTON with vapor effect -->
+    <!-- DOWNLOAD BUTTON with Vapor theme colors -->
     <div class="d-flex justify-content-center">
-        <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2 vapor-btn" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
+        <button id="download-btn" class="btn btn-vapor-primary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
             ${new_download_icon} DOWNLOAD
             <div id="download-spinner" class="spinner" style="display: none;">
                 <div class="spinner-circle"></div>
@@ -1813,43 +1813,76 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 `}
 
 <style>
-    /* Vapor theme inspired effects */
-    .vapor-btn {
-        position: relative;
-        overflow: hidden;
+    /* Vapor theme button colors - only for these buttons */
+    .btn-vapor-primary {
+        background-color: #6f42c1;
+        border-color: #6f42c1;
+        color: white;
+    }
+    .btn-vapor-primary:hover {
+        background-color: #5a32a3;
+        border-color: #5a32a3;
+    }
+    
+    .btn-vapor-purple {
+        background-color: #d63384;
+        border-color: #d63384;
+        color: white;
+    }
+    .btn-vapor-purple:hover {
+        background-color: #b02a6f;
+        border-color: #b02a6f;
+    }
+    
+    .btn-vapor-pink {
+        background-color: #e83e8c;
+        border-color: #e83e8c;
+        color: white;
+    }
+    .btn-vapor-pink:hover {
+        background-color: #c7256e;
+        border-color: #c7256e;
+    }
+    
+    .btn-vapor-cyan {
+        background-color: #20c997;
+        border-color: #20c997;
+        color: white;
+    }
+    .btn-vapor-cyan:hover {
+        background-color: #17a673;
+        border-color: #17a673;
+    }
+    
+    .btn-vapor-blue {
+        background-color: #0dcaf0;
+        border-color: #0dcaf0;
+        color: white;
+    }
+    .btn-vapor-blue:hover {
+        background-color: #0aa2c0;
+        border-color: #0aa2c0;
+    }
+
+    /* Glow effect for all vapor buttons */
+    .btn-vapor-primary,
+    .btn-vapor-purple,
+    .btn-vapor-pink,
+    .btn-vapor-cyan,
+    .btn-vapor-blue {
+        text-shadow: 0 0 8px rgba(255,255,255,0.4);
         transition: all 0.3s ease;
-        border-width: 2px;
-        text-shadow: 0 0 5px rgba(255,255,255,0.3);
     }
     
-    .vapor-btn:hover {
+    .btn-vapor-primary:hover,
+    .btn-vapor-purple:hover,
+    .btn-vapor-pink:hover,
+    .btn-vapor-cyan:hover,
+    .btn-vapor-blue:hover {
+        box-shadow: 0 0 12px currentColor;
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 255, 255, 0.4);
     }
-    
-    .vapor-btn::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: linear-gradient(
-            to bottom right,
-            rgba(255,255,255,0) 0%,
-            rgba(255,255,255,0) 40%,
-            rgba(255,255,255,0.1) 50%,
-            rgba(255,255,255,0) 60%,
-            rgba(255,255,255,0) 100%
-        );
-        transform: rotate(30deg);
-        transition: all 0.5s ease;
-    }
-    
-    .vapor-btn:hover::before {
-        left: 100%;
-    }
-    
+
     /* Loading spinner styles */
     .spinner {
         position: absolute;
@@ -1886,7 +1919,6 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 
 // Set the content
 $("#content").html(content);
-
 	// Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
