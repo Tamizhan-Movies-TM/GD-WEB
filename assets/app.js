@@ -1671,7 +1671,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
  <i class="fas fa-file-alt fa-fw"></i>File Information
  </div>
 	<div class="card-body">
-		<div class="row g-2">
+		<div class="row g-3">
 			<div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
 				<div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  
 					<div style="position: relative; padding-bottom: 56.25%;"> 
@@ -1725,7 +1725,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			</div>
 		</div>
 		${UI.disable_video_download ? `` : `
-		<div class="row mt-3">  <!-- Separate row for buttons -->
+		<div class="row mt-2">
 			<div class="col-md-12">
 				<div class="d-flex justify-content-center">
 					<div class="btn-group">
@@ -1734,8 +1734,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 						</a>
 						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							<span class="sr-only"></span>
-						</button>
-						<div class="dropdown-menu">
+						 </button>
+						 <div class="dropdown-menu">
 							<a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
