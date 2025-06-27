@@ -1809,61 +1809,48 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     $("#content").html(content);
 
     // Load Video.js and initialize the player
-    if (player_js && !UI.disable_player) {
-        var videoJsScript = document.createElement('script');
-        videoJsScript.src = player_js;
-        videoJsScript.onload = function() {
-            // Initialize player based on configuration
-            if (player_config.player == "plyr") {
-                const player = new Plyr('#player');
-            } else if (player_config.player == "videojs") {
-                const player = videojs('vplayer');
-            } else if (player_config.player == "dplayer") {
-                const dp = new DPlayer({
-                    container: document.getElementById('player-container'),
-                    screenshot: true,
-                    video: {
-                        url: url,
-                        pic: poster,
-                        thumbnails: poster,
-                    },
-                });
-            } else if (player_config.player == "jwplayer") {
-                jwplayer("player").setup({
-                    file: url,
-                    type: mimeType,
-                    autostart: false,
-                    image: poster,
-                    width: "100%",
-                    aspectratio: "16:9",
-                    title: name,
-                    description: "Powered by Google Drive Index",
-                    tracks: [{
-                        file: url,
-                        kind: "captions",
-                        label: "Default",
-                        "default": true,
-                    }],
-                    captions: {
-                        color: "#f3f378",
-                        fontSize: 14,
-                        backgroundOpacity: 50,
-                        edgeStyle: "raised",
-                    },
-                });
-            }
-        };
-        document.head.appendChild(videoJsScript);
-
-        if (player_css) {
-            var videoJsStylesheet = document.createElement('link');
-            videoJsStylesheet.href = player_css;
-            videoJsStylesheet.rel = 'stylesheet';
-            document.head.appendChild(videoJsStylesheet);
-        }
-    }
-}
-};
+	var videoJsScript = document.createElement('script');
+	videoJsScript.src = player_js;
+	videoJsScript.onload = function() {
+		// Video.js is loaded, initialize the player
+		if (player_config.player == "plyr") {
+			const player = new Plyr('#player');Add commentMore actions
+		} else if (player_config.player == "videojs") {
+			const player = new videojs('vplayer');
+		} else if (player_config.player == "dplayer") {
+			const dp = new DPlayer({
+				container: document.getElementById('player-container'),
+				screenshot: true,
+				video: {
+					url: url,
+					pic: poster,
+					thumbnails: poster,
+				},
+			});
+		} else if (player_config.player == "jwplayer") {
+			jwplayer("player").setup({
+				file: url,
+				type: mimeType,
+				autostart: false,
+				image: poster,
+				width: "100%",
+				aspectratio: "16:9",
+				title: name,
+				description: "Powered by Google Drive Index",
+				tracks: [{
+					file: url,
+					kind: "captions",
+					label: "Default",
+					"default": true,
+				}],
+				captions: {
+					color: "#f3f378",
+					fontSize: 14,
+					backgroundOpacity: 50,
+					edgeStyle: "raised",
+				},
+			});
+		}
 	document.head.appendChild(videoJsScript);
 
 	var videoJsStylesheet = document.createElement('link');
@@ -1986,7 +1973,6 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                         aspectratio: "16:9",
                         title: name
                     });
-                    break;
             }
         };
         document.head.appendChild(script);
