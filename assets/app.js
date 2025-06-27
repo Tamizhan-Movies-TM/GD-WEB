@@ -1628,7 +1628,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
 
     // Document display video |mp4|webm|avi|
-function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+   function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	 // Define all player icons
     const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
@@ -1666,85 +1666,80 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 	}
 	// Add the container and card elements
 	var content = `
-	<div class="card">
-		<div class="card-header ${UI.file_view_alert_class}">
-			<i class="fas fa-file-alt fa-fw"></i>File Information
+  <div class="card">
+	<div class="card-header ${UI.file_view_alert_class}">
+	<i class="fas fa-file-alt fa-fw"></i>File Information
+	</div>
+	<div class="card-body row g-3">
+		<div class="col-lg-4 col-md-12">
+			<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+				${player}
+			</div>
 		</div>
-		<div class="card-body row g-3">
-			<div class="col-lg-4 col-md-12">
-				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-					${player}
+		<div class="col-lg-8 col-md-12">
+			<table class="table table-dark">
+				<tbody>
+					<tr>
+						<th>
+							<i class="fa-regular fa-folder-closed fa-fw"></i>
+							<span class="tth">Name</span>
+						</th>
+						<td>${name}</td>
+					</tr>
+					<tr>
+						<th>
+							<i class="fa-regular fa-clock fa-fw"></i>
+							<span class="tth">Datetime</span>
+						</th>
+						<td>${createdTime}</td>
+					</tr>
+					<tr>
+						<th>
+							<i class="fa-solid fa-tag fa-fw"></i>
+							<span class="tth">Type</span>
+						</th>
+					<td>${formatMimeType(mimeType)}</td>
+					</tr>
+					<tr>
+						<th>
+							<i class="fa-solid fa-box-archive fa-fw"></i>
+							<span class="tth">Size</span>
+						</th>
+						<td>${size}</td>
+					</tr>
+					<tr>
+						<th>
+							<i class="fa-solid fa-file-circle-check fa-fw"></i>
+							<span class="tth">Checksum</span>
+						</th>
+						<td>MD5: <code>${md5Checksum}</code>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		${UI.disable_video_download ? `` : `
+		<div class="col-md-12">
+			<div class="btn-group text-center">
+				<a href="${url}" type="button" class="btn btn-success">
+					<i class="fas fa-bolt fa-fw"></i>Index Download Link
+				</a>
+				<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				<span class="sr-only"></span>
+				</button>
+				<div class="dropdown-menu">
+					<a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
+					<a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
+					<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
+					<a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
+					<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
 				</div>
 			</div>
-			<div class="col-lg-8 col-md-12">
-				<table class="table table-dark">
-					<tbody>
-						<tr>
-							<th>
-								<i class="fa-regular fa-folder-closed fa-fw"></i>
-								<span class="tth">Name</span>
-							</th>
-							<td>${name}</td>
-						</tr>
-						<tr>
-							<th>
-								<i class="fa-regular fa-clock fa-fw"></i>
-								<span class="tth">Datetime</span>
-							</th>
-							<td>${createdTime}</td>
-						</tr>
-						<tr>
-							<th>
-								<i class="fa-solid fa-tag fa-fw"></i>
-								<span class="tth">Type</span>
-							</th>
-						<td>${formatMimeType(mimeType)}</td>
-						</tr>
-						<tr>
-							<th>
-								<i class="fa-solid fa-box-archive fa-fw"></i>
-								<span class="tth">Size</span>
-							</th>
-							<td>${size}</td>
-						</tr>
-						<tr>
-							<th>
-								<i class="fa-solid fa-file-circle-check fa-fw"></i>
-								<span class="tth">Checksum</span>
-							</th>
-							<td>MD5: <code>${md5Checksum}</code>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				${UI.disable_video_download ? `` : `
-				<div class="input-group">
-					<span class="input-group-text" id="">Full URL</span>
-					<input type="text" class="form-control" id="dlurl" value="${url}" readonly>
-				</div>`}
-			</div>
-			${UI.disable_video_download ? `` : `
-			<div class="col-md-12">
-				<div class="btn-group text-center">
-            <a href="${url}" type="button" class="btn btn-success">
-            <i class="fas fa-bolt fa-fw"></i>Index Link
-            </a>
-            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span class="sr-only"></span>
-            </button>
-            <div class="dropdown-menu">
-             <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
-             <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
-             <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
-             <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
-             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-           </div>
-					</div>
-				</div>
-			</div>`}
 		</div>
-	</div>`;
-	$("#content").html(content);
+		`}
+	</div>
+</div>`;
+$("#content").html(content);
 
 	// Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
