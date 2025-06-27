@@ -1672,8 +1672,12 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	</div>
 	<div class="card-body row g-3">
 		<div class="col-lg-4 col-md-12">
-			<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-				${player}
+			<div class="d-flex justify-content-center">  <!-- Centering wrapper -->
+				<div class="w-100 border border-dark rounded" style="--bs-border-opacity: .5; position: relative; padding-bottom: 56.25%;">  <!-- 16:9 aspect ratio container -->
+					<div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+						${player}  <!-- Player element -->
+					</div>
+				</div>
 			</div>
 		</div>
 		<div class="col-lg-8 col-md-12">
@@ -1720,7 +1724,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		</div>
 		${UI.disable_video_download ? `` : `
 		<div class="col-md-12">
-			<div class="d-flex justify-content-center">  <!-- Centering container -->
+			<div class="d-flex justify-content-center">
 				<div class="btn-group">
 					<a href="${url}" type="button" class="btn btn-success">
 						<i class="fas fa-bolt fa-fw"></i>Index Download Link
