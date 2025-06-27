@@ -11,46 +11,13 @@ function init() {
 <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
 	<div class="row align-items-start g-3">
 		`+trakteerWidget;
-		if (!window.location.href.toLowerCase().includes(':search?q=') && window.location.pathname.toLowerCase() !== '/fallback') {
-			html += `
-		<div class="col-md-12">
-			<div class="card">
-				<nav style="--bs-breadcrumb-divider: '/';" aria-label="breadcrumb">
-					<ol class="breadcrumb" id="folderne">
-						<li class="breadcrumb-item"><a href="/">❤️ Roots</a></li>`;
-							var navfulllink = window.location.pathname;
-							var navarray = navfulllink.trim('/').split('/');
-							var currentPath = '/';
-
-							if (navarray.length > 0) {
-								for (var i in navarray) {
-									var pathPart = navarray[i];
-									var decodedPathPart = decodeURIComponent(pathPart).replace(/\//g, '%2F');
-									var trimmedPathPart = decodedPathPart.replace(/\?.+/g, "$'");
-									var displayedPathPart = trimmedPathPart.length > 50 ? trimmedPathPart.slice(0, 50) + '...' : trimmedPathPart.slice(0, 50);
-									currentPath += pathPart + '/';
-									
-									if (parseInt(i) === navarray.length - 1) {
-										if (window.location.href.toLowerCase().includes('a=view')) {
-											break;
-										}
-										html += `<li class="breadcrumb-item active" aria-current="page">${displayedPathPart}</li>`;
-									} else {
-										html += `<li class="breadcrumb-item"><a href="${currentPath}">${displayedPathPart}</a></li>`;
-									}
-
-									if (displayedPathPart === '') {
-										break;
-									}
-								}
-							}
-							html += `</ol>
-				</nav>
-			</div>
-		</div>`;
-		}
-		html += `<div id="content" style="${UI.fixed_footer ?' padding-bottom: clamp(170px, 100%, 300px);': ''}"></div>
-	</div>
+		html += `
+    <div class="col-md-12">
+    <div class="card">
+     <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
+    </div>
+</div>
+</div>
 </div>
 <div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
@@ -69,7 +36,7 @@ function init() {
   </div>
 </div>
 <button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
-<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ?'position: fixed;': ''} ${UI.hide_footer ? ' display:none;': ' display:block;'}">
+<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
     <div class="container" style="padding-top: 15px;">
       <div class="row">
       <div class="col-lg-4 col-md-12 text-lg-start">
@@ -105,9 +72,8 @@ function init() {
       </div>
 	</div>
 </footer>`;
-	$('body').html(html);
+$('body').html(html);
 }
-
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.3 78" style="width: 1.3em;">
 <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"></path>
 <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"></path>
