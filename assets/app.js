@@ -14,13 +14,9 @@ function init() {
 		if (!window.location.href.toLowerCase().includes(':search?q=') && window.location.pathname.toLowerCase() !== '/fallback') {
     html += `
     <div class="col-md-12">
-        <div class="card">
-            <nav style="--bs-breadcrumb-divider: '/';" aria-label="breadcrumb">
-                <ol class="breadcrumb" id="folderne">
-                    <li class="breadcrumb-item"><a href="/">❤️ Home</a></li>
-                </ol>
-            </nav>
-        </div>
+    <div class="card">
+     </nav>
+    </div>
     </div>`;
    }
 		html += `<div id="content" style="${UI.fixed_footer ?' padding-bottom: clamp(170px, 100%, 300px);': ''}"></div>
