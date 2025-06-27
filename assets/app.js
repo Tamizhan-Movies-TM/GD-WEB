@@ -239,14 +239,6 @@ function nav(path) {
 	var names = window.drive_names;
 	var drive_name = window.drive_names[cur];
 
-	// Dropdown to select different drive roots.
-	html += `<li class="nav-item dropdown"><a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">`+gdrive_icon+` ${drive_name}</a><div class="dropdown-menu" aria-labelledby="navbarDropdown">`;
-	names.forEach((name, idx) => {
-		html += `<a class="dropdown-item d-flex align-items-center gap-2"  href="/${idx}:/">`+gdrive_icon+` ${name}</a>`;
-	});
-	html += `</div></li>`;
-
-
 	html += `<li class="nav-item">
     <a class="nav-link" href="${UI.contact_link}" target="_blank"><i class="fas fa-paper-plane fa-fw"></i>${UI.nav_link_4}</a>
   </li>${UI.show_logout_button ?'<li class="nav-item"><a class="nav-link" href="/logout"><i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>Logout</a></li>': ''}`;
