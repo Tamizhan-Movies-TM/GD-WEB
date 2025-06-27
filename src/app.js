@@ -147,10 +147,11 @@ function nav(path) {
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
-    <ul class="navbar-nav">
+    <ul class="navbar-nav me-auto mb-2 mb-lg-0">Add commentMore actions
       <li class="nav-item">
-        <a class="nav-link" href="/${cur}:/"></a>
+        <a class="nav-link" href="/${cur}:/">${UI.nav_link_1}</a>
       </li>`;
+
     var names = window.drive_names;
     var drive_name = window.drive_names[cur];
 		
