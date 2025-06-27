@@ -1671,7 +1671,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
          <i class="fas fa-file-alt fa-fw"></i>File Information
          <div>
           <div class="card-body row g-1">
-             <div class="col-lg-8 col-md-14">
+             <div class="col-lg-8 col-md-12">
                 <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
                     ${player}
                  </div>
