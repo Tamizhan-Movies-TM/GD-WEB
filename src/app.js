@@ -147,27 +147,19 @@ function nav(path) {
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
-    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-      <li class="nav-item">
-        <a class="nav-link" href="/${cur}:/">${UI.nav_link_1}</a>
+    <ul class="navbar-nav"> <li class="nav-item">
+        <a class="nav-link" href="/${cur}:/"></a>
       </li>`;
-
     var names = window.drive_names;
-  	var drive_name = window.drive_names[cur];
+    var drive_name = window.drive_names[cur];
 
-	// Dropdown to select different drive roots.
-	html += `<li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">${drive_name}</a><div class="dropdown-menu" aria-labelledby="navbarDropdown">`;
-	names.forEach((name, idx) => {
-		html += `<a class="dropdown-item"  href="/${idx}:/">${name}</a>`;
-	});
-	html += `</div></li>`;
-
-
-	html += `<li class="nav-item">
+    html += `<li class="nav-item">
     <a class="nav-link" href="${UI.contact_link}" target="_blank">${UI.nav_link_4}</a>
-  </li>${UI.show_logout_button ?'<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>': ''}`;
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="${UI.nav_link_1}">Login</a>
+  </li>`;
 
-	
     var search_text = model.is_search_page ? (model.q || '') : '';
     var search_bar = `
 </ul>
@@ -175,7 +167,7 @@ function nav(path) {
 </div>
 </nav>
 `;
-
+	
     // Personal or team
     if (model.root_type < 2) {
         // Show search box
