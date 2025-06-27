@@ -136,7 +136,7 @@ function title(path) {
 }
 
 // Render the navigation bar
-function nav(path) {More actions
+function nav(path) {
     var model = window.MODEL;
     var html = "";
     var cur = window.current_drive_order || 0;
