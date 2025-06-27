@@ -13,9 +13,10 @@ function init() {
 		`+trakteerWidget;
 		if (!window.location.href.toLowerCase().includes(':search?q=') && window.location.pathname.toLowerCase() !== '/fallback') {
     html += `
-     </nav>
-    </div>
-    </div>`;
+     <div class="col-md-12">Add commentMore actions
+     <div class="card"> 
+		 </nav>
+     </div>`;
    }
 		html += `<div id="content" style="${UI.fixed_footer ?' padding-bottom: clamp(170px, 100%, 300px);': ''}"></div>
 	</div>
