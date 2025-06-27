@@ -17,7 +17,7 @@ function init() {
 			<div class="card">
 				<nav style="--bs-breadcrumb-divider: '/';" aria-label="breadcrumb">
 					<ol class="breadcrumb" id="folderne">
-						<li class="breadcrumb-item"><a href="/">❤️ Roots</a></li>`;
+						<li class="breadcrumb-item"><a href="/">❤️ Home</a></li>`;
 							var navfulllink = window.location.pathname;
 							var navarray = navfulllink.trim('/').split('/');
 							var currentPath = '/';
@@ -1751,11 +1751,6 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 						</tr>
 					</tbody>
 				</table>
-				${UI.disable_video_download ? `` : `
-				<div class="input-group">
-					<span class="input-group-text" id="">Full URL</span>
-					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
-				</div>`}
 			</div>
 			${UI.disable_video_download ? `` : `
 			<div class="col-md-12">
@@ -1766,21 +1761,14 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							<span class="sr-only"></span>
 						</button>
-						<div class="dropdown-menu">
-							<a class="dropdown-item" href="iina://weblink?url=${url}">IINA</a>
-							<a class="dropdown-item" href="potplayer://${url}">PotPlayer</a>
-							<a class="dropdown-item" href="vlc://${url}">VLC Mobile</a>
-							<a class="dropdown-item" href="${url}">VLC Desktop</a>
-							<a class="dropdown-item" href="nplayer-${url}">nPlayer</a>
-							<a class="dropdown-item" href="intent://${url}#Intent;type=video/any;package=is.xyz.mpv;scheme=https;end;">mpv-android</a>
-							<a class="dropdown-item" href="mpv://${url_base64}">mpv x64</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;S.title=${encoded_name};end">MX Player (Free)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.pro;S.title=${encoded_name};end">MX Player (Pro)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
+					<div class="dropdown-menu">
+				  <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
+	        <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
 						</div>
-					</div> `+ copyFileBox +`
+					</div>
 				</div>
 			</div>`}
 		</div>
@@ -1921,20 +1909,14 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
 							<span class="sr-only"></span>
 						</button>
 						<div class="dropdown-menu">
-							<a class="dropdown-item" href="iina://weblink?url=${url}">IINA</a>
-							<a class="dropdown-item" href="potplayer://${url}">PotPlayer</a>
-							<a class="dropdown-item" href="vlc://${url}">VLC Mobile</a>
-							<a class="dropdown-item" href="${url}">VLC Desktop</a>
-							<a class="dropdown-item" href="nplayer-${url}">nPlayer</a>
-							<a class="dropdown-item" href="intent://${url}#Intent;type=audio/any;package=is.xyz.mpv;scheme=https;end;">mpv-android</a>
-							<a class="dropdown-item" href="mpv://${url_base64}">mpv x64</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;S.title=${encoded_name};end">MX Player (Free)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.pro;S.title=${encoded_name};end">MX Player (Pro)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-						</div>
-					</div> `+ copyFileBox +`
+	        <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=audio/*;S.title=${encoded_name};end">Playit</a>
+	        <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=audio/*;S.title=${encoded_name};end">XPlayer</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=audio/*;S.title=${encoded_name};end">MX Player</a>
+	        <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
+          </div>
+					</div>
 				</div>
 			</div>`}
 		</div>
