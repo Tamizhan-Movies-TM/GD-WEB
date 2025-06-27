@@ -1845,7 +1845,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
                                     <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
                                 </a>
                                 <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                                    <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
+ñ                                    <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
                                 </a>
                                 <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
                                     <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 24px; width: 24px; margin-right: 5px;"> MX Player
@@ -1856,13 +1856,13 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
                                 <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">
                                     <img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 24px; width: 24px; margin-right: 5px;"> 1DM (Free)
                                 </a>
-                </div>
-					   </div> 
-				   </div>
-			   </div>`}
-		    </div>
-	    </div>`;
-	  $("#content").html(content);
+                              </div>
+					                   </div> 
+				                   </div>
+			                    </div>`}
+		                     </div>
+	                     </div>`;
+	                  $("#content").html(content);
 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
