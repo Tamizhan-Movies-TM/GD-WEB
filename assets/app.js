@@ -1751,21 +1751,18 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 						</tr>
 					</tbody>
 				</table>
-		  ${UI.disable_video_download ? `` : 
-      <div class="input-group">
-      <span class="input-group-text" id="">Full URL</span>
-      <input type="text" class="form-control" id="dlurl" value="${url}" readonly>
-     </div>`}
 			</div>
 			${UI.disable_video_download ? `` : `
 			<div class="col-md-12">
 				<div class="text-center">
 					<p class="mb-2">Download via</p>
-					<div class="btn-group text-center"> ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://kaceku.onrender.com/f/${file_id}" id="file_drive_link" target="_blank">`+gdrive_icon+`Google Drive</a>` : ``} <a href="${url}" type="button" class="btn btn-success">
-							<i class="fas fa-bolt fa-fw"></i>Index Link</a>
-						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							<span class="sr-only"></span>
-						</button>
+           <div class="btn-group text-center">
+            <a href="${url}" type="button" class="btn btn-success">
+            <i class="fas fa-bolt fa-fw"></i>Index Link
+            </a>
+            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="sr-only"></span>
+            </button>
 					  <div class="dropdown-menu">
 				     <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
 	           <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
