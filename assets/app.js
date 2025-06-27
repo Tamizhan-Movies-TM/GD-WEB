@@ -1669,7 +1669,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 <div class="card">
 <div class="card-header ${UI.file_view_alert_class}">
  <i class="fas fa-file-alt fa-fw"></i>File Information
- <br>
+ <div>
 	<div class="card-body">
 		<div class="row g-3">
 			<div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
