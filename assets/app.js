@@ -1627,8 +1627,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
 
 
-// File display video |mp4|webm|avi|
-function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+   // File display video |mp4|webm|avi|
+   function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     // Define all player icons
     const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
@@ -1670,8 +1670,8 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
         <div class="card-header ${UI.file_view_alert_class}">
          <i class="fas fa-file-alt fa-fw"></i>File Information
          <div>
-          <div class="card-body row g-1">
-             <div class="col-lg-6 col-md-12">
+          <div class="card-body row g-1.5">
+             <div class="col-lg-4 col-md-12">
                 <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
                     ${player}
                  </div>
