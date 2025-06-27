@@ -13,10 +13,8 @@ function init() {
 		`+trakteerWidget;
 		html += `
 <div class="col-md-12">
-    <div class="card bg-dark bg-opacity-25">
-        <div class="card-body">
-            <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
-        </div>
+    <div class="card bg-dark bg-opacity-10"> <!-- Added lighter dark background -->
+        <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
     </div>
 </div>
 </div>
