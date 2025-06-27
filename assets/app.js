@@ -1635,7 +1635,66 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
     const new_download_icon = `<img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
-	  var url_base64 = btoa(url);
+	  // Add Vapor theme styles for video player buttons
+    const vaporStyles = `
+    <style>
+        /* Vapor theme button styles */
+        .btn-vapor {
+            color: #fff;
+            background: linear-gradient(135deg, #6f42c1, #0dcaf0, #6f42c1);
+            background-size: 200% 200%;
+            border: none;
+            border-radius: 50px;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(111, 66, 193, 0.7);
+            transition: all 0.3s ease;
+            animation: vapor-glow 2s infinite alternate;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-vapor::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                rgba(255,255,255,0) 20%,
+                rgba(255,255,255,0.8) 50%,
+                rgba(255,255,255,0) 80%
+            );
+            transform: rotate(30deg);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .btn-vapor:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(13, 202, 240, 0.9);
+        }
+        
+        .btn-vapor:hover::before {
+            opacity: 1;
+            animation: vapor-shine 1.5s forwards;
+        }
+        
+        @keyframes vapor-glow {
+            0% { box-shadow: 0 0 10px rgba(111, 66, 193, 0.7); }
+            100% { box-shadow: 0 0 20px rgba(13, 202, 240, 0.9); }
+        }
+        
+        @keyframes vapor-shine {
+            0% { transform: rotate(30deg) translateX(-100%); }
+            100% { transform: rotate(30deg) translateX(100%); }
+        }
+    </style>
+    `;
+		 var url_base64 = btoa(url);
 	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 	  let player
 	  if (!UI.disable_player) {
@@ -1664,6 +1723,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			player_css = ''
 		}
 	}
+	// INJECT VAPOR STYLES HERE
+   document.head.insertAdjacentHTML('beforeend', vaporStyles);
 	// Add the container and card elements
 	var content = `
 <div class="card">
@@ -1725,39 +1786,44 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			</div>
 		</div>
 		${UI.disable_video_download ? `` : `
-		<!-- First row of buttons - fixed width -->
-      <div class="d-flex justify-content-center gap-3 mb-3">
-      <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
-      onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-      <span class="d-flex align-items-center">
-      ${vlc_icon} VLC Player
-      </span>
-      </button>
+	 const playerButtons = `
+    <!-- First row of buttons - Vapor styled -->
+    <div class="d-flex justify-content-center gap-3 mb-3">
+        <button type="button" class="btn btn-vapor d-flex justify-content-center align-items-center"
+            onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center">
+                <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">
+                VLC Player
+            </span>
+        </button>
 
-      <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
-      onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-      <span class="d-flex align-items-center gap-1">
-      ${mxplayer_icon} MX Player
-      </span>
-      </button> 
-      </div>
+        <button type="button" class="btn btn-vapor d-flex justify-content-center align-items-center"
+            onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1">
+                <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">
+                MX Player
+            </span>
+        </button> 
+    </div>
             
-      <!-- Second row of buttons - fixed width -->
-      <div class="d-flex justify-content-center gap-3 mb-4">
-      <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
-       onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-      <span class="d-flex align-items-center gap-1">
-      ${xplayer_icon} XPlayer
-      </span>
-      </button>
+    <!-- Second row of buttons - Vapor styled -->
+    <div class="d-flex justify-content-center gap-3 mb-4">
+        <button type="button" class="btn btn-vapor d-flex justify-content-center align-items-center"
+            onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1">
+                <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">
+                XPlayer
+            </span>
+        </button>
 
-      <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
-      onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-      <span class="d-flex align-items-center gap-1"> 
-      ${playit_icon} PLAYit
-			</span>
-      </button>
-     </div>
+        <button type="button" class="btn btn-vapor d-flex justify-content-center align-items-center"
+            onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1"> 
+                <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">
+                PLAYit
+            </span>
+        </button>
+    </div>`;
      <div class="row mt-2">
 			<div class="col-md-12">
 				<div class="d-flex justify-content-center">
