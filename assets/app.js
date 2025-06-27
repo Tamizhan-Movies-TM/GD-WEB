@@ -1698,16 +1698,29 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
     var player_js = '';
     var player_css = '';
     
+    // Player configuration (add this if missing)
+    const player_config = window.player_config || {
+        player: "plyr", // default player
+        plyr_io_version: "3.7.8", 
+        videojs_version: "7.21.1"
+    };
+    
+    const UI = window.UI || {
+        disable_player: false,
+        disable_video_download: false,
+        file_view_alert_class: "alert alert-info"
+    };
+
     // Player configuration
     if (!UI.disable_player) {
-        if (player_config.player == "plyr") {
+        if (player_config.player === "plyr") {
             player = `<video id="player" playsinline controls data-poster="${poster}">
                 <source src="${url}" type="video/mp4" />
                 <source src="${url}" type="video/webm" />
             </video>`;
             player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js';
             player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css';
-        } else if (player_config.player == "videojs") {
+        } else if (player_config.player === "videojs") {
             player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
                 <source src="${url}" type="video/mp4" />
                 <source src="${url}" type="video/webm" />
@@ -1715,11 +1728,11 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
             </video>`;
             player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js';
             player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css';
-        } else if (player_config.player == "dplayer") {
+        } else if (player_config.player === "dplayer") {
             player = `<div id="player-container"></div>`;
             player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js';
             player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css';
-        } else if (player_config.player == "jwplayer") {
+        } else if (player_config.player === "jwplayer") {
             player = `<div id="player"></div>`;
             player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js';
             player_css = '';
@@ -1793,19 +1806,19 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
                     </button>
                     <div class="dropdown-menu">
                       <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                        ${playit_icon.replace('32px', '24px')} Playit
+                        <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
                       </a>
                       <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                        ${xplayer_icon.replace('32px', '24px')} XPlayer
+                        <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
                       </a>
                       <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                        ${mxplayer_icon.replace('32px', '24px')} MX Player
+                        <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 24px; width: 24px; margin-right: 5px;"> MX Player
                       </a>
                       <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                        ${vlc_icon.replace('32px', '24px')} VLC Player
+                        <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 24px; width: 24px; margin-right: 5px;"> VLC Player
                       </a>
                       <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">
-                        ${download_icon.replace('32px', '24px')} 1DM (Free)
+                        <img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 24px; width: 24px; margin-right: 5px;"> 1DM (Free)
                       </a>
                     </div>
                   </div>
@@ -1825,11 +1838,11 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
         videoJsScript.src = player_js;
         videoJsScript.onload = function() {
             // Initialize player based on configuration
-            if (player_config.player == "plyr") {
+            if (player_config.player === "plyr") {
                 const player = new Plyr('#player');
-            } else if (player_config.player == "videojs") {
+            } else if (player_config.player === "videojs") {
                 const player = videojs('vplayer');
-            } else if (player_config.player == "dplayer") {
+            } else if (player_config.player === "dplayer") {
                 const dp = new DPlayer({
                     container: document.getElementById('player-container'),
                     screenshot: true,
@@ -1839,7 +1852,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
                         thumbnails: poster,
                     },
                 });
-            } else if (player_config.player == "jwplayer") {
+            } else if (player_config.player === "jwplayer") {
                 jwplayer("player").setup({
                     file: url,
                     type: mimeType,
