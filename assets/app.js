@@ -11,7 +11,7 @@ function init() {
 <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
 	<div class="row align-items-start g-3">
 		`+trakteerWidget;
-		iif (!window.location.href.toLowerCase().includes(':search?q=') && window.location.pathname.toLowerCase() !== '/fallback') {
+		if (!window.location.href.toLowerCase().includes(':search?q=') && window.location.pathname.toLowerCase() !== '/fallback') {
 			html += `
 		<div class="col-md-12">
 			<div class="card">
