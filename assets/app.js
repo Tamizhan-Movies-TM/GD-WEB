@@ -1672,20 +1672,10 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 		</div>
 		<div class="card-body row g-3">
 			<div class="col-lg-4 col-md-12">
+				<!-- Updated video container with responsive aspect ratio -->
 				<div class="border border-dark rounded" style="--bs-border-opacity: .5;">
-					<div style="height: 80px; background-color: #2c3e50; border-radius: .25rem;">
-						<video id="aplayer" 
-							   poster="${UI.audioposter}" 
-							   muted=true 
-							   class="video-js vjs-default-skin vjs-big-play-centered" 
-							   controls 
-							   preload="auto"
-							   data-setup='{"fluid": false}'
-							   style="height: 100%; width: 100%; object-fit: contain; background: transparent;">
-							<source src="${url}" type="audio/mpeg" />
-							<source src="${url}" type="audio/ogg" />
-							<source src="${url}" type="audio/wav" />
-						</video>
+					<div class="ratio ratio-16x9">
+						${player}
 					</div>
 				</div>
 			</div>
