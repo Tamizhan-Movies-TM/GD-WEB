@@ -1666,9 +1666,9 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	}
 	// Add the container and card elements
 	var content = `
-  <div class="card">
+<div class="card">
 	<div class="card-header ${UI.file_view_alert_class}">
-	<i class="fas fa-file-alt fa-fw"></i>File Information
+		<i class="fas fa-file-alt fa-fw"></i>File Information
 	</div>
 	<div class="card-body row g-3">
 		<div class="col-lg-4 col-md-12">
@@ -1720,19 +1720,21 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		</div>
 		${UI.disable_video_download ? `` : `
 		<div class="col-md-12">
-			<div class="btn-group text-center">
-				<a href="${url}" type="button" class="btn btn-success">
-					<i class="fas fa-bolt fa-fw"></i>Index Download Link
-				</a>
-				<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				<span class="sr-only"></span>
-				</button>
-				<div class="dropdown-menu">
-					<a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
-					<a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
-					<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
-					<a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
-					<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
+			<div class="d-flex justify-content-center">  <!-- Centering container -->
+				<div class="btn-group">
+					<a href="${url}" type="button" class="btn btn-success">
+						<i class="fas fa-bolt fa-fw"></i>Index Download Link
+					</a>
+					<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<span class="sr-only"></span>
+					</button>
+					<div class="dropdown-menu">
+						<a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
+						<a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
+						<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
+						<a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
+						<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
+					</div>
 				</div>
 			</div>
 		</div>
