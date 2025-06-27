@@ -12,9 +12,11 @@ function init() {
 	<div class="row align-items-start g-3">
 		`+trakteerWidget;
 		html += `
-    <div class="col-md-12">
-    <div class="card">
-     <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
+<div class="col-md-12">
+    <div class="card bg-dark bg-opacity-25">
+        <div class="card-body">
+            <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
+        </div>
     </div>
 </div>
 </div>
