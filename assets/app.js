@@ -1641,17 +1641,17 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
     if (!UI.disable_player) {
         if (player_config.player == "plyr") {
             player = `<video id="player" playsinline controls data-poster="${poster}">
-      <source src="${url}" type="video/mp4" />
-      <source src="${url}" type="video/webm" />
+        <source src="${url}" type="video/mp4" />
+        <source src="${url}" type="video/webm" />
         </video>`
             player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
             player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
         } else if (player_config.player == "videojs") {
             player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
-      <source src="${url}" type="video/mp4" />
-      <source src="${url}" type="video/webm" />
-      <source src="${url}" type="video/avi" />
-    </video>`
+       <source src="${url}" type="video/mp4" />
+       <source src="${url}" type="video/webm" />
+       <source src="${url}" type="video/avi" />
+       </video>`
             player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
             player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
         } else if (player_config.player == "dplayer") {
@@ -1671,18 +1671,18 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
          <i class="fas fa-file-alt fa-fw"></i>File Information
          <div>
           <div class="card-body row g-1">
-             <div class="col-lg-4 col-md-12">
+             <div class="col-lg-8 col-md-14">
                 <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
                     ${player}
-                </div>
-               </div>
+                 </div>
+                 </div>
                  <div class="col-lg-8 col-md-12">
                   <table class="table table-dark">
                     <tbody>
                         <tr>
-                            <th>
-                                <i class="fa-regular fa-folder-closed fa-fw"></i>
-                                <span class="tth">Name</span>
+                          <th>
+                            <i class="fa-regular fa-folder-closed fa-fw"></i>
+                            <span class="tth">Name</span>
                             </th>
                             <td>${name}</td>
                           </tr>
@@ -1702,15 +1702,15 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
                         </tr>
                          <tr>
                             <th>
-                                <i class="fa-solid fa-box-archive fa-fw"></i>
-                                <span class="tth">Size</span>
+                             <i class="fa-solid fa-box-archive fa-fw"></i>
+                             <span class="tth">Size</span>
                             </th>
                             <td>${size}</td>
-                        </tr>
-                        <tr>
+                          </tr>
+                          <tr>
                             <th>
-                                <i class="fa-solid fa-file-circle-check fa-fw"></i>
-                                <span class="tth">Checksum</span>
+                              <i class="fa-solid fa-file-circle-check fa-fw"></i>
+                              <span class="tth">Checksum</span>
                             </th>
                             <td>MD5: <code>${md5Checksum}</code>
                             </td>
