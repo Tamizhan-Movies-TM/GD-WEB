@@ -1651,7 +1651,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
       <source src="${url}" type="video/avi" />
-    </video>`
+      </video>`
             player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
             player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
         } else if (player_config.player == "dplayer") {
@@ -1675,8 +1675,8 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
                 <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
                     ${player}
                 </div>
-            </div>
-            <div class="col-lg-8 col-md-12">
+              </div>
+               <div class="col-lg-8 col-md-12">
                 <table class="table table-dark">
                     <tbody>
                         <tr>
@@ -1685,24 +1685,24 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
                                 <span class="tth">Name</span>
                             </th>
                             <td>${name}</td>
-                        </tr>
-                        <tr>
-                            <th>
+                         </tr>
+                         <tr>
+                             <th>
                                 <i class="fa-regular fa-clock fa-fw"></i>
                                 <span class="tth">Datetime</span>
                             </th>
                             <td>${createdTime}</td>
-                        </tr>
-                        <tr>
+                         </tr>
+                          <tr>
                             <th>
                             <i class="fa-solid fa-tag fa-fw"></i>
-              <span class="tth">Type</span>
-              </th>
-             <td>${formatMimeType(mimeType)}</td>
+                         <span class="tth">Type</span>
+                         </th>
+                         <td>${formatMimeType(mimeType)}</td>
                         </tr>
-                        <tr>
+                         <tr>
                             <th>
-                 <i class="fa-solid fa-box-archive fa-fw"></i>
+                             <i class="fa-solid fa-box-archive fa-fw"></i>
                                 <span class="tth">Size</span>
                             </th>
                             <td>${size}</td>
@@ -1729,17 +1729,17 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span class="sr-only"></span>
             </button>
-                      <div class="dropdown-menu">
-                     <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
-               <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
-             <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
-             <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
-             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-                        </div>
-                    </div>
-                </div>
-            </div>`}
-        </div>
+            <div class="dropdown-menu">
+            <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
+            <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
+            <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
+           <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
+            <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
+              </div>
+            </div>
+          </div>
+        </div>`}
+      </div>
     </div>`;
     $("#content").html(content);
     
@@ -1795,7 +1795,6 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
     videoJsStylesheet.rel = 'stylesheet';
     document.head.appendChild(videoJsStylesheet);
 }
-
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
