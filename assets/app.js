@@ -1635,11 +1635,11 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
     const new_download_icon = `<img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
-	var url_base64 = btoa(url);
-	const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-	let player
-	if (!UI.disable_player) {
-		if (player_config.player == "plyr") {
+	  var url_base64 = btoa(url);
+	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
+	  let player
+	  if (!UI.disable_player) {
+		 if (player_config.player == "plyr") {
 			player = `<video id="player" playsinline controls data-poster="${poster}">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
@@ -1667,77 +1667,81 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	// Add the container and card elements
 	var content = `
 <div class="card">
-	<div class="card-header ${UI.file_view_alert_class}">
-		<i class="fas fa-file-alt fa-fw"></i>File Information
-	</div>
-	<div class="card-body row g-3">
-		<div class="col-lg-4 col-md-12">
-			<div class="d-flex justify-content-center">  <!-- Centering wrapper -->
-				<div class="w-100 border border-dark rounded" style="--bs-border-opacity: .5; position: relative; padding-bottom: 56.25%;">  <!-- 16:9 aspect ratio container -->
-					<div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
-						${player}  <!-- Player element -->
+<div class="card-header ${UI.file_view_alert_class}">
+ <i class="fas fa-file-alt fa-fw"></i>File Information
+ </div>
+	<div class="card-body">
+		<div class="row g-3">
+			<div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  <!-- Flex column for vertical centering -->
+				<div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  <!-- Centered container with max-width -->
+					<div style="position: relative; padding-bottom: 56.25%;">  <!-- 16:9 aspect ratio -->
+						<div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+							${player}  <!-- Player element -->
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
-		<div class="col-lg-8 col-md-12">
-			<table class="table table-dark">
-				<tbody>
-					<tr>
-						<th>
-							<i class="fa-regular fa-folder-closed fa-fw"></i>
-							<span class="tth">Name</span>
-						</th>
-						<td>${name}</td>
-					</tr>
-					<tr>
-						<th>
-							<i class="fa-regular fa-clock fa-fw"></i>
-							<span class="tth">Datetime</span>
-						</th>
-						<td>${createdTime}</td>
-					</tr>
-					<tr>
-						<th>
-							<i class="fa-solid fa-tag fa-fw"></i>
-							<span class="tth">Type</span>
-						</th>
-					<td>${formatMimeType(mimeType)}</td>
-					</tr>
-					<tr>
-						<th>
-							<i class="fa-solid fa-box-archive fa-fw"></i>
-							<span class="tth">Size</span>
-						</th>
-						<td>${size}</td>
-					</tr>
-					<tr>
-						<th>
-							<i class="fa-solid fa-file-circle-check fa-fw"></i>
-							<span class="tth">Checksum</span>
-						</th>
-						<td>MD5: <code>${md5Checksum}</code>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+			<div class="col-lg-8 col-md-12">
+				<table class="table table-dark">
+					<tbody>
+						<tr>
+							<th>
+								<i class="fa-regular fa-folder-closed fa-fw"></i>
+								<span class="tth">Name</span>
+							</th>
+							<td>${name}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-regular fa-clock fa-fw"></i>
+								<span class="tth">Datetime</span>
+							</th>
+							<td>${createdTime}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-tag fa-fw"></i>
+								<span class="tth">Type</span>
+							</th>
+						<td>${formatMimeType(mimeType)}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-box-archive fa-fw"></i>
+								<span class="tth">Size</span>
+							</th>
+							<td>${size}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-file-circle-check fa-fw"></i>
+								<span class="tth">Checksum</span>
+							</th>
+							<td>MD5: <code>${md5Checksum}</code>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</div>
 		${UI.disable_video_download ? `` : `
-		<div class="col-md-12">
-			<div class="d-flex justify-content-center">
-				<div class="btn-group">
-					<a href="${url}" type="button" class="btn btn-success">
-						<i class="fas fa-bolt fa-fw"></i>Index Download Link
-					</a>
-					<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						<span class="sr-only"></span>
-					</button>
-					<div class="dropdown-menu">
-						<a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
-						<a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
-						<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
-						<a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
-						<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
+		<div class="row mt-3">  <!-- Separate row for buttons -->
+			<div class="col-md-12">
+				<div class="d-flex justify-content-center">
+					<div class="btn-group">
+						<a href="${url}" type="button" class="btn btn-success">
+							<i class="fas fa-bolt fa-fw"></i>Index Download Link
+						</a>
+						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<span class="sr-only"></span>
+						</button>
+						<div class="dropdown-menu">
+							<a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
+						</div>
 					</div>
 				</div>
 			</div>
