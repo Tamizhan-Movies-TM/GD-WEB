@@ -1758,7 +1758,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			</span>
       </button>
      </div>
-     <div class="row mt-2">
+     <div class="row mt-1">
 			<div class="col-md-12">
 				<div class="d-flex justify-content-center">
 					<div class="btn-group">
