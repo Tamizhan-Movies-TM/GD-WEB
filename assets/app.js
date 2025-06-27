@@ -1638,6 +1638,10 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     var url_base64 = btoa(url);
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
     let player
+		// Encode for intent links
+    const encoded_url = encodeURIComponent(url);
+    const encoded_name_safe = encodeURIComponent(encoded_name);
+    const mimeTypeFixed = mimeType === 'video/avi' ? 'video/x-msvideo' : mimeType;
     // Player configuration
     if (!UI.disable_player) {
         if (player_config.player === "plyr") {
