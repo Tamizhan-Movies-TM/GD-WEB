@@ -3,7 +3,6 @@
 // Initialize the page
 function init() {
 	// Add Vapor theme outline button styles
-     function init() {
     const style = document.createElement('style');
     style.textContent = `
         /* Base Button Styles */
