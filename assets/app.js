@@ -1668,7 +1668,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
 	var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
 	var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
-	$('#modal-body-space').html(preview);
+	const sanitizedPreview = DOMPurify.sanitize(preview);
+  $('#modal-body-space').html(sanitizedPreview);
 	$('#modal-body-space-buttons').html(btn);
 	var no_thumb = `<div class="d-flex align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;"><span><i class="fa-solid fa-photo-film fa-2xl fa-fw"></i></span><span>Thumbnail not available</span></div>`;
 	var spinner = '<div class="d-flex justify-content-center"><div class="spinner-border m-5" role="status"><span class="sr-only"></span></div></div>';
@@ -1881,50 +1882,109 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
-	videoJsScript.src = player_js;
-	videoJsScript.onload = function() {
-		// Video.js is loaded, initialize the player
-		if (player_config.player == "plyr") {
-			const player = new Plyr('#player');
-		} else if (player_config.player == "videojs") {
-			const player = new videojs('vplayer');
-		} else if (player_config.player == "dplayer") {
-			const dp = new DPlayer({
-				container: document.getElementById('player-container'),
-				screenshot: true,
-				video: {
-					url: url,
-					pic: poster,
-					thumbnails: poster,
-				},
-			});
-		} else if (player_config.player == "jwplayer") {
-			jwplayer("player").setup({
-				file: url,
-				type: mimeType,
-				autostart: false,
-				image: poster,
-				width: "100%",
-				aspectratio: "16:9",
-				title: name,
-				description: "Powered by Google Drive Index",
-				tracks: [{
-					file: url,
-					kind: "captions",
-					label: "Default",
-					"default": true,
-				}],
-				captions: {
-					color: "#f3f378",
-					fontSize: 14,
-					backgroundOpacity: 50,
-					edgeStyle: "raised",
-				},
-			});
-		}
+videoJsScript.src = player_js;
 
-	};
-	document.head.appendChild(videoJsScript);
+// Wrap player initialization in DOMContentLoaded
+videoJsScript.onload = function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            // Video.js is loaded, initialize the player
+            switch(player_config.player) {
+                case "plyr":
+                    if (document.getElementById('player')) {
+                        const player = new Plyr('#player', {
+                            // Add Plyr configuration options here
+                            controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
+                            debug: false
+                        });
+                    }
+                    break;
+                    
+                case "videojs":
+                    if (document.getElementById('vplayer')) {
+                        const player = videojs('vplayer', {
+                            // Video.js options
+                            controls: true,
+                            autoplay: false,
+                            preload: 'auto',
+                            responsive: true,
+                            fluid: true
+                        });
+                    }
+                    break;
+                    
+                case "dplayer":
+                    if (document.getElementById('player-container')) {
+                        const dp = new DPlayer({
+                            container: document.getElementById('player-container'),
+                            screenshot: true,
+                            video: {
+                                url: url,
+                                pic: poster,
+                                thumbnails: poster,
+                                type: 'auto'
+                            },
+                            danmaku: {
+                                id: new Date().getTime(),
+                                api: '',
+                                token: 'token',
+                                maximum: 1000,
+                                addition: []
+                            }
+                        });
+                    }
+                    break;
+                    
+                case "jwplayer":
+                    if (document.getElementById('player')) {
+                        jwplayer("player").setup({
+                            file: url,
+                            image: poster,
+                            width: "100%",
+                            aspectratio: "16:9"
+                        });
+                    }
+                    break;
+                    
+                default:
+                    console.warn('Unknown player type:', player_config.player);
+            }
+        } catch (error) {
+            console.error('Player initialization failed:', error);
+            // Fallback to native HTML5 player
+            const fallbackPlayer = document.getElementById('player') || 
+                                  document.getElementById('vplayer') || 
+                                  document.getElementById('player-container');
+            if (fallbackPlayer) {
+                fallbackPlayer.innerHTML = `
+                    <video controls style="width:100%">
+                        <source src="${url}" type="${mimeType}">
+                        Your browser does not support the video tag.
+                    </video>
+                `;
+            }
+        }
+    });
+};
+
+// Error handling for script loading
+videoJsScript.onerror = function() {
+    console.error('Failed to load player script:', player_js);
+    // Fallback to native HTML5 player
+    const fallbackPlayer = document.getElementById('player') || 
+                          document.getElementById('vplayer') || 
+                          document.getElementById('player-container');
+    if (fallbackPlayer) {
+        fallbackPlayer.innerHTML = `
+            <video controls style="width:100%">
+                <source src="${url}" type="${mimeType}">
+                Your browser does not support the video tag.
+            </video>
+        `;
+    }
+};
+
+document.head.appendChild(videoJsScript);
 
 	var videoJsStylesheet = document.createElement('link');
 	videoJsStylesheet.href = player_css;
@@ -2126,12 +2186,24 @@ function formatFileSize(bytes) {
 }
 
 
-String.prototype.trim = function(char) {
-	if (char) {
-		return this.replace(new RegExp('^\\' + char + '+|\\' + char + '+$', 'g'), '');
-	}
-	return this.replace(/^\s+|\s+$/g, '');
-};
+function trimString(str, char) {
+  if (typeof str !== 'string') {
+    throw new TypeError('Input must be a string');
+  }
+
+  if (char) {
+    if (typeof char !== 'string' || char.length !== 1) {
+      throw new TypeError('Character argument must be a single character string');
+    }
+    
+    // Escape special regex characters
+    const escapedChar = char.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`^${escapedChar}+|${escapedChar}+$`, 'g');
+    return str.replace(pattern, '');
+  }
+  
+  return str.replace(/^\s+|\s+$/g, '');
+}
 
 
 // README.md HEAD.md support
@@ -2201,6 +2273,7 @@ function updateCheckboxes() {
 }
 
 async function getCookie(name) {
+	document.cookie = `root_id=${user_folder_id}; Secure; HttpOnly; SameSite=Strict; expires=...`;
 	var nameEQ = name + "=";
 	var ca = document.cookie.split(';');
 	for (var i = 0; i < ca.length; i++) {
@@ -2275,4 +2348,4 @@ const options = {
 };
 
 // observe changes to the body element
-observer.observe(document.documentElement, options);
+observer.observe(document.getElementById('select_items'), options);
