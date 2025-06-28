@@ -1627,242 +1627,170 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
 
 
-// Document display video |mp4|webm|avi|
-function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-    // Define Vapor theme styles
-    const vaporStyles = `
-    <style>
-        /* Vapor theme button styles */
-        .btn-vapor {
-            color: #fff;
-            background: linear-gradient(135deg, #6f42c1, #0dcaf0, #6f42c1);
-            background-size: 200% 200%;
-            border: none;
-            border-radius: 50px;
-            text-transform: uppercase;
-            font-weight: bold;
-            letter-spacing: 1px;
-            box-shadow: 0 0 10px rgba(111, 66, 193, 0.7);
-            transition: all 0.3s ease;
-            animation: vapor-glow 2s infinite alternate;
-            position: relative;
-            overflow: hidden;
-            padding: 10px;
-            margin: 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-        
-        .btn-vapor::before {
-            content: "";
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(
-                45deg,
-                rgba(255,255,255,0) 20%,
-                rgba(255,255,255,0.8) 50%,
-                rgba(255,255,255,0) 80%
-            );
-            transform: rotate(30deg);
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
-        
-        .btn-vapor:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 0 20px rgba(13, 202, 240, 0.9);
-            color: #fff;
-        }
-        
-        .btn-vapor:hover::before {
-            opacity: 1;
-            animation: vapor-shine 1.5s forwards;
-        }
-        
-        @keyframes vapor-glow {
-            0% { box-shadow: 0 0 10px rgba(111, 66, 193, 0.7); }
-            100% { box-shadow: 0 0 20px rgba(13, 202, 240, 0.9); }
-        }
-        
-        @keyframes vapor-shine {
-            0% { transform: rotate(30deg) translateX(-100%); }
-            100% { transform: rotate(30deg) translateX(100%); }
-        }
-    </style>
-    `;
-    
-    // Inject Vapor styles into head
-    document.head.insertAdjacentHTML('beforeend', vaporStyles);
+ // Document display video |mp4|webm|avi|
+   function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+	 // Define all player icons
+    const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
+    const new_download_icon = `<img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
+	  var url_base64 = btoa(url);
+	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
+	  let player
+	  if (!UI.disable_player) {
+		 if (player_config.player == "plyr") {
+			player = `<video id="player" playsinline controls data-poster="${poster}">
+      <source src="${url}" type="video/mp4" />
+      <source src="${url}" type="video/webm" />
+        </video>`
+			player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
+			player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
+		} else if (player_config.player == "videojs") {
+			player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
+      <source src="${url}" type="video/mp4" />
+      <source src="${url}" type="video/webm" />
+      <source src="${url}" type="video/avi" />
+    </video>`
+			player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
+			player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
+		} else if (player_config.player == "dplayer") {
+			player = `<div id="player-container"></div>`
+			player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js'
+			player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css'
+		} else if (player_config.player == "jwplayer") {
+			player = `<div id="player"></div>`
+			player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
+			player_css = ''
+		}
+	}
+	// Add the container and card elements
+	var content = `
+<div class="card">
+<div class="card-header ${UI.file_view_alert_class}">
+ <i class="fas fa-file-alt fa-fw"></i>File Information
+ </div>
+	<div class="card-body">
+		<div class="row g-3">
+			<div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
+				<div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  
+					<div style="position: relative; padding-bottom: 56.25%;"> 
+						<div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+							${player} 
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-8 col-md-12">
+				<table class="table table-dark">
+					<tbody>
+						<tr>
+							<th>
+								<i class="fa-regular fa-folder-closed fa-fw"></i>
+								<span class="tth">Name</span>
+							</th>
+							<td>${name}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-regular fa-clock fa-fw"></i>
+								<span class="tth">Datetime</span>
+							</th>
+							<td>${createdTime}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-tag fa-fw"></i>
+								<span class="tth">Type</span>
+							</th>
+						<td>${formatMimeType(mimeType)}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-box-archive fa-fw"></i>
+								<span class="tth">Size</span>
+							</th>
+							<td>${size}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-file-circle-check fa-fw"></i>
+								<span class="tth">Checksum</span>
+							</th>
+							<td>MD5: <code>${md5Checksum}</code>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		${UI.disable_video_download ? `` : `
+           !-- First row of buttons - fixed width -->
+      <div class="d-flex justify-content-center gap-3 mb-3">
+      <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
+      onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+      <span class="d-flex align-items-center">
+      ${vlc_icon} VLC Player
+      </span>
+      </button>
 
-    // Define player variables
-    var player = '';
-    var player_js = '';
-    var player_css = '';
-    
-    // Player configuration
-    if (!UI.disable_player) {
-        if (player_config.player == "plyr") {
-            player = `<video id="player" playsinline controls data-poster="${poster}">
-                <source src="${url}" type="video/mp4" />
-                <source src="${url}" type="video/webm" />
-            </video>`;
-            player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js';
-            player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css';
-        } else if (player_config.player == "videojs") {
-            player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
-                <source src="${url}" type="video/mp4" />
-                <source src="${url}" type="video/webm" />
-                <source src="${url}" type="video/avi" />
-            </video>`;
-            player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js';
-            player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css';
-        } else if (player_config.player == "dplayer") {
-            player = `<div id="player-container"></div>`;
-            player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js';
-            player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css';
-        } else if (player_config.player == "jwplayer") {
-            player = `<div id="player"></div>`;
-            player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js';
-            player_css = '';
-        }
-    }
+      <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
+      onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+      <span class="d-flex align-items-center gap-1">
+      ${mxplayer_icon} MX Player
+      </span>
+      </button> 
+      </div>
+            
+      <!-- Second row of buttons - fixed width -->
+      <div class="d-flex justify-content-center gap-3 mb-4">
+      <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
+       onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+      <span class="d-flex align-items-center gap-1">
+      ${xplayer_icon} XPlayer
+      </span>
+      </button>
 
-    // Add the container and card elements
-    var content = `
-    <div class="card">
-        <div class="card-header ${UI.file_view_alert_class}">
-            <i class="fas fa-file-alt fa-fw"></i>File Information
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
-                    <div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  
-                        <div style="position: relative; padding-bottom: 56.25%;"> 
-                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
-                                ${player} 
-                            </div>
+      <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
+      onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+      <span class="d-flex align-items-center gap-1"> 
+      ${playit_icon} PLAYit
+			</span>
+      </button>
+     </div>
+     <div class="row mt-2">
+			<div class="col-md-12">
+				<div class="d-flex justify-content-center">
+					<div class="btn-group">
+						<a href="${url}" type="button" class="btn btn-success">
+							<i class="fas fa-bolt fa-fw"></i>Index Download Link
+                </a>
+                 <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                   <span class="sr-only"></span>
+                     </button>
+                      <div class="dropdown-menu">
+                       <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                        <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
+                         </a>
+                          <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+ñ                         <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
+                           </a>
+                           <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                           <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 24px; width: 24px; margin-right: 5px;"> MX Player
+                           </a>
+                           <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                           <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 24px; width: 24px; margin-right: 5px;"> VLC Player
+                           </a>
+                           <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">
+                           <img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 24px; width: 24px; margin-right: 5px;"> 1DM (Free)
+                          </a>
                         </div>
-                    </div>
-                </div>
-                <div class="col-lg-8 col-md-12">
-                    <table class="table table-dark">
-                        <tbody>
-                            <tr>
-                                <th>
-                                    <i class="fa-regular fa-folder-closed fa-fw"></i>
-                                    <span class="tth">Name</span>
-                                </th>
-                                <td>${name}</td>
-                            </tr>
-                            <tr>
-                                <th>
-                                    <i class="fa-regular fa-clock fa-fw"></i>
-                                    <span class="tth">Datetime</span>
-                                </th>
-                                <td>${createdTime}</td>
-                            </tr>
-                            <tr>
-                                <th>
-                                    <i class="fa-solid fa-tag fa-fw"></i>
-                                    <span class="tth">Type</span>
-                                </th>
-                                <td>${formatMimeType(mimeType)}</td>
-                            </tr>
-                            <tr>
-                                <th>
-                                    <i class="fa-solid fa-box-archive fa-fw"></i>
-                                    <span class="tth">Size</span>
-                                </th>
-                                <td>${size}</td>
-                            </tr>
-                            <tr>
-                                <th>
-                                    <i class="fa-solid fa-file-circle-check fa-fw"></i>
-                                    <span class="tth">Checksum</span>
-                                </th>
-                                <td>MD5: <code>${md5Checksum}</code>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            ${UI.disable_video_download ? `` : `
-            <!-- Original button structure with Vapor styling -->
-            <div class="d-flex justify-content-center gap-3 mb-3">
-                <button type="button" class="btn btn-vapor" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center">
-                        <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">
-                        VLC Player
-                    </span>
-                </button>
-
-                <button type="button" class="btn btn-vapor" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center">
-                        <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">
-                        MX Player
-                    </span>
-                </button>
-            </div>
-            
-            <div class="d-flex justify-content-center gap-3 mb-4">
-                <button type="button" class="btn btn-vapor" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center">
-                        <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">
-                        XPlayer
-                    </span>
-                </button>
-
-                <button type="button" class="btn btn-vapor" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center"> 
-                        <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">
-                        PLAYit
-                    </span>
-                </button>
-            </div>
-            
-            <div class="row mt-2">
-                <div class="col-md-12">
-                    <div class="d-flex justify-content-center">
-                        <div class="btn-group">
-                            <a href="${url}" type="button" class="btn btn-success">
-                                <i class="fas fa-bolt fa-fw"></i>Index Download Link
-                            </a>
-                            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="sr-only"></span>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                                    <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
-                                </a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-ñ                                    <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
-                                </a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                                    <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 24px; width: 24px; margin-right: 5px;"> MX Player
-                                </a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                                    <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 24px; width: 24px; margin-right: 5px;"> VLC Player
-                                </a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">
-                                    <img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 24px; width: 24px; margin-right: 5px;"> 1DM (Free)
-                                </a>
-                              </div>
-					                   </div> 
-				                   </div>
-			                    </div>`}
-		                     </div>
-	                     </div>`;
-	                  $("#content").html(content);
+					            </div> 
+				             </div>
+			            </div>`}
+		            </div>
+	            </div>`;
+	  $("#content").html(content);
 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
