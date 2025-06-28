@@ -3,7 +3,7 @@
 // Initialize the page
 function init() {
 	// Add Vapor theme outline button styles
-       const style = document.createElement('style');
+     const style = document.createElement('style');
     style.textContent = `
         /* Vapor glow buttons */
         .glow-btn {
@@ -22,6 +22,7 @@ function init() {
             display: flex;
             justify-content: center;
             align-items: center;
+            outline: none;
         }
         
         .glow-btn:before {
@@ -44,64 +45,42 @@ function init() {
             transform: translateY(-2px);
         }
         
-        /* Glowing Border Effects */
+        /* Base Border Colors (no animation) */
         .glow-warning {
             border-color: #ffcc00;
-            box-shadow: 0 0 5px #ffcc00;
-            animation: glow-warning 2s infinite alternate;
+            box-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
         }
         
         .glow-info {
             border-color: #00ccff;
-            box-shadow: 0 0 5px #00ccff;
-            animation: glow-info 2s infinite alternate;
+            box-shadow: 0 0 5px rgba(0, 204, 255, 0.5);
         }
         
         .glow-success {
             border-color: #00ff99;
-            box-shadow: 0 0 5px #00ff99;
-            animation: glow-success 2s infinite alternate;
+            box-shadow: 0 0 5px rgba(0, 255, 153, 0.5);
         }
         
         .glow-danger {
             border-color: #ff6666;
-            box-shadow: 0 0 5px #ff6666;
-            animation: glow-danger 2s infinite alternate;
+            box-shadow: 0 0 5px rgba(255, 102, 102, 0.5);
         }
         
-        @keyframes glow-warning {
-            from {
-                box-shadow: 0 0 5px #ffcc00;
-            }
-            to {
-                box-shadow: 0 0 15px #ffcc00, 0 0 20px #ffcc00;
-            }
+        /* Click Glow Effect */
+        .glow-btn:active {
+            animation: intense-glow 0.5s;
+            transform: translateY(1px);
         }
         
-        @keyframes glow-info {
-            from {
-                box-shadow: 0 0 5px #00ccff;
+        @keyframes intense-glow {
+            0% {
+                box-shadow: 0 0 5px currentColor;
             }
-            to {
-                box-shadow: 0 0 15px #00ccff, 0 0 20px #00ccff;
+            50% {
+                box-shadow: 0 0 25px currentColor;
             }
-        }
-        
-        @keyframes glow-success {
-            from {
-                box-shadow: 0 0 5px #00ff99;
-            }
-            to {
-                box-shadow: 0 0 15px #00ff99, 0 0 20px #00ff99;
-            }
-        }
-        
-        @keyframes glow-danger {
-            from {
-                box-shadow: 0 0 5px #ff6666;
-            }
-            to {
-                box-shadow: 0 0 15px #ff6666, 0 0 20px #ff6666;
+            100% {
+                box-shadow: 0 0 5px currentColor;
             }
         }
         
