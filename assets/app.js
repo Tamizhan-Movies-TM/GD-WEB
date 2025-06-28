@@ -3,53 +3,58 @@
 // Initialize the page
 function init() {
 	// Add Vapor theme outline button styles
-    const style = document.createElement('style');
-    style.textContent = `
-        .btn-outline-warning {
-            color: #ffcc00;
-            border-color: #ffcc00;
-        }
-        .btn-outline-warning:hover {
-            color: #000;
-            background-color: #ffcc00;
-            border-color: #ffcc00;
-            box-shadow: 0 0 10px 1px #ffcc00;
-        }
-
-        .btn-outline-info {
-            color: #00ccff;
-            border-color: #00ccff;
-        }
-        .btn-outline-info:hover {
-            color: #000;
-            background-color: #00ccff;
-            border-color: #00ccff;
-            box-shadow: 0 0 10px 1px #00ccff;
-        }
-
-        .btn-outline-success {
-            color: #00ff99;
-            border-color: #00ff99;
-        }
-        .btn-outline-success:hover {
-            color: #000;
-            background-color: #00ff99;
-            border-color: #00ff99;
-            box-shadow: 0 0 10px 1px #00ff99;
-        }
-
-        .btn-outline-danger {
-            color: #ff6666;
-            border-color: #ff6666;
-        }
-        .btn-outline-danger:hover {
-            color: #000;
-            background-color: #ff6666;
-            border-color: #ff6666;
-            box-shadow: 0 0 10px 1px #ff6666;
-        }
-    `;
-    document.head.appendChild(style);
+   const style = document.createElement('style');
+style.textContent = `
+    /* File info text colors */
+    .table-dark th {
+        color: #ff66cc; /* Pink headers */
+    }
+    .table-dark td {
+        color: #00ffcc; /* Cyan text */
+    }
+    
+    /* File name color */
+    #file-info .card-header {
+        color: #ffcc00; /* Yellow */
+    }
+    
+    /* Size and checksum colors */
+    .badge.bg-primary {
+        color: #00ff99; /* Green */
+        background-color: transparent;
+    }
+    code {
+        color: #ff6666; /* Red */
+    }
+    
+    /* Player buttons */
+    .btn-outline-warning {
+        color: #ffcc00; /* Yellow */
+        border-color: #ffcc00;
+    }
+    .btn-outline-info {
+        color: #00ccff; /* Blue */
+        border-color: #00ccff;
+    }
+    .btn-outline-success {
+        color: #00ff99; /* Green */
+        border-color: #00ff99;
+    }
+    .btn-outline-danger {
+        color: #ff6666; /* Red */
+        border-color: #ff6666;
+    }
+    
+    /* Footer colors */
+    .footer a {
+        color: #00ccff; /* Blue links */
+    }
+    .footer {
+        color: #ff66cc; /* Pink text */
+    }
+`;
+document.head.appendChild(style);
+	
 	document.siteName = $('title').html();
 	var html = `<header>
    <div id="nav">
