@@ -3,7 +3,7 @@
 // Initialize the page
 function init() {
 	// Add Vapor theme outline button styles
-    const style = document.createElement('style');
+       const style = document.createElement('style');
     style.textContent = `
         /* Vapor glow buttons */
         .glow-btn {
