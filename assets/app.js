@@ -1773,7 +1773,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                         <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
                          </a>
                           <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-ñ                         <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
+                          <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
                            </a>
                            <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
                            <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 24px; width: 24px; margin-right: 5px;"> MX Player
