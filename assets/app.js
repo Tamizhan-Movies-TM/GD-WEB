@@ -22,7 +22,6 @@ function init() {
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 0 5px currentColor;
         }
         
         .glow-btn:before {
@@ -43,47 +42,84 @@ function init() {
         
         .glow-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 0 15px 3px currentColor;
         }
         
+        /* Glowing Border Effects */
         .glow-warning {
-            color: white;
             border-color: #ffcc00;
-        }
-        
-        .glow-warning:hover {
-            background-color: #ffcc00;
-            color: white;
+            box-shadow: 0 0 5px #ffcc00;
+            animation: glow-warning 2s infinite alternate;
         }
         
         .glow-info {
-            color: white;
             border-color: #00ccff;
-        }
-        
-        .glow-info:hover {
-            background-color: #00ccff;
-            color: white;
+            box-shadow: 0 0 5px #00ccff;
+            animation: glow-info 2s infinite alternate;
         }
         
         .glow-success {
-            color: white;
             border-color: #00ff99;
-        }
-        
-        .glow-success:hover {
-            background-color: #00ff99;
-            color: white;
+            box-shadow: 0 0 5px #00ff99;
+            animation: glow-success 2s infinite alternate;
         }
         
         .glow-danger {
-            color: white;
             border-color: #ff6666;
+            box-shadow: 0 0 5px #ff6666;
+            animation: glow-danger 2s infinite alternate;
+        }
+        
+        @keyframes glow-warning {
+            from {
+                box-shadow: 0 0 5px #ffcc00;
+            }
+            to {
+                box-shadow: 0 0 15px #ffcc00, 0 0 20px #ffcc00;
+            }
+        }
+        
+        @keyframes glow-info {
+            from {
+                box-shadow: 0 0 5px #00ccff;
+            }
+            to {
+                box-shadow: 0 0 15px #00ccff, 0 0 20px #00ccff;
+            }
+        }
+        
+        @keyframes glow-success {
+            from {
+                box-shadow: 0 0 5px #00ff99;
+            }
+            to {
+                box-shadow: 0 0 15px #00ff99, 0 0 20px #00ff99;
+            }
+        }
+        
+        @keyframes glow-danger {
+            from {
+                box-shadow: 0 0 5px #ff6666;
+            }
+            to {
+                box-shadow: 0 0 15px #ff6666, 0 0 20px #ff6666;
+            }
+        }
+        
+        /* Hover effects */
+        .glow-warning:hover {
+            background-color: rgba(255, 204, 0, 0.2);
+        }
+        
+        .glow-info:hover {
+            background-color: rgba(0, 204, 255, 0.2);
+        }
+        
+        .glow-success:hover {
+            background-color: rgba(0, 255, 153, 0.2);
         }
         
         .glow-danger:hover {
-            background-color: #ff6666;
-            color: white;
+            background-color: rgba(255, 102, 102, 0.2);
         }
     `;
     document.head.appendChild(style);
