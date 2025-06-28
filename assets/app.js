@@ -157,6 +157,21 @@ function init() {
 </footer>`;
 $('body').html(html);
 }
+// URL Obfuscation Utilities
+function encodePath(path) {
+  return btoa(encodeURIComponent(path))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+function decodePath(encoded) {
+  return decodeURIComponent(atob(encoded
+    .replace(/-/g, '+')
+    .replace(/_/g, '/')
+  ));
+}
+
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.3 78" style="width: 1.3em;">
 <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"></path>
 <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"></path>
@@ -865,10 +880,11 @@ function append_files_to_list(path, files) {
 			var ext = item.fileExtension
 			//if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
 			//targetFiles.push(filepath);
-			pn += "?a=view";
-			c += " view";
-			//}
-			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
+			const isFolder = item['mimeType'] === 'application/vnd.google-apps.folder';
+      const filePath = isFolder ? p : `/v/${encodePath(path + item.name)}`;
+
+    // Build the HTML template
+  html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? `<input class="form-check-input" style="margin-top: 0.3em; margin-right: 0.5em;" type="checkbox" value="${link}" id="flexCheckDefault">` : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${filePath}"><span>`;
 
 			if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
 				html += video_icon
