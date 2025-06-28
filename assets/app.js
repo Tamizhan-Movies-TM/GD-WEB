@@ -1758,9 +1758,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			</span>
       </button>
      </div>
-     <div class="row mt-2">
 			<div class="col-md-12">
-	     <span class="d-flex align-items-center gap-1">
 				<div class="d-flex justify-content-center">
 					<div class="btn-group">
 						<a href="${url}" type="button" class="btn btn-success">
