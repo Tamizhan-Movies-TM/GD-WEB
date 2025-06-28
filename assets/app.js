@@ -1711,7 +1711,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
 
  // Document display video  mkv|mp4|webm|avi| 
-  function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     // Define all player icons
     const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
@@ -1728,14 +1728,14 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     
     if (!UI.disable_player) {
         if (player_config.player == "plyr") {
-            player = `<video id="player" playsinline controls data-poster="${poster}">
+            player = `<video id="player" playsinline controls data-poster="${poster}" class="centered-video">
                 <source src="${url}" type="video/mp4" />
                 <source src="${url}" type="video/webm" />
             </video>`;
             player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js';
             player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css';
         } else if (player_config.player == "videojs") {
-            player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}'>
+            player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin centered-video" controls preload="none" data-setup='{"fill": true}'>
                 <source src="${url}" type="video/mp4" />
                 <source src="${url}" type="video/webm" />
                 <source src="${url}" type="video/avi" />
@@ -1743,11 +1743,11 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js';
             player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css';
         } else if (player_config.player == "dplayer") {
-            player = `<div id="player-container"></div>`;
+            player = `<div id="player-container" class="centered-video"></div>`;
             player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js';
             player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css';
         } else if (player_config.player == "jwplayer") {
-            player = `<div id="player"></div>`;
+            player = `<div id="player" class="centered-video"></div>`;
             player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js';
             player_css = '';
         }
@@ -1762,11 +1762,9 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     <div class="card-body">
         <div class="row g-3">
             <div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
-                <div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px; background: #000;">  
-                    <div style="position: relative; padding-bottom: 56.25%;"> 
-                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
-                            ${player} 
-                        </div>
+                <div class="border border-dark rounded mx-auto video-container" style="--bs-border-opacity: .5; width: 100%; max-width: 640px; background: #000;">  
+                    <div class="video-wrapper">
+                        ${player} 
                     </div>
                 </div>
             </div>
@@ -1887,53 +1885,69 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     
     $("#content").html(content);
 
-    // Add custom CSS to center video and eliminate black bars
-    var customCss = `
-        .video-player-container {
+    // Add custom CSS for centering and eliminating black bars
+    const customCss = `
+        .video-container {
             position: relative;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio */
-            background: #000;
             overflow: hidden;
+            border-radius: 4px;
         }
         
-        .video-player-inner {
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+        }
+        
+        .centered-video {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            object-fit: contain;
             display: flex;
             justify-content: center;
             align-items: center;
+            background: #000;
         }
         
+        /* Specific player adjustments */
         .video-js {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+            background: #000 !important;
         }
         
         #player-container, #player {
-            width: 100%;
-            height: 100%;
+            background: #000;
+        }
+        
+        /* Ensure all video elements are contained */
+        video {
+            object-fit: contain;
         }
     `;
     
-    var styleElement = document.createElement('style');
+    // Create and append the style element
+    const styleElement = document.createElement('style');
     styleElement.innerHTML = customCss;
     document.head.appendChild(styleElement);
 
     // Load player scripts and initialize
     if (!UI.disable_player && player_js) {
-        var videoJsScript = document.createElement('script');
+        // Load player JS
+        const videoJsScript = document.createElement('script');
         videoJsScript.src = player_js;
         videoJsScript.onload = function() {
+            // Initialize player based on configuration
             if (player_config.player == "plyr") {
-                const player = new Plyr('#player');
+                const player = new Plyr('#player', {
+                    ratio: '16:9'
+                });
             } else if (player_config.player == "videojs") {
                 const player = videojs('vplayer');
-                // Add class for centering
-                player.addClass('vjs-center-video');
+                player.ready(function() {
+                    this.addClass('vjs-center-video');
+                });
             } else if (player_config.player == "dplayer") {
                 const dp = new DPlayer({
                     container: document.getElementById('player-container'),
@@ -1952,27 +1966,17 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                     image: poster,
                     width: "100%",
                     aspectratio: "16:9",
+                    stretching: "uniform", // Maintain aspect ratio
                     title: name,
                     description: "Powered by Google Drive Index",
-                    tracks: [{
-                        file: url,
-                        kind: "captions",
-                        label: "Default",
-                        "default": true,
-                    }],
-                    captions: {
-                        color: "#f3f378",
-                        fontSize: 14,
-                        backgroundOpacity: 50,
-                        edgeStyle: "raised",
-                    },
                 });
             }
         };
         document.head.appendChild(videoJsScript);
 
+        // Load player CSS if available
         if (player_css) {
-            var videoJsStylesheet = document.createElement('link');
+            const videoJsStylesheet = document.createElement('link');
             videoJsStylesheet.href = player_css;
             videoJsStylesheet.rel = 'stylesheet';
             document.head.appendChild(videoJsStylesheet);
