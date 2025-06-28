@@ -1711,7 +1711,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
 
  // Document display video  mkv|mp4|webm|avi| 
-   function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+  function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     // Define all player icons
     const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
@@ -1977,7 +1977,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             videoJsStylesheet.rel = 'stylesheet';
             document.head.appendChild(videoJsStylesheet);
         }
-
+    }
+}
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	var url_base64 = btoa(url);
