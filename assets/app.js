@@ -3,7 +3,7 @@
 // Initialize the page
 function init() {
 	// Add Vapor theme outline button styles
-  const style = document.createElement('style');
+   const style = document.createElement('style');
     style.textContent = `
         /* Vapor theme buttons */
         .vapor-btn {
@@ -16,6 +16,12 @@ function init() {
             font-weight: bold;
             padding: 8px 16px;
             background: transparent;
+            width: 160px;
+            margin-bottom: 10px;
+            color: white; /* White text color */
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
         .vapor-btn:before {
@@ -35,9 +41,7 @@ function init() {
         }
         
         .vapor-btn.vapor-warning {
-            color: #ffcc00;
             border-color: #ffcc00;
-            text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
         }
         
         .vapor-btn.vapor-warning:hover {
@@ -47,9 +51,7 @@ function init() {
         }
         
         .vapor-btn.vapor-info {
-            color: #00ccff;
             border-color: #00ccff;
-            text-shadow: 0 0 5px rgba(0, 204, 255, 0.5);
         }
         
         .vapor-btn.vapor-info:hover {
@@ -59,9 +61,7 @@ function init() {
         }
         
         .vapor-btn.vapor-success {
-            color: #00ff99;
             border-color: #00ff99;
-            text-shadow: 0 0 5px rgba(0, 255, 153, 0.5);
         }
         
         .vapor-btn.vapor-success:hover {
@@ -71,9 +71,7 @@ function init() {
         }
         
         .vapor-btn.vapor-danger {
-            color: #ff6666;
             border-color: #ff6666;
-            text-shadow: 0 0 5px rgba(255, 102, 102, 0.5);
         }
         
         .vapor-btn.vapor-danger:hover {
@@ -83,7 +81,7 @@ function init() {
         }
     `;
     document.head.appendChild(style);
-
+	
 	document.siteName = $('title').html();
 	var html = `<header>
    <div id="nav">
@@ -1807,8 +1805,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	     </div>
 			 </div>
 		${UI.disable_video_download ? `` : `
-     <!-- Player buttons with Vapor theme -->
-    <div class="d-flex justify-content-center flex-wrap gap-3 mb-4">
+     <!-- First row of buttons -->
+    <div class="d-flex justify-content-center gap-3 mb-3">
         <button type="button" class="vapor-btn vapor-warning"
             onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
             <span class="d-flex align-items-center">
@@ -1824,7 +1822,10 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                 MX Player
             </span>
         </button>
-
+    </div>
+    
+    <!-- Second row of buttons -->
+    <div class="d-flex justify-content-center gap-3 mb-4">
         <button type="button" class="vapor-btn vapor-success"
             onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
             <span class="d-flex align-items-center gap-1">
