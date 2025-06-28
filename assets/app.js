@@ -3,15 +3,15 @@
 // Initialize the page
 function init() {
 	// Add Vapor theme outline button styles
-     const style = document.createElement('style');
+     function init() {
+    const style = document.createElement('style');
     style.textContent = `
-        /* Vapor glow buttons */
+        /* Base Button Styles */
         .glow-btn {
             position: relative;
             overflow: hidden;
             transition: all 0.3s ease;
             z-index: 1;
-            border: 2px solid;
             border-radius: 8px;
             font-weight: bold;
             padding: 8px 16px;
@@ -23,8 +23,52 @@ function init() {
             justify-content: center;
             align-items: center;
             outline: none;
+            
+            /* Thick colored outline */
+            border: none;
+            box-shadow: 
+                0 0 0 3px var(--btn-color), /* Thick main outline */
+                0 0 10px 3px var(--btn-glow); /* Glow effect */
+        }
+
+        /* Button Color Variations */
+        .glow-warning {
+            --btn-color: #ffcc00;
+            --btn-glow: rgba(255, 204, 0, 0.7);
         }
         
+        .glow-info {
+            --btn-color: #00ccff;
+            --btn-glow: rgba(0, 204, 255, 0.7);
+        }
+        
+        .glow-success {
+            --btn-color: #00ff99;
+            --btn-glow: rgba(0, 255, 153, 0.7);
+        }
+        
+        .glow-danger {
+            --btn-color: #ff6666;
+            --btn-glow: rgba(255, 102, 102, 0.7);
+        }
+
+        /* Hover Effects */
+        .glow-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 0 0 4px var(--btn-color), /* Thicker outline on hover */
+                0 0 15px 4px var(--btn-glow);
+        }
+
+        /* Active/Click Effects */
+        .glow-btn:active {
+            transform: translateY(1px);
+            box-shadow: 
+                0 0 0 5px var(--btn-color), /* Thickest outline when clicked */
+                0 0 25px 8px var(--btn-glow);
+        }
+
+        /* Internal glow animation */
         .glow-btn:before {
             content: '';
             position: absolute;
@@ -32,100 +76,16 @@ function init() {
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255,255,255,0.3), 
+                transparent);
             transition: all 0.6s ease;
             z-index: -1;
         }
         
         .glow-btn:hover:before {
             left: 100%;
-        }
-        
-        .glow-btn:hover {
-            transform: translateY(-2px);
-        }
-        
-        /* Base Border Colors (no animation) */
-        .glow-warning {
-            border-color: #ffcc00;
-            box-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
-        }
-        
-        .glow-info {
-            border-color: #00ccff;
-            box-shadow: 0 0 5px rgba(0, 204, 255, 0.5);
-        }
-        
-        .glow-success {
-            border-color: #00ff99;
-            box-shadow: 0 0 5px rgba(0, 255, 153, 0.5);
-        }
-        
-        .glow-danger {
-            border-color: #ff6666;
-            box-shadow: 0 0 5px rgba(255, 102, 102, 0.5);
-        }
-        
-        /* Click Glow Effect with specific colors */
-        .glow-warning:active {
-            animation: glow-warning-pulse 0.5s;
-            transform: translateY(1px);
-        }
-        
-        .glow-info:active {
-            animation: glow-info-pulse 0.5s;
-            transform: translateY(1px);
-        }
-        
-        .glow-success:active {
-            animation: glow-success-pulse 0.5s;
-            transform: translateY(1px);
-        }
-        
-        .glow-danger:active {
-            animation: glow-danger-pulse 0.5s;
-            transform: translateY(1px);
-        }
-        
-        @keyframes glow-warning-pulse {
-            0% { box-shadow: 0 0 5px rgba(255, 204, 0, 0.5); }
-            50% { box-shadow: 0 0 25px #ffcc00; }
-            100% { box-shadow: 0 0 5px rgba(255, 204, 0, 0.5); }
-        }
-        
-        @keyframes glow-info-pulse {
-            0% { box-shadow: 0 0 5px rgba(0, 204, 255, 0.5); }
-            50% { box-shadow: 0 0 25px #00ccff; }
-            100% { box-shadow: 0 0 5px rgba(0, 204, 255, 0.5); }
-        }
-        
-        @keyframes glow-success-pulse {
-            0% { box-shadow: 0 0 5px rgba(0, 255, 153, 0.5); }
-            50% { box-shadow: 0 0 25px #00ff99; }
-            100% { box-shadow: 0 0 5px rgba(0, 255, 153, 0.5); }
-        }
-        
-        @keyframes glow-danger-pulse {
-            0% { box-shadow: 0 0 5px rgba(255, 102, 102, 0.5); }
-            50% { box-shadow: 0 0 25px #ff6666; }
-            100% { box-shadow: 0 0 5px rgba(255, 102, 102, 0.5); }
-        }
-        
-        /* Hover effects */
-        .glow-warning:hover {
-            background-color: rgba(255, 204, 0, 0.2);
-        }
-        
-        .glow-info:hover {
-            background-color: rgba(0, 204, 255, 0.2);
-        }
-        
-        .glow-success:hover {
-            background-color: rgba(0, 255, 153, 0.2);
-        }
-        
-        .glow-danger:hover {
-            background-color: rgba(255, 102, 102, 0.2);
         }
     `;
     document.head.appendChild(style);
