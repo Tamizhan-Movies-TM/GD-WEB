@@ -5,8 +5,8 @@ function init() {
 	// Add Vapor theme outline button styles
    const style = document.createElement('style');
     style.textContent = `
-        /* Vapor theme buttons */
-        .vapor-btn {
+        /* Vapor glow buttons */
+        .glow-btn {
             position: relative;
             overflow: hidden;
             transition: all 0.3s ease;
@@ -15,16 +15,17 @@ function init() {
             border-radius: 8px;
             font-weight: bold;
             padding: 8px 16px;
-            background: transparent;
+            background: rgba(0, 0, 0, 0.3);
             width: 160px;
             margin-bottom: 10px;
-            color: white; /* White text color */
+            color: white;
             display: flex;
             justify-content: center;
             align-items: center;
+            box-shadow: 0 0 5px currentColor;
         }
         
-        .vapor-btn:before {
+        .glow-btn:before {
             content: '';
             position: absolute;
             top: 0;
@@ -36,48 +37,53 @@ function init() {
             z-index: -1;
         }
         
-        .vapor-btn:hover:before {
+        .glow-btn:hover:before {
             left: 100%;
         }
         
-        .vapor-btn.vapor-warning {
+        .glow-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px 3px currentColor;
+        }
+        
+        .glow-warning {
+            color: #ffcc00;
             border-color: #ffcc00;
         }
         
-        .vapor-btn.vapor-warning:hover {
-            color: #000;
+        .glow-warning:hover {
             background-color: #ffcc00;
-            box-shadow: 0 0 15px 3px rgba(255, 204, 0, 0.7);
+            color: black;
         }
         
-        .vapor-btn.vapor-info {
+        .glow-info {
+            color: #00ccff;
             border-color: #00ccff;
         }
         
-        .vapor-btn.vapor-info:hover {
-            color: #000;
+        .glow-info:hover {
             background-color: #00ccff;
-            box-shadow: 0 0 15px 3px rgba(0, 204, 255, 0.7);
+            color: black;
         }
         
-        .vapor-btn.vapor-success {
+        .glow-success {
+            color: #00ff99;
             border-color: #00ff99;
         }
         
-        .vapor-btn.vapor-success:hover {
-            color: #000;
+        .glow-success:hover {
             background-color: #00ff99;
-            box-shadow: 0 0 15px 3px rgba(0, 255, 153, 0.7);
+            color: black;
         }
         
-        .vapor-btn.vapor-danger {
+        .glow-danger {
+            color: #ff6666;
             border-color: #ff6666;
         }
         
-        .vapor-btn.vapor-danger:hover {
-            color: #000;
+        .glow-danger:hover {
             background-color: #ff6666;
-            box-shadow: 0 0 15px 3px rgba(255, 102, 102, 0.7);
+            color: black;
         }
     `;
     document.head.appendChild(style);
@@ -1807,7 +1813,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		${UI.disable_video_download ? `` : `
      <!-- First row of buttons -->
     <div class="d-flex justify-content-center gap-3 mb-3">
-        <button type="button" class="vapor-btn vapor-warning"
+        <button type="button" class="glow-btn glow-warning"
             onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
             <span class="d-flex align-items-center">
                 <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">
@@ -1815,7 +1821,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             </span>
         </button>
 
-        <button type="button" class="vapor-btn vapor-info"
+        <button type="button" class="glow-btn glow-info"
             onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
             <span class="d-flex align-items-center gap-1">
                 <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">
@@ -1826,7 +1832,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     
     <!-- Second row of buttons -->
     <div class="d-flex justify-content-center gap-3 mb-4">
-        <button type="button" class="vapor-btn vapor-success"
+        <button type="button" class="glow-btn glow-success"
             onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
             <span class="d-flex align-items-center gap-1">
                 <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">
@@ -1834,7 +1840,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             </span>
         </button>
 
-        <button type="button" class="vapor-btn vapor-danger"
+        <button type="button" class="glow-btn glow-danger"
             onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
             <span class="d-flex align-items-center gap-1"> 
                 <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">
