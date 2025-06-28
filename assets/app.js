@@ -5,79 +5,81 @@ function init() {
 	// Add Vapor theme outline button styles
    const style = document.createElement('style');
     style.textContent = `
-        /* Vapor glow buttons */
+        /* Base Button Styles */
         .glow-btn {
             position: relative;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             z-index: 1;
-            border: 2px solid; /* Base outline thickness */
+            border: 2px solid;
             border-radius: 8px;
             font-weight: bold;
             padding: 8px 16px;
             background: rgba(0, 0, 0, 0.3);
             width: 160px;
             margin-bottom: 10px;
-            color: white;
+            color: white !important; /* Force white text always */
             display: flex;
             justify-content: center;
             align-items: center;
             outline: none;
         }
-        
-        /* Color-specific outlines with subtle glow */
+
+        /* Color Definitions */
         .glow-warning {
             border-color: #ffcc00;
-            box-shadow: 0 0 0 1px #ffcc00, /* Inner colored outline */
-                       0 0 6px rgba(255, 204, 0, 0.5); /* Soft glow */
+            --btn-color: #ffcc00;
         }
-        
         .glow-info {
             border-color: #00ccff;
-            box-shadow: 0 0 0 1px #00ccff,
-                       0 0 6px rgba(0, 204, 255, 0.5);
+            --btn-color: #00ccff;
         }
-        
         .glow-success {
             border-color: #00ff99;
-            box-shadow: 0 0 0 1px #00ff99,
-                       0 0 6px rgba(0, 255, 153, 0.5);
+            --btn-color: #00ff99;
         }
-        
         .glow-danger {
             border-color: #ff6666;
-            box-shadow: 0 0 0 1px #ff6666,
-                       0 0 6px rgba(255, 102, 102, 0.5);
+            --btn-color: #ff6666;
         }
-        
-        /* Hover effects - slightly thicker outline */
+
+        /* Click Effect - Inner Color Fill */
+        .glow-btn:active {
+            background-color: var(--btn-color);
+            background-image: linear-gradient(
+                to bottom,
+                var(--btn-color),
+                rgba(0,0,0,0.2)
+            );
+            box-shadow: 
+                0 0 10px var(--btn-color),
+                inset 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        /* Hover Effect */
         .glow-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 0 0 2px currentColor,
-                       0 0 10px currentColor;
+            box-shadow: 0 0 15px var(--btn-color);
         }
-        
-        /* Active state - subtle pulse */
-        .glow-btn:active {
-            transform: translateY(1px);
-            box-shadow: 0 0 0 3px currentColor,
-                       0 0 12px currentColor;
-        }
-        
-        /* Internal gradient animation */
-        .glow-btn:before {
+
+        /* Internal Shine Animation */
+        .glow-btn::before {
             content: '';
             position: absolute;
             top: 0;
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.2),
+                transparent
+            );
             transition: all 0.6s ease;
             z-index: -1;
         }
-        
-        .glow-btn:hover:before {
+        .glow-btn:hover::before {
             left: 100%;
         }
     `;
