@@ -66,22 +66,49 @@ function init() {
             box-shadow: 0 0 5px rgba(255, 102, 102, 0.5);
         }
         
-        /* Click Glow Effect */
-        .glow-btn:active {
-            animation: intense-glow 0.5s;
+        /* Click Glow Effect with specific colors */
+        .glow-warning:active {
+            animation: glow-warning-pulse 0.5s;
             transform: translateY(1px);
         }
         
-        @keyframes intense-glow {
-            0% {
-                box-shadow: 0 0 5px currentColor;
-            }
-            50% {
-                box-shadow: 0 0 25px currentColor;
-            }
-            100% {
-                box-shadow: 0 0 5px currentColor;
-            }
+        .glow-info:active {
+            animation: glow-info-pulse 0.5s;
+            transform: translateY(1px);
+        }
+        
+        .glow-success:active {
+            animation: glow-success-pulse 0.5s;
+            transform: translateY(1px);
+        }
+        
+        .glow-danger:active {
+            animation: glow-danger-pulse 0.5s;
+            transform: translateY(1px);
+        }
+        
+        @keyframes glow-warning-pulse {
+            0% { box-shadow: 0 0 5px rgba(255, 204, 0, 0.5); }
+            50% { box-shadow: 0 0 25px #ffcc00; }
+            100% { box-shadow: 0 0 5px rgba(255, 204, 0, 0.5); }
+        }
+        
+        @keyframes glow-info-pulse {
+            0% { box-shadow: 0 0 5px rgba(0, 204, 255, 0.5); }
+            50% { box-shadow: 0 0 25px #00ccff; }
+            100% { box-shadow: 0 0 5px rgba(0, 204, 255, 0.5); }
+        }
+        
+        @keyframes glow-success-pulse {
+            0% { box-shadow: 0 0 5px rgba(0, 255, 153, 0.5); }
+            50% { box-shadow: 0 0 25px #00ff99; }
+            100% { box-shadow: 0 0 5px rgba(0, 255, 153, 0.5); }
+        }
+        
+        @keyframes glow-danger-pulse {
+            0% { box-shadow: 0 0 5px rgba(255, 102, 102, 0.5); }
+            50% { box-shadow: 0 0 25px #ff6666; }
+            100% { box-shadow: 0 0 5px rgba(255, 102, 102, 0.5); }
         }
         
         /* Hover effects */
