@@ -2,6 +2,54 @@
 // v2.3.5
 // Initialize the page
 function init() {
+	// Add Vapor theme outline button styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .btn-outline-warning {
+            color: #ffcc00;
+            border-color: #ffcc00;
+        }
+        .btn-outline-warning:hover {
+            color: #000;
+            background-color: #ffcc00;
+            border-color: #ffcc00;
+            box-shadow: 0 0 10px 1px #ffcc00;
+        }
+
+        .btn-outline-info {
+            color: #00ccff;
+            border-color: #00ccff;
+        }
+        .btn-outline-info:hover {
+            color: #000;
+            background-color: #00ccff;
+            border-color: #00ccff;
+            box-shadow: 0 0 10px 1px #00ccff;
+        }
+
+        .btn-outline-success {
+            color: #00ff99;
+            border-color: #00ff99;
+        }
+        .btn-outline-success:hover {
+            color: #000;
+            background-color: #00ff99;
+            border-color: #00ff99;
+            box-shadow: 0 0 10px 1px #00ff99;
+        }
+
+        .btn-outline-danger {
+            color: #ff6666;
+            border-color: #ff6666;
+        }
+        .btn-outline-danger:hover {
+            color: #000;
+            background-color: #ff6666;
+            border-color: #ff6666;
+            box-shadow: 0 0 10px 1px #ff6666;
+        }
+    `;
+    document.head.appendChild(style);
 	document.siteName = $('title').html();
 	var html = `<header>
    <div id="nav">
@@ -1725,38 +1773,48 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	     </div>
 			 </div>
 		${UI.disable_video_download ? `` : `
-      <!-- First row of buttons - fixed width -->
-      <div class="d-flex justify-content-center gap-3 mb-3">
-      <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
-      onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-      <span class="d-flex align-items-center">
-      ${vlc_icon} VLC Player
-      </span>
-      </button>
+       // Update player buttons with Vapor outline styles
+    const playerButtons = `
+    <!-- First row of buttons - fixed width -->
+    <div class="d-flex justify-content-center gap-3 mb-3">
+        <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" 
+            style="width: 160px;"
+            onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center">
+                <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">
+                VLC Player
+            </span>
+        </button>
 
-      <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
-      onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-      <span class="d-flex align-items-center gap-1">
-      ${mxplayer_icon} MX Player
-      </span>
-      </button> 
-      </div>
+        <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" 
+            style="width: 160px;"
+            onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1">
+                <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">
+                MX Player
+            </span>
+        </button> 
+    </div>
             
-      <!-- Second row of buttons - fixed width -->
-      <div class="d-flex justify-content-center gap-3 mb-4">
-      <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
-       onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-      <span class="d-flex align-items-center gap-1">
-      ${xplayer_icon} XPlayer
-      </span>
-      </button>
+    <!-- Second row of buttons - fixed width -->
+    <div class="d-flex justify-content-center gap-3 mb-4">
+        <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" 
+            style="width: 160px;"
+            onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1">
+                <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">
+                XPlayer
+            </span>
+        </button>
 
-      <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
-      onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-      <span class="d-flex align-items-center gap-1"> 
-      ${playit_icon} PLAYit
-			</span>
-      </button>
+        <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" 
+            style="width: 160px;"
+            onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1"> 
+                <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">
+                PLAYit
+            </span>
+        </button>
       </div>
 			<div class="row mt-2">
 			<div class="col-md-12">
