@@ -3,7 +3,7 @@
 // Initialize the page
 function init() {
 	// Add Vapor theme outline button styles
-   const style = document.createElement('style');
+    const style = document.createElement('style');
     style.textContent = `
         /* Vapor glow buttons with white text */
         .glow-btn {
@@ -44,13 +44,6 @@ function init() {
         .glow-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 0 15px 3px currentColor;
-            color: black !important; /* Black text on hover */
-        }
-        
-        /* Active state - when button is clicked */
-        .glow-btn:active {
-            box-shadow: 0 0 20px 5px currentColor;
-            transform: scale(0.98);
         }
         
         .glow-warning {
