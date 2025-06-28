@@ -4,85 +4,89 @@
 function init() {
 	// Add Vapor theme outline button styles
     const style = document.createElement('style');
-style.textContent = `
-    /* Vapor glow buttons */
-    .glow-btn {
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        z-index: 1;
-        border: 2px solid;
-        border-radius: 8px;
-        font-weight: bold;
-        padding: 8px 16px;
-        background: rgba(0, 0, 0, 0.3);
-        width: 160px;
-        margin-bottom: 10px;
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        box-shadow: 0 0 5px currentColor;
-    }
-    
-    .glow-btn:before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        transition: all 0.6s ease;
-        z-index: -1;
-    }
-    
-    .glow-btn:hover:before {
-        left: 100%;
-    }
-    
-    .glow-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0 15px 3px currentColor;
-    }
-    
-    .glow-warning {
-        color: #ffcc00;
-        border-color: #ffcc00;
-    }
-    
-    .glow-warning:hover {
-        background-color: #ffcc00;
-    }
-    
-    .glow-info {
-        color: #00ccff;
-        border-color: #00ccff;
-    }
-    
-    .glow-info:hover {
-        background-color: #00ccff;
-    }
-    
-    .glow-success {
-        color: #00ff99;
-        border-color: #00ff99;
-    }
-    
-    .glow-success:hover {
-        background-color: #00ff99;
-    }
-    
-    .glow-danger {
-        color: #ff6666;
-        border-color: #ff6666;
-    }
-    
-    .glow-danger:hover {
-        background-color: #ff6666;
-    }
-`;
-document.head.appendChild(style);
+    style.textContent = `
+        /* Vapor glow buttons */
+        .glow-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            z-index: 1;
+            border: 2px solid;
+            border-radius: 8px;
+            font-weight: bold;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            width: 160px;
+            margin-bottom: 10px;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 5px currentColor;
+        }
+        
+        .glow-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: all 0.6s ease;
+            z-index: -1;
+        }
+        
+        .glow-btn:hover:before {
+            left: 100%;
+        }
+        
+        .glow-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px 3px currentColor;
+        }
+        
+        .glow-warning {
+            color: white;
+            border-color: #ffcc00;
+        }
+        
+        .glow-warning:hover {
+            background-color: #ffcc00;
+            color: white;
+        }
+        
+        .glow-info {
+            color: white;
+            border-color: #00ccff;
+        }
+        
+        .glow-info:hover {
+            background-color: #00ccff;
+            color: white;
+        }
+        
+        .glow-success {
+            color: white;
+            border-color: #00ff99;
+        }
+        
+        .glow-success:hover {
+            background-color: #00ff99;
+            color: white;
+        }
+        
+        .glow-danger {
+            color: white;
+            border-color: #ff6666;
+        }
+        
+        .glow-danger:hover {
+            background-color: #ff6666;
+            color: white;
+        }
+    `;
+    document.head.appendChild(style);
 	
 	document.siteName = $('title').html();
 	var html = `<header>
@@ -1807,7 +1811,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	     </div>
 			 </div>
 		${UI.disable_video_download ? `` : `
-     <!-- First row of buttons -->
+    <!-- First row of buttons -->
     <div class="d-flex justify-content-center gap-3 mb-3">
         <button type="button" class="glow-btn glow-warning"
             onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
