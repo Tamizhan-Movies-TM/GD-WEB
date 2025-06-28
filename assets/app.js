@@ -163,6 +163,7 @@ function encodePath(path) {
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');
+	 return `/v/${base64}`;
 }
 
 function decodePath(encoded) {
