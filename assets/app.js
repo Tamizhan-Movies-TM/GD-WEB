@@ -1676,9 +1676,10 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 				<div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  
 					<div style="position: relative; padding-bottom: 56.25%;"> 
 						<div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
-							${player} 
-						</div>
-				  </div>
+						${player} 
+					 </div>
+			    </div>
+				 </div>
 			  </div>
 			 <div class="col-lg-8 col-md-12">
 				<table class="table table-dark">
@@ -1688,16 +1689,16 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 								<i class="fa-regular fa-folder-closed fa-fw"></i>
 								<span class="tth">Name</span>
 							</th>
-							<td>${name}</td>
-						</tr>
-						<tr>
+						 <td>${name}</td>
+						 </tr>
+						 <tr>
 							<th>
-								<i class="fa-regular fa-clock fa-fw"></i>
-								<span class="tth">Datetime</span>
-							</th>
+							 <i class="fa-regular fa-clock fa-fw"></i>
+							 <span class="tth">Datetime</span>
+							 </th>
 							<td>${createdTime}</td>
-						</tr>
-						<tr>
+						 </tr>
+						 <tr>
 							<th>
 								<i class="fa-solid fa-tag fa-fw"></i>
 								<span class="tth">Type</span>
@@ -1706,23 +1707,22 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 						</tr>
 						<tr>
 							<th>
-								<i class="fa-solid fa-box-archive fa-fw"></i>
-								<span class="tth">Size</span>
+							 <i class="fa-solid fa-box-archive fa-fw"></i>
+							 <span class="tth">Size</span>
 							</th>
-							<td>${size}</td>
-						</tr>
-						<tr>
+						 <td>${size}</td>
+						 </tr>
+						 <tr>
 							<th>
 							<i class="fa-solid fa-file-circle-check fa-fw"></i>
 							<span class="tth">Checksum</span>
 							</th>
 							<td>MD5: <code>${md5Checksum}</code>
-							</td>
+						 </td>
 						</tr>
 					</tbody>
 				</table>
 			 </div>
-		  </div>
 		${UI.disable_video_download ? `` : `
       <!-- First row of buttons - fixed width -->
       <div class="d-flex justify-content-center gap-3 mb-3">
