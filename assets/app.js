@@ -1725,7 +1725,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			</div>
 		</div>
 		${UI.disable_video_download ? `` : `
-           !-- First row of buttons - fixed width -->
+      <!-- First row of buttons - fixed width -->
       <div class="d-flex justify-content-center gap-3 mb-3">
       <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
       onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
