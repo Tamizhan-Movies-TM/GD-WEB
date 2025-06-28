@@ -1627,7 +1627,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
 
 
- // Document display video |mp4|webm|avi|
+ // Document display video  mkv|mp4|webm|avi| 
    function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	 // Define all player icons
     const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
@@ -1680,8 +1680,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 						</div>
 					</div>
 				</div>
-			</div>
-			<div class="col-lg-8 col-md-12">
+			 </div>
+			 <div class="col-lg-8 col-md-12">
 				<table class="table table-dark">
 					<tbody>
 						<tr>
@@ -1714,16 +1714,16 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 						</tr>
 						<tr>
 							<th>
-								<i class="fa-solid fa-file-circle-check fa-fw"></i>
-								<span class="tth">Checksum</span>
+							<i class="fa-solid fa-file-circle-check fa-fw"></i>
+							<span class="tth">Checksum</span>
 							</th>
 							<td>MD5: <code>${md5Checksum}</code>
 							</td>
 						</tr>
 					</tbody>
 				</table>
-			</div>
-		</div>
+			 </div>
+		  </div>
 		${UI.disable_video_download ? `` : `
       <!-- First row of buttons - fixed width -->
       <div class="d-flex justify-content-center gap-3 mb-3">
@@ -1760,6 +1760,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
      </div>
      <div class="row mt-2">
 			<div class="col-md-12">
+	     <span class="d-flex align-items-center gap-1">
 				<div class="d-flex justify-content-center">
 					<div class="btn-group">
 						<a href="${url}" type="button" class="btn btn-success">
