@@ -1916,7 +1916,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
                     aspectratio: "16:9",
                     stretching: "uniform", // This ensures no cropping and maintains aspect ratio
                     title: name,
-                    description: "Powered by Google Drive Index"
+                    description: "Powered by tamizhan Movies"
                 });
             }
         };
