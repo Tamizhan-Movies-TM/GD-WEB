@@ -1773,8 +1773,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	     </div>
 			 </div>
 		${UI.disable_video_download ? `` : `
-       // Update player buttons with Vapor outline styles
-    const playerButtons = `
     <!-- First row of buttons - fixed width -->
     <div class="d-flex justify-content-center gap-3 mb-3">
         <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" 
