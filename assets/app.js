@@ -1757,7 +1757,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       ${playit_icon} PLAYit
 			</span>
       </button>
-   
+      </div>
 			<div class="col-md-10">
 				<div class="d-flex justify-content-center">
 					<div class="btn-group">
