@@ -1722,6 +1722,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 						</tr>
 					</tbody>
 				</table>
+	     </div>
 			 </div>
 		${UI.disable_video_download ? `` : `
       <!-- First row of buttons - fixed width -->
