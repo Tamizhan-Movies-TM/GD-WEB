@@ -5,7 +5,7 @@ function init() {
 	// Add Vapor theme outline button styles
    const style = document.createElement('style');
     style.textContent = `
-        /* Vapor glow buttons */
+        /* Vapor glow buttons with white text */
         .glow-btn {
             position: relative;
             overflow: hidden;
@@ -18,7 +18,7 @@ function init() {
             background: rgba(0, 0, 0, 0.3);
             width: 160px;
             margin-bottom: 10px;
-            color: white;
+            color: white !important; /* Always white text */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -44,6 +44,13 @@ function init() {
         .glow-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 0 15px 3px currentColor;
+            color: black !important; /* Black text on hover */
+        }
+        
+        /* Active state - when button is clicked */
+        .glow-btn:active {
+            box-shadow: 0 0 20px 5px currentColor;
+            transform: scale(0.98);
         }
         
         .glow-warning {
@@ -53,7 +60,6 @@ function init() {
         
         .glow-warning:hover {
             background-color: #ffcc00;
-            color: black;
         }
         
         .glow-info {
@@ -63,7 +69,6 @@ function init() {
         
         .glow-info:hover {
             background-color: #00ccff;
-            color: black;
         }
         
         .glow-success {
@@ -73,7 +78,6 @@ function init() {
         
         .glow-success:hover {
             background-color: #00ff99;
-            color: black;
         }
         
         .glow-danger {
@@ -83,7 +87,6 @@ function init() {
         
         .glow-danger:hover {
             background-color: #ff6666;
-            color: black;
         }
     `;
     document.head.appendChild(style);
