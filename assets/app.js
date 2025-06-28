@@ -1679,6 +1679,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 							${player} 
 						</div>
 					</div>
+		     </div>
 				</div>
 			 </div>
 			 <div class="col-lg-8 col-md-12">
@@ -1758,7 +1759,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			</span>
       </button>
       </div>
-			<div class="col-md-10">
+			<div class="row mt-2">
+			<div class="col-md-12">
 				<div class="d-flex justify-content-center">
 					<div class="btn-group">
 						<a href="${url}" type="button" class="btn btn-success">
