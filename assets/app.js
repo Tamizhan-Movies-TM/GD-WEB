@@ -1678,10 +1678,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 						<div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
 							${player} 
 						</div>
-					</div>
-		     </div>
-				</div>
-			 </div>
+				  </div>
+			  </div>
 			 <div class="col-lg-8 col-md-12">
 				<table class="table table-dark">
 					<tbody>
