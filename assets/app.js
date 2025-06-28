@@ -5,7 +5,7 @@ function init() {
 	// Add Vapor theme outline button styles
     const style = document.createElement('style');
     style.textContent = `
-        /* Vapor glow buttons with white text */
+        /* Vapor glow buttons */
         .glow-btn {
             position: relative;
             overflow: hidden;
@@ -18,7 +18,7 @@ function init() {
             background: rgba(0, 0, 0, 0.3);
             width: 160px;
             margin-bottom: 10px;
-            color: white !important; /* Always white text */
+            color: white !important; /* Force white text */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -44,6 +44,7 @@ function init() {
         .glow-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 0 15px 3px currentColor;
+            color: white !important; /* Force white text on hover */
         }
         
         .glow-warning {
