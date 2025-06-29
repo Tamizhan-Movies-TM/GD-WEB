@@ -1761,9 +1761,10 @@ var content = `
                 </div>
             </div>
             <div class="col-lg-8 col-md-12">
-                <table class="table table-dark mb-0">  <!-- Added mb-0 to remove bottom margin -->
+                <table class="table table-dark mb-0">  
                     <tbody>
                         <tr>
+												  <tr>
                             <th>
                                 <i class="fa-regular fa-folder-closed fa-fw"></i>
                                 <span class="tth">Name</span>
@@ -1790,7 +1791,7 @@ var content = `
         </div>
         ${UI.disable_video_download ? `` : `
         <!-- Buttons sections -->
-        <div class="mt-4">  <!-- Added margin top for spacing -->
+        <div class="mt-4">  
             <!-- First row of buttons - fixed width -->
             <div class="d-flex justify-content-center gap-3 my-3">
                 <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
