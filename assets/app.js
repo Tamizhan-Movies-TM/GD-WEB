@@ -1787,7 +1787,6 @@ var content = `
                 </tbody>
             </table>
         </div>
-    </div>
     ${UI.disable_video_download ? `` : `
     <!-- Buttons sections remain unchanged -->
     <!-- First row of buttons - fixed width -->
