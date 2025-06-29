@@ -1665,19 +1665,17 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		}
 	}
 	// Add the container and card elements
-	var content = `
-<div class="card">
-<div class="card-header ${UI.file_view_alert_class}">
- <i class="fas fa-file-alt fa-fw"></i>File Information
- </div>
-	<div class="card-body row g-3">
-			<div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
-				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">  
-			     ${player} 
-			     </div>
-	       </div>
-			  </div>
-		   <th>
+var content = `
+	<div class="card">
+		<div class="card-header ${UI.file_view_alert_class}">
+			<i class="fas fa-file-alt fa-fw"></i>File Information
+		</div>
+		<div class="card-body row g-3">
+			<div class="col-lg-4 col-md-12">
+				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+					${player}
+				</div>
+			</div>
 			<div class="col-lg-8 col-md-12">
 				<table class="table table-dark">
 					<tbody>
