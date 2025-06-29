@@ -1750,39 +1750,39 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
 // Add the container and card elements
 var content = `
-<div class="card">
-    <div class="card-header ${UI.file_view_alert_class}">
-        <i class="fas fa-file-alt fa-fw"></i>File Information
-    </div>
-    <div class="card-body">
-        <div class="row g-0">   
-                <div border border-dark rounded" style="--bs-border-opacity: .5;">
-                    ${player}
-                </div>
-            </div>
-            <div class="col-lg-8 col-md-12">
-                <table class="table table-dark mb-0">  
-                    <tbody>
-                        <tr>
-                            <th>
-                                <i class="fa-regular fa-folder-closed fa-fw"></i>
-                                <span class="tth">Name</span>
-                            </th>
-                            <td>${name}</td>
+	<div class="card">
+		<div class="card-header ${UI.file_view_alert_class}">
+			<i class="fas fa-file-alt fa-fw"></i>File Information
+		</div>
+		<div class="card-body row g-3">
+			<div class="col-lg-4 col-md-12">
+				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+					${player}
+				</div>
+			</div>
+			<div class="col-lg-8 col-md-12">
+				<table class="table table-dark">
+					<tbody>
+						<tr>
+							<th>
+								<i class="fa-regular fa-folder-closed fa-fw"></i>
+								<span class="tth">Name</span>
+							</th>
+							<td>${name}</td>
+                </tr>
+                  <tr>
+                    <th>
+                      <i class="fa-solid fa-tag fa-fw"></i>
+                       <span class="tth">Type</span>
+                        </th>
+                        <td>${formatMimeType(mimeType)}</td>
                         </tr>
                         <tr>
-                            <th>
-                                <i class="fa-solid fa-tag fa-fw"></i>
-                                <span class="tth">Type</span>
-                            </th>
-                            <td>${formatMimeType(mimeType)}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-box-archive fa-fw"></i>
-                                <span class="tth">Size</span>
-                            </th>
-                            <td>${size}</td>
+                        <th>
+                        <i class="fa-solid fa-box-archive fa-fw"></i>
+                         <span class="tth">Size</span>
+                         </th>
+                         <td>${size}</td>
                         </tr>
                     </tbody>
                 </table>
