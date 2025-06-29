@@ -665,9 +665,8 @@ function append_files_to_fallback_list(path, files) {
         var is_firstpage = '0' == $list.data('curPageIndex');
 
         let html = "";
-        let targetFiles = [];
-        let totalsize = 0;
-        let is_file = false;
+        var totalsize = 0;
+        var is_file = false;
         if (files.length == 0) {
             html = `<div class="card-body"><div class="d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4">
                         <span><i class="fa-solid fa-heart-crack fa-2xl me-0"></i></span>
