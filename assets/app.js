@@ -1753,15 +1753,13 @@ var content = `
 <div class="card">
     <div class="card-header ${UI.file_view_alert_class}">
         <i class="fas fa-file-alt fa-fw"></i>File Information
-    &nbsp;
+    </div>
     <div class="card-body">
         <div class="row g-0">  
-                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .3;">
+                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
                     ${player}
-                </div>
-            </div>
-						&nbsp;
-			      &nbsp;
+                </div> &nbsp;
+            </div> &nbsp;
             <div class="col-lg-8 col-md-12">
                 <table class="table table-dark mb-0">  <!-- Added mb-0 to remove bottom margin -->
                     <tbody>
