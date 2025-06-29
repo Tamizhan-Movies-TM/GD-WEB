@@ -1761,6 +1761,8 @@ var content = `
                     ${player}
                 </div>
             </div>
+						&nbsp;
+			      &nbsp;
             <div class="col-lg-8 col-md-12">
                 <table class="table table-dark mb-0">  <!-- Added mb-0 to remove bottom margin -->
                     <tbody>
