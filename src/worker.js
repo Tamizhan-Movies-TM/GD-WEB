@@ -1154,12 +1154,25 @@ async function handleRequest(request, event) {
   let url = new URL(request.url);
   let path = url.pathname;
   if (path.startsWith('/watch/')) {
-    const encryptedId = path.replace('/watch/', '');
-    let fileId;
-    try {
-      fileId = await decryptString(encryptedId);
-    } catch (e) {
-      return new Response('Invalid file link', { status: 400 });
+   const encryptedId = pathname.split('/watch/')[1].split('/')[0];
+        let fileId;
+        try {
+            fileId = await decryptString(encryptedId);
+        } catch (e) {
+            return new Response('Invalid file ID', { status: 400 });
+        }
+        return await handleFileView(fileId, request);
+    }
+	if (pathname.startsWith('/folder/')) {
+        // /folder/{encryptedId}
+        const encryptedId = pathname.split('/folder/')[1].split('/')[0];
+        let folderId;
+        try {
+            folderId = await decryptString(encryptedId);
+        } catch (e) {
+            return new Response('Invalid folder ID', { status: 400 });
+        }
+        return await handleFolderView(folderId, request);
     }
     // Fetch file info from Google Drive
     const file = await drive.findItemById(fileId);
