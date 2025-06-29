@@ -1679,8 +1679,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 							${player} 
 						</div>
 					</div>
-		    </div>
-			</div>
+			  </div>
 			<div class="col-lg-8 col-md-12">
 				<table class="table table-dark">
 					<tbody>
