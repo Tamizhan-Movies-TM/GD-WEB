@@ -1672,14 +1672,14 @@ var content = `
         <i class="fas fa-file-alt fa-fw"></i>File Information
     </div>
     <div class="card-body">
-        <div class="row g-0">  <!-- Changed to g-0 to remove gap -->
-            <div class="col-lg-4 col-md-12 pe-2">  <!-- Added pe-2 for small right padding -->
-                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+        <div class="row g-0 align-items-start">  <!-- Align items to top -->
+            <div class="col-lg-4 col-md-12 pe-2">
+                <div class="border border-dark rounded" style="--bs-border-opacity: .5;">  <!-- Removed h-100 -->
                     ${player}
                 </div>
             </div>
             <div class="col-lg-8 col-md-12">
-                <table class="table table-dark mb-0">  <!-- Added mb-0 to remove bottom margin -->
+                <table class="table table-dark mb-0">
                     <tbody>
                         <tr>
                             <th>
@@ -1721,9 +1721,9 @@ var content = `
             </div>
         </div>
         ${UI.disable_video_download ? `` : `
-        <!-- Buttons sections remain unchanged -->
+        <!-- Buttons sections remain the same -->
         <!-- First row of buttons - fixed width -->
-        <div class="d-flex justify-content-center gap-3 my-3">  <!-- Changed mb-3 to my-3 for vertical spacing -->
+        <div class="d-flex justify-content-center gap-3 my-3">
             <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 <span class="d-flex align-items-center">
@@ -1740,7 +1740,7 @@ var content = `
         </div>
 
         <!-- Second row of buttons - fixed width -->		
-        <div class="d-flex justify-content-center gap-3 mb-3">  <!-- Changed mb-4 to mb-3 -->
+        <div class="d-flex justify-content-center gap-3 mb-3">
             <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 <span class="d-flex align-items-center gap-1">
