@@ -1756,10 +1756,10 @@ var content = `
     </div>
     <div class="card-body">
         <div class="row g-0">  
-                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .6;">
                     ${player}
-                </div> &nbsp;
-            </div> &nbsp;
+                </div> 
+            </div> &nbsp; </div> 
             <div class="col-lg-8 col-md-12">
                 <table class="table table-dark mb-0">  <!-- Added mb-0 to remove bottom margin -->
                     <tbody>
