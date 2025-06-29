@@ -663,7 +663,6 @@ function append_files_to_fallback_list(path, files) {
         var $list = $('#list');
         var is_lastpage_loaded = null === $list.data('nextPageToken');
         var is_firstpage = '0' == $list.data('curPageIndex');
-
         let html = "";
         var totalsize = 0;
         var is_file = false;
@@ -687,7 +686,6 @@ function append_files_to_fallback_list(path, files) {
                 is_file = true;
                 let fileUrl = "/watch/" + item.encryptedId;
                 let ext = item.fileExtension;
-
                 html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="view countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${fileUrl}"><span>`;
 
                 if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
@@ -740,7 +738,6 @@ function append_files_to_fallback_list(path, files) {
         console.log(e);
     }
 }
-
 /**
  * Append the data of the requested new page to the list
  * @param path
