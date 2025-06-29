@@ -865,10 +865,14 @@ function append_files_to_list(path, files) {
 			var ext = item.fileExtension
 			//if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
 			//targetFiles.push(filepath);
-			pn += "?a=view";
-			c += " view";
-			//}
-			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
+			if (item.mimeType === 'application/vnd.google-apps.folder') {
+      pn = "/folder/" + item.encryptedId;
+      c += " folder";
+      } else {
+      pn = "/watch/" + item.encryptedId;
+      c += " view";
+      }
+			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${item.mimeType === 'application/vnd.google-apps.folder' ? '/folder/' + item.encryptedId : '/watch/' + item.encryptedId}"><span>`
 
 			if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
 				html += video_icon
@@ -1333,7 +1337,7 @@ async function fallback(id, type) {
 				const video = ["mp4", "webm", "avi", "mpg", "mpeg", "mkv", "rm", "rmvb", "mov", "wmv", "asf", "ts", "flv", "3gp", "m4v"];
 				const audio = ["mp3", "flac", "wav", "ogg", "m4a", "aac", "wma", "alac"];
 				if (mimeType === "application/vnd.google-apps.folder") {
-					window.location.href = window.location.pathname + "/";
+					window.location.href = <a href="/watch/ENCRYPTED_ID">View</a>
 				} else if (fileExtension) {
 					const name = obj.name;
 					const bytes = obj.size || 0;
@@ -1403,7 +1407,7 @@ async function file(path) {
 			const video = ["mp4", "webm", "avi", "mpg", "mpeg", "mkv", "rm", "rmvb", "mov", "wmv", "asf", "ts", "flv", "3gp", "m4v"];
 			const audio = ["mp3", "flac", "wav", "ogg", "m4a", "aac", "wma", "alac"];
 			if (mimeType === "application/vnd.google-apps.folder") {
-				window.location.href = window.location.pathname + "/";
+				window.location.href = isFile ? '/watch/' + encryptedId : '/folder/' + encryptedId;
 			} else if (fileExtension) {
 				const name = obj.name;
 				const bytes = obj.size || 0;
