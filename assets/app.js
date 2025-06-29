@@ -14,7 +14,7 @@ function init() {
 		html += `
    <div class="col-md-12">
    <div class="card bg-dark bg-opacity-10"> 
-    <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
+  <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
   </div>
  </div>
  </div>
@@ -1673,8 +1673,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	<div class="card-body">
 		<div class="row g-3">
 			<div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
-				<div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  
-					<div style="position: relative; padding-bottom: 56.25%;"> 
+				<div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .4; width: 100%; max-width: 640px;">  
+					<div style="position: relative; padding-bottom: 50%;"> 
 						<div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
 							${player} 
 						</div>
@@ -1767,8 +1767,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 						</a>
 						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							<span class="sr-only"></span>
-						 </button>
-						   <div class="dropdown-menu">
+						   </button>
+						      <div class="dropdown-menu">
                        <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
                         <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
                          </a>
@@ -1895,22 +1895,22 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                             <td>MD5: <code>${md5Checksum}</code></td>
                         </tr>
                     </tbody>
-                </table>
+                  </table>
                 
-                ${UI.disable_video_download ? '' : `
-                <div class="col-md-12">
-                    <div class="text-center">
+                   ${UI.disable_video_download ? '' : `
+                      <div class="col-md-12">
+                       <div class="text-center">
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
-                            <a href="${url}" type="button" class="btn btn-success">
-                                <i class="fas fa-bolt fa-fw"></i>Index Link
-                            </a>
-                            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
-                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span class="sr-only"></span>
-                            </button>
-                            <div class="dropdown-menu">
-                       <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                        <a href="${url}" type="button" class="btn btn-success">
+                        <i class="fas fa-bolt fa-fw"></i>Index Link
+                        </a>
+                        <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="sr-only"></span>
+                        </button>
+                        <div class="dropdown-menu">
+                        <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
                         <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
                          </a>
                           <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
