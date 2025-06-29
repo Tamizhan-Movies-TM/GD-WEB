@@ -1749,34 +1749,35 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	}
 
 var content = `
-	<div class="card">
-		<div class="card-header ${UI.file_view_alert_class}">
-			<i class="fas fa-file-alt fa-fw"></i>File Information
-		</div>
-		<div class="card-body row g-3">
-			<div class="col-lg-4 col-md-12">
-				<div class="h-100 border border-transparent rounded" style="--bs-border-opacity: .5;">
-					${player}
-				</div>
-			</div>
-			<div class="col-lg-8 col-md-12">
-				<table class="table table-dark">
-					<tbody>
-						<tr>
-							<th>
-								<i class="fa-regular fa-folder-closed fa-fw"></i>
-								<span class="tth">Name</span>
-							   </th>
-							     <td>${name}</td>
-                    </tr>
-                       <tr>
-                          <th>
+<div class="card">
+    <div class="card-header ${UI.file_view_alert_class}">
+        <i class="fas fa-file-alt fa-fw"></i>File Information
+    </div>
+    <div class="card-body">
+        <div class="row g-3">  
+            <div class="col-lg-4 col-md-12">
+                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+                    ${player}
+                </div>
+            </div>
+            <div class="col-lg-8 col-md-12">
+                <table class="table table-dark mb-0">  <!-- Added mb-0 to remove bottom margin -->
+                    <tbody>
+                        <tr>
+                            <th>
+                                <i class="fa-regular fa-folder-closed fa-fw"></i>
+                                <span class="tth">Name</span>
+                            </th>
+                            <td>${name}</td>
+                           </tr>
+													  <tr>
+                            <th>
                            <i class="fa-solid fa-tag fa-fw"></i>
                              <span class="tth">Type</span>
                             </th>
                             <td>${formatMimeType(mimeType)}</td>
-                        </tr>
-                        <tr>
+                          </tr>
+                          <tr>
                             <th>
                                 <i class="fa-solid fa-box-archive fa-fw"></i>
                                 <span class="tth">Size</span>
