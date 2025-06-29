@@ -1674,8 +1674,9 @@ var content = `
 			<div class="col-lg-4 col-md-12">
 				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
 					${player}
-				</div>
-			</div>
+					</td>
+				</tr>
+			</tbody>
 			<div class="col-lg-8 col-md-12">
 				<table class="table table-dark">
 					<tbody>
@@ -1711,13 +1712,14 @@ var content = `
 							<th>
 								<i class="fa-solid fa-file-circle-check fa-fw"></i>
 								<span class="tth">Checksum</span>
-							</th>
+							  </th>
 							<td>MD5: <code>${md5Checksum}</code>
 							</td>
 						</tr>
 					</tbody>
 				</table>
 		  </div>
+		 </div>
 		${UI.disable_video_download ? `` : `
 	    <!-- First row of buttons - fixed width -->
       <div class="d-flex justify-content-center gap-3 mb-3">
