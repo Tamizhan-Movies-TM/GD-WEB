@@ -2,89 +2,6 @@
 // v2.3.5
 // Initialize the page
 function init() {
-	// Add Vapor theme outline button styles
-   const style = document.createElement('style');
-    style.textContent = `
-        /* Base Button Styles */
-        .glow-btn {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.2s ease;
-            z-index: 1;
-            border: 2px solid;
-            border-radius: 8px;
-            font-weight: bold;
-            padding: 8px 16px;
-            background: rgba(0, 0, 0, 0.3);
-            width: 160px;
-            margin-bottom: 10px;
-            color: white !important; /* Force white text always */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            outline: none;
-        }
-
-        /* Color Definitions */
-        .glow-warning {
-            border-color: #ffcc00;
-            --btn-color: #ffcc00;
-        }
-        .glow-info {
-            border-color: #00ccff;
-            --btn-color: #00ccff;
-        }
-        .glow-success {
-            border-color: #00ff99;
-            --btn-color: #00ff99;
-        }
-        .glow-danger {
-            border-color: #ff6666;
-            --btn-color: #ff6666;
-        }
-
-        /* Click Effect - Inner Color Fill */
-        .glow-btn:active {
-            background-color: var(--btn-color);
-            background-image: linear-gradient(
-                to bottom,
-                var(--btn-color),
-                rgba(0,0,0,0.2)
-            );
-            box-shadow: 
-                0 0 10px var(--btn-color),
-                inset 0 0 10px rgba(255,255,255,0.3);
-        }
-
-        /* Hover Effect */
-        .glow-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--btn-color);
-        }
-
-        /* Internal Shine Animation */
-        .glow-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255,255,255,0.2),
-                transparent
-            );
-            transition: all 0.6s ease;
-            z-index: -1;
-        }
-        .glow-btn:hover::before {
-            left: 100%;
-        }
-    `;
-    document.head.appendChild(style);
-	
 	document.siteName = $('title').html();
 	var html = `<header>
    <div id="nav">
@@ -209,30 +126,36 @@ function getQueryVariable(variable) {
 }
 
 function render(path) {
-    if (path.indexOf("?") > 0) {
-        path = path.substr(0, path.indexOf("?"));
-    }
-    title(path);
-    nav(path);
-    var reg = /\/\d+:$/g;
-    if (path.includes("/fallback")) {
-        window.scroll_status = { event_bound: false, loading_lock: false };
-        const can_preview = getQueryVariable('a');
-        const id = getQueryVariable('id');
-        if (can_preview) {
-            return fallback(id, true)
-        } else {
-            return list(null, id, true);
-        }
-    } else if (window.MODEL.is_search_page) {
-        window.scroll_status = { event_bound: false, loading_lock: false };
-        render_search_result_list()
-    } else if (path.match(reg) || path.slice(-1) == '/') {
-        window.scroll_status = { event_bound: false, loading_lock: false };
-        list(path);
-    } else {
-        file(path);
-    }
+	if (path.indexOf("?") > 0) {
+		path = path.substr(0, path.indexOf("?"));
+	}
+	title(path);
+	nav(path);
+	// .../0: This
+	var reg = /\/\d+:$/g;
+	if (path.includes("/fallback")) {
+		// Used to store the state of some scroll events
+		window.scroll_status = {
+			// Whether the scroll event is bound
+			event_bound: false,
+			// "Scroll to the bottom, loading more data" event lock
+			loading_lock: false
+		};
+		const can_preview = getQueryVariable('a');
+		const id = getQueryVariable('id');
+		if (can_preview) {
+			return fallback(id, true)
+		} else {
+			return list(null, id, true);
+		}
+	} else if (window.MODEL.is_search_page) {
+		// Used to store the state of some scroll events
+		window.scroll_status = {
+			// Whether the scroll event is bound
+			event_bound: false,
+			// "Scroll to the bottom, loading more data" event lock
+			loading_lock: false
+		};
 		render_search_result_list()
 	} else if (path.match(reg) || path.slice(-1) == '/') {
 		// Used to store the state of some scroll events
@@ -659,85 +582,150 @@ function askPassword(path) {
  * @param files request result
  */
 function append_files_to_fallback_list(path, files) {
-    try {
-        var $list = $('#list');
-        var is_lastpage_loaded = null === $list.data('nextPageToken');
-        var is_firstpage = '0' == $list.data('curPageIndex');
-        let html = "";
-        var totalsize = 0;
-        var is_file = false;
-        if (files.length == 0) {
-            html = `<div class="card-body"><div class="d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4">
-                        <span><i class="fa-solid fa-heart-crack fa-2xl me-0"></i></span>
-                        <span>This folder is empty</span>
-                    </div></div>`;
-        }
-        for (let i in files) {
-            let item = files[i];
-            item['createdTime'] = utc2jakarta(item['createdTime']);
-            let link = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+	try {
+		console.log('append_files_to_fallback_list');
+		var $list = $('#list');
+		// Is it the last page of data?
+		var is_lastpage_loaded = null === $list.data('nextPageToken');
+		var is_firstpage = '0' == $list.data('curPageIndex');
 
-            if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-                let folderUrl = "/folder/" + item.encryptedId;
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${folderUrl}" style="color: ${UI.folder_text_color};" class="folder countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">${UI.display_download ? `<a class="d-flex align-items-center" href="${folderUrl}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
-            } else {
-                totalsize += Number(item.size || 0);
-                item['size'] = formatFileSize(item['size']) || '—';
-                is_file = true;
-                let fileUrl = "/watch/" + item.encryptedId;
-                let ext = item.fileExtension;
+		html = "";
+		let targetFiles = [];
+		var totalsize = 0;
+		var is_file = false
+		if (files.length == 0) {
+			html = `<div class="card-body"><div class="d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4">
+						<span><i class="fa-solid fa-heart-crack fa-2xl me-0"></i></span>
+						<span>This folder is empty</span>
+					</div></div>`;
+		}
+		for (i in files) {
+			var item = files[i];
+			var p = "/fallback?id=" + item.id
+			item['createdTime'] = utc2jakarta(item['createdTime']);
+			// replace / with %2F
+			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
+				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">
+				${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
+			} else {
+				var totalsize = totalsize + Number(item.size || 0);
+				item['size'] = formatFileSize(item['size']) || '—';
+				var is_file = true
+				var epn = item.name;
+				var link = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+				var pn = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+				var c = "file";
+				// README is displayed after the last page is loaded, otherwise it will affect the scroll event
+				if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
+					get_file(p, item, function(data) {
+						markdown("#readme_md", data);
+						$("img").addClass("img-fluid")
+					});
+				}
+				if (item.name == "HEAD.md" && UI.render_head_md) {
+					get_file(p, item, function(data) {
+						markdown("#head_md", data);
+						$("img").addClass("img-fluid")
+					});
+				}
+				var ext = item.fileExtension
+				//if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
+				//targetFiles.push(filepath);
+				pn += "?a=view";
+				c += " view";
+				//}
+				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${p}&a=view"><span>`
 
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="view countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${fileUrl}"><span>`;
+				if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
+					html += video_icon
+				} else if ("|html|php|css|go|java|js|json|txt|sh|".indexOf(`|${ext}|`) >= 0) {
+					html += code_icon
+				} else if ("|zip|rar|tar|.7z|.gz|".indexOf(`|${ext}|`) >= 0) {
+					html += zip_icon
+				} else if ("|bmp|jpg|jpeg|png|gif|".indexOf(`|${ext}|`) >= 0) {
+					html += image_icon
+				} else if ("|m4a|mp3|flac|wav|ogg|".indexOf(`|${ext}|`) >= 0) {
+					html += audio_icon
+				} else if ("|md|".indexOf(`|${ext}|`) >= 0) {
+					html += markdown_icon
+				} else if ("|pdf|".indexOf(`|${ext}|`) >= 0) {
+					html += pdf_icon
+				} else if (item.mimeType.startsWith('application/vnd.google-apps.')) {
+					html += `<img src="${item.iconLink}" class="d-flex" style="width: 1.24rem; margin-left: 0.12rem; margin-right: 0.12rem;">`
+				} else {
+					html += file_icon
+				}
 
-                if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
-                    html += video_icon;
-                } else if ("|html|php|css|go|java|js|json|txt|sh|".indexOf(`|${ext}|`) >= 0) {
-                    html += code_icon;
-                } else if ("|zip|rar|tar|.7z|.gz|".indexOf(`|${ext}|`) >= 0) {
-                    html += zip_icon;
-                } else if ("|bmp|jpg|jpeg|png|gif|".indexOf(`|${ext}|`) >= 0) {
-                    html += image_icon;
-                } else if ("|m4a|mp3|flac|wav|ogg|".indexOf(`|${ext}|`) >= 0) {
-                    html += audio_icon;
-                } else if ("|md|".indexOf(`|${ext}|`) >= 0) {
-                    html += markdown_icon;
-                } else if ("|pdf|".indexOf(`|${ext}|`) >= 0) {
-                    html += pdf_icon;
-                } else if (item.mimeType && item.mimeType.startsWith('application/vnd.google-apps.')) {
-                    html += `<img src="${item.iconLink}" class="d-flex" style="width: 1.24rem; margin-left: 0.12rem; margin-right: 0.12rem;">`;
-                } else {
-                    html += file_icon;
-                }
+				html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
+				${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
+			}
+		}
+		if (is_file && UI.allow_selecting_files) {
+			document.getElementById('select_items').style.display = 'block';
+		}
 
-                html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width: 85px;">${item['size']}</span>` : ``}${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5-.5h4.5V1.5A1.5 1.5 0 0 1 7 0h2A1.5 1.5 0 0 1 10.5 1.5v7.9h4.5a.5.5 0 0 1 .5.5v2.6a.5.5 0 0 1-.5.5H1a.5.5 0 0 1-.5-.5V9.9z"/></svg></a>` : ``}</div>`;
-            }
-        }
-        if (is_file && UI.allow_selecting_files) {
-            document.getElementById('select_items').style.display = 'block';
-        }
-        $list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
-        if (is_lastpage_loaded) {
-            let total_size = formatFileSize(totalsize) || '0 Bytes';
-            let total_items = $list.find('.countitems').length;
-            let total_files = $list.find('.size_items').length;
-            if (total_items == 0) {
-                $('#count').removeClass('d-none').find('.number').text("0 item");
-            } else if (total_items == 1) {
-                $('#count').removeClass('d-none').find('.number').text(total_items + " item");
-            } else {
-                $('#count').removeClass('d-none').find('.number').text(total_items + " items");
-            }
-            if (total_files == 0) {
-                $('#count').removeClass('d-none').find('.totalsize').text("0 file");
-            } else if (total_files == 1) {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
-            } else {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
-            }
-        }
-    } catch (e) {
-        console.log(e);
-    }
+
+		/*let targetObj = {};
+		targetFiles.forEach((myFilepath, myIndex) => {
+		    if (!targetObj[myFilepath]) {
+		        targetObj[myFilepath] = {
+		            filepath: myFilepath,
+		            prev: myIndex === 0 ? null : targetFiles[myIndex - 1],
+		            next: myIndex === targetFiles.length - 1 ? null : targetFiles[myIndex + 1],
+		        }
+		    }
+		})
+		// console.log(targetObj)
+		if (Object.keys(targetObj).length) {
+		    localStorage.setItem(path, JSON.stringify(targetObj));
+		    // console.log(path)
+		}*/
+
+		if (targetFiles.length > 0) {
+			let old = localStorage.getItem(path);
+			let new_children = targetFiles;
+			// Reset on page 1; otherwise append
+			if (!is_firstpage && old) {
+				let old_children;
+				try {
+					old_children = JSON.parse(old);
+					if (!Array.isArray(old_children)) {
+						old_children = []
+					}
+				} catch (e) {
+					old_children = [];
+				}
+				new_children = old_children.concat(targetFiles)
+			}
+
+			localStorage.setItem(path, JSON.stringify(new_children))
+		}
+
+		// When it is page 1, remove the horizontal loading bar
+		$list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
+		// When it is the last page, count and display the total number of items
+		if (is_lastpage_loaded) {
+			total_size = formatFileSize(totalsize) || '0 Bytes';
+			total_items = $list.find('.countitems').length;
+			total_files = $list.find('.size_items').length;
+			if (total_items == 0) {
+				$('#count').removeClass('d-none').find('.number').text("0 item");
+			} else if (total_items == 1) {
+				$('#count').removeClass('d-none').find('.number').text(total_items + " item");
+			} else {
+				$('#count').removeClass('d-none').find('.number').text(total_items + " items");
+			}
+			if (total_files == 0) {
+				$('#count').removeClass('d-none').find('.totalsize').text("0 file");
+			} else if (total_files == 1) {
+				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
+			} else {
+				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
+			}
+		}
+	} catch (e) {
+		console.log(e);
+	}
 }
 
 /**
@@ -794,14 +782,10 @@ function append_files_to_list(path, files) {
 			var ext = item.fileExtension
 			//if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
 			//targetFiles.push(filepath);
-			if (item.mimeType === 'application/vnd.google-apps.folder') {
-      pn = "/folder/" + item.encryptedId;
-      c += " folder";
-      } else {
-      pn = "/watch/" + item.encryptedId;
-      c += " view";
-      }
-			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${item.mimeType === 'application/vnd.google-apps.folder' ? '/folder/' + item.encryptedId : '/watch/' + item.encryptedId}"><span>`
+			pn += "?a=view";
+			c += " view";
+			//}
+			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
 
 			if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
 				html += video_icon
@@ -890,91 +874,7 @@ function append_files_to_list(path, files) {
 			$('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
 		}
 	}
-}function append_files_to_fallback_list(path, files) {
-    try {
-        var $list = $('#list');
-        var is_lastpage_loaded = null === $list.data('nextPageToken');
-        var is_firstpage = '0' == $list.data('curPageIndex');
-
-        html = "";
-        let targetFiles = [];
-        var totalsize = 0;
-        var is_file = false;
-        if (files.length == 0) {
-            html = `<div class="card-body"><div class="d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4">
-                        <span><i class="fa-solid fa-heart-crack fa-2xl me-0"></i></span>
-                        <span>This folder is empty</span>
-                    </div></div>`;
-        }
-        for (i in files) {
-            var item = files[i];
-            item['createdTime'] = utc2jakarta(item['createdTime']);
-            let link = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
-
-            if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-                let folderUrl = "/folder/" + item.encryptedId;
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${folderUrl}" style="color: ${UI.folder_text_color};" class="folder countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">${UI.display_download ? `<a class="d-flex align-items-center" href="${folderUrl}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
-            } else {
-                totalsize = totalsize + Number(item.size || 0);
-                item['size'] = formatFileSize(item['size']) || '—';
-                is_file = true;
-                let fileUrl = "/watch/" + item.encryptedId;
-                let c = "file view";
-                var ext = item.fileExtension;
-
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="view countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${fileUrl}"><span>`;
-
-                if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
-                    html += video_icon;
-                } else if ("|html|php|css|go|java|js|json|txt|sh|".indexOf(`|${ext}|`) >= 0) {
-                    html += code_icon;
-                } else if ("|zip|rar|tar|.7z|.gz|".indexOf(`|${ext}|`) >= 0) {
-                    html += zip_icon;
-                } else if ("|bmp|jpg|jpeg|png|gif|".indexOf(`|${ext}|`) >= 0) {
-                    html += image_icon;
-                } else if ("|m4a|mp3|flac|wav|ogg|".indexOf(`|${ext}|`) >= 0) {
-                    html += audio_icon;
-                } else if ("|md|".indexOf(`|${ext}|`) >= 0) {
-                    html += markdown_icon;
-                } else if ("|pdf|".indexOf(`|${ext}|`) >= 0) {
-                    html += pdf_icon;
-                } else if (item.mimeType.startsWith('application/vnd.google-apps.')) {
-                    html += `<img src="${item.iconLink}" class="d-flex" style="width: 1.24rem; margin-left: 0.12rem; margin-right: 0.12rem;">`;
-                } else {
-                    html += file_icon;
-                }
-
-                html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width: 85px;">${item['size']}</span>` : ``}${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5-.5h4.5V1.5A1.5 1.5 0 0 1 7 0h2A1.5 1.5 0 0 1 10.5 1.5v7.9h4.5a.5.5 0 0 1 .5.5v2.6a.5.5 0 0 1-.5.5H1a.5.5 0 0 1-.5-.5V9.9z"/></svg></a>` : ``}</div>`;
-            }
-        }
-        if (is_file && UI.allow_selecting_files) {
-            document.getElementById('select_items').style.display = 'block';
-        }
-        $list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
-        if (is_lastpage_loaded) {
-            let total_size = formatFileSize(totalsize) || '0 Bytes';
-            let total_items = $list.find('.countitems').length;
-            let total_files = $list.find('.size_items').length;
-            if (total_items == 0) {
-                $('#count').removeClass('d-none').find('.number').text("0 item");
-            } else if (total_items == 1) {
-                $('#count').removeClass('d-none').find('.number').text(total_items + " item");
-            } else {
-                $('#count').removeClass('d-none').find('.number').text(total_items + " items");
-            }
-            if (total_files == 0) {
-                $('#count').removeClass('d-none').find('.totalsize').text("0 file");
-            } else if (total_files == 1) {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
-            } else {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
-            }
-        }
-    } catch (e) {
-        console.log(e);
-    }
 }
-
 
 /**
  * Render the search results list. There is a lot of repetitive code, but there are different logics in it.
@@ -1350,7 +1250,7 @@ async function fallback(id, type) {
 				const video = ["mp4", "webm", "avi", "mpg", "mpeg", "mkv", "rm", "rmvb", "mov", "wmv", "asf", "ts", "flv", "3gp", "m4v"];
 				const audio = ["mp3", "flac", "wav", "ogg", "m4a", "aac", "wma", "alac"];
 				if (mimeType === "application/vnd.google-apps.folder") {
-					window.location.href = <a href="/watch/ENCRYPTED_ID">View</a>
+					window.location.href = window.location.pathname + "/";
 				} else if (fileExtension) {
 					const name = obj.name;
 					const bytes = obj.size || 0;
@@ -1420,7 +1320,7 @@ async function file(path) {
 			const video = ["mp4", "webm", "avi", "mpg", "mpeg", "mkv", "rm", "rmvb", "mov", "wmv", "asf", "ts", "flv", "3gp", "m4v"];
 			const audio = ["mp3", "flac", "wav", "ogg", "m4a", "aac", "wma", "alac"];
 			if (mimeType === "application/vnd.google-apps.folder") {
-				window.location.href = isFile ? '/watch/' + encryptedId : '/folder/' + encryptedId;
+				window.location.href = window.location.pathname + "/";
 			} else if (fileExtension) {
 				const name = obj.name;
 				const bytes = obj.size || 0;
@@ -1727,7 +1627,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
 
 
- // Document display video  mkv|mp4|webm|avi| 
+    // Document display video |mp4|webm|avi|
    function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	 // Define all player icons
     const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
@@ -1776,12 +1676,12 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 				<div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  
 					<div style="position: relative; padding-bottom: 56.25%;"> 
 						<div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
-						${player} 
-					 </div>
-			    </div>
-				 </div>
-			  </div>
-			 <div class="col-lg-8 col-md-12">
+							${player} 
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-8 col-md-12">
 				<table class="table table-dark">
 					<tbody>
 						<tr>
@@ -1789,16 +1689,16 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 								<i class="fa-regular fa-folder-closed fa-fw"></i>
 								<span class="tth">Name</span>
 							</th>
-						 <td>${name}</td>
-						 </tr>
-						 <tr>
+							<td>${name}</td>
+						</tr>
+						<tr>
 							<th>
-							 <i class="fa-regular fa-clock fa-fw"></i>
-							 <span class="tth">Datetime</span>
-							 </th>
+								<i class="fa-regular fa-clock fa-fw"></i>
+								<span class="tth">Datetime</span>
+							</th>
 							<td>${createdTime}</td>
-						 </tr>
-						 <tr>
+						</tr>
+						<tr>
 							<th>
 								<i class="fa-solid fa-tag fa-fw"></i>
 								<span class="tth">Type</span>
@@ -1807,96 +1707,84 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 						</tr>
 						<tr>
 							<th>
-							 <i class="fa-solid fa-box-archive fa-fw"></i>
-							 <span class="tth">Size</span>
+								<i class="fa-solid fa-box-archive fa-fw"></i>
+								<span class="tth">Size</span>
 							</th>
-						 <td>${size}</td>
-						 </tr>
-						 <tr>
+							<td>${size}</td>
+						</tr>
+						<tr>
 							<th>
-							<i class="fa-solid fa-file-circle-check fa-fw"></i>
-							<span class="tth">Checksum</span>
+								<i class="fa-solid fa-file-circle-check fa-fw"></i>
+								<span class="tth">Checksum</span>
 							</th>
 							<td>MD5: <code>${md5Checksum}</code>
-						 </td>
+							</td>
 						</tr>
 					</tbody>
 				</table>
-	     </div>
-			 </div>
+			</div>
+		</div>
 		${UI.disable_video_download ? `` : `
-    <!-- First row of buttons -->
-    <div class="d-flex justify-content-center gap-3 mb-3">
-        <button type="button" class="glow-btn glow-warning"
-            onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-            <span class="d-flex align-items-center">
-                <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">
-                VLC Player
-            </span>
-        </button>
+		<!-- First row of buttons - fixed width -->
+      <div class="d-flex justify-content-center gap-3 mb-3">
+      <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
+      onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+      <span class="d-flex align-items-center">
+      ${vlc_icon} VLC Player
+      </span>
+      </button>
 
-        <button type="button" class="glow-btn glow-info"
-            onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-            <span class="d-flex align-items-center gap-1">
-                <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">
-                MX Player
-            </span>
-        </button>
-    </div>
-    
-    <!-- Second row of buttons -->
-    <div class="d-flex justify-content-center gap-3 mb-4">
-        <button type="button" class="glow-btn glow-success"
-            onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-            <span class="d-flex align-items-center gap-1">
-                <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">
-                XPlayer
-            </span>
-        </button>
-
-        <button type="button" class="glow-btn glow-danger"
-            onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-            <span class="d-flex align-items-center gap-1"> 
-                <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">
-                PLAYit
-            </span>
-        </button>
+      <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
+      onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+      <span class="d-flex align-items-center gap-1">
+      ${mxplayer_icon} MX Player
+      </span>
+      </button> 
       </div>
-			<div class="row mt-2">
+            
+      <!-- Second row of buttons - fixed width -->
+      <div class="d-flex justify-content-center gap-3 mb-4">
+      <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
+       onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+      <span class="d-flex align-items-center gap-1">
+      ${xplayer_icon} XPlayer
+      </span>
+      </button>
+
+      <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
+      onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+      <span class="d-flex align-items-center gap-1"> 
+      ${playit_icon} PLAYit
+			</span>
+      </button>
+     </div>
+     <div class="row mt-2">
 			<div class="col-md-12">
 				<div class="d-flex justify-content-center">
 					<div class="btn-group">
 						<a href="${url}" type="button" class="btn btn-success">
 							<i class="fas fa-bolt fa-fw"></i>Index Download Link
-                </a>
-                 <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                   <span class="sr-only"></span>
-                     </button>
-                      <div class="dropdown-menu">
-                       <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                        <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
-                         </a>
-                          <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                          <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
-                           </a>
-                           <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                           <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 24px; width: 24px; margin-right: 5px;"> MX Player
-                           </a>
-                           <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                           <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 24px; width: 24px; margin-right: 5px;"> VLC Player
-                           </a>
-                           <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">
-                           <img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 24px; width: 24px; margin-right: 5px;"> 1DM (Free)
-                          </a>
-                        </div>
-					            </div> 
-				             </div>
-			            </div>`}
-		            </div>
-	            </div>`;
-	  $("#content").html(content);
+						</a>
+						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<span class="sr-only"></span>
+						 </button>
+						 <div class="dropdown-menu">
+							<a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		`}
+	</div>
+</div>`;
+$("#content").html(content);
 
-  // Load Video.js and initialize the player
+	// Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
 	videoJsScript.onload = function() {
@@ -2014,13 +1902,23 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                             <span class="sr-only"></span>
                             </button>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">Playit</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">XPlayer</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">MX Player</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">VLC Player</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name_safe};end">1DM (Free)</a>
-                            </div>
+                       <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                        <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
+                         </a>
+                          <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                          <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
+                           </a>
+                           <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                           <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 24px; width: 24px; margin-right: 5px;"> MX Player
+                           </a>
+                           <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                           <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 24px; width: 24px; margin-right: 5px;"> VLC Player
+                           </a>
+                           <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">
+                           <img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 24px; width: 24px; margin-right: 5px;"> 1DM (Free)
+                          </a>
                         </div>
+                      </div>
                     </div>
                 </div>
                 `}
@@ -2163,27 +2061,23 @@ window.onpopstate = function() {
 	render(path);
 }
 
-// SPA navigation for .folder/.view links with pushState
 $(function() {
-    init();
-    var path = window.location.pathname;
+	init();
+	var path = window.location.pathname;
+	/*$("body").on("click", '.folder', function () {
+	    var url = $(this).attr('href');
+	    history.pushState(null, null, url);
+	    render(url);
+	    return false;
+	});
+	$("body").on("click", '.view', function () {
+	    var url = $(this).attr('href');
+	    history.pushState(null, null, url);
+	    render(url);
+	    return false;
+	});*/
 
-    $("body").on("click", '.folder', function (e) {
-        e.preventDefault();
-        var url = $(this).attr('href');
-        history.pushState(null, null, url);
-        render(url);
-        return false;
-    });
-    $("body").on("click", '.view', function (e) {
-        e.preventDefault();
-        var url = $(this).attr('href');
-        history.pushState(null, null, url);
-        render(url);
-        return false;
-    });
-
-    render(path);
+	render(path);
 });
 
 // Copy to Clipboard for Direct Links, This will be modified soon with other UI
