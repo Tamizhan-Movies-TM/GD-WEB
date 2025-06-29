@@ -1747,7 +1747,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			player_css = ''
 		}
 	}
-	// Add the container and card elements
+
 // Add the container and card elements
 var content = `
 <div class="card">
@@ -1773,13 +1773,6 @@ var content = `
                         </tr>
                         <tr>
                             <th>
-                                <i class="fa-regular fa-clock fa-fw"></i>
-                                <span class="tth">Datetime</span>
-                            </th>
-                            <td>${createdTime}</td>
-                        </tr>
-                        <tr>
-                            <th>
                                 <i class="fa-solid fa-tag fa-fw"></i>
                                 <span class="tth">Type</span>
                             </th>
@@ -1791,13 +1784,6 @@ var content = `
                                 <span class="tth">Size</span>
                             </th>
                             <td>${size}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-file-circle-check fa-fw"></i>
-                                <span class="tth">Checksum</span>
-                            </th>
-                            <td>MD5: <code>${md5Checksum}</code></td>
                         </tr>
                     </tbody>
                 </table>
@@ -1872,7 +1858,7 @@ var content = `
     </div>
 </div>`;
 $("#content").html(content);
-
+		 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
