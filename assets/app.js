@@ -1755,9 +1755,8 @@ var content = `
         <i class="fas fa-file-alt fa-fw"></i>File Information
     </div>
     <div class="card-body">
-        <div class="row g-0">  
-            <div class="col-lg-4 col-md-12 pe-">  
-                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+        <div class="row g-0">   
+                <div border border-dark rounded" style="--bs-border-opacity: .5;">
                     ${player}
                 </div>
             </div>
