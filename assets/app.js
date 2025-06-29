@@ -1680,8 +1680,7 @@ var content = `
                        <table class="table table-dark mb-0">  
                         <tbody>
                         <tr>
-												 <tr>
-                          <th>
+                         <th>
                           <i class="fa-regular fa-folder-closed fa-fw"></i>
                            <span class="tth">Name</span>
                            </th>
