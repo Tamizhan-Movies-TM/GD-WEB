@@ -1753,11 +1753,10 @@ var content = `
 <div class="card">
     <div class="card-header ${UI.file_view_alert_class}">
         <i class="fas fa-file-alt fa-fw"></i>File Information
-    </div>
+    &nbsp;
     <div class="card-body">
-        <div class="row g-0">  <!-- Changed to g-0 to remove gap -->
-            <div pe-2"> 
-                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+        <div class="row g-0">  
+                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .3;">
                     ${player}
                 </div>
             </div>
