@@ -1674,9 +1674,9 @@ var content = `
 			<div class="col-lg-4 col-md-12">
 				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
 					${player}
-					</td>
-				</tr>
-			</tbody>
+				</div>
+	    </div>
+			</div>
 			<div class="col-lg-8 col-md-12">
 				<table class="table table-dark">
 					<tbody>
