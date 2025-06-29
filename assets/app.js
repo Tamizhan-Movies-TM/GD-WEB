@@ -1717,10 +1717,8 @@ var content = `
 						</tr>
 					</tbody>
 				</table>
-			</div>
-		</div>
+		  </div>
 		${UI.disable_video_download ? `` : `
-		<!-- First row of buttons - fixed width -->
       <div class="d-flex justify-content-center gap-3 mb-3">
       <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
       onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
@@ -1737,7 +1735,6 @@ var content = `
       </button> 
       </div>
             
-      <!-- Second row of buttons - fixed width -->
       <div class="d-flex justify-content-center gap-3 mb-4">
       <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
        onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
@@ -1780,7 +1777,6 @@ var content = `
                            <img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 24px; width: 24px; margin-right: 5px;"> 1DM (Free)
                           </a>
                         </div>
-					            </div> 
 				             </div>
 			            </div>`}
 		            </div>
