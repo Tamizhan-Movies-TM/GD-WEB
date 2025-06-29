@@ -1755,17 +1755,18 @@ var content = `
         <i class="fas fa-file-alt fa-fw"></i>File Information
     </div>
     <div class="card-body">
-        <div class="row g-0">  <!-- Changed to g-0 to remove gap -->
+        <div class="row g-0">  
             <div class="col-lg-4 col-md-12 pe-2">  <!-- Added pe-2 for small right padding -->
                 <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
                     ${player}
                 </div>
             </div>
             <div class="col-lg-8 col-md-12">
-                <table class="table table-dark mb-0">  <!-- Added mb-0 to remove bottom margin -->
+                <table class="table table-dark mb-0">  
                     <tbody>
                         <tr>
                             <th>
+														    <div class="col-lg-7 col-md-12">
                                 <i class="fa-regular fa-folder-closed fa-fw"></i>
                                 <span class="tth">Name</span>
                             </th>
