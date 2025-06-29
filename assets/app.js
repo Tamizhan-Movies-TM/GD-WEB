@@ -1672,14 +1672,14 @@ var content = `
         <i class="fas fa-file-alt fa-fw"></i>File Information
     </div>
     <div class="card-body">
-        <div class="row g-3">
-            <div class="col-lg-4 col-md-12">
+        <div class="row g-0">  <!-- Changed to g-0 to remove gap -->
+            <div class="col-lg-4 col-md-12 pe-2">  <!-- Added pe-2 for small right padding -->
                 <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
                     ${player}
                 </div>
             </div>
             <div class="col-lg-8 col-md-12">
-                <table class="table table-dark">
+                <table class="table table-dark mb-0">  <!-- Added mb-0 to remove bottom margin -->
                     <tbody>
                         <tr>
                             <th>
@@ -1721,8 +1721,9 @@ var content = `
             </div>
         </div>
         ${UI.disable_video_download ? `` : `
+        <!-- Buttons sections remain unchanged -->
         <!-- First row of buttons - fixed width -->
-        <div class="d-flex justify-content-center gap-3 mb-3">
+        <div class="d-flex justify-content-center gap-3 my-3">  <!-- Changed mb-3 to my-3 for vertical spacing -->
             <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 <span class="d-flex align-items-center">
@@ -1739,7 +1740,7 @@ var content = `
         </div>
 
         <!-- Second row of buttons - fixed width -->		
-        <div class="d-flex justify-content-center gap-3 mb-4">
+        <div class="d-flex justify-content-center gap-3 mb-3">  <!-- Changed mb-4 to mb-3 -->
             <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 <span class="d-flex align-items-center gap-1">
@@ -1754,7 +1755,7 @@ var content = `
                 </span>
             </button>
         </div>
-        <div class="row mt-2">
+        <div class="row">
             <div class="col-md-12">
                 <div class="d-flex justify-content-center">
                     <div class="btn-group">
@@ -1788,7 +1789,7 @@ var content = `
     </div>
 </div>`;
 $("#content").html(content);
-
+		 
 	// Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
