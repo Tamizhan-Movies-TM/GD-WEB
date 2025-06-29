@@ -1756,8 +1756,8 @@ var content = `
     </div>
     <div class="card-body">
         <div class="row g-3">  
-            <p class="col-lg-4 col-md-12"</p>
-                <p class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;"</p>
+            <p> class="col-lg-4 col-md-12"</p>
+                <p> class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;"</p>
                     ${player}
                 </div>
             </div>
