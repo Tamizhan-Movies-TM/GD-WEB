@@ -1,5 +1,5 @@
 // Software: GDI-JS
-// Version: 2.3.7
+// Version: 2.3.6
 // Author: Parveen Bhadoo
 // Website: https://gdi.js.org
 
@@ -14,7 +14,6 @@ const domain_for_dl = domains_for_dl[Math.floor(Math.random() * domains_for_dl.l
 const blocked_region = ['']; // add regional codes seperated by comma, eg. ['IN', 'US', 'PK']
 const blocked_asn = []; // add ASN numbers from http://www.bgplookingglass.com/list-of-autonomous-system-numbers, eg. [16509, 12345]
 const authConfig = {
-  "siteName": "Google Drive Index", // Website name
   "client_id": "", // Client id from Google Cloud Console
   "client_secret": "", // Client Secret from Google Cloud Console
   "refresh_token": "", // Authorize token
@@ -22,82 +21,83 @@ const authConfig = {
   "service_account_json": randomserviceaccount, // don't touch this one
   "files_list_page_size": 100,
   "search_result_list_page_size": 100,
-  "enable_cors_file_down": false,
-  "enable_password_file_verify": false, // support for .password file not working right now
-  "direct_link_protection": false, // protects direct links with Display UI
+  "enable_cors_file_down": true,
+  "enable_password_file_verify": true, // support for .password file not working right now
+  "direct_link_protection": true, // protects direct links with Display UI
   "disable_anonymous_download": false, // disables direct links without session
-  "file_link_expiry": 7, // expire file link in set number of days
+  "file_link_expiry": 2, // expire file link in set number of days
   "search_all_drives": true, // search all of your drives instead of current drive if set to true
-  "enable_login": false, // set to true if you want to add login system
+  "enable_login": true, // set to true if you want to add login system
   "enable_signup": false, // set to true if you want to add signup system
   "enable_social_login": false, // set to true if you want to add social login system
   "google_client_id_for_login": "", // Google Client ID for Login
   "google_client_secret_for_login": "", // Google Client Secret for Login
   "redirect_domain": "", // Domain for login redirect eg. https://example.com
   "login_database": "Local", // KV or Local
-  "login_days": 7, // days to keep logged in
+  "login_days": 2, // days to keep logged in
   "enable_ip_lock": false, // set to true if you want to lock user downloads to user IP
   "single_session": false, // set to true if you want to allow only one session per user
   "ip_changed_action": false, // set to true if you want to logout user if IP changed
   "users_list": [{
-      "username": "admin",
-      "password": "admin",
+      "username": "karthick36",
+      "password": "Powerman@123",
     },
     {
       "username": "admin1",
-      "password": "admin1",
+      "password": "Rocketman@1",
     }
   ],
   "roots": [
     {
-      "id": "",
-      "name": "00-MUST-HAVE",
+      "id": "17DgpXJrsq7vERleJtNuuEDy9Mj4HIYpv",
+      "name": "Tamizhan Movies",
       "protect_file_link": false
   },
   ]
 };
-const crypto_base_key = "3225f86e99e205347b4310e437253bfd" // Example 256 bit key used, generate your own.
-const hmac_base_key = "4d1fbf294186b82d74fff2494c04012364200263d6a36123db0bd08d6be1423c" // Example 256 bit key used, generate your own.
-const encrypt_iv = new Uint8Array([247, 254, 106, 195, 32, 148, 131, 244, 222, 133, 26, 182, 20, 138, 215, 81]); // Example 128 bit IV used, generate your own.
+const crypto_base_key = "a4affcad11ea4c7f696e63edaf92095e" // Example 256 bit key used.
+const encrypt_iv = new Uint8Array([38,100,240,76,189,111,227,246,178,254,115,201,91,244,245,171]); // Example 128 bit IV used.
 const uiConfig = {
+  "siteName": "Tamizhan&nbsp;&nbsp;Moives", // Website name
   "theme": "darkly", // switch between themes, default set to slate, select from https://gitlab.com/GoogleDriveIndex/Google-Drive-Index
-  "version": "2.3.7", // don't touch this one. get latest code using generator at https://bdi-generator.hashhackers.com
+  "version": "2.3.6", // don't touch this one. get latest code using generator at https://bdi-generator.hashhackers.com
   // If you're using Image then set to true, If you want text then set it to false
   "logo_image": true, // true if you're using image link in next option.
   "logo_height": "", // only if logo_image is true
-  "logo_width": "100px", // only if logo_image is true
-  "favicon": "https://cdn.jsdelivr.net/npm/@googledrive/index@2.2.3/images/favicon.ico",
+  "logo_width": "45px", // only if logo_image is true
+  "favicon": "https://i.ibb.co/9y0Zh6F/Picsart-xzy.png",
   // if logo is true then link otherwise just text for name
-  "logo_link_name": "https://cdn.jsdelivr.net/npm/@googledrive/index@2.2.3/images/bhadoo-cloud-logo-white.svg",
-  "login_image": "https://i.imgur.com/5fHELJr.png", // Login page logo image
+  "logo_link_name": "https://i.ibb.co/yFFHzw6B/tamizhan.png",
+  "login_image": "https://i.ibb.co/9y0Zh6F/Picsart-xzy.png", // Login page logo image
   "fixed_header": true, // If you want the footer to be flexible or fixed.
-  "header_padding": "80", // Value 80 for fixed header, Value 20 for flexible header. Required to be changed accordingly in some themes.
+  "header_padding": "100", // Value 80 for fixed header, Value 20 for flexible header. Required to be changed accordingly in some themes.
   "nav_link_1": "Home", // change navigation link name
   "nav_link_3": "Current Path", // change navigation link name
   "nav_link_4": "Contact", // change navigation link name
   "fixed_footer": false, // If you want the footer to be flexible or fixed.
-  "hide_footer": true, // hides the footer from site entirely.
-  "header_style_class": "navbar-dark bg-primary", // navbar-dark bg-primary || navbar-dark bg-dark || navbar-light bg-light
-  "footer_style_class": "bg-primary", // bg-primary || bg-dark || bg-light
+  "hide_footer": false, // hides the footer from site entirely.
+  "header_style_class": "navbar-dark bg-dark-info-transparent", // navbar-dark bg-primary || navbar-dark bg-dark || navbar-light bg-light
+  "footer_style_class": "bg-dark bg-transparent", // bg-primary || bg-dark || bg-light
   "css_a_tag_color": "white", // Color Name or Hex Code eg. #ffffff
   "css_p_tag_color": "white", // Color Name or Hex Code eg. #ffffff
-  "folder_text_color": "white", // Color Name or Hex Code eg. #ffffff
+  "folder_text_color": "white", // Color Name or Hex Code eg. #ffffff 
   "loading_spinner_class": "text-light", // https://getbootstrap.com/docs/5.0/components/spinners/#colors
-  "search_button_class": "btn btn-danger", // https://getbootstrap.com/docs/5.0/components/buttons/#examples
+  "search_button_class": "btn btn-outline-success", // https://getbootstrap.com/docs/5.0/components/buttons/#examples
   "path_nav_alert_class": "alert alert-primary", // https://getbootstrap.com/docs/4.0/components/alerts/#examples
   "file_view_alert_class": "alert alert-danger", // https://getbootstrap.com/docs/4.0/components/alerts/#examples
-  "file_count_alert_class": "alert alert-secondary", // https://getbootstrap.com/docs/4.0/components/alerts/#examples
-  "contact_link": "https://telegram.dog/Telegram", // Link to Contact Button on Menu
-  "copyright_year": "2050", // year of copyright, can be anything like 2015 - 2020 or just 2020
-  "company_name": "The Bay Index", // Name next to copyright
-  "company_link": "https://telegram.dog/Telegram", // link of copyright name
+  "file_count_alert_class": "alert alert-Secondary", // https://getbootstrap.com/docs/4.0/components/alerts/#examples
+  "contact_link": "https://telegram.me/tamizhan_movies", // Link to Contact Button on Menu
+  "copyright_year": "2025", // year of copyright, can be anything like 2015 - 2020 or just 2020
+  "company_name": "Tamizhan Movies", // Name next to copyright
+  "company_link": "https://telegram.me/tamizhan_updates", // link of copyright name
   "credit": true, // Set this to true to give us credit
   "display_size": true, // Set this to false to hide display file size
-  "display_time": false, // Set this to false to hide display modified time for folder and files
-  "display_download": true, // Set this to false to hide download icon for folder and files on main index
+  "display_time": false, // Set this to false to hide display created time for folder and files
+  "display_download": false, // Set this to false to hide download icon for folder and files on main index
+  "display_drive_link": false, // This will add a Link Button to Google Drive of that particular file.
   "disable_player": false, // Set this to true to hide audio and video players
   "disable_video_download": false, // Remove Download, Copy Button on Videos
-  "allow_selecting_files": true, // Disable Selecting Files to Download in Bulk
+  "allow_selecting_files": false, // Disable Selecting Files to Download in Bulk
   "second_domain_for_dl": false, // If you want to display other URL for Downloading to protect your main domain.
   "poster": "https://cdn.jsdelivr.net/npm/@googledrive/index@2.2.3/images/poster.jpg", // Video poster URL or see Readme to how to load from Drive
   "audioposter": "https://cdn.jsdelivr.net/npm/@googledrive/index@2.2.3/images/music.jpg", // Video poster URL or see Readme to how to load from Drive
@@ -108,6 +108,7 @@ const uiConfig = {
   "unauthorized_owner_email": "abuse@telegram.org", // Unauthorized Error Page Owner Email
   "downloaddomain": domain_for_dl, // Ignore this and set domains at top of this page after service accounts.
   "show_logout_button": authConfig.enable_login ? true : false, // set to true if you want to add logout button
+  "allow_file_copy": false, // set to false if you want to disable file copy
 };
 
 const player_config = {
@@ -122,7 +123,7 @@ var gds = [];
 const drive_list = authConfig.roots.map(it => it.id)
 let app_js_file
 if (environment === 'production') {
-  app_js_file = uiConfig.jsdelivr_cdn_src + '@' + uiConfig.version + '/src/app.min.js'
+  app_js_file = "https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@3c279339ef0ce16366a95ed363e90f567e6655ea/assets/app.js"
 } else if (environment === 'development') {
   app_js_file = '/app.js'
 } else if (environment === 'local') {
@@ -135,11 +136,11 @@ function html(current_drive_order = 0, model = {}) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=no"/>
-  <title>${authConfig.siteName}</title>
+  <title>${uiConfig.siteName}</title>
   <meta name="robots" content="noindex" />
   <link rel="icon" href="${uiConfig.favicon}">
   <style>
-  .navbar-brand {font-family: Cinemathic Visualation;font-size: 30px;}.footer-text {font-family: Cinemathic Visualation;font-size: 40px;}a {color:white;}p {color:white;} .logo_new {font-family: Cinemathic Visualation;font-size: 50px;color:white;} .loading {position: fixed;z-index: 999;height: 2em;width: 2em;overflow: show;margin: auto;top: 0;left: 0;bottom: 0;right: 0;}.loading:before {content: '';display: block;position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: radial-gradient(rgba(20, 20, 20,.8), rgba(0, 0, 0, .8));background: -webkit-radial-gradient(rgba(20, 20, 20,.8), rgba(0, 0, 0,.8));}.loading:not(:required) {font: 0/0 a;color: transparent;text-shadow: none;background-color: transparent;border: 0;}.loading:not(:required):after {content: '';display: block;font-size: 10px;width: 1em;height: 1em;margin-top: -0.5em;-webkit-animation: spinner 150ms infinite linear;-moz-animation: spinner 150ms infinite linear;-ms-animation: spinner 150ms infinite linear;-o-animation: spinner 150ms infinite linear;animation: spinner 150ms infinite linear;border-radius: 0.5em;-webkit-box-shadow: rgba(255,255,255, 0.75) 1.5em 0 0 0, rgba(255,255,255, 0.75) 1.1em 1.1em 0 0, rgba(255,255,255, 0.75) 0 1.5em 0 0, rgba(255,255,255, 0.75) -1.1em 1.1em 0 0, rgba(255,255,255, 0.75) -1.5em 0 0 0, rgba(255,255,255, 0.75) -1.1em -1.1em 0 0, rgba(255,255,255, 0.75) 0 -1.5em 0 0, rgba(255,255,255, 0.75) 1.1em -1.1em 0 0;box-shadow: rgba(255,255,255, 0.75) 1.5em 0 0 0, rgba(255,255,255, 0.75) 1.1em 1.1em 0 0, rgba(255,255,255, 0.75) 0 1.5em 0 0, rgba(255,255,255, 0.75) -1.1em 1.1em 0 0, rgba(255,255,255, 0.75) -1.5em 0 0 0, rgba(255,255,255, 0.75) -1.1em -1.1em 0 0, rgba(255,255,255, 0.75) 0 -1.5em 0 0, rgba(255,255,255, 0.75) 1.1em -1.1em 0 0;}@-webkit-keyframes spinner {0% {-webkit-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-o-transform: rotate(0deg);transform: rotate(0deg);}100% {-webkit-transform: rotate(360deg);-moz-transform: rotate(360deg);-ms-transform: rotate(360deg);-o-transform: rotate(360deg);transform: rotate(360deg);}}@-moz-keyframes spinner {0% {-webkit-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-o-transform: rotate(0deg);transform: rotate(0deg);}100% {-webkit-transform: rotate(360deg);-moz-transform: rotate(360deg);-ms-transform: rotate(360deg);-o-transform: rotate(360deg);transform: rotate(360deg);}}@-o-keyframes spinner {0% {-webkit-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-o-transform: rotate(0deg);transform: rotate(0deg);}100% {-webkit-transform: rotate(360deg);-moz-transform: rotate(360deg);-ms-transform: rotate(360deg);-o-transform: rotate(360deg);transform: rotate(360deg);}}@keyframes spinner {0% {-webkit-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-o-transform: rotate(0deg);transform: rotate(0deg);}100% {-webkit-transform: rotate(360deg);-moz-transform: rotate(360deg);-ms-transform: rotate(360deg);-o-transform: rotate(360deg);transform: rotate(360deg);}}	  </style>
+  .navbar-brand {font-size: 30px;}.footer-text {font-size: 40px;}a {color:white;}p {color:white;} .logo_new {font-size: 50px;color:white;} .loading {position: fixed;z-index: 999;height: 2em;width: 2em;overflow: show;margin: auto;top: 0;left: 0;bottom: 0;right: 0;}.loading:before {content: '';display: block;position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: radial-gradient(rgba(20, 20, 20,.8), rgba(0, 0, 0, .8));background: -webkit-radial-gradient(rgba(20, 20, 20,.8), rgba(0, 0, 0,.8));}.loading:not(:required) {font: 0/0 a;color: transparent;text-shadow: none;background-color: transparent;border: 0;}.loading:not(:required):after {content: '';display: block;font-size: 10px;width: 1em;height: 1em;margin-top: -0.5em;-webkit-animation: spinner 150ms infinite linear;-moz-animation: spinner 150ms infinite linear;-ms-animation: spinner 150ms infinite linear;-o-animation: spinner 150ms infinite linear;animation: spinner 150ms infinite linear;border-radius: 0.5em;-webkit-box-shadow: rgba(255,255,255, 0.75) 1.5em 0 0 0, rgba(255,255,255, 0.75) 1.1em 1.1em 0 0, rgba(255,255,255, 0.75) 0 1.5em 0 0, rgba(255,255,255, 0.75) -1.1em 1.1em 0 0, rgba(255,255,255, 0.75) -1.5em 0 0 0, rgba(255,255,255, 0.75) -1.1em -1.1em 0 0, rgba(255,255,255, 0.75) 0 -1.5em 0 0, rgba(255,255,255, 0.75) 1.1em -1.1em 0 0;box-shadow: rgba(255,255,255, 0.75) 1.5em 0 0 0, rgba(255,255,255, 0.75) 1.1em 1.1em 0 0, rgba(255,255,255, 0.75) 0 1.5em 0 0, rgba(255,255,255, 0.75) -1.1em 1.1em 0 0, rgba(255,255,255, 0.75) -1.5em 0 0 0, rgba(255,255,255, 0.75) -1.1em -1.1em 0 0, rgba(255,255,255, 0.75) 0 -1.5em 0 0, rgba(255,255,255, 0.75) 1.1em -1.1em 0 0;}@-webkit-keyframes spinner {0% {-webkit-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-o-transform: rotate(0deg);transform: rotate(0deg);}100% {-webkit-transform: rotate(360deg);-moz-transform: rotate(360deg);-ms-transform: rotate(360deg);-o-transform: rotate(360deg);transform: rotate(360deg);}}@-moz-keyframes spinner {0% {-webkit-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-o-transform: rotate(0deg);transform: rotate(0deg);}100% {-webkit-transform: rotate(360deg);-moz-transform: rotate(360deg);-ms-transform: rotate(360deg);-o-transform: rotate(360deg);transform: rotate(360deg);}}@-o-keyframes spinner {0% {-webkit-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-o-transform: rotate(0deg);transform: rotate(0deg);}100% {-webkit-transform: rotate(360deg);-moz-transform: rotate(360deg);-ms-transform: rotate(360deg);-o-transform: rotate(360deg);transform: rotate(360deg);}}@keyframes spinner {0% {-webkit-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-o-transform: rotate(0deg);transform: rotate(0deg);}100% {-webkit-transform: rotate(360deg);-moz-transform: rotate(360deg);-ms-transform: rotate(360deg);-o-transform: rotate(360deg);transform: rotate(360deg);}}	  </style>
   <script>
   window.drive_names = JSON.parse('${JSON.stringify(authConfig.roots.map(it => it.name))}');
   window.MODEL = JSON.parse('${JSON.stringify(model)}');
@@ -148,25 +149,230 @@ function html(current_drive_order = 0, model = {}) {
   window.player_config = JSON.parse('${JSON.stringify(player_config)}');
   </script>
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.0.0/dist/${uiConfig.theme}/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/${uiConfig.theme}/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-  <style>a{color:${uiConfig.css_a_tag_color};}p{color:${uiConfig.css_p_tag_color};}</style>
-  <script src="${app_js_file}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.12.313/build/pdf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked@5.1.1/lib/marked.umd.min.js"></script>
-</head>
-<body>
-</body>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script>
-  </html>`;
-};
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <style>
+  body.modal-open {
+    padding-right: 0px !important;
+  }
+  .bg-zers {
+      position: relative;
+  }
+  .bg-zers::before {
+      content: '';
+      position: fixed;
+      width: 100%;
+      height: 100vh;
+      top: 0;
+      left: 0;
+      background-image: url('https://kaceku.onrender.com/static/img/pattern-32-inv.svg'),
+          linear-gradient(#61045F, transparent),
+          linear-gradient(to top left, lime, transparent),
+          linear-gradient(to top right, blue, transparent);
+      background-size: contain;
+      background-position: left;
+      background-repeat: repeat-x;
+      background-blend-mode: darken;
+      will-change: transform;
+  }
+  .back-to-top {
+    background: rgba(0,0,0,.4);
+    position: fixed;
+    bottom: 85px;
+    right: -5px;
+    display: none;
+    z-index: 2;
+  }
+  .breadcrumb {
+    margin-bottom: 0;
+    background: transparent;
+    overflow: auto;
+    white-space: nowrap;
+    display: block;
+  }
+  .breadcrumb .breadcrumb-item {
+    display: inline;
+  }
+  .breadcrumb-item+.breadcrumb-item::before {
+    float: none;
+  }
+  .card {
+      background: rgba(0, 0, 0, 0.65);
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
+  }
+  .list-group-item, .list-group-item.disabled, .list-group-item:disabled {
+      background: transparent;
+  }
+  .list-group-item-action:focus, .list-group-item-action:hover {
+      background-color: rgb(216 216 216 / 20%);
+  }
+  .card-header, .card-footer {
+      background-color: rgba(0, 0, 0, 0.40);
+      border-color: rgba(140, 130, 115, 0.13);
+  }
+  .modal-header, .modal-footer, .list-group-item, .input-group-text {
+      border-color: rgba(140, 130, 115, 0.13);
+  }
+  .navbar {
+    border-radius: 0 0 .5rem .5rem;
+    border: 1px solid rgba(140, 130, 115, 0.13);
+    box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.5);
+    border-top: none;
+    background: rgba(24, 26, 27, 0.5);
+  }
+  .navbar::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: -1;
+    border-radius: 0 0 .5rem .5rem;
+  }
+  .alert, .card, .dropdown-menu, .modal-content {
+      border-radius: .5rem;
+      border-color: rgba(140, 130, 115, 0.13);
+  }
+  .dropdown-item:focus, .dropdown-item:hover {
+    background-color: #007053;
+  }
+  .donate {
+    position: relative;
+    width: fit-content;
+    margin: auto;
+  }
+  .donate .qrcode {
+      display: none;
+      position: absolute;
+      z-index: 99;
+      bottom: 2.8em;
+      overflow: hidden;
+      border-radius: .5rem;
+      width: max-content;
+      left: 50%;
+      transform: translateX(-50%);
+  }
+  .donate:hover .qrcode {
+      display: block
+  }
+  .dropdown-menu, .qrcode {
+      box-shadow: 0px 16px 48px 0px rgba(0,0,0,0.5)
+  }
+  .fa, .fab, .fas, .fa-regular, .fa-solid {
+      margin-right: 0.5rem;
+  }
+  .form-control, .form-select, .form-control:disabled, .form-control:read-only, .form-control:focus {
+    color: rgb(189, 183, 175);
+    background: transparent; 
+    border-color: rgba(140, 130, 115, 0.13);
+    box-shadow: none;
+  }
+  footer {
+      border-radius: .5rem .5rem 0 0;
+      border: 1px solid rgba(140, 130, 115, 0.13);
+      box-shadow: 0 -16px 48px 0 rgba(0, 0, 0, 0.5)
+  }
+  footer, .dropdown-menu, .modal-content, .qrcode {
+      background: rgba(24, 26, 27, 0.2);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+  }
+  .hover-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0);
+    opacity: 0;
+   }
+  .hover-overlay:hover {
+    opacity: .9;
+  }
+  .overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0);
+    opacity: .9;
+  }
+  table {
+      word-break: break-word;
+  }
+  .table {
+      --bs-table-bg: unset;
+  }
+  .table th {
+      min-width: 8rem;
+  }
+  .table td, .table th {
+      border-color: rgba(140, 130, 115, 0.13);
+  }
+  tr:first-child th, tr:first-child td {
+      border-top: none;
+      padding-top: 0;
+  }
+  .trbtn-overlay-container {
+    z-index: 2;
+  }
+  .video-js, .vjs-tech, div.vjs-poster > picture > img {
+    border-radius: 0.375rem;
+    height: 100%!important;
+  }
+  .video-js .vjs-control-bar {
+    border-bottom-left-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+  }
+  .vjs-poster img {
+    -o-object-fit: cover!important;
+    object-fit: cover!important;
+  }
+  @media (max-width: 540px) {
+      .btn-block {
+          width: 100%;
+      }
+      .table th {
+          min-width: auto;
+          width: 30px !important;
+      }
+      .tth {
+          display: none;
+      }
+  }
+  @media (max-width: 768px) {
+      .table th {
+          width: 8rem;
+      }
+      .table td, .table th {
+          padding: .75rem 0;
+      }
+      td {
+          max-width: 200px;
+      }
+  }
+  a {
+    text-decoration: none!important;
+  }
+    </style>
+    <script src="${app_js_file}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@5.1.1/lib/marked.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script type='text/javascript' src='https://assets.trakteer.id/js/trbtn-overlay.min.js'></script>
+  </head>
+  <body class="d-flex flex-column min-vh-100 bg-zers">
+  </body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script>
+    </html>`;
+  };
 
 const homepage = `<!DOCTYPE html>
 <html>
    <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
-    <title>${authConfig.siteName}</title>
+    <title>${uiConfig.siteName}</title>
     <meta name="robots" content="noindex">
     <link rel="icon" href="${uiConfig.favicon}">
     <script>
@@ -174,84 +380,323 @@ const homepage = `<!DOCTYPE html>
       window.UI = JSON.parse('${JSON.stringify(uiConfig)}');
     </script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.0.0/dist/${uiConfig.theme}/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-    <style>a{color:${uiConfig.css_a_tag_color};}p{color:${uiConfig.css_p_tag_color};}</style>
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/${uiConfig.theme}/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <style>
+    body.modal-open {
+      padding-right: 0px !important;
+    }
+    .bg-zers {
+        position: relative;
+    }
+    .bg-zers::before {
+        content: '';
+        position: fixed;
+        width: 100%;
+        height: 100vh;
+        top: 0;
+        left: 0;
+        background-image: url('https://kaceku.onrender.com/static/img/pattern-32-inv.svg'),
+            linear-gradient(#61045F, transparent),
+            linear-gradient(to top left, lime, transparent),
+            linear-gradient(to top right, blue, transparent);
+        background-size: contain;
+        background-position: left;
+        background-repeat: repeat-x;
+        background-blend-mode: darken;
+        will-change: transform;
+    }
+    .back-to-top {
+      background: rgba(0,0,0,.4);
+      position: fixed;
+      bottom: 85px;
+      right: -5px;
+      display: none;
+      z-index: 2;
+    }
+    .breadcrumb {
+      margin-bottom: 0;
+      background: transparent;
+      overflow: auto;
+      white-space: nowrap;
+      display: block;
+    }
+    .breadcrumb .breadcrumb-item {
+      display: inline;
+    }
+    .breadcrumb-item+.breadcrumb-item::before {
+      float: none;
+    }
+    .card {
+        background: rgba(0, 0, 0, 0.65);
+        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
+    }
+    .list-group-item, .list-group-item.disabled, .list-group-item:disabled {
+        background: transparent;
+    }
+    .list-group-item-action:focus, .list-group-item-action:hover {
+        background-color: rgb(216 216 216 / 20%);
+    }
+    .card-header, .card-footer {
+        background-color: rgba(0, 0, 0, 0.40);
+        border-color: rgba(140, 130, 115, 0.13);
+    }
+    .modal-header, .modal-footer, .list-group-item, .input-group-text {
+        border-color: rgba(140, 130, 115, 0.13);
+    }
+    .navbar {
+      border-radius: 0 0 .5rem .5rem;
+      border: 1px solid rgba(140, 130, 115, 0.13);
+      box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.5);
+      border-top: none;
+      background: rgba(24, 26, 27, 0.5);
+    }
+    .navbar::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: -1;
+      border-radius: 0 0 .5rem .5rem;
+    }
+    .alert, .card, .dropdown-menu, .modal-content {
+        border-radius: .5rem;
+        border-color: rgba(140, 130, 115, 0.13);
+    }
+    .dropdown-item:focus, .dropdown-item:hover {
+      background-color: #007053;
+    }
+    .donate {
+      position: relative;
+      width: fit-content;
+      margin: auto;
+    }
+    .donate .qrcode {
+        display: none;
+        position: absolute;
+        z-index: 99;
+        bottom: 2.8em;
+        overflow: hidden;
+        border-radius: .5rem;
+        width: max-content;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    .donate:hover .qrcode {
+        display: block
+    }
+    .dropdown-menu, .qrcode {
+        box-shadow: 0px 16px 48px 0px rgba(0,0,0,0.5)
+    }
+    .fa, .fab, .fas, .fa-regular, .fa-solid {
+        margin-right: 0.5rem;
+    }
+    .form-control, .form-select, .form-control:disabled, .form-control:read-only, .form-control:focus {
+      color: rgb(189, 183, 175);
+      background: transparent; 
+      border-color: rgba(140, 130, 115, 0.13);
+      box-shadow: none;
+    }
+    footer {
+        border-radius: .5rem .5rem 0 0;
+        border: 1px solid rgba(140, 130, 115, 0.13);
+        box-shadow: 0 -16px 48px 0 rgba(0, 0, 0, 0.5)
+    }
+    footer, .dropdown-menu, .modal-content, .qrcode {
+        background: rgba(24, 26, 27, 0.2);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+    }
+    .hover-overlay {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0);
+      opacity: 0;
+     }
+    .hover-overlay:hover {
+      opacity: .9;
+    }
+    .overlay {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0);
+      opacity: .9;
+    }
+    table {
+        word-break: break-word;
+    }
+    .table {
+        --bs-table-bg: unset;
+    }
+    .table th {
+        min-width: 8rem;
+    }
+    .table td, .table th {
+        border-color: rgba(140, 130, 115, 0.13);
+    }
+    tr:first-child th, tr:first-child td {
+        border-top: none;
+        padding-top: 0;
+    }
+    .video-js, .vjs-tech, div.vjs-poster > picture > img {
+      border-radius: 0.375rem;
+      height: 100%!important;
+    }
+    .video-js .vjs-control-bar {
+      border-bottom-left-radius: 0.375rem;
+      border-bottom-right-radius: 0.375rem;
+    }
+    .vjs-poster img {
+      -o-object-fit: cover!important;
+      object-fit: cover!important;
+    }
+    @media (max-width: 540px) {
+        .btn-block {
+            width: 100%;
+        }
+        .table th {
+            min-width: auto;
+            width: 30px !important;
+        }
+        .tth {
+            display: none;
+        }
+    }
+    @media (max-width: 768px) {
+        .table th {
+            width: 8rem;
+        }
+        .table td, .table th {
+            padding: .75rem 0;
+        }
+        td {
+            max-width: 200px;
+        }
+    }
+    a {
+      text-decoration: none!important;
+    }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
    </head>
-   <body>
+   <body class="d-flex flex-column min-vh-100 bg-zers">
     <header>
      <div id="nav">
-      <nav class="navbar navbar-expand-lg${uiConfig.fixed_header ?' fixed-top': ''} ${uiConfig.header_style_class}">
-         <div class="container-fluid">
-         <a class="navbar-brand" href="/">${uiConfig.logo_image ? '<img border="0" alt="'+uiConfig.company_name+'" src="'+uiConfig.logo_link_name+'" height="'+uiConfig.height+'" width="'+uiConfig.logo_width+'">' : uiConfig.logo_link_name}</a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-          </button>
+      <nav class="navbar navbar-expand-lg${uiConfig.fixed_header ?' fixed-top': ''} ${uiConfig.header_style_class} container">
+         <div class="container-fluid mx-2">
+         <a class="navbar-brand d-flex align-items-center gap-2" href="/">${uiConfig.logo_image ? '<img border="0" alt="'+uiConfig.company_name+'" src="'+uiConfig.logo_link_name+'" height="'+uiConfig.height+'" width="'+uiConfig.logo_width+'">'+uiConfig.siteName : uiConfig.logo_link_name}</a>
+         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+         <span class="navbar-toggler-icon"></span>
+         </button>
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link" href="/">${uiConfig.nav_link_1}</a>
+              <a class="nav-link" href="/"><i class="fas fa-home fa-fw"></i>${uiConfig.nav_link_1}</a>
             </li>
             <li class="nav-item dropdown">
-               <div class="dropdown-menu" aria-labelledby="navbarDropdown"><a class="dropdown-item" href="/">&gt; ${uiConfig.nav_link_1}</a></div>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown"><a class="dropdown-item" href="/">&gt; ${uiConfig.nav_link_1}</a></div>
             </li>
             <li class="nav-item">
-               <a class="nav-link" href="${uiConfig.contact_link}" target="_blank">${uiConfig.nav_link_4}</a>
+                <a class="nav-link" href="${uiConfig.contact_link}" target="_blank"><i class="fas fa-paper-plane fa-fw"></i>${uiConfig.nav_link_4}</a>
             </li>
-            ${uiConfig.show_logout_button ?'<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>': ''}
+            ${uiConfig.show_logout_button ?'<li class="nav-item"><a class="nav-link" href="/logout"><i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>Logout</a></li>': ''}
            </ul>
            <form class="d-flex" method="get" action="/0:search">
-            <input class="form-control me-2" name="q" type="search" placeholder="Search" aria-label="Search" value="" required="">
-            <button class="btn btn btn-danger" onclick="if($('#search_bar_form>input').val()) $('#search_bar_form').submit();" type="submit">Search</button>
-           </form>
+           <div class="input-group">
+           <input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="" required="" aria-describedby="button-addon2" style="border-right:0;">
+           <button class="btn ${uiConfig.search_button_class}" onclick="if($('#search_bar_form>input').val()) $('#search_bar_form').submit();" type="submit" id="button-addon2" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;"><i class="fas fa-search" style="margin: 0;color:success"></i></button>
+           </div>
+          </form>
           </div>
          </div>
       </nav>
      </div>
     </header>
-    <div>
-     <div id="content" style="padding-top: ${uiConfig.header_padding}px;">
-      <div class="container">
-         <div class="alert alert-primary d-flex align-items-center" role="alert" style="margin-bottom: 0; padding-bottom: 0rem;">
-          <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
-           <ol class="breadcrumb" id="folderne">
-            <li class="breadcrumb-item"><a href="/">Home</a></li>
-           </ol>
-          </nav>
-         </div>
-         <div id="list" class="list-group text-break">
-
-         </div>
-         <div class="${uiConfig.file_count_alert_class} text-center" role="alert" id="count">Total <span id="n_drives" class="number text-center"></span> drives</div>
-      </div>
-     </div>
-     <div class="modal fade" id="SearchModel" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-         <div class="modal-content">
-          <div class="modal-header">
-           <h5 class="modal-title" id="SearchModelLabel"></h5>
-           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-           <span aria-hidden="true"></span>
-           </button>
-          </div>
-          <div class="modal-body" id="modal-body-space">
-          </div>
-          <div class="modal-footer" id="modal-body-space-buttons">
-          </div>
-         </div>
-      </div>
-     </div>
-     <br>
-     <footer class="footer mt-auto py-3 text-muted ${uiConfig.footer_style_class}" style="${uiConfig.fixed_footer ?'position: fixed; ': ''}left: 0; bottom: 0; width: 100%; color: white; z-index: 9999;${uiConfig.hide_footer ? ' display:none;': ' display:block;'}"> <div class="container" style="width: auto; padding: 0 10px;"> <p class="float-end"> <a href="#">Back to top</a> </p> ${uiConfig.credit ? '<p>Redesigned with <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-heart-fill" fill="red" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z" /> </svg> by <a href="https://www.npmjs.com/package/@googledrive/index" target="_blank">TheFirstSpeedster</a>, based on Open Source Softwares.</p>' : ''} <p>© ${uiConfig.copyright_year} - <a href=" ${uiConfig.company_link}" target="_blank"> ${uiConfig.company_name}</a>, All Rights Reserved.</p> </div> </footer>
+    <div class="container" style="margin-top: ${uiConfig.header_padding}px; margin-bottom: 60px;">
+    <div class="row align-items-start g-3">
+    <div class="col-md-12">
+    <div style="width: fit-content; margin-left: auto; margin-bottom: 15px;">
+    <div style="height:40px; line-height:40px; padding:0 20px; border-radius:4px; background-image: url('https://kaceku.onrender.com/static/img/pattern-32-inv.svg'), linear-gradient(#61045F, transparent), linear-gradient(to top left, lime, transparent), linear-gradient(to top right, blue, transparent); background-size: contain; background-position: left; background-repeat: repeat-x; background-blend-mode: darken;">
+    <marquee behavior="scroll" direction="left" scrollamount="6" style="color:white; font-weight:bold; font-size: 16px; text-shadow: 0 0 5px rgba(0,0,0,0.7);">
+    ִֶָ 𓂃˖˳·˖ ִֶָ ⋆🌷͙⋆ ִֶָ˖·˳˖𓂃 ִֶָ&nbsp;&nbsp;&nbsp;வணக்கம்&nbsp;&nbsp;&nbsp;நண்பர்களே,&nbsp;&nbsp;&nbsp;⋆.˚🦋༘⋆&nbsp;&nbsp;&nbsp;தமிழன்&nbsp;&nbsp;&nbsp;திரைப்படங்களுக்கு&nbsp;&nbsp;&nbsp;˙✧˖°🍿 ༘ 🎬⋆｡°&nbsp;&nbsp;&nbsp;உங்களை&nbsp;&nbsp;&nbsp;அன்புடன்&nbsp;&nbsp;&nbsp;வரவேற்கிறோம்!&nbsp;&nbsp;&nbsp;⊱🪷⊰˚&nbsp;&nbsp;&nbsp;உங்கள்&nbsp;&nbsp;&nbsp;அன்பு&nbsp;&nbsp;&nbsp;மற்றும்&nbsp;&nbsp;&nbsp;ஆதரவுக்கு&nbsp;&nbsp;&nbsp;நன்றி.&nbsp;&nbsp;&nbsp;༄˖°.🍂.ೃ࿔*:･🙌
+    </marquee>
     </div>
-   </body>
-  <script src="${uiConfig.jsdelivr_cdn_src}@${uiConfig.version}/assets/homepage.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script>
-</html>`
+      </div>
+        <div class="col-md-12">
+          <div id="content">
+          <div id="list" class="list-group text-break">
+          </div>
+          </div>
+        </div>
+      </div>
+      <div class="container" style="max-width: 576px; padding: 1rem;"> <!-- Adjust max-width as needed -->
+      <div class="row g-3 mt-0 mx-auto"> <!-- mx-auto centers the row -->
+        <div class="col-12"> <!-- Full width column since we're controlling size with container -->
+          <div class="card text-white mb-3 h-100">
+            <div class="card-header">
+              <i class="fa-brands fa-telegram"></i>&nbsp;&nbsp;Telegram&nbsp;&nbsp;Channel
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+              <div class="donate btn p-0">
+                <a class="btn" href="https://telegram.me/hollywood_tamizhan_movies" title="Click me!" style="background: #0088cc;" target="_blank">
+                  <i class="fa-brands fa-telegram"></i>&nbsp;&nbsp;Join&nbsp;&nbsp;Our&nbsp;&nbsp;Channel
+                </a>
+                <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
+                <div style="padding-bottom: 1rem;">♥️ Welcome ♥️</div>
+                <img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+      <div class="modal fade" id="SearchModel" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="SearchModelLabel"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true"></span>
+            </button>
+            </div>
+            <div class="modal-body" id="modal-body-space">
+            </div>
+            <div class="modal-footer justify-content-center" id="modal-body-space-buttons">
+            </div>
+          </div>
+        </div>
+      </div>
+     </div>
+     <button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
+     <footer class="footer text-center container ${uiConfig.footer_style_class}" style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; ${uiConfig.hide_footer ? ' display:none;' : ' display:block;'}">
+     <div class="container" style="padding-top: 15px;">
+       <div class="row">
+         <div class="col-12 text-center">
+         <i class="fa-brands fa-pied-piper-alt"></i> ${uiConfig.copyright_year} - <a href=" ${uiConfig.company_link}" target="_blank">${uiConfig.company_name}</a> with ❤️
+           <p class="mb-1"><a href="${uiConfig.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a>
+           <span>© All Copy Rights Reserved ®™</span>
+           </div>
+           <div class="col-12 text-center">
+           <p class="mb-1">
+           <a href="#"><img id="hits" src=""/></a>
+           </p>
+           <script>document.getElementById("hits").src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F" + window.location.host + "&label=hits&icon=bar-chart-fill&color=%23198754";</script>
+           </div>
+          </footer>
+         </body>
+        <script src="${uiConfig.jsdelivr_cdn_src}@${uiConfig.version}/assets/homepage.js"></script>
+       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script>
+      </html>`
 
 const login_html = `<html>
    <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <title>Sign in - ${authConfig.siteName}</title>
+    <title>Sign in - ${uiConfig.siteName}</title>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="googlebot" content="noindex, nofollow">
@@ -347,7 +792,7 @@ const login_html = `<html>
 const signup_html = `<html>
    <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <title>Sign UP - ${authConfig.siteName}</title>
+    <title>Sign UP - ${uiConfig.siteName}</title>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="googlebot" content="noindex, nofollow">
@@ -409,7 +854,7 @@ const signup_html = `<html>
           <div class="container">
            <div class="row">
             <div class="col-lg-10 col-xl-7 mx-auto">
-               <h3 class="logo text-center mb-3">${authConfig.siteName}</h3>
+               <h3 class="logo text-center mb-3">${uiConfig.siteName}</h3>
                <div id="error-message" class="alert alert-danger"></div>
                <form onsubmit="return false;" method="post">
                 <p id="error" style="color:red;"></p>
@@ -562,7 +1007,7 @@ const SearchFunction = {
 };
 
 const DriveFixedTerms = new(class {
-  default_file_fields = 'parents,id,name,mimeType,modifiedTime,createdTime,fileExtension,size';
+  default_file_fields = 'parents,id,name,mimeType,createdTime,fileExtension,thumbnailLink,size,md5Checksum,driveId';
   gd_root_type = {
     user_drive: 0,
     share_drive: 1
@@ -673,26 +1118,17 @@ async function decryptString(encryptedString) {
   return decryptedString;
 }
 
-// Web Crypto Integrity Generate API
-async function genIntegrity(data, key = hmac_base_key) {
+async function genIntegrity(data) {
   const encoder = new TextEncoder();
   const dataBuffer = encoder.encode(data);
-  const hmacKey = await crypto.subtle.importKey(
-      'raw',
-      encoder.encode(key), {
-          name: 'HMAC',
-          hash: 'SHA-256'
-      },
-      false,
-      ['sign']
-  );
-  const hmacBuffer = await crypto.subtle.sign('HMAC', hmacKey, dataBuffer);
 
-  // Convert the HMAC buffer to hexadecimal string
-  const hmacArray = Array.from(new Uint8Array(hmacBuffer));
-  const hmacHex = hmacArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+  const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
 
-  return hmacHex;
+  // Convert the hash buffer to hexadecimal string
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+
+  return hashHex;
 }
 
 async function checkintegrity(text1, text2) {
@@ -717,9 +1153,52 @@ async function handleRequest(request, event) {
   var user_ip = request.headers.get("CF-Connecting-IP");
   let url = new URL(request.url);
   let path = url.pathname;
+  if (path.startsWith('/watch/')) {
+    const encryptedId = path.replace('/watch/', '');
+    let fileId;
+    try {
+      fileId = await decryptString(encryptedId);
+    } catch (e) {
+      return new Response('Invalid file link', { status: 400 });
+    }
+    // Fetch file info from Google Drive
+    const file = await drive.findItemById(fileId);
+    if (!file || !file.name) {
+      return new Response('File not found', { status: 404 });
+    }
+    // Generate your download.aspx link (see your generateLink function for MAC/expiry)
+    const downloadUrl = await generateLink(file.id, null); // null = no IP lock (or use user_ip if needed)
+    // Render a simple HTML player page
+    const html = `
+      <html>
+        <head><title>${file.name}</title></head>
+        <body>
+          <h2>${file.name}</h2>
+          <video width="720" controls src="${downloadUrl}"></video>
+          <p><a href="${downloadUrl}">Download</a></p>
+        </body>
+      </html>
+    `;
+    return new Response(html, { headers: { "content-type": "text/html" } });
+  }
   let hostname = url.hostname;
+  let is_public_file_view = (path.slice(-1) != '/') && (url.searchParams.get('a') === 'view'); // Add this line
   if (path == '/app.js') {
-    const js = await fetch('https://gitlab.com/GoogleDriveIndex/Google-Drive-Index/-/raw/dev/src/app.js', {
+    const js = await fetch('https://gitlab.com/jovanzers/Google-Drive-Index/-/raw/dev/src/app.js', {
+      method: 'GET',
+    })
+    const data = await js.text()
+    return new Response(data, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/javascript; charset=utf-8',
+        'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+        'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+      }
+    });
+  }
+  if (path == '/assets/homepage.js') {
+    const js = await fetch('https://gitlab.com/jovanzers/Google-Drive-Index/-/raw/dev/assets/homepage.js', {
       method: 'GET',
     })
     const data = await js.text()
@@ -1078,9 +1557,57 @@ async function handleRequest(request, event) {
           response.headers.set("Refresh", "1; url=/?error=Invalid User");
           return response;
         }
-      } else {
+      } else if (!is_public_file_view) { // MODIFY this line
         return login()
       }
+    }
+  }
+  if (request.method === "POST" && path == "/copy") {
+    try {
+      let form = await request.formData();
+      let time = form.get('time')
+      if (time < Math.floor(Date.now() / 1000)) {
+        return new Response('{"error":"Invalid Time"}', {
+          status: 404,
+          headers: {
+            "content-type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "max-age=0",
+          }
+        });
+      }
+      let user_drive = form.get('root_id') || "null";
+      if (user_drive == "null") {
+        return new Response('{"error":"404"}', {
+          status: 200,
+          headers: {
+            "content-type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "max-age=0",
+          }
+        });
+      }
+      let public_drive_id = await decryptString(form.get('id')) || "null";
+      let user_folder_id = form.get('root_id') || "null";
+      let resourcekey = form.get('resourcekey') || "null";
+      let file = await copyItemById(public_drive_id, resourcekey, user_folder_id);
+      return new Response(JSON.stringify(file), {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": "max-age=0",
+        }
+      });
+    } catch (e) {
+      return new Response(e, {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": "max-age=0",
+        }
+      });
     }
   }
 
@@ -1229,11 +1756,15 @@ async function handleRequest(request, event) {
       if (type && type == 'folder') {
         const page_token = formdata.page_token || null;
         const page_index = formdata.page_index || 0;
+        const folder = await gd.findItemById(id);
         const details = await gd._list_gdrive_files(id, page_token, page_index);
+        details.fid = id;
+        details.name = folder.name;
         for (const file of details.data.files) {
           if (file.mimeType != 'application/vnd.google-apps.folder') {
             file.link = await generateLink(file.id, user_ip);
           }
+          file.fid = file.id;
           file.driveId = await encryptString(file.driveId);
           file.id = await encryptString(file.id);
         }
@@ -1242,6 +1773,7 @@ async function handleRequest(request, event) {
       }
       const details = await gd.findItemById(id)
       details.link = await generateLink(details.id, user_ip);
+      details.fid = id;
       details.id = formdata.id;
       details.parents[0] = null;
       return new Response(JSON.stringify(details), {});
@@ -1295,7 +1827,7 @@ async function handleRequest(request, event) {
     let range = request.headers.get('Range');
     const inline = 'true' === url.searchParams.get('inline');
     if (gd.root.protect_file_link && enable_login) return login();
-    return download(file.id, range, inline);
+    return download(file?.id, range, inline);
 
   }
 
@@ -1360,6 +1892,33 @@ async function fetchAccessToken() {
     await sleep(800 * (i + 1));
   }
   return await response.json();
+}
+
+async function copyItemById(id, resourcekey, user_folder_id, headers = {}) {
+  let url = `https://www.googleapis.com/drive/v3/files/${id}/copy?fields=id,name,mimeType&supportsAllDrives=true`;
+  const accessToken = await getAccessToken();
+  headers["authorization"] = "Bearer " + accessToken;
+  headers["Accept"] = "application/json";
+  headers["Content-Type"] = "application/json";
+  headers["X-Goog-Drive-Resource-Keys"] = id + "/" + resourcekey;
+  let json = {
+    parents: [user_folder_id]
+  }
+  let res
+  for (let i = 0; i < 3; i++) {
+    res = await fetch(url, {
+      "method": "POST",
+      "headers": headers,
+      "body": JSON.stringify(json)
+    });
+    if (res.ok) {
+      break;
+    }
+    await sleep(100 * (i + 1));
+  }
+  const data = await res.json();
+  console.log(data);
+  return data;
 }
 
 async function sleep(ms) {
@@ -1436,6 +1995,7 @@ async function apiRequest(request, gd, user_ip) {
 
       return {
         ...fileWithoutId,
+        fid: id,
         id: encryptedId,
         driveId: encryptedDriveId,
         mimeType: mimeType,
@@ -1467,6 +2027,7 @@ async function apiRequest(request, gd, user_ip) {
     const link = await generateLink(id, user_ip);
     const encryptedFile = {
       ...fileWithoutId,
+      fid: id,
       id: encryptedId,
       driveId: encryptedDriveId,
       link: link,
@@ -1518,6 +2079,7 @@ async function handleSearch(request, gd, user_ip = '') {
     const link = await generateLink(id, user_ip);
     return {
       ...fileWithoutId,
+      fid: id,
       id: encryptedId,
       driveId: encryptedDriveId,
       link: link,
@@ -1571,7 +2133,11 @@ async function findId2Path(gd, url) {
 		}
 	} catch (error) {
 		const encrypted_id = await encryptString(url.searchParams.get('id'), encrypt_iv)
-		return Response.redirect("https://" + url.hostname + "/fallback?id=" + encrypted_id || '', 302);
+    if (url.searchParams.get('view') && url.searchParams.get('view') == 'true') {
+      return Response.redirect("https://" + url.hostname + "/fallback?id=" + encrypted_id + "&a=view" || '', 302);
+    } else {
+      return Response.redirect("https://" + url.hostname + "/fallback?id=" + encrypted_id || '', 302);
+    }
 	}
 }
 
@@ -1638,7 +2204,7 @@ class googleDrive {
       'supportsAllDrives': true
     };
     params.q = `'${parent}' in parents and name = '${name}' and trashed = false and mimeType != 'application/vnd.google-apps.shortcut'`;
-    params.fields = "files(id, name, mimeType, size ,createdTime, modifiedTime, iconLink, thumbnailLink, driveId, fileExtension)";
+    params.fields = "files(id, name, mimeType, size, createdTime, iconLink, thumbnailLink, driveId, fileExtension, md5Checksum)";
     url += '?' + enQuery(params);
     let requestOption = await this.requestOptions();
     let response;
@@ -1675,6 +2241,7 @@ class googleDrive {
     let id = await this.findPathId(path);
     let result = await this._list_gdrive_files(id, page_token, page_index);
     let data = result.data;
+    result.fid = id;
     if (result.nextPageToken && data.files) {
       if (!Array.isArray(this.path_children_cache[path])) {
         this.path_children_cache[path] = []
@@ -1699,9 +2266,9 @@ class googleDrive {
       'includeItemsFromAllDrives': true,
       'supportsAllDrives': true
     };
-    params.q = `'${parent}' in parents and trashed = false AND name !='.password' and mimeType != 'application/vnd.google-apps.shortcut' and mimeType != 'application/vnd.google-apps.document' and mimeType != 'application/vnd.google-apps.spreadsheet' and mimeType != 'application/vnd.google-apps.form' and mimeType != 'application/vnd.google-apps.site'`;
-    params.orderBy = 'folder, name, modifiedTime desc';
-    params.fields = "nextPageToken, files(id, name, mimeType, size, modifiedTime, driveId, kind, fileExtension)";
+    params.q = `'${parent}' in parents and trashed = false AND name !='.password' and mimeType != 'application/vnd.google-apps.shortcut' and mimeType != 'application/vnd.google-apps.form' and mimeType != 'application/vnd.google-apps.site'`;
+    params.orderBy = 'folder, name, createdTime desc';
+    params.fields = "nextPageToken, files(id, name, mimeType, size, createdTime, driveId, kind, fileExtension, md5Checksum, iconLink)";
     params.pageSize = this.authConfig.files_list_page_size;
 
     if (page_token) {
@@ -1762,6 +2329,7 @@ class googleDrive {
     if (!keyword) {
       return empty_result;
     }
+    let drvId = this.root.id;
     let words = keyword.split(/\s+/);
     let name_search_str = `name contains '${words.join("' AND name contains '")}'`;
     let params = {};
@@ -1778,8 +2346,11 @@ class googleDrive {
       if (authConfig.search_all_drives) {
         params.corpora = 'allDrives';
       } else {
+        if (drvId.length > 25) {
+          drvId = (await this.findItemById(drvId)).driveId;
+        }
+        params.driveId = drvId;
         params.corpora = 'drive';
-        params.driveId = this.root.id;
       }
       params.includeItemsFromAllDrives = true;
       params.supportsAllDrives = true;
@@ -1787,10 +2358,10 @@ class googleDrive {
     if (page_token) {
       params.pageToken = page_token;
     }
-    params.q = `trashed = false AND mimeType != 'application/vnd.google-apps.shortcut' and mimeType != 'application/vnd.google-apps.document' and mimeType != 'application/vnd.google-apps.spreadsheet' and mimeType != 'application/vnd.google-apps.form' and mimeType != 'application/vnd.google-apps.site' AND name !='.password' AND (${name_search_str})`;
-    params.fields = "nextPageToken, files(id, driveId, name, mimeType, size , modifiedTime)";
+    params.q = `trashed = false AND mimeType != 'application/vnd.google-apps.shortcut' and mimeType != 'application/vnd.google-apps.form' and mimeType != 'application/vnd.google-apps.site' AND name !='.password' AND (${name_search_str})`;
+    params.fields = "nextPageToken, files(id, driveId, name, mimeType, size, createdTime, md5Checksum, iconLink, fileExtension)";
     params.pageSize = this.authConfig.search_result_list_page_size;
-    params.orderBy = 'folder, name, modifiedTime desc';
+    params.orderBy = 'folder, name, createdTime desc';
 
     let url = 'https://www.googleapis.com/drive/v3/files';
     url += '?' + enQuery(params);
@@ -1882,7 +2453,11 @@ class googleDrive {
     let url = `https://www.googleapis.com/drive/v3/files/${id}?fields=${DriveFixedTerms.default_file_fields}${is_user_drive ? '' : '&supportsAllDrives=true'}`;
     let requestOption = await this.requestOptions();
     let res = await fetch(url, requestOption);
-    return await res.json()
+    if (res.ok) {
+      return await res.json()
+    } else {
+      return res;
+    }
   }
 
   async findPathId(path) {
@@ -2025,10 +2600,31 @@ class googleDrive {
 // end of class googleDrive
 const drive = new googleDrive(authConfig, 0);
 async function download(id, range = '', inline) {
+  let file = await drive.findItemById(id);
+  const second_domain_for_dl = `${uiConfig.second_domain_for_dl}`
+  if (file.status == 404 || second_domain_for_dl == 'true') {
+    const res = await fetch(`${uiConfig.jsdelivr_cdn_src}@${uiConfig.version}/assets/disable_download.html`);
+    return new Response(await res.text(), {
+      headers: {
+        "content-type": "text/html;charset=UTF-8",
+      },
+    })
+  }
+  let filename = file.name;
   let url = `https://www.googleapis.com/drive/v3/files/${id}?alt=media`;
+  const isGoogleDocument = file.mimeType.startsWith('application/vnd.google-apps.');
+  if (isGoogleDocument) {
+    // Handle other Google Document types
+    url = `https://www.googleapis.com/drive/v3/files/${id}/export?mimeType=application%2Fpdf`;
+    filename = `${file.name}.pdf`;
+    if (file.mimeType === 'application/vnd.google-apps.script') {
+      // Handle Google Apps Script
+      url = `https://www.googleapis.com/drive/v3/files/${id}/export?mimeType=application%2Fvnd.google-apps.script%2Bjson`;
+      filename = `${file.name}.json`;
+    }
+  }
   const requestOption = await drive.requestOptions();
   requestOption.headers['Range'] = range;
-  let file = await drive.findItemById(id);
   if (!file.name) {
     return new Response(`{"error":"Unable to Find this File, Try Again."}`, {
       status: 500,
@@ -2048,30 +2644,15 @@ async function download(id, range = '', inline) {
     sleep(800 * (i + 1));
     console.log(res);
   }
-  const second_domain_for_dl = `${uiConfig.second_domain_for_dl}`
-  if (second_domain_for_dl == 'true') {
-    const res = await fetch(`${uiConfig.jsdelivr_cdn_src}@${uiConfig.version}/assets/disable_download.html`);
-    return new Response(await res.text(), {
-      headers: {
-        "content-type": "text/html;charset=UTF-8",
-      },
-    })
-  } else if (res.ok) {
+  if (res.ok) {
     const {
       headers
     } = res = new Response(res.body, res)
-    headers.set("Content-Disposition", `attachment; filename="${file.name}"`);
+    headers.set("Content-Disposition", `attachment; filename="${filename}"`);
     headers.set("Content-Length", file.size);
     authConfig.enable_cors_file_down && headers.append('Access-Control-Allow-Origin', '*');
     inline === true && headers.set('Content-Disposition', 'inline');
     return res;
-  } else if (res.status == 404) {
-    return new Response(not_found, {
-      status: 404,
-      headers: {
-        "content-type": "text/html;charset=UTF-8",
-      },
-    })
   } else if (res.status == 403) {
     const details = await res.text()
     return new Response(details, {
