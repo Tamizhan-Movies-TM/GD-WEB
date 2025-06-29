@@ -1748,54 +1748,52 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		}
 	}
 	// Add the container and card elements
+// Add the container and card elements
 var content = `
 <div class="card">
     <div class="card-header ${UI.file_view_alert_class}">
         <i class="fas fa-file-alt fa-fw"></i>File Information
     </div>
-    <div class="card-body p-2"> <!-- Added padding only to card body -->
-        <div class="row g-0 align-items-start"> <!-- No gutter between columns -->
-            <!-- Video Player Column -->
-            <div class="col-lg-4 col-md-12">
-                <div class="border border-dark" style="--bs-border-opacity: .5;">
+    <div class="card-body">
+        <div class="row g-0">  <!-- Changed to g-0 to remove gap -->
+            <div class="col-lg-4 col-md-12 pe-2">  <!-- Added pe-2 for small right padding -->
+                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
                     ${player}
                 </div>
             </div>
-            
-            <!-- File Info Column - directly adjacent to player -->
             <div class="col-lg-8 col-md-12">
-                <table class="table table-dark mb-3"> <!-- Added mb-3 for bottom margin -->
+                <table class="table table-dark mb-0">  <!-- Added mb-0 to remove bottom margin -->
                     <tbody>
                         <tr>
-                            <th class="border-top-0 ps-2"> <!-- No top border -->
+                            <th>
                                 <i class="fa-regular fa-folder-closed fa-fw"></i>
                                 <span class="tth">Name</span>
                             </th>
-                            <td class="border-top-0">${name}</td>
+                            <td>${name}</td>
                         </tr>
                         <tr>
-                            <th class="ps-2">
+                            <th>
                                 <i class="fa-regular fa-clock fa-fw"></i>
                                 <span class="tth">Datetime</span>
                             </th>
                             <td>${createdTime}</td>
                         </tr>
                         <tr>
-                            <th class="ps-2">
+                            <th>
                                 <i class="fa-solid fa-tag fa-fw"></i>
                                 <span class="tth">Type</span>
                             </th>
                             <td>${formatMimeType(mimeType)}</td>
                         </tr>
                         <tr>
-                            <th class="ps-2">
+                            <th>
                                 <i class="fa-solid fa-box-archive fa-fw"></i>
                                 <span class="tth">Size</span>
                             </th>
                             <td>${size}</td>
                         </tr>
                         <tr>
-                            <th class="ps-2">
+                            <th>
                                 <i class="fa-solid fa-file-circle-check fa-fw"></i>
                                 <span class="tth">Checksum</span>
                             </th>
@@ -1805,42 +1803,72 @@ var content = `
                 </table>
             </div>
         </div>
-        
         ${UI.disable_video_download ? `` : `
-        <!-- Player Buttons with proper spacing below file info -->
-        <div class="d-flex justify-content-center gap-3 mb-3">
-            <button type="button" class="btn btn-outline-warning" style="width: 160px;"
+        <!-- Buttons sections remain unchanged -->
+        <!-- First row of buttons - fixed width -->
+        <div class="d-flex justify-content-center gap-3 my-3">  <!-- Changed mb-3 to my-3 for vertical spacing -->
+            <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${vlc_icon} VLC Player
+                <span class="d-flex align-items-center">
+                    ${vlc_icon} VLC Player
+                </span>
             </button>
-            <button type="button" class="btn btn-outline-info" style="width: 160px;"
+
+            <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${mxplayer_icon} MX Player
-            </button>
+                <span class="d-flex align-items-center gap-1">
+                    ${mxplayer_icon} MX Player
+                </span>
+            </button> 
         </div>
-        <div class="d-flex justify-content-center gap-3 mb-3">
-            <button type="button" class="btn btn-outline-success" style="width: 160px;"
+
+        <!-- Second row of buttons - fixed width -->		
+        <div class="d-flex justify-content-center gap-3 mb-3">  <!-- Changed mb-4 to mb-3 -->
+            <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${xplayer_icon} XPlayer
+                <span class="d-flex align-items-center gap-1">
+                    ${xplayer_icon} XPlayer
+                </span>
             </button>
-            <button type="button" class="btn btn-outline-danger" style="width: 160px;"
+
+            <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${playit_icon} PLAYit
+                <span class="d-flex align-items-center gap-1"> 
+                    ${playit_icon} PLAYit
+                </span>
             </button>
         </div>
-        <div class="d-flex justify-content-center">
-            <div class="btn-group">
-                <a href="${url}" class="btn btn-success">
-                    <i class="fas fa-bolt fa-fw"></i>Index Download Link
-                </a>
-                <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
-                </button>
-                <div class="dropdown-menu">
-                    <!-- Dropdown items unchanged -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-center">
+                    <div class="btn-group">
+                        <a href="${url}" type="button" class="btn btn-success">
+                            <i class="fas fa-bolt fa-fw"></i>Index Download Link
+                        </a>
+                        <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="sr-only"></span>
+                        </button>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                                <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
+                            </a>
+                            <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                                <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
+                            </a>
+                            <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                                <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 24px; width: 24px; margin-right: 5px;"> MX Player
+                            </a>
+                            <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                                <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 24px; width: 24px; margin-right: 5px;"> VLC Player
+                            </a>
+                            <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">
+                                <img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 24px; width: 24px; margin-right: 5px;"> 1DM (Free)
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        `}
+        </div>`}
     </div>
 </div>`;
 $("#content").html(content);
