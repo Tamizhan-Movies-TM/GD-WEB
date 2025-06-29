@@ -1752,8 +1752,7 @@ var content = `
 <div class="card">
     <div class="card-header ${UI.file_view_alert_class}">
     <i class="fas fa-file-alt fa-fw"></i>File Information
-    <p></div></p>
-    <div class="card-body">
+    </div> <div class="card-body">
         <div class="row g-3">  
             <div class="col-lg-4 col-md-12">
                 <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
