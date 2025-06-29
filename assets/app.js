@@ -1365,7 +1365,7 @@ const trakteerWidget = `<div class="col-md-12">
         ִֶָ 𓂃˖˳·˖ ִֶָ ⋆🌷͙⋆ ִֶָ˖·˳˖𓂃 ִֶָ&nbsp;&nbsp;&nbsp;வணக்கம்&nbsp;&nbsp;&nbsp;நண்பர்களே,&nbsp;&nbsp;&nbsp;⋆.˚🦋༘⋆&nbsp;&nbsp;&nbsp;தமிழன்&nbsp;&nbsp;&nbsp;திரைப்படங்களுக்கு&nbsp;&nbsp;&nbsp;˙✧˖°🍿 ༘ 🎬⋆｡°&nbsp;&nbsp;&nbsp;உங்களை&nbsp;&nbsp;&nbsp;அன்புடன்&nbsp;&nbsp;&nbsp;வரவேற்கிறோம்!&nbsp;&nbsp;&nbsp;⊱🪷⊰˚&nbsp;&nbsp;&nbsp;உங்கள்&nbsp;&nbsp;&nbsp;அன்பு&nbsp;&nbsp;&nbsp;மற்றும்&nbsp;&nbsp;&nbsp;ஆதரவுக்கு&nbsp;&nbsp;&nbsp;நன்றி.&nbsp;&nbsp;&nbsp;༄˖°.🍂.ೃ࿔*:･🙌
       </marquee>
     </div>
-  </div>
+	</div>
 </div>`;
 
 const copyButton = `<button onclick="copyFunction()" onmouseout="outFunc()" class="btn btn-primary"><span class="tooltiptext" id="myTooltip"><i class="fas fa-copy fa-fw"></i>Copy</span></button>`
@@ -1388,7 +1388,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 	var content = `
 	<div class="card">
 		<div class="card-header ${UI.file_view_alert_class}">
-			<i class="fas fa-file-alt fa-fw"></i>File Information
+		<i class="fas fa-file-alt fa-fw"></i>File Information
 		</div>
 		<div class="card-body row g-3">
 			<div class="col-lg-4 col-md-12">${poster && !mimeType.startsWith('application/vnd.google-apps') ? `
@@ -1673,13 +1673,15 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	<div class="card-body">
 		<div class="row g-3">
 			<div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
-				<div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .3; width: 100%; max-width: 640px;">  
+				<div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  
 					<div style="position: relative; padding-bottom: 45%;"> 
 						<div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
 							${player} 
 						</div>
 					</div>
 				</div>
+		   </div>
+		  </div>
 			</div>
 			<div class="col-lg-8 col-md-12">
 				<table class="table table-dark">
