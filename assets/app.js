@@ -6,20 +6,20 @@ function init() {
 	var html = `<header>
    <div id="nav">
    </div>
-</header>
-<div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
-<div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
+  </header>
+ <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
+ <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
 	<div class="row align-items-start g-3">
 		`+trakteerWidget;
 		html += `
-<div class="col-md-12">
-    <div class="card bg-dark bg-opacity-10"> 
-        <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
-    </div>
-</div>
-</div>
-</div>
-<div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
+   <div class="col-md-12">
+   <div class="card bg-dark bg-opacity-10"> 
+    <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"
+  </div>
+ </div>
+ </div>
+ </div>
+ <div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -34,9 +34,9 @@ function init() {
       </div>
     </div>
   </div>
-</div>
-<button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
-<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
+ </div>
+ <button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
+  <footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
     <div class="container" style="padding-top: 15px;">
       <div class="row">
       <div class="col-lg-4 col-md-12 text-lg-start">
