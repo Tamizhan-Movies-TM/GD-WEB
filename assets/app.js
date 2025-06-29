@@ -1757,7 +1757,7 @@ var content = `
     <div class="card-body">
     <div class="row g-2">
 		<div class="col-lg-4 col-md-12">
-	  <div class="h-100 border border-dark rounded" style="bs-border-opacity: .5;>
+	  <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;>
     ${player}
       </div>
        </div>
