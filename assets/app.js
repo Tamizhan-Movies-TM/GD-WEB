@@ -1756,7 +1756,7 @@ var content = `
     </div>
     <div class="card-body">
         <div class="row g-0">  <!-- Changed to g-0 to remove gap -->
-            <div class="col-lg-4 col-md-12 pe-2">  <!-- Added pe-2 for small right padding -->
+            <div pe-2"> 
                 <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
                     ${player}
                 </div>
