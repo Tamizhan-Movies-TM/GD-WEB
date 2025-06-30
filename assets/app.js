@@ -1672,21 +1672,17 @@ var content = `
      </tr>
 		 </tr>
      <th>
-		  <div class="card-body">
-        <div class="row g-3">  
-            <div class="col-lg-4 col-md-12">
-                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-                   <td>${player}
-                    </div>
-                     </div>
-                       <div class="col-lg-8 col-md-12">
-                       <table class="table table-dark mb-0">  
-                        <tbody>
-                        <tr>
-                         <th>
-                          <i class="fa-regular fa-folder-closed fa-fw"></i>
-                           <span class="tth">Name</span>
-                           </th>
+      <td>${player}
+        </div>
+        </div>
+          <div class="col-lg-8 col-md-12">
+            <table class="table table-dark mb-0">  
+              <tbody>
+                  <tr>
+                    <th>
+                      <i class="fa-regular fa-folder-closed fa-fw"></i>
+                        <span class="tth">Name</span>
+                          </th>
                            <td>${name}</td>
                            </tr>
 													 <tr>
