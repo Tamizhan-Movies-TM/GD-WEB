@@ -1882,6 +1882,20 @@ var content = `
 </div>`;
 
 $("#content").html(content);
+		 .player-buttons .glow-btn {
+    min-width: 180px;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .player-buttons .d-flex {
+        justify-content: space-around !important;
+    }
+    .player-buttons .glow-btn {
+        min-width: 160px;
+        flex: 1 0 45%;
+    }
+}
 		 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
