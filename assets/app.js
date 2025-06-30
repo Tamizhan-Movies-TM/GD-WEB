@@ -95,7 +95,6 @@ function init() {
 	<div class="row align-items-start g-3">
 		`+trakteerWidget;
 		html += `
-<div class="col-md-12">
     <div class="card bg-dark bg-opacity-10"> 
         <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
     </div>
