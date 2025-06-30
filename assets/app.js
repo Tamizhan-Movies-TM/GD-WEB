@@ -1671,13 +1671,18 @@ var content = `
         <i class="fas fa-file-alt fa-fw"></i> File Information
     </div>
     <div class="card-body">
+        <!-- Video Player Section (Top) -->
+        <div class="mb-4">
+            ${player}
+        </div>
+        
         <!-- File Information Section -->
         <div class="row">
-            <div class="col-md-12">
-                <table class="table table-dark mb-4">  
+            <div class="col-12">
+                <table class="table table-dark mb-0">  
                     <tbody>
                         <tr>
-                            <th width="25%">
+                            <th>
                                 <i class="fa-regular fa-folder-closed fa-fw"></i>
                                 <span class="tth">Name</span>
                             </th>
@@ -1702,17 +1707,9 @@ var content = `
             </div>
         </div>
         
-        <!-- Video Player Section (Responsive, properly sized) -->
-        <div class="video-player-container mb-4" style="width: 100%; max-width: 800px; margin: 0 auto;">
-            ${player}
-        </div>
-        
-        <!-- EXPERIENCE THIS MOVIE IN heading -->
-        <h5 class="text-center mb-3">EXPERIENCE THIS MOVIE IN</h5>
-        
         ${UI.disable_video_download ? `` : `
         <!-- Buttons sections -->
-        <div class="mt-2">  
+        <div class="mt-4">  
             <!-- First row of buttons - fixed width -->
             <div class="d-flex justify-content-center gap-3 my-3">
                 <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
