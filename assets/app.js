@@ -1672,10 +1672,10 @@ var content = `
     <i class="fas fa-file-alt fa-fw"></i> File Information
   </div>
   <div class="card-body">
-    <div class="row g-3">
+    <div class="row g-2">  <!-- Reduced gap between columns -->
       <!-- Video Player Section -->
-      <div class="col-lg-4 col-12">  
-        <div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; max-width: 640px;">
+      <div class="col-lg-4 col-12">
+        <div class="border border-dark rounded" style="--bs-border-opacity: .5;">
           <div class="ratio ratio-16x9">
             ${player}
           </div>
@@ -1715,7 +1715,7 @@ var content = `
     
     ${UI.disable_video_download ? `` : `
     <!-- Player Buttons - Responsive Grid -->
-    <div class="row g-2 justify-content-center mb-3">
+    <div class="row g-2 justify-content-center mt-3 mb-3">  <!-- Reduced top margin -->
       <div class="col-6 col-sm-4 col-md-3 col-lg-2">
         <button type="button" class="btn btn-outline-warning w-100 py-2"
           onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
@@ -1767,7 +1767,6 @@ var content = `
     `}
   </div>
 </div>`;
-
 $("#content").html(content);
 		 
 	// Load Video.js and initialize the player
