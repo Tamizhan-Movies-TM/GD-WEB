@@ -1763,8 +1763,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			player_css = ''
 		}
 	}
-	
-// Add the container and card elements
+	// Add the container and card elements
 	var content = `
 <div class="card">
 <div class="card-header ${UI.file_view_alert_class}">
