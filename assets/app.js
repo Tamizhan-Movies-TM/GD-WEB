@@ -1664,135 +1664,120 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			player_css = ''
 		}
 	}
+		 
 	// Add the container and card elements
-	var content = `
-<div class="card">
-    <div class="card-header ${UI.file_view_alert_class}">
-        <i class="fas fa-file-alt fa-fw"></i> File Information
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <!-- Video Player Section -->
-            <div class="col-lg-4 col-md-12 mb-3">
-                ${player}
-            </div>
-            
-            <!-- File Information Section -->
-            <div class="col-lg-8 col-md-12">
-                <table class="table table-dark mb-0">  
-                    <tbody>
-                        <tr>
-                            <th>
-                                <i class="fa-regular fa-folder-closed fa-fw"></i>
-                                <span class="tth">Name</span>
-                            </th>
-                            <td>${name}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-regular fa-clock fa-fw"></i>
-                                <span class="tth">Datetime</span>
-                            </th>
-                            <td>${createdTime}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-tag fa-fw"></i>
-                                <span class="tth">Type</span>
-                            </th>
-                            <td>${formatMimeType(mimeType)}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-box-archive fa-fw"></i>
-                                <span class="tth">Size</span>
-                            </th>
-                            <td>${size}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-file-circle-check fa-fw"></i>
-                                <span class="tth">Checksum</span>
-                            </th>
-                            <td>MD5: <code>${md5Checksum}</code></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+	 var content = `
+    <div class="card border-teal">
+        <div class="card-header bg-teal text-white">
+            <i class="fas fa-file-video fa-fw"></i> Video Information
         </div>
-        
-        ${UI.disable_video_download ? `` : `
-        <!-- First row of buttons - fixed width -->
-        <div class="d-flex justify-content-center gap-3 mb-3">
-            <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
-                onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                <span class="d-flex align-items-center">
-                    ${vlc_icon} VLC Player
-                </span>
-            </button>
-
-            <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
-                onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                <span class="d-flex align-items-center gap-1">
-                    ${mxplayer_icon} MX Player
-                </span>
-            </button> 
-        </div>
-            
-        <!-- Second row of buttons - fixed width -->
-        <div class="d-flex justify-content-center gap-3 mb-4">
-            <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
-                onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                <span class="d-flex align-items-center gap-1">
-                    ${xplayer_icon} XPlayer
-                </span>
-            </button>
-
-            <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
-                onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                <span class="d-flex align-items-center gap-1"> 
-                      ${playit_icon} PLAYit
-                    </span>
-                </button>
-            </div>
-            
-            <!-- Download button with dropdown -->
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="d-flex justify-content-center">
-                        <div class="btn-group">
-                            <a href="${url}" type="button" class="btn btn-success">
-                                <i class="fas fa-bolt fa-fw"></i>Index Download Link
-                            </a>
-                            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="sr-only"></span>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                                    <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-lg-6 col-md-12">
+                    <div class="video-container border rounded p-2 bg-dark">
+                        ${player}
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-12">
+                    <div class="file-details border rounded p-3 bg-light">
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <th><i class="fas fa-file fa-fw"></i> Name:</th>
+                                    <td class="text-truncate">${name}</td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-tag fa-fw"></i> Type:</th>
+                                    <td>${formatMimeType(mimeType)}</td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-weight fa-fw"></i> Size:</th>
+                                    <td>${size}</td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-calendar fa-fw"></i> Created:</th>
+                                    <td>${createdTime}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <div class="download-section mt-3">
+                            <div class="input-group mb-2">
+                                <span class="input-group-text"><i class="fas fa-link"></i></span>
+                                <input type="text" class="form-control" value="${url}" readonly>
+                                <button class="btn btn-outline-primary" onclick="copyFunction()">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="btn-group w-100">
+                                <a href="${url}" class="btn btn-teal">
+                                    <i class="fas fa-download me-1"></i> Download
                                 </a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                                    <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
-                                </a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                                    <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 24px; width: 24px; margin-right: 5px;"> MX Player
-                                </a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                                    <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 24px; width: 24px; margin-right: 5px;"> VLC Player
-                                </a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">
-                                    <img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 24px; width: 24px; margin-right: 5px;"> 1DM (Free)
-                                </a>
+                                <button class="btn btn-teal dropdown-toggle dropdown-toggle-split" 
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;S.title=${encoded_name};end">
+                                        <i class="fab fa-vlc me-2"></i> VLC Player
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;S.title=${encoded_name};end">
+                                        <i class="fas fa-play-circle me-2"></i> MX Player
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;S.title=${encoded_name};end">
+                                        <i class="fas fa-play me-2"></i> XPlayer
+                                    </a></li>
+                                </ul>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>`}
+        </div>
     </div>
-</div>`;
-$("#content").html(content);
+    ${copyFileBox}`;
 
+    // Add CSS for the new design
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .card.border-teal {
+            border: 2px solid #20c997 !important;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(32, 201, 151, 0.2);
+        }
+        .bg-teal {
+            background: linear-gradient(135deg, #20c997, #198754) !important;
+        }
+        .btn-teal {
+            background-color: #20c997;
+            border-color: #20c997;
+            color: white;
+        }
+        .btn-teal:hover {
+            background-color: #198754;
+            border-color: #198754;
+        }
+        .video-container {
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .file-details {
+            height: 100%;
+        }
+        @media (max-width: 768px) {
+            .video-container {
+                min-height: 200px;
+                margin-bottom: 20px;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+    $("#content").html(content);
+		 
 	// Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
