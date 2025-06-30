@@ -1671,18 +1671,13 @@ var content = `
         <i class="fas fa-file-alt fa-fw"></i> File Information
     </div>
     <div class="card-body">
-        <!-- Video Player Section (Top) -->
-        <div class="mb-4">
-            ${player}
-        </div>
-        
         <!-- File Information Section -->
         <div class="row">
-            <div class="col-12">
-                <table class="table table-dark mb-0">  
+            <div class="col-md-12 mb-3">
+                <table class="table table-dark mb-3">  
                     <tbody>
                         <tr>
-                            <th>
+                            <th width="30%">
                                 <i class="fa-regular fa-folder-closed fa-fw"></i>
                                 <span class="tth">Name</span>
                             </th>
@@ -1705,6 +1700,11 @@ var content = `
                     </tbody>
                 </table>
             </div>
+        </div>
+        
+        <!-- Video Player Section (Full width below file info) -->
+        <div class="mb-4">
+            ${player}
         </div>
         
         ${UI.disable_video_download ? `` : `
