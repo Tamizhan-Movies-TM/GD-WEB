@@ -1671,14 +1671,14 @@ var content = `
         <i class="fas fa-file-alt fa-fw"></i> File Information
     </div>
     <div class="card-body">
+        <!-- Video Player Section (Top) -->
+        <div class="mb-4">
+            ${player}
+        </div>
+        
+        <!-- File Information Section -->
         <div class="row">
-            <!-- Video Player Section -->
-            <div class="col-lg-4 col-md-12 mb-3">
-                ${player}
-            </div>
-            
-            <!-- File Information Section -->
-            <div class="col-lg-8 col-md-12">
+            <div class="col-12">
                 <table class="table table-dark mb-0">  
                     <tbody>
                         <tr>
