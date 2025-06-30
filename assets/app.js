@@ -1672,7 +1672,7 @@ var content = `
     <i class="fas fa-file-alt fa-fw"></i> File Information
   </div>
   <div class="card-body">
-    <div class="row g-2">  <!-- Reduced gap between columns -->
+    <div class="row g-3">
       <!-- Video Player Section -->
       <div class="col-lg-4 col-12">
         <div class="border border-dark rounded" style="--bs-border-opacity: .5;">
@@ -1682,91 +1682,101 @@ var content = `
         </div>
       </div>
       
-      <!-- File Info Section -->
+      <!-- File Info Section - Clean Minimal Design -->
       <div class="col-lg-8 col-12">
-        <div class="table-responsive">
-          <table class="table table-dark">
-            <tbody>
-              <tr>
-                <th><i class="fa-regular fa-folder-closed fa-fw"></i> <span class="tth">Name</span></th>
-                <td class="text-break">${name}</td>
-              </tr>
-              <tr>
-                <th><i class="fa-regular fa-clock fa-fw"></i> <span class="tth">Datetime</span></th>
-                <td>${createdTime}</td>
-              </tr>
-              <tr>
-                <th><i class="fa-solid fa-tag fa-fw"></i> <span class="tth">Type</span></th>
-                <td>${formatMimeType(mimeType)}</td>
-              </tr>
-              <tr>
-                <th><i class="fa-solid fa-box-archive fa-fw"></i> <span class="tth">Size</span></th>
-                <td>${size}</td>
-              </tr>
-              <tr>
-                <th><i class="fa-solid fa-file-circle-check fa-fw"></i> <span class="tth">Checksum</span></th>
-                <td>MD5: <code class="text-break">${md5Checksum}</code></td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="file-info">
+          <h3 class="mb-3">${name}</h3>
+          
+          <div class="file-meta">
+            <div class="d-flex align-items-center mb-2">
+              <i class="fa-regular fa-clock fa-fw me-2"></i>
+              <span>${createdTime}</span>
+            </div>
+            
+            <div class="d-flex align-items-center mb-2">
+              <i class="fa-solid fa-tag fa-fw me-2"></i>
+              <span>${formatMimeType(mimeType)}</span>
+            </div>
+            
+            <div class="d-flex align-items-center mb-2">
+              <i class="fa-solid fa-box-archive fa-fw me-2"></i>
+              <span>${size}</span>
+            </div>
+            
+            <div class="d-flex align-items-center">
+              <i class="fa-solid fa-file-circle-check fa-fw me-2"></i>
+              <span>MD5: <code class="bg-dark p-1 rounded">${md5Checksum}</code></span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
     
     ${UI.disable_video_download ? `` : `
-    <!-- Player Buttons - Responsive Grid -->
-    <div class="row g-2 justify-content-center mt-3 mb-3">  <!-- Reduced top margin -->
-      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-        <button type="button" class="btn btn-outline-warning w-100 py-2"
+    <!-- Player Buttons - Clean Design -->
+    <div class="player-buttons mt-4">
+      <div class="d-flex flex-wrap justify-content-center gap-2">
+        <button type="button" class="btn btn-outline-warning"
           onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-          ${vlc_icon} VLC
+          ${vlc_icon} VLC Player
         </button>
-      </div>
-      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-        <button type="button" class="btn btn-outline-info w-100 py-2"
+
+        <button type="button" class="btn btn-outline-info"
           onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-          ${mxplayer_icon} MX
+          ${mxplayer_icon} MX Player
         </button>
-      </div>
-      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-        <button type="button" class="btn btn-outline-success w-100 py-2"
+
+        <button type="button" class="btn btn-outline-success"
           onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
           ${xplayer_icon} XPlayer
         </button>
-      </div>
-      <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-        <button type="button" class="btn btn-outline-danger w-100 py-2"
+
+        <button type="button" class="btn btn-outline-danger"
           onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
           ${playit_icon} PLAYit
         </button>
       </div>
     </div>
     
-    <!-- Download Button with Dropdown -->
-    <div class="row mt-2">
-      <div class="col-12">
-        <div class="d-flex justify-content-center">
-          <div class="btn-group">
-            <a href="${url}" class="btn btn-success">
-              <i class="fas fa-bolt fa-fw"></i> Index Download
-            </a>
-            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
-              data-bs-toggle="dropdown" aria-expanded="false">
-            </button>
-            <div class="dropdown-menu">
-              <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-            </div>
-          </div>
-        </div>
+    <!-- Download Button -->
+    <div class="download-btn mt-3">
+      <div class="d-flex justify-content-center">
+        <a href="${url}" class="btn btn-success px-4">
+          <i class="fas fa-bolt fa-fw"></i> Index Download
+        </a>
       </div>
     </div>
     `}
   </div>
-</div>`;
+</div>
+
+<style>
+.file-info h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f8f9fa;
+}
+
+.file-meta {
+  background-color: rgba(33, 37, 41, 0.5);
+  border-radius: 0.25rem;
+  padding: 1rem;
+}
+
+.file-meta div {
+  padding: 0.25rem 0;
+}
+
+.file-meta i {
+  width: 20px;
+  text-align: center;
+}
+
+.player-buttons .btn {
+  min-width: 120px;
+}
+</style>`;
+
 $("#content").html(content);
 		 
 	// Load Video.js and initialize the player
