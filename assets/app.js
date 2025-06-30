@@ -2,7 +2,90 @@
 // v2.3.5
 // Initialize the page
 function init() {
- document.siteName = $('title').html();
+	// Add Vapor theme outline button styles
+   const style = document.createElement('style');
+    style.textContent = `
+        /* Base Button Styles */
+        .glow-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            z-index: 1;
+            border: 2px solid;
+            border-radius: 8px;
+            font-weight: bold;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            width: 160px;
+            margin-bottom: 10px;
+            color: white !important; /* Force white text always */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            outline: none;
+        }
+
+        /* Color Definitions */
+        .glow-warning {
+            border-color: #ffcc00;
+            --btn-color: #ffcc00;
+        }
+        .glow-info {
+            border-color: #00ccff;
+            --btn-color: #00ccff;
+        }
+        .glow-success {
+            border-color: #00ff99;
+            --btn-color: #00ff99;
+        }
+        .glow-danger {
+            border-color: #ff6666;
+            --btn-color: #ff6666;
+        }
+
+        /* Click Effect - Inner Color Fill */
+        .glow-btn:active {
+            background-color: var(--btn-color);
+            background-image: linear-gradient(
+                to bottom,
+                var(--btn-color),
+                rgba(0,0,0,0.2)
+            );
+            box-shadow: 
+                0 0 10px var(--btn-color),
+                inset 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        /* Hover Effect */
+        .glow-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--btn-color);
+        }
+
+        /* Internal Shine Animation */
+        .glow-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.2),
+                transparent
+            );
+            transition: all 0.6s ease;
+            z-index: -1;
+        }
+        .glow-btn:hover::before {
+            left: 100%;
+        }
+    `;
+    document.head.appendChild(style);
+	
+	document.siteName = $('title').html();
 	var html = `<header>
    <div id="nav">
    </div>
@@ -74,6 +157,21 @@ function init() {
 </footer>`;
 $('body').html(html);
 }
+// URL Obfuscation Utilities
+function encodePath(path) {
+  return btoa(encodeURIComponent(path))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+function decodePath(encoded) {
+  return decodeURIComponent(atob(encoded
+    .replace(/-/g, '+')
+    .replace(/_/g, '/')
+  ));
+}
+
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.3 78" style="width: 1.3em;">
 <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"></path>
 <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"></path>
@@ -207,7 +305,7 @@ function nav(path) {
 
 	html += `<li class="nav-item">
     <a class="nav-link" href="${UI.contact_link}" target="_blank"><i class="fas fa-paper-plane fa-fw"></i>${UI.nav_link_4}</a>
-  </li>${UI.show_logout_button ?'<li class="nav-item"><a class="nav-link" href="/login"><i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>Login</a></li>': ''}`;
+  </li>${UI.show_logout_button ?'<li class="nav-item"><a class="nav-link" href="/logout"><i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>Logout</a></li>': ''}`;
 
 	var search_text = model.is_search_page ? (model.q || '') : '';
 	var search_bar = `
@@ -782,10 +880,11 @@ function append_files_to_list(path, files) {
 			var ext = item.fileExtension
 			//if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
 			//targetFiles.push(filepath);
-			pn += "?a=view";
-			c += " view";
-			//}
-			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
+			const isFolder = item['mimeType'] === 'application/vnd.google-apps.folder';
+      const filePath = isFolder ? p : `/v/${encodePath(path + item.name)}`;
+
+    // Build the HTML template
+  html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? `<input class="form-check-input" style="margin-top: 0.3em; margin-right: 0.5em;" type="checkbox" value="${link}" id="flexCheckDefault">` : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${filePath}"><span>`;
 
 			if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
 				html += video_icon
@@ -1664,190 +1763,138 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			player_css = ''
 		}
 	}
-
-// Add this function at the top level of your app.js
-function updateAspectRatioDisplay(videoElement) {
-    if (!videoElement) return;
-    
-    function setAspectRatioText(text) {
-        const aspectRatioElement = document.getElementById('aspect-ratio-value');
-        if (aspectRatioElement) {
-            aspectRatioElement.textContent = text;
-        }
-    }
-
-    // Handle video errors
-    videoElement.addEventListener('error', function() {
-        setAspectRatioText('Error loading video');
-    });
-
-    function calculateAspectRatio() {
-        if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
-            const ratio = (videoElement.videoWidth / videoElement.videoHeight).toFixed(2);
-            let aspectRatioText = 'Unknown';
-            
-            if (ratio >= 1.77 && ratio <= 1.78) { // 16:9 is 1.777...
-                aspectRatioText = '16:9';
-            } else if (ratio >= 1.59 && ratio <= 1.61) { // 16:10 is 1.6
-                aspectRatioText = '16:10';
-            } else if (ratio >= 1.33 && ratio <= 1.34) { // 4:3 is 1.333...
-                aspectRatioText = '4:3';
-            } else if (Math.abs(ratio - 1) < 0.01) { // 1:1
-                aspectRatioText = '1:1';
-            } else {
-                aspectRatioText = `${ratio}:1`;
-            }
-            
-            setAspectRatioText(aspectRatioText);
-        }
-    }
-
-    // Check if metadata is already loaded
-    if (videoElement.readyState >= 1) {
-        calculateAspectRatio();
-    } else {
-        videoElement.addEventListener('loadedmetadata', calculateAspectRatio);
-    }
-}
-
-// In your content generation code, modify the table to include aspect ratio:
-var content = `
+	// Add the container and card elements
+	var content = `
 <div class="card">
-    <div class="card-header ${UI.file_view_alert_class}">
-        <i class="fas fa-file-alt fa-fw"></i> File Information
+<div class="card-header ${UI.file_view_alert_class}">
+ <i class="fas fa-file-alt fa-fw"></i>File Information
+ </div>
+	<div class="card-body">
+		<div class="row g-3">
+			<div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
+				<div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  
+					<div style="position: relative; padding-bottom: 56.25%;"> 
+						<div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+						${player} 
+					 </div>
+			    </div>
+				 </div>
+			  </div>
+			 <div class="col-lg-8 col-md-12">
+				<table class="table table-dark">
+					<tbody>
+						<tr>
+							<th>
+								<i class="fa-regular fa-folder-closed fa-fw"></i>
+								<span class="tth">Name</span>
+							</th>
+						 <td>${name}</td>
+						 </tr>
+						 <tr>
+							<th>
+							 <i class="fa-regular fa-clock fa-fw"></i>
+							 <span class="tth">Datetime</span>
+							 </th>
+							<td>${createdTime}</td>
+						 </tr>
+						 <tr>
+							<th>
+								<i class="fa-solid fa-tag fa-fw"></i>
+								<span class="tth">Type</span>
+							</th>
+						<td>${formatMimeType(mimeType)}</td>
+						</tr>
+						<tr>
+							<th>
+							 <i class="fa-solid fa-box-archive fa-fw"></i>
+							 <span class="tth">Size</span>
+							</th>
+						 <td>${size}</td>
+						 </tr>
+						 <tr>
+							<th>
+							<i class="fa-solid fa-file-circle-check fa-fw"></i>
+							<span class="tth">Checksum</span>
+							</th>
+							<td>MD5: <code>${md5Checksum}</code>
+						 </td>
+						</tr>
+					</tbody>
+				</table>
+	     </div>
+			 </div>
+		${UI.disable_video_download ? `` : `
+    <!-- First row of buttons -->
+    <div class="d-flex justify-content-center gap-3 mb-3">
+        <button type="button" class="glow-btn glow-warning"
+            onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center">
+                <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">
+                VLC Player
+            </span>
+        </button>
+
+        <button type="button" class="glow-btn glow-info"
+            onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1">
+                <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">
+                MX Player
+            </span>
+        </button>
     </div>
-    <div class="card-body">
-        <!-- Video Player Section (Top) -->
-        <div class="mb-4">
-            ${player}
-        </div>
-        
-        <!-- File Information Section -->
-        <div class="row">
-            <div class="col-12">
-                <table class="table table-dark mb-0">  
-                    <tbody>
-                        <tr>
-                            <th>
-                                <i class="fa-regular fa-folder-closed fa-fw"></i>
-                                <span class="tth">Name</span>
-                            </th>
-                            <td>${name}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-tag fa-fw"></i>
-                                <span class="tth">Type</span>
-                            </th>
-                            <td>${formatMimeType(mimeType)}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-box-archive fa-fw"></i>
-                                <span class="tth">Size</span>
-                            </th>
-                            <td>${size}</td>
-                        </tr>
-                        <!-- Add this row for Aspect Ratio -->
-                        <tr>
-                            <th>
-                                <i class="fas fa-expand fa-fw"></i>
-                                <span class="tth">Aspect Ratio</span>
-                            </th>
-                            <td id="aspect-ratio-value">Detecting...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        ${UI.disable_video_download ? `` : `
-        <!-- Buttons sections -->
-        <div class="mt-4">  
-            <!-- First row of buttons - fixed width -->
-            <div class="d-flex justify-content-center gap-3 my-3">
-                <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center">
-                        ${vlc_icon} VLC Player
-                    </span>
-                </button>
+    
+    <!-- Second row of buttons -->
+    <div class="d-flex justify-content-center gap-3 mb-4">
+        <button type="button" class="glow-btn glow-success"
+            onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1">
+                <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">
+                XPlayer
+            </span>
+        </button>
 
-                <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center gap-1">
-                        ${mxplayer_icon} MX Player
-                    </span>
-                </button> 
-            </div>
-
-            <!-- Second row of buttons - fixed width -->		
-            <div class="d-flex justify-content-center gap-3 mb-3">
-                <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center gap-1">
-                        ${xplayer_icon} XPlayer
-                    </span>
-                </button>
-
-                <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center gap-1"> 
-                        ${playit_icon} PLAYit
-                    </span>
-                </button>
-            </div>
-            
-            <!-- Download button with dropdown -->
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="d-flex justify-content-center">
-                        <div class="btn-group">
-                            <a href="${url}" type="button" class="btn btn-success">
-                                <i class="fas fa-bolt fa-fw"></i>Index Download Link
-                            </a>
-                            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="sr-only"></span>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                                    <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
-                                </a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                                    <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
-                                </a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                                    <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 24px; width: 24px; margin-right: 5px;"> MX Player
-                                </a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                                    <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 24px; width: 24px; margin-right: 5px;"> VLC Player
-                                </a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">
-                                    <img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 24px; width: 24px; margin-right: 5px;"> 1DM (Free)
-                                </a>
-                            </div>
+        <button type="button" class="glow-btn glow-danger"
+            onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1"> 
+                <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">
+                PLAYit
+            </span>
+        </button>
+      </div>
+			<div class="row mt-2">
+			<div class="col-md-12">
+				<div class="d-flex justify-content-center">
+					<div class="btn-group">
+						<a href="${url}" type="button" class="btn btn-success">
+							<i class="fas fa-bolt fa-fw"></i>Index Download Link
+                </a>
+                 <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                   <span class="sr-only"></span>
+                     </button>
+                      <div class="dropdown-menu">
+                       <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                        <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
+                         </a>
+                          <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                          <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
+                           </a>
+                           <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                           <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 24px; width: 24px; margin-right: 5px;"> MX Player
+                           </a>
+                           <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                           <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 24px; width: 24px; margin-right: 5px;"> VLC Player
+                           </a>
+                           <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">
+                           <img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 24px; width: 24px; margin-right: 5px;"> 1DM (Free)
+                          </a>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>`}
-    </div>
-</div>`;
+					            </div> 
+				             </div>
+			            </div>`}
+		            </div>
+	            </div>`;
+	  $("#content").html(content);
 
-// Set the content
-$("#content").html(content);
-
-// Add this after setting the content
-if (player.includes('<video')) {
-    // Wait for DOM to update
-    setTimeout(() => {
-        const videoElement = document.querySelector('#content video');
-        if (videoElement) {
-            updateAspectRatioDisplay(videoElement);
-        }
-    }, 100);
-}
-		 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
