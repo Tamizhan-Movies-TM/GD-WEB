@@ -1671,18 +1671,15 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         <i class="fas fa-file-alt fa-fw"></i> File Information
     </div>
     <div class="card-body">
-        <div class="row g-3">
-            <div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
-                <div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  
-                    <div style="position: relative; padding-bottom: 56.25%;"> 
-                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
-                            ${player} 
-                        </div>
-                    </div>
-                </div>
+        <div class="row">
+            <!-- Video Player Section -->
+            <div class="col-lg-4 col-md-12 mb-3">
+                ${player}
             </div>
+            
+            <!-- File Information Section -->
             <div class="col-lg-8 col-md-12">
-                <table class="table table-dark">
+                <table class="table table-dark mb-0">  
                     <tbody>
                         <tr>
                             <th>
