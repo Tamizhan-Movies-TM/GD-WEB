@@ -1669,7 +1669,9 @@ var content = `
 <div class="card">
     <div class="card-header ${UI.file_view_alert_class}">
     <i class="fas fa-file-alt fa-fw"></i>File Information
-    </div> <div class="card-body">
+     </tr>
+     <th>
+		  <div class="card-body">
         <div class="row g-3">  
             <div class="col-lg-4 col-md-12">
                 <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
@@ -1680,7 +1682,6 @@ var content = `
                        <table class="table table-dark mb-0">  
                         <tbody>
                         <tr>
-												<tr>
                          <th>
                           <i class="fa-regular fa-folder-closed fa-fw"></i>
                            <span class="tth">Name</span>
