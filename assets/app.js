@@ -1672,10 +1672,10 @@ var content = `
     <i class="fas fa-file-alt fa-fw"></i> File Information
   </div>
   <div class="card-body">
-    <div class="row g-3">
+    <div class="row g-4">  <!-- Increased gap between columns -->
       <!-- Video Player Section -->
-      <div class="col-lg-4 col-12">  
-        <div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; max-width: 640px;">
+      <div class="col-lg-5 col-12 mb-4 mb-lg-0">  <!-- Added margin bottom -->
+        <div class="border border-dark rounded" style="--bs-border-opacity: .5;">
           <div class="ratio ratio-16x9">
             ${player}
           </div>
@@ -1683,7 +1683,7 @@ var content = `
       </div>
       
       <!-- File Info Section -->
-      <div class="col-lg-8 col-12">
+      <div class="col-lg-7 col-12">  <!-- Adjusted column width -->
         <div class="table-responsive">
           <table class="table table-dark">
             <tbody>
@@ -1715,17 +1715,17 @@ var content = `
     
     ${UI.disable_video_download ? `` : `
     <!-- Player Buttons - Responsive Grid -->
-    <div class="row g-2 justify-content-center mb-3">
+    <div class="row g-2 justify-content-center mt-4 mb-3">  <!-- Added top margin -->
       <div class="col-6 col-sm-4 col-md-3 col-lg-2">
         <button type="button" class="btn btn-outline-warning w-100 py-2"
           onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-          ${vlc_icon} VLC Player
+          ${vlc_icon} VLC
         </button>
       </div>
       <div class="col-6 col-sm-4 col-md-3 col-lg-2">
         <button type="button" class="btn btn-outline-info w-100 py-2"
           onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-          ${mxplayer_icon} MX Player
+          ${mxplayer_icon} MX
         </button>
       </div>
       <div class="col-6 col-sm-4 col-md-3 col-lg-2">
