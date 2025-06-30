@@ -2,6 +2,89 @@
 // v2.3.5
 // Initialize the page
 function init() {
+  // Add Vapor theme outline button styles
+   const style = document.createElement('style');
+    style.textContent = `
+        /* Base Button Styles */
+        .glow-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            z-index: 1;
+            border: 2px solid;
+            border-radius: 8px;
+            font-weight: bold;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            width: 160px;
+            margin-bottom: 10px;
+            color: white !important; /* Force white text always */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            outline: none;
+        }
+
+        /* Color Definitions */
+        .glow-warning {
+            border-color: #ffcc00;
+            --btn-color: #ffcc00;
+        }
+        .glow-info {
+            border-color: #00ccff;
+            --btn-color: #00ccff;
+        }
+        .glow-success {
+            border-color: #00ff99;
+            --btn-color: #00ff99;
+        }
+        .glow-danger {
+            border-color: #ff6666;
+            --btn-color: #ff6666;
+        }
+
+        /* Click Effect - Inner Color Fill */
+        .glow-btn:active {
+            background-color: var(--btn-color);
+            background-image: linear-gradient(
+                to bottom,
+                var(--btn-color),
+                rgba(0,0,0,0.2)
+            );
+            box-shadow: 
+                0 0 10px var(--btn-color),
+                inset 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        /* Hover Effect */
+        .glow-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--btn-color);
+        }
+
+        /* Internal Shine Animation */
+        .glow-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.2),
+                transparent
+            );
+            transition: all 0.6s ease;
+            z-index: -1;
+        }
+        .glow-btn:hover::before {
+            left: 100%;
+        }
+    `;
+    document.head.appendChild(style);
+	
 	document.siteName = $('title').html();
 	var html = `<header>
    <div id="nav">
@@ -1665,119 +1748,137 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		}
 	}
 	
-// Add the container and card elements
-var content = `
+	// Add the container and card elements
+	var content = `
 <div class="card">
-  <div class="card-header ${UI.file_view_alert_class}">
-    <i class="fas fa-file-alt fa-fw"></i> File Information
-  </div>
-  <div class="card-body">
-    <div class="row g-3">
-      <!-- Video Player Section -->
-      <div class="col-lg-4 col-12">
-        <div class="border border-dark rounded" style="--bs-border-opacity: .5;">
-          <div class="ratio ratio-16x9">
-            ${player}
-          </div>
-        </div>
-      </div>
-      
-      <!-- File Info Section - Clean Minimal Design -->
-      <div class="col-lg-8 col-12">
-        <div class="file-info">
-          <h3 class="mb-3">${name}</h3>
-          
-          <div class="file-meta">
-            <div class="d-flex align-items-center mb-2">
-              <i class="fa-regular fa-clock fa-fw me-2"></i>
-              <span>${createdTime}</span>
-            </div>
-            
-            <div class="d-flex align-items-center mb-2">
-              <i class="fa-solid fa-tag fa-fw me-2"></i>
-              <span>${formatMimeType(mimeType)}</span>
-            </div>
-            
-            <div class="d-flex align-items-center mb-2">
-              <i class="fa-solid fa-box-archive fa-fw me-2"></i>
-              <span>${size}</span>
-            </div>
-            
-            <div class="d-flex align-items-center">
-              <i class="fa-solid fa-file-circle-check fa-fw me-2"></i>
-              <span>MD5: <code class="bg-dark p-1 rounded">${md5Checksum}</code></span>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="card-header ${UI.file_view_alert_class}">
+ <i class="fas fa-file-alt fa-fw"></i>File Information
+ </div>
+	<div class="card-body">
+		<div class="row g-3">
+			<div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
+				<div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  
+					<div style="position: relative; padding-bottom: 56.25%;"> 
+						<div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+						${player} 
+					 </div>
+			    </div>
+				 </div>
+			  </div>
+			 <div class="col-lg-8 col-md-12">
+				<table class="table table-dark">
+					<tbody>
+						<tr>
+							<th>
+								<i class="fa-regular fa-folder-closed fa-fw"></i>
+								<span class="tth">Name</span>
+							</th>
+						 <td>${name}</td>
+						 </tr>
+						 <tr>
+							<th>
+							 <i class="fa-regular fa-clock fa-fw"></i>
+							 <span class="tth">Datetime</span>
+							 </th>
+							<td>${createdTime}</td>
+						 </tr>
+						 <tr>
+							<th>
+								<i class="fa-solid fa-tag fa-fw"></i>
+								<span class="tth">Type</span>
+							</th>
+						<td>${formatMimeType(mimeType)}</td>
+						</tr>
+						<tr>
+							<th>
+							 <i class="fa-solid fa-box-archive fa-fw"></i>
+							 <span class="tth">Size</span>
+							</th>
+						 <td>${size}</td>
+						 </tr>
+						 <tr>
+							<th>
+							<i class="fa-solid fa-file-circle-check fa-fw"></i>
+							<span class="tth">Checksum</span>
+							</th>
+							<td>MD5: <code>${md5Checksum}</code>
+						 </td>
+						</tr>
+					</tbody>
+				</table>
+	     </div>
+			 </div>
+		${UI.disable_video_download ? `` : `
+    <!-- First row of buttons -->
+    <div class="d-flex justify-content-center gap-3 mb-3">
+        <button type="button" class="glow-btn glow-warning"
+            onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center">
+                <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">
+                VLC Player
+            </span>
+        </button>
+
+        <button type="button" class="glow-btn glow-info"
+            onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1">
+                <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">
+                MX Player
+            </span>
+        </button>
     </div>
     
-    ${UI.disable_video_download ? `` : `
-    <!-- Player Buttons - Clean Design -->
-    <div class="player-buttons mt-4">
-      <div class="d-flex flex-wrap justify-content-center gap-2">
-        <button type="button" class="btn btn-outline-warning"
-          onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-          ${vlc_icon} VLC Player
+    <!-- Second row of buttons -->
+    <div class="d-flex justify-content-center gap-3 mb-4">
+        <button type="button" class="glow-btn glow-success"
+            onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1">
+                <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">
+                XPlayer
+            </span>
         </button>
 
-        <button type="button" class="btn btn-outline-info"
-          onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-          ${mxplayer_icon} MX Player
-        </button>
-
-        <button type="button" class="btn btn-outline-success"
-          onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-          ${xplayer_icon} XPlayer
-        </button>
-
-        <button type="button" class="btn btn-outline-danger"
-          onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-          ${playit_icon} PLAYit
+        <button type="button" class="glow-btn glow-danger"
+            onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1"> 
+                <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">
+                PLAYit
+            </span>
         </button>
       </div>
-    </div>
-    
-    <!-- Download Button -->
-    <div class="download-btn mt-3">
-      <div class="d-flex justify-content-center">
-        <a href="${url}" class="btn btn-success px-4">
-          <i class="fas fa-bolt fa-fw"></i> Index Download
-        </a>
-      </div>
-    </div>
-    `}
-  </div>
-</div>
-
-<style>
-.file-info h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #f8f9fa;
-}
-
-.file-meta {
-  background-color: rgba(33, 37, 41, 0.5);
-  border-radius: 0.25rem;
-  padding: 1rem;
-}
-
-.file-meta div {
-  padding: 0.25rem 0;
-}
-
-.file-meta i {
-  width: 20px;
-  text-align: center;
-}
-
-.player-buttons .btn {
-  min-width: 120px;
-}
-</style>`;
-
-$("#content").html(content);
+			<div class="row mt-2">
+			<div class="col-md-12">
+				<div class="d-flex justify-content-center">
+					<div class="btn-group">
+						<a href="${url}" type="button" class="btn btn-success">
+							<i class="fas fa-bolt fa-fw"></i>Index Download Link
+                </a>
+                 <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                   <span class="sr-only"></span>
+                     </button>
+                      <div class="dropdown-menu">
+                       <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                        <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
+                         </a>
+                          <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                          <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
+                           </a>
+                           <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                           <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 24px; width: 24px; margin-right: 5px;"> MX Player
+                           </a>
+                           <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                           <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 24px; width: 24px; margin-right: 5px;"> VLC Player
+                           </a>
+                           <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">
+                           <img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 24px; width: 24px; margin-right: 5px;"> 1DM (Free)
+                          </a>
+                        </div>
+					            </div> 
+				             </div>
+			            </div>`}
+		            </div>
+	            </div>`;
+	  $("#content").html(content);
 		 
 	// Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
