@@ -1908,9 +1908,9 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
             </div>
         </div>
     </div>`;
-    
-    $("#content").html(content);
 
+    $("#content").html(content);
+		 
     // Initialize player if enabled
     if (!UI.disable_player && player_js) {
         const script = document.createElement('script');
