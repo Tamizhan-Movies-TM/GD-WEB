@@ -1451,18 +1451,6 @@ const trakteerWidget = `<div class="col-md-12">
   </div>
 </div>`;
 
-const copyButton = `<button onclick="copyFunction()" onmouseout="outFunc()" class="btn btn-primary"><span class="tooltiptext" id="myTooltip"><i class="fas fa-copy fa-fw"></i>Copy</span></button>`
-
-function generateCopyFileBox(file_id, cookie_folder_id) {
-	const copyFileBox = `<div class="row justify-content-center mt-3" id="copyresult">
-  <div class="col-12 col-md-8" id="copystatus"><div class='alert alert-secondary' role='alert'> Send Request to Copy File </div></div>
-  <div class="col-12 col-md-8"> <input id="user_folder_id" type="text" class="form-control" placeholder="Enter Your Folder ID to Copy this File" value="${cookie_folder_id}" required></div>
-  <div class="col-12 col-md-8 mt-2"> <button id="copy_file" onclick="copyFile('${file_id}')" style="margin-top: 5px;" class="btn btn-danger btn-block">Copy File to Own Drive</button></div>
-  </div>`;
-
-	return copyFileBox;
-}
-
 // Document display |zip|.exe/others direct downloads
 function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
@@ -1531,7 +1519,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 				</table>
 				<div class="input-group">
 					<span class="input-group-text" id="">Full URL</span>
-					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
+					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> 
 				</div>
 			</div>
 			<div class="col-md-12">
@@ -1547,7 +1535,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
 						</div>
-					</div> `+ copyFileBox +`
+					</div> 
 				</div>
 			</div>
 		</div>
@@ -1643,7 +1631,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 				</table>
 				<div class="input-group">
 					<span class="input-group-text" id="">Full URL</span>
-					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
+					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> 
 				</div>
 			</div>
 			<div class="col-md-12">
@@ -1659,12 +1647,13 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
 						</div>
-					</div> `+ copyFileBox +`
+					</div> 
 				</div>
 			</div>
 		</div>
 	</div>`;
 	$("#content").html(content);
+	
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
 	var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
 	var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
@@ -1707,8 +1696,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		}
 	}
 }
-
-
 
     // Document display video |mp4|webm|avi|
    function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
