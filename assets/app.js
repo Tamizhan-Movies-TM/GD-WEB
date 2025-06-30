@@ -1747,66 +1747,60 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			player_css = ''
 		}
 	}
-	// Add the container and card elements
-var content = `
-<div class="card">
-    <div class="card-header ${UI.file_view_alert_class}">
-        <i class="fas fa-file-alt fa-fw"></i> File Information
-    </div>
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
-                <div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  
-                    <div style="position: relative; padding-bottom: 56.25%;"> 
-                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
-                            ${player} 
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-8 col-md-12">
-                <table class="table table-dark">
-                    <tbody>
-                        <tr>
-                            <th>
-                                <i class="fa-regular fa-folder-closed fa-fw"></i>
-                                <span class="tth">Name</span>
-                            </th>
-                            <td>${name}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-regular fa-clock fa-fw"></i>
-                                <span class="tth">Datetime</span>
-                            </th>
-                            <td>${createdTime}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-tag fa-fw"></i>
-                                <span class="tth">Type</span>
-                            </th>
-                            <td>${formatMimeType(mimeType)}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-box-archive fa-fw"></i>
-                                <span class="tth">Size</span>
-                            </th>
-                            <td>${size}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-file-circle-check fa-fw"></i>
-                                <span class="tth">Checksum</span>
-                            </th>
-                            <td>MD5: <code>${md5Checksum}</code></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        ${UI.disable_video_download ? `` : `
+// Add the container and card elements
+	var content = `
+	<div class="card">
+		<div class="card-header ${UI.file_view_alert_class}">
+			<i class="fas fa-file-alt fa-fw"></i>File Information
+		</div>
+		<div class="card-body row g-3">
+			<div class="col-lg-4 col-md-12">
+				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+					${player}
+				</div>
+			</div>
+			<div class="col-lg-8 col-md-12">
+				<table class="table table-dark">
+					<tbody>
+						<tr>
+							<th>
+								<i class="fa-regular fa-folder-closed fa-fw"></i>
+								<span class="tth">Name</span>
+							</th>
+							<td>${name}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-regular fa-clock fa-fw"></i>
+								<span class="tth">Datetime</span>
+							</th>
+							<td>${createdTime}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-tag fa-fw"></i>
+								<span class="tth">Type</span>
+							</th>
+							<td>${mimeType}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-box-archive fa-fw"></i>
+								<span class="tth">Size</span>
+							</th>
+							<td>${size}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-file-circle-check fa-fw"></i>
+								<span class="tth">Checksum</span>
+							</th>
+							<td>MD5: <code>${md5Checksum}</code>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				${UI.disable_video_download ? `` : `
         <!-- First row of buttons -->
         <div class="d-flex justify-content-center gap-3 mb-3">
             <button type="button" class="glow-btn glow-warning"
