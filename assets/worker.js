@@ -1158,7 +1158,7 @@ async function handleRequest(request, event) {
   let is_public_file_view = (path.slice(-1) != '/') && (url.searchParams.get('a') === 'view');
 
   if (path == '/app.js') {
-    const js = await fetch('https://raw.githubusercontent.com/Karthick36/Google-Drive-Index/refs/heads/master/assets/app.js', {
+    const js = await fetch('https://raw.githubusercontent.com/Karthick36/Google-Drive-Index/master/assets/worker.js', {
       method: 'GET',
     });
     const data = await js.text();
