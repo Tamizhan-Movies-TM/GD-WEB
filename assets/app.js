@@ -1751,9 +1751,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	// Add the container and card elements
 	var content = `
 <div class="card">
-<div class="card-header ${UI.file_view_alert_class}">
+<div class="card-header ${UI.file_view_alert_class}"></h5>
  <i class="fas fa-file-alt fa-fw"></i>File Information
- </th>
  </div>
 	<div class="card-body">
 		<div class="row g-3">
