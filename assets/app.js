@@ -176,6 +176,35 @@ const markdown_icon = `<svg width="1.5em" height="1.5em" viewBox="0 0 1024 1024"
 const pdf_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_44)"><g transform="matrix(1,0,0,1,0,0)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,24,24)"><path fill="rgb(255,87,34)" fill-opacity="1" d=" M16,21 C16,21 -16,21 -16,21 C-16,21 -16,-21 -16,-21 C-16,-21 6,-21 6,-21 C6,-21 16,-11 16,-11 C16,-11 16,21 16,21z"></path></g><g opacity="1" transform="matrix(1,0,0,1,33.75,9.25)"><path fill="rgb(251,233,231)" fill-opacity="1" d=" M4.75,4.75 C4.75,4.75 -4.75,4.75 -4.75,4.75 C-4.75,4.75 -4.75,-4.75 -4.75,-4.75 C-4.75,-4.75 4.75,4.75 4.75,4.75z"></path></g></g><g transform="matrix(1,0,0,1,24,24)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(255,255,255)" fill-opacity="1" d=" M-8,15 C-8.399999618530273,15 -8.699999809265137,14.899999618530273 -9,14.800000190734863 C-10.100000381469727,14.199999809265137 -10.199999809265137,13.300000190734863 -10,12.600000381469727 C-9.600000381469727,11.399999618530273 -7.400000095367432,9.899999618530273 -4.5,8.600000381469727 C-4.5,8.600000381469727 -4.5,8.600000381469727 -4.5,8.600000381469727 C-3.200000047683716,6.199999809265137 -2.200000047683716,3.700000047683716 -1.600000023841858,1.600000023841858 C-2.5999999046325684,-0.30000001192092896 -3.0999999046325684,-2.0999999046325684 -3.0999999046325684,-3.4000000953674316 C-3.0999999046325684,-4.099999904632568 -2.9000000953674316,-4.699999809265137 -2.5999999046325684,-5.199999809265137 C-2.200000047683716,-5.699999809265137 -1.600000023841858,-6 -0.800000011920929,-6 C0.10000000149011612,-6 0.800000011920929,-5.5 1.100000023841858,-4.599999904632568 C1.600000023841858,-3.4000000953674316 1.2999999523162842,-1.2000000476837158 0.6000000238418579,1.2999999523162842 C1.600000023841858,3 2.799999952316284,4.599999904632568 4.099999904632568,5.800000190734863 C6,5.400000095367432 7.699999809265137,5.199999809265137 8.800000190734863,5.400000095367432 C10.699999809265137,5.699999809265137 11,7 11,7.5 C11,9.600000381469727 8.800000190734863,9.600000381469727 8,9.600000381469727 C6.5,9.600000381469727 5,9 3.700000047683716,7.900000095367432 C3.700000047683716,7.900000095367432 3.700000047683716,7.900000095367432 3.700000047683716,7.900000095367432 C1.2999999523162842,8.5 -1.100000023841858,9.300000190734863 -3,10.199999809265137 C-4,11.899999618530273 -5,13.300000190734863 -5.900000095367432,14.100000381469727 C-6.800000190734863,14.800000190734863 -7.5,15 -8,15z M-6.800000190734863,12.100000381469727 C-7.300000190734863,12.399999618530273 -7.699999809265137,12.699999809265137 -7.900000095367432,13 C-7.699999809265137,12.899999618530273 -7.300000190734863,12.699999809265137 -6.800000190734863,12.100000381469727z M6.800000190734863,7.400000095367432 C7.199999809265137,7.5 7.599999904632568,7.599999904632568 8,7.599999904632568 C8.600000381469727,7.599999904632568 8.899999618530273,7.5 9,7.5 C9,7.5 9,7.5 9,7.5 C8.899999618530273,7.400000095367432 8.199999809265137,7.199999809265137 6.800000190734863,7.400000095367432z M-0.20000000298023224,3.799999952316284 C-0.6000000238418579,5 -1.2000000476837158,6.300000190734863 -1.7000000476837158,7.5 C-0.5,7.099999904632568 0.699999988079071,6.699999809265137 1.899999976158142,6.400000095367432 C1.100000023841858,5.599999904632568 0.4000000059604645,4.699999809265137 -0.20000000298023224,3.799999952316284z M-0.800000011920929,-4 C-0.8999999761581421,-4 -0.8999999761581421,-4 -0.8999999761581421,-4 C-1,-3.9000000953674316 -1.100000023841858,-3.200000047683716 -0.699999988079071,-1.7000000476837158 C-0.6000000238418579,-2.9000000953674316 -0.6000000238418579,-3.799999952316284 -0.800000011920929,-4z"></path></g></g></g></svg>`
 const file_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_63)"><g transform="matrix(1,0,0,1,7.75,2.75)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,16.25,21.25)"><path fill="rgb(144,201,248)" fill-opacity="1" d=" M16,21 C16,21 -16,21 -16,21 C-16,21 -16,-21 -16,-21 C-16,-21 6,-21 6,-21 C6,-21 16,-11 16,-11 C16,-11 16,21 16,21z"></path></g></g><g transform="matrix(1,0,0,1,15,21)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,1 C1,1 18,1 18,1"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,5 C1,5 14,5 14,5"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,9 C1,9 18,9 18,9"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,13 C1,13 14,13 14,13"></path></g></g><g transform="matrix(1,0,0,1,28.75,4.25)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,5,5)"><path fill="rgb(224,245,253)" fill-opacity="1" d=" M4.75,4.75 C4.75,4.75 -4.75,4.75 -4.75,4.75 C-4.75,4.75 -4.75,-4.75 -4.75,-4.75 C-4.75,-4.75 0,0 0,0 C0,0 4.75,4.75 4.75,4.75z"></path></g></g></g></svg>`
 
+// ====== NEW GET_FILE FUNCTION STARTS HERE ======
+function get_file(url, file, callback) {
+    // Generate a unique cache key using file properties
+    var key = `file_content_${file.id}_${file.createdTime}`;
+    
+    // Check if data exists in localStorage
+    var cachedData = localStorage.getItem(key);
+    if (cachedData) {
+        return callback(cachedData);
+    }
+
+    // Fetch the file content directly from the URL
+    $.ajax({
+        url: url,
+        method: 'GET',
+        success: function(data) {
+            // Cache the data with expiration (1 hour)
+            localStorage.setItem(key, data);
+            // Set expiration timestamp
+            localStorage.setItem(`${key}_expiry`, Date.now() + 3600000);
+            callback(data);
+        },
+        error: function() {
+            console.error('Failed to fetch file content:', url);
+            callback(''); // Return empty content on error
+        }
+    });
+}
+
 // Don't know new OS thing, so I just copied it from the original source code and edited something.
 const Os = {
 	isWindows: navigator.userAgent.toUpperCase().indexOf('WIN') > -1, // .includes
@@ -665,52 +694,54 @@ function askPassword(path) {
  * @param files request result
  */
 function append_files_to_fallback_list(path, files) {
-	try {
-		console.log('append_files_to_fallback_list');
-		var $list = $('#list');
-		// Is it the last page of data?
-		var is_lastpage_loaded = null === $list.data('nextPageToken');
-		var is_firstpage = '0' == $list.data('curPageIndex');
+    try {
+        console.log('append_files_to_fallback_list');
+        var $list = $('#list');
+        // Is it the last page of data?
+        var is_lastpage_loaded = null === $list.data('nextPageToken');
+        var is_firstpage = '0' == $list.data('curPageIndex');
 
-		html = "";
-		let targetFiles = [];
-		var totalsize = 0;
-		var is_file = false
-		if (files.length == 0) {
-			html = `<div class="card-body"><div class="d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4">
-						<span><i class="fa-solid fa-heart-crack fa-2xl me-0"></i></span>
-						<span>This folder is empty</span>
-					</div></div>`;
-		}
-		for (i in files) {
-			var item = files[i];
-			var p = "/fallback?id=" + item.id
-			item['createdTime'] = utc2jakarta(item['createdTime']);
-			// replace / with %2F
-			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">
-				${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
-			} else {
-				var totalsize = totalsize + Number(item.size || 0);
-				item['size'] = formatFileSize(item['size']) || '—';
-				var is_file = true
-				var epn = item.name;
-				var link = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
-				var pn = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
-				var c = "file";
+        html = "";
+        let targetFiles = [];
+        var totalsize = 0;
+        var is_file = false
+        if (files.length == 0) {
+            html = `<div class="card-body"><div class="d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4">
+                        <span><i class="fa-solid fa-heart-crack fa-2xl me-0"></i></span>
+                        <span>This folder is empty</span>
+                    </div></div>`;
+        }
+        for (i in files) {
+            var item = files[i];
+            var p = "/fallback?id=" + item.id
+            item['createdTime'] = utc2jakarta(item['createdTime']);
+            // replace / with %2F
+            if (item['mimeType'] == 'application/vnd.google-apps.folder') {
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">
+                ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
+            } else {
+                var totalsize = totalsize + Number(item.size || 0);
+                item['size'] = formatFileSize(item['size']) || '—';
+                var is_file = true
+                var epn = item.name;
+                var link = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+                var pn = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+                var c = "file";
 				// README is displayed after the last page is loaded, otherwise it will affect the scroll event
 				if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
-					get_file(p, item, function(data) {
-						markdown("#readme_md", data);
-						$("img").addClass("img-fluid")
-					});
-				}
-				if (item.name == "HEAD.md" && UI.render_head_md) {
-					get_file(p, item, function(data) {
-						markdown("#head_md", data);
-						$("img").addClass("img-fluid")
-					});
-				}
+                    var file_url = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+                    get_file(file_url, item, function(data) {
+                        markdown("#readme_md", data);
+                        $("img").addClass("img-fluid");
+                    });
+                }
+                if (item.name == "HEAD.md" && UI.render_head_md) {
+                    var file_url = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+                    get_file(file_url, item, function(data) {
+                        markdown("#head_md", data);
+                        $("img").addClass("img-fluid");
+                    });
+                }
 				var ext = item.fileExtension
 				//if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
 				//targetFiles.push(filepath);
@@ -851,17 +882,19 @@ function append_files_to_list(path, files) {
 			var c = "file";
 			// README is displayed after the last page is loaded, otherwise it will affect the scroll event
 			if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
-				get_file(p, item, function(data) {
-					markdown("#readme_md", data);
-					$("img").addClass("img-fluid")
-				});
-			}
-			if (item.name == "HEAD.md" && UI.render_head_md) {
-				get_file(p, item, function(data) {
-					markdown("#head_md", data);
-					$("img").addClass("img-fluid")
-				});
-			}
+                var file_url = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+                get_file(file_url, item, function(data) {
+                    markdown("#readme_md", data);
+                    $("img").addClass("img-fluid");
+                });
+            }
+            if (item.name == "HEAD.md" && UI.render_head_md) {
+                var file_url = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+                get_file(file_url, item, function(data) {
+                    markdown("#head_md", data);
+                    $("img").addClass("img-fluid");
+                });
+            }
 			var ext = item.fileExtension
 			//if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
 			//targetFiles.push(filepath);
