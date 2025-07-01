@@ -1749,10 +1749,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	<div class="card">
 		<div class="card-header ${UI.file_view_alert_class}">
 		<i class="fas fa-file-alt fa-fw"></i>File Information
-		</div>
-		<div class="card-body row g-3">
-		<div class="col-lg-4 col-md-12">
-		<div id="preview" class="h-100 border border-dark rounded d-flex justify-content-center align-items-center position-relative" style="--bs-border-opacity: .5;">
+	 <div>
     <!-- Video Player Section -->
     <div class="mb-3">
       <div class="border border-dark rounded" style="--bs-border-opacity: .5;">
