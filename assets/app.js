@@ -871,7 +871,6 @@ function append_files_to_list(path, files) {
 		// replace / with %2F
 		if (item['mimeType'] == 'application/vnd.google-apps.folder') {
 			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}<span class="d-flex gap-2">
-			${UI.display_drive_link ? `<a class="d-flex align-items-center" href="https://kaceku.onrender.com/f/${item['fid']}" target="_blank" title="via Google Drive"><i class="fa-solid fa-link"></i></a>` : ``}
 	    ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
 		} else {
 			var totalsize = totalsize + Number(item.size || 0);
