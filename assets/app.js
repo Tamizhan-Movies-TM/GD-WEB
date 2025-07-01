@@ -1303,25 +1303,25 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 				throw new Error('Request failed.');
 			}
 		})
-		.then(function(obj) {
-			var href = `${obj.path}`;
-			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F')
-			$('#SearchModelLabel').html(title);
-			btn = `<div class="btn-group">`+ gdrive_btn +`
-				<a href="${encodedUrl}${can_preview ? '?a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
-				</div>` + close_btn;
-			$('#modal-body-space').html(content);
-			$('#modal-body-space-buttons').html(btn);
-		})
-		.catch(function(error) {
-			console.log(error);
-			$('#SearchModelLabel').html(title);
-			btn = `<div class="btn-group">`+ gdrive_btn +`
-				<a href="/fallback?id=${file_id}&${can_preview ? 'a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
-				</div>` + close_btn;
-			$('#modal-body-space').html(content);
-			$('#modal-body-space-buttons').html(btn);
-		});
+	.then(function(obj) {
+    var href = `${obj.path}`;
+    var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F')
+    $('#SearchModelLabel').html(title);
+    btn = `<div class="btn-group">`+ gdrive_btn +`
+        <a href="/fallback?id=${file_id}${can_preview ? '&a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
+        </div>` + close_btn;
+    $('#modal-body-space').html(content);
+    $('#modal-body-space-buttons').html(btn);
+})
+.catch(function(error) {
+    console.log(error);
+    $('#SearchModelLabel').html(title);
+    btn = `<div class="btn-group">`+ gdrive_btn +`
+        <a href="/fallback?id=${file_id}${can_preview ? '&a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
+        </div>` + close_btn;
+    $('#modal-body-space').html(content);
+    $('#modal-body-space-buttons').html(btn);
+});
 }
 
 function get_file(path, file, callback) {
