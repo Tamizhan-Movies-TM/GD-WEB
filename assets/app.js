@@ -921,7 +921,8 @@ function append_files_to_list(path, files) {
 				html += file_icon
 			}
 
-			html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-success my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
+			const fileViewLink = `/fallback?id=${item.id}${can_preview ? '&a=view' : ''}`;
+      html += `</span>${item.name} <button onclick="copyViewLink('${fileViewLink}')" class="btn btn-sm btn-outline-secondary py-0 px-1" title="Copy view link"><i class="fas fa-copy fa-xs"></i></button></a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
 			${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
 		}
 	}
@@ -2215,6 +2216,19 @@ function copyFunction() {
 function outFunc() {
 	var tooltip = document.getElementById("myTooltip");
 	tooltip.innerHTML = `<i class="fas fa-copy fa-fw"></i>Copy`;
+}
+
+function copyViewLink(link) {
+    // Create full URL
+    const fullUrl = window.location.origin + link;
+    
+    navigator.clipboard.writeText(fullUrl).then(() => {
+        console.log('View link copied:', fullUrl);
+        // Optional: Show a confirmation
+        alert('View link copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+    });
 }
 
 // function to update the list of checkboxes
