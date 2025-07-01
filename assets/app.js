@@ -698,17 +698,19 @@ function append_files_to_fallback_list(path, files) {
 				var c = "file";
 				// README is displayed after the last page is loaded, otherwise it will affect the scroll event
 				if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
-					get_file(p, item, function(data) {
-						markdown("#readme_md", data);
-						$("img").addClass("img-fluid")
-					});
-				}
-				if (item.name == "HEAD.md" && UI.render_head_md) {
-					get_file(p, item, function(data) {
-						markdown("#head_md", data);
-						$("img").addClass("img-fluid")
-					});
-				}
+        var file_url = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+        get_file(file_url, item, function(data) {
+        markdown("#readme_md", data);
+        $("img").addClass("img-fluid")
+       });
+    }
+       if (item.name == "HEAD.md" && UI.render_head_md) {
+       var file_url = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+       get_file(file_url, item, function(data) {
+       markdown("#head_md", data);
+      $("img").addClass("img-fluid")
+     });
+    }
 				var ext = item.fileExtension
 				//if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
 				//targetFiles.push(filepath);
@@ -1273,7 +1275,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F')
 			$('#SearchModelLabel').html(title);
 			btn = `<div class="btn-group">`+ gdrive_btn +`
-				<a href="${encodedUrl}${can_preview ? '?a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>worker</a>
+				<a href="${encodedUrl}${can_preview ? '?a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
 				</div>` + close_btn;
 			$('#modal-body-space').html(content);
 			$('#modal-body-space-buttons').html(btn);
