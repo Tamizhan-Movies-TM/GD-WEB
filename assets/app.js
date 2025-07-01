@@ -1200,7 +1200,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 	var title = `Loading...`;
 	$('#SearchModelLabel').html(title);
 	var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
-	var gdrive_btn = `<a class="btn btn-secondary d-flex align-items-center gap-2"</a>`;
+	var gdrive_btn = `<a class="btn btn-secondary d-flex align-items-center gap-2" href="https://kaceku.onrender.com/f/${file['fid']}" id="file_drive_link" target="_blank">${gdrive_icon}Google Drive</a>`;
 	var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
 	$('#modal-body-space').html(content);
 	$('#modal-body-space-buttons').html(close_btn);
