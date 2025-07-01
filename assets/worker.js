@@ -14,7 +14,7 @@ const domain_for_dl = domains_for_dl[Math.floor(Math.random() * domains_for_dl.l
 const blocked_region = ['']; // add regional codes seperated by comma, eg. ['IN', 'US', 'PK']
 const blocked_asn = []; // add ASN numbers from http://www.bgplookingglass.com/list-of-autonomous-system-numbers, eg. [16509, 12345]
 const authConfig = {
-  "client_id": '", // Client id from Google Cloud Console
+  "client_id": "", // Client id from Google Cloud Console
   "client_secret": "", // Client Secret from Google Cloud Console
   "refresh_token": "", // Authorize token
   "service_account": false, // true if you're using Service Account instead of user account
@@ -1158,7 +1158,7 @@ async function handleRequest(request, event) {
   let is_public_file_view = (path.slice(-1) != '/') && (url.searchParams.get('a') === 'view');
 
   if (path == '/app.js') {
-    const js = await fetch('https://raw.githubusercontent.com/Karthick36/Google-Drive-Index/master/assets/worker.js', {
+    const js = await fetch('https://raw.githubusercontent.com/Karthick36/Google-Drive-Index/refs/heads/master/assets/app.js', {
       method: 'GET',
     });
     const data = await js.text();
@@ -1592,7 +1592,7 @@ async function handleRequest(request, event) {
     for (let i = 0; i < authConfig.roots.length; i++) {
       const gd = new googleDrive(authConfig, i);
       await gd.init();
-      gds.push(gd);
+      gds.push(gd)
     }
     let tasks = [];
     gds.forEach(gd => {
@@ -1620,7 +1620,7 @@ async function handleRequest(request, event) {
       headers: {
         "content-type": "text/html;charset=UTF-8",
       },
-    });
+    })
   } else if (asn_servers && blocked_asn.includes(asn_servers)) {
     return new Response(asn_blocked, {
       headers: {
@@ -1634,7 +1634,7 @@ async function handleRequest(request, event) {
       headers: {
         "content-type": "text/html;charset=UTF-8",
       },
-    });
+    })
   } else if (path == '/fallback') {
     return new Response(html(0, {
       is_search_page: false,
@@ -1646,7 +1646,9 @@ async function handleRequest(request, event) {
       }
     });
   } else if (path == '/download.aspx') {
+    console.log("Download.aspx started");
     const file = await decryptString(url.searchParams.get('file'));
+    console.log(file)
     const expiry = await decryptString(url.searchParams.get('expiry'));
     let integrity_result = false;
     if (authConfig['enable_ip_lock'] && user_ip) {
@@ -1661,6 +1663,7 @@ async function handleRequest(request, event) {
     if (integrity_result) {
       let range = request.headers.get('Range');
       const inline = 'true' === url.searchParams.get('inline');
+      console.log(file, range)
       return download(file, range, inline);
     } else {
       return new Response('Invalid Request!', {
@@ -1668,7 +1671,7 @@ async function handleRequest(request, event) {
         headers: {
           "content-type": "text/html;charset=UTF-8",
         },
-      });
+      })
     }
   }
 
@@ -1692,6 +1695,7 @@ async function handleRequest(request, event) {
     }
   }
 
+
   const command_reg = /^\/(?<num>\d+):(?<command>[a-zA-Z0-9]+)(\/.*)?$/g;
   const match = command_reg.exec(path);
   if (match) {
@@ -1700,8 +1704,9 @@ async function handleRequest(request, event) {
     if (order >= 0 && order < gds.length) {
       gd = gds[order];
     } else {
-      return redirectToIndexPage();
+      return redirectToIndexPage()
     }
+    //for (const r = gd.basicAuthResponse(request); r;) return r;
     const command = match.groups.command;
     if (command === 'search') {
       if (request.method === 'POST') {
@@ -1720,7 +1725,7 @@ async function handleRequest(request, event) {
         });
       }
     } else if (command === 'id2path' && request.method === 'POST') {
-      return handleId2Path(request, gd);
+      return handleId2Path(request, gd)
     } else if (command === 'fallback' && request.method === 'POST') {
       const formdata = await request.json();
       const id = await decryptString(formdata.id);
@@ -1743,71 +1748,65 @@ async function handleRequest(request, event) {
         const encryptedDetails = details;
         return new Response(JSON.stringify(encryptedDetails), {});
       }
-      const details = await gd.findItemById(id);
+      const details = await gd.findItemById(id)
       details.link = await generateLink(details.id, user_ip);
       details.fid = id;
       details.id = formdata.id;
       details.parents[0] = null;
       return new Response(JSON.stringify(details), {});
     } else if (command === 'findpath' && request.method === 'GET') {
-      return findId2Path(gd, url);
+      return findId2Path(gd, url)
     }
   }
 
-  // Main change: Redirect all folder/file requests to fallback format
+
+
   const common_reg = /^\/\d+:\/.*$/g;
-  if (path.match(common_reg)) {
-    try {
-      let split = path.split("/");
-      let order = Number(split[1].slice(0, -1));
-      if (order >= 0 && order < gds.length) {
-        gd = gds[order];
-      } else {
-        return redirectToIndexPage();
-      }
-    } catch (e) {
+  try {
+    if (!path.match(common_reg)) {
       return redirectToIndexPage();
     }
-    
-    // Handle POST requests to API endpoints
-    if (request.method == 'POST') {
-      return apiRequest(request, gd, user_ip);
-    }
-    
-    // Handle all GET requests for folders and files
-    let action = url.searchParams.get('a');
-    if (path.slice(-1) == '/' || action != null) {
-      // For folders and view requests, redirect to fallback format
-      let filePath = path.substring(gd.url_path_prefix.length) || '/';
-      let id;
-    
-      if (filePath === '/') {
-        // Root folder
-        id = gd.root.id;
-      } else if (path.slice(-1) === '/') {
-        // Regular folder
-        id = await gd.findPathId(filePath);
-      } else {
-        // File view request
-        const file = await gd.get_single_file(filePath.substring(1));
-        id = file?.id;
-      }
-    
-      if (id) {
-        const encrypted_id = await encryptString(id);
-        const viewParam = action === 'view' ? '&a=view' : '';
-        return Response.redirect(`${url.origin}/fallback?id=${encodeURIComponent(encrypted_id)}${viewParam}`, 302);
-      }
+    let split = path.split("/");
+    let order = Number(split[1].slice(0, -1));
+    if (order >= 0 && order < gds.length) {
+      gd = gds[order];
     } else {
-      // Direct file download requests (not viewing)
-      console.log(path);
-      const file = await gd.get_single_file(path.slice(3));
-      console.log(file);
-      let range = request.headers.get('Range');
-      const inline = 'true' === url.searchParams.get('inline');
-      if (gd.root.protect_file_link && enable_login) return login();
-      return download(file?.id, range, inline);
+      return redirectToIndexPage()
     }
+  } catch (e) {
+    return redirectToIndexPage()
+  }
+
+  //path = path.replace(gd.url_path_prefix, '') || '/';
+  if (request.method == 'POST') {
+    return apiRequest(request, gd, user_ip);
+  }
+
+  let action = url.searchParams.get('a');
+  if (path.slice(-1) == '/' || action != null) {
+    return new Response(html(gd.order, {
+      root_type: gd.root_type
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8'
+      }
+    });
+  } else {
+    /*if (path.split('/').pop().toLowerCase() == ".password") {
+      return  new Response("", {
+        status: 404
+      });
+    }*/
+    console.log(path)
+    const file = await gd.get_single_file(path.slice(3));
+    console.log(file)
+    let range = request.headers.get('Range');
+    const inline = 'true' === url.searchParams.get('inline');
+    if (gd.root.protect_file_link && enable_login) return login();
+    return download(file?.id, range, inline);
+
+  }
 
 
 
