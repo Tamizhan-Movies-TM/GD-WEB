@@ -1282,7 +1282,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			console.log(error);
 			$('#SearchModelLabel').html(title);
 			btn = `<div class="btn-group">`+ gdrive_btn +`
-				<a href="/fallback?id=${file_id}&${can_preview ? 'a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
+				<a href="/fallback?id=${file_id}&${can_preview ? 'a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>worker</a>
 				</div>` + close_btn;
 			$('#modal-body-space').html(content);
 			$('#modal-body-space-buttons').html(btn);
