@@ -2,42 +2,6 @@
 // v2.3.5
 // Initialize the page
 function init() {
-	/* ADD THIS NEW CSS */
-    .file-info-card {
-      max-width: 800px;
-      margin: 20px auto;
-    }
-    
-    .file-info-content {
-      max-height: 50vh;
-      overflow-y: auto;
-    }
-    
-    .file-info-footer {
-      margin-top: 15px;
-      padding-top: 15px;
-      border-top: 1px solid rgba(255,255,255,0.1);
-    }
-    
-    /* MODIFY EXISTING STYLES */
-    .container {
-      margin-bottom: 20px; /* Reduced from 60px */
-    }
-    
-    #file_info_container {
-      padding-bottom: 10px; /* Reduced gap */
-    }
-    
-    @media (max-width: 768px) {
-      .file-info-card {
-        max-width: 95vw;
-        margin: 10px auto;
-      }
-      
-      .file-info-content {
-        max-height: 40vh;
-      }
-    }
 	// Add Vapor theme outline button styles
    const style = document.createElement('style');
     style.textContent = `
