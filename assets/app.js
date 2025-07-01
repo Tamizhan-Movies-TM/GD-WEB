@@ -1745,7 +1745,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			player_css = ''
 		}
 	}
-	// Add the container and card elements
+// Add the container and card elements
 var content = `
 <div class="card">
   <div class="card-header ${UI.file_view_alert_class}">
@@ -1753,7 +1753,7 @@ var content = `
   </div>
   <div class="card-body">
     <!-- Video Player Section -->
-    <div class="mb-4">
+    <div class="mb-3">
       <div class="border border-dark rounded" style="--bs-border-opacity: .5;">
         <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
           <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
@@ -1764,8 +1764,8 @@ var content = `
     </div>
     
     <!-- File Info Section -->
-    <div class="mb-4">
-      <table class="table table-dark">
+    <div class="mb-3">
+      <table class="table table-dark table-sm">
         <tbody>
           <tr>
             <th>
@@ -1809,78 +1809,73 @@ var content = `
     
     <!-- Player Buttons -->
     ${UI.disable_video_download ? `` : `
-    <div class="row mb-3">
-      <div class="col-12">
-        <div class="d-flex justify-content-center gap-3 mb-3">
-          <button type="button" class="glow-btn glow-warning"
-              onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-              <span class="d-flex align-items-center">
-                  <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">
-                  VLC Player
-              </span>
-          </button>
-          <button type="button" class="glow-btn glow-info"
-              onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-              <span class="d-flex align-items-center gap-1">
-                  <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">
-                  MX Player
-              </span>
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="d-flex justify-content-center gap-3">
-          <button type="button" class="glow-btn glow-success"
-              onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-              <span class="d-flex align-items-center gap-1">
-                  <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">
-                  XPlayer
-              </span>
-          </button>
-          <button type="button" class="glow-btn glow-danger"
-              onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-              <span class="d-flex align-items-center gap-1"> 
-                  <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">
-                  PLAYit
-              </span>
-          </button>
-        </div>
+    <div class="mb-3">
+      <div class="d-flex flex-wrap justify-content-center gap-2">
+        <button type="button" class="glow-btn glow-warning flex-fill text-center"
+            onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'"
+            style="max-width: 200px;">
+            <span class="d-flex align-items-center justify-content-center">
+                <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 24px; width: 24px; margin-right: 5px;">
+                VLC Player
+            </span>
+        </button>
+        
+        <button type="button" class="glow-btn glow-info flex-fill text-center"
+            onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'"
+            style="max-width: 200px;">
+            <span class="d-flex align-items-center justify-content-center">
+                <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 24px; width: 24px; margin-right: 5px;">
+                MX Player
+            </span>
+        </button>
+        
+        <button type="button" class="glow-btn glow-success flex-fill text-center"
+            onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'"
+            style="max-width: 200px;">
+            <span class="d-flex align-items-center justify-content-center">
+                <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;">
+                XPlayer
+            </span>
+        </button>
+        
+        <button type="button" class="glow-btn glow-danger flex-fill text-center"
+            onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'"
+            style="max-width: 200px;">
+            <span class="d-flex align-items-center justify-content-center"> 
+                <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;">
+                PLAYit
+            </span>
+        </button>
       </div>
     </div>
     `}
     
     <!-- Download Button -->
-    <div class="row">
-      <div class="col-12">
-        <div class="text-center">
-          <div class="btn-group">
-            <a href="${url}" type="button" class="btn btn-success">
-              <i class="fas fa-bolt fa-fw"></i>Index Download Link
-            </a>
-            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
-                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="sr-only"></span>
-            </button>
-            <div class="dropdown-menu">
-              <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
-              </a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
-              </a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 24px; width: 24px; margin-right: 5px;"> MX Player
-              </a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
-                <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 24px; width: 24px; margin-right: 5px;"> VLC Player
-              </a>
-              <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">
-                <img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 24px; width: 24px; margin-right: 5px;"> 1DM (Free)
-              </a>
-            </div>
-          </div>
+    <div class="text-center">
+      <div class="btn-group">
+        <a href="${url}" type="button" class="btn btn-success">
+          <i class="fas fa-bolt fa-fw"></i>Index Download Link
+        </a>
+        <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="sr-only"></span>
+        </button>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+            <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 18px; width: 18px; margin-right: 5px;"> Playit
+          </a>
+          <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+            <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 18px; width: 18px; margin-right: 5px;"> XPlayer
+          </a>
+          <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+            <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 18px; width: 18px; margin-right: 5px;"> MX Player
+          </a>
+          <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+            <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 18px; width: 18px; margin-right: 5px;"> VLC Player
+          </a>
+          <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">
+            <img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 18px; width: 18px; margin-right: 5px;"> 1DM (Free)
+          </a>
         </div>
       </div>
     </div>
@@ -1888,6 +1883,7 @@ var content = `
 </div>`;
 
 $("#content").html(content);
+		 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
