@@ -95,7 +95,7 @@ function init() {
 	<div class="row align-items-start g-3">
 		`+trakteerWidget;
 		html += ` 
-        <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
+     <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
     </div>
 </div>
 </div>
@@ -1744,14 +1744,17 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
 			player_css = ''
 		}
-	}
 // Add the container and card elements
-var content = `
-<div class="card">
-  <div class="card-header ${UI.file_view_alert_class}">
-    <i class="fas fa-file-alt fa-fw"></i>File Information
-  </div>
-  <div class="card-body">
+	var content = `
+	<div class="card">
+		<div class="card-header ${UI.file_view_alert_class}">
+			<i class="fas fa-file-alt fa-fw"></i>File Information
+		</div>
+		<div class="card-body row g-3">
+			<div class="col-lg-4 col-md-12">
+				<div id="preview" class="h-100 border border-dark rounded d-flex justify-content-center align-items-center position-relative" style="--bs-border-opacity: .5;">
+					<div id="code_spinner"></div>
+					<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/monokai.min.css">
     <!-- Video Player Section -->
     <div class="mb-3">
       <div class="border border-dark rounded" style="--bs-border-opacity: .5;">
