@@ -1,4 +1,4 @@
-// Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.
+// Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
 // v2.3.5
 // Initialize the page
 function init() {
@@ -84,7 +84,7 @@ function init() {
         }
     `;
     document.head.appendChild(style);
-	
+
 	document.siteName = $('title').html();
 	var html = `<header>
    <div id="nav">
@@ -94,8 +94,6 @@ function init() {
 <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
 	<div class="row align-items-start g-3">
 		`+trakteerWidget;
-	  <div class="col-md-12">
-    <div class="card bg-dark bg-opacity-10"> 
 		html += ` 
     <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
     </div>
@@ -117,9 +115,9 @@ function init() {
       </div>
     </div>
   </div>
- </div>
- <button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
-  <footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
+</div>
+<button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
+<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
     <div class="container" style="padding-top: 15px;">
       <div class="row">
       <div class="col-lg-4 col-md-12 text-lg-start">
@@ -340,7 +338,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 		page_index: params['page_index'] || 0
 	};
 	$('#update').show();
-	document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Connecting...</div></div></div>`;
+	document.getElementById('update').innerHTML = `<div class='alert alert-light-transparent' role='alert'> Connecting...</div></div></div>`;
 	if (fallback) {
 		path = "/0:fallback"
 	}
@@ -1358,7 +1356,9 @@ async function fallback(id, type) {
 			.catch(function(error) {
 				var content = `
 				<div class="card">
-        <div class="card-header text-truncate ${UI.file_view_alert_class}"><i class="fas fa-file-alt fa-fw"></i>File Information </div>
+					<div class="card-header ${UI.file_view_alert_class}">
+						<i class="fas fa-file-alt fa-fw"></i>File Information
+					</div>
 					<div class="card-body text-center">
 						<div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>404.</b> That’s an error. ` + error + `</div>
 						<p>The requested URL was not found on this server. That’s all we know.</p>
@@ -1426,7 +1426,9 @@ async function file(path) {
 		.catch(function(error) {
 			var content = `
 			<div class="card">
-        <div class="card-header text-truncate ${UI.file_view_alert_class}"><i class="fas fa-file-alt fa-fw"></i>File Information </div>
+				<div class="card-header ${UI.file_view_alert_class}">
+					<i class="fas fa-file-alt fa-fw"></i>File Information
+				</div>
 				<div class="card-body text-center">
 					<div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>404.</b> That’s an error. ` + error + `</div>
 					<p>The requested URL was not found on this server. That’s all we know.</p>
@@ -1466,7 +1468,9 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 	// Add the container and card elements // wait until image is loaded and then hide spinner
 	var content = `
 	<div class="card">
-        <div class="card-header text-truncate ${UI.file_view_alert_class}"><i class="fas fa-file-alt fa-fw"></i>File Information </div>
+		<div class="card-header ${UI.file_view_alert_class}">
+			<i class="fas fa-file-alt fa-fw"></i>File Information
+		</div>
 		<div class="card-body row g-3">
 			<div class="col-lg-4 col-md-12">${poster && !mimeType.startsWith('application/vnd.google-apps') ? `
 				<div id="preview" class="h-100 border border-dark rounded d-flex justify-content-center align-items-center position-relative" style="--bs-border-opacity: .5; min-height: 200px;">
@@ -1577,7 +1581,9 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	// Add the container and card elements
 	var content = `
 	<div class="card">
-        <div class="card-header text-truncate ${UI.file_view_alert_class}"><i class="fas fa-file-alt fa-fw"></i>File Information </div>
+		<div class="card-header ${UI.file_view_alert_class}">
+			<i class="fas fa-file-alt fa-fw"></i>File Information
+		</div>
 		<div class="card-body row g-3">
 			<div class="col-lg-4 col-md-12">
 				<div id="preview" class="h-100 border border-dark rounded d-flex justify-content-center align-items-center position-relative" style="--bs-border-opacity: .5;">
@@ -1740,9 +1746,10 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		}
 	}
 	// Add the container and card elements
-  var content = `
-	<div class="card">
-  <div class="card-header text-truncate ${UI.file_view_alert_class}"><i class="fas fa-file-alt fa-fw"></i>File Information </div>
+	var content = `
+<div class="card">
+<div class="card-header text-truncate ${UI.file_view_alert_class}"><i class="fas fa-file-alt fa-fw"></i>File Information 
+</div>
 	<div class="card-body">
 		<div class="row g-3">
 			<div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
@@ -1936,9 +1943,9 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
 
 	const content = `
     <div class="card">
-      <div class="card-header ${UI.file_view_alert_class}">
-       ${copyFileBox}
-        <i class="fas fa-file-alt fa-fw"></i>File Information
+        <div class="card-header ${UI.file_view_alert_class}">
+            ${copyFileBox}
+            <i class="fas fa-file-alt fa-fw"></i>File Information
         </div>
         <div class="card-body row g-3">
             ${!UI.disable_player ? `
@@ -2000,7 +2007,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
             </div>
         </div>
     </div>`;
-    
+
     $("#content").html(content);
 
     // Initialize player if enabled
@@ -2040,7 +2047,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
             }
         };
         document.head.appendChild(script);
-        
+
         if (player_css) {
             const css = document.createElement('link');
             css.href = player_css;
@@ -2071,7 +2078,7 @@ function utc2jakarta(utc_datetime) {
 // MIME type formatting
 function formatMimeType(mime) {
   if (!mime) return '';
-  
+
   // Video type mapping
   const videoFormats = {
     'mp4': 'MP4',
@@ -2091,7 +2098,7 @@ function formatMimeType(mime) {
     const format = videoFormats[subtype] || subtype.toUpperCase();
     return `${format} - ${mime}`;
   }
-  
+
   return mime;
 }
 
