@@ -2,89 +2,6 @@
 // v2.3.5
 // Initialize the page
 function init() {
-	// Add Vapor theme outline button styles
-   const style = document.createElement('style');
-    style.textContent = `
-        /* Base Button Styles */
-        .glow-btn {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.2s ease;
-            z-index: 1;
-            border: 2px solid;
-            border-radius: 8px;
-            font-weight: bold;
-            padding: 8px 16px;
-            background: rgba(0, 0, 0, 0.3);
-            width: 160px;
-            margin-bottom: 10px;
-            color: white !important; /* Force white text always */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            outline: none;
-        }
-
-        /* Color Definitions */
-        .glow-warning {
-            border-color: #ffcc00;
-            --btn-color: #ffcc00;
-        }
-        .glow-info {
-            border-color: #00ccff;
-            --btn-color: #00ccff;
-        }
-        .glow-success {
-            border-color: #00ff99;
-            --btn-color: #00ff99;
-        }
-        .glow-danger {
-            border-color: #ff6666;
-            --btn-color: #ff6666;
-        }
-
-        /* Click Effect - Inner Color Fill */
-        .glow-btn:active {
-            background-color: var(--btn-color);
-            background-image: linear-gradient(
-                to bottom,
-                var(--btn-color),
-                rgba(0,0,0,0.2)
-            );
-            box-shadow: 
-                0 0 10px var(--btn-color),
-                inset 0 0 10px rgba(255,255,255,0.3);
-        }
-
-        /* Hover Effect */
-        .glow-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--btn-color);
-        }
-
-        /* Internal Shine Animation */
-        .glow-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255,255,255,0.2),
-                transparent
-            );
-            transition: all 0.6s ease;
-            z-index: -1;
-        }
-        .glow-btn:hover::before {
-            left: 100%;
-        }
-    `;
-    document.head.appendChild(style);
-	
 	document.siteName = $('title').html();
 	var html = `<header>
    <div id="nav">
@@ -94,14 +11,84 @@ function init() {
 <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
 	<div class="row align-items-start g-3">
 		`+trakteerWidget;
+		if (!window.location.href.toLowerCase().includes(':search?q=') && window.location.pathname.toLowerCase() !== '/fallback') {
+			html += `
+		<div class="col-md-12">
+			<div class="card">
+				<nav style="--bs-breadcrumb-divider: '/';" aria-label="breadcrumb">
+					<ol class="breadcrumb" id="folderne">
+						<li class="breadcrumb-item"><a href="/">❤️ Roots</a></li>`;
+							var navfulllink = window.location.pathname;
+							var navarray = navfulllink.trim('/').split('/');
+							var currentPath = '/';
 
-		html += `
-     <div class="col-md-12">
-      <div class="card bg-dark bg-opacity-10"> 
-      <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
-    </div>
-</div>
-</div>
+							if (navarray.length > 0) {
+								for (var i in navarray) {
+									var pathPart = navarray[i];
+									var decodedPathPart = decodeURIComponent(pathPart).replace(/\//g, '%2F');
+									var trimmedPathPart = decodedPathPart.replace(/\?.+/g, "$'");
+									var displayedPathPart = trimmedPathPart.length > 50 ? trimmedPathPart.slice(0, 50) + '...' : trimmedPathPart.slice(0, 50);
+									currentPath += pathPart + '/';
+									
+									if (parseInt(i) === navarray.length - 1) {
+										if (window.location.href.toLowerCase().includes('a=view')) {
+											break;
+										}
+										html += `<li class="breadcrumb-item active" aria-current="page">${displayedPathPart}</li>`;
+									} else {
+										html += `<li class="breadcrumb-item"><a href="${currentPath}">${displayedPathPart}</a></li>`;
+									}
+
+									if (displayedPathPart === '') {
+										break;
+									}
+								}
+							}
+							html += `</ol>
+				</nav>
+			</div>
+		</div>`;
+		}
+	html += `<div id="content" style="${UI.fixed_footer ?' padding-bottom: clamp(170px, 100%, 300px);': ''}"></div>
+	</div>
+	<div class="row g-3 mt-0">
+        <div class="col-lg-6 col-md-12">
+          	<div class="card text-white mb-3 h-100">
+				<div class="card-header">
+					<i class="fa-solid fa-mug-hot fa-fw"></i>Donate a coffee
+				</div>
+            	<div class="card-body d-flex align-items-center justify-content-center">
+					<div class="donate btn p-0">
+						<a class="btn" href="https://trakteer.id/jovanzers/tip" title="Click me!" style="background: #BE1E2D;" target="_blank">
+						<i class="fab fa-paypal"></i>Trakteer </a>
+						<div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
+							<div style="padding-bottom: 1rem;">Thank you very much ❤</div>
+							<img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
+						</div>
+					</div>
+            	</div>
+        	</div>
+        </div>
+        <div class="col-lg-6 col-md-12">
+          	<div class="card text-white mb-3 h-100">
+            	<div class="card-header">
+              		<i class="fa-regular fa-snowflake fa-fw"></i>Sponsors
+            	</div>
+            	<div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
+					<a href="https://akannikah.id" target="_blank" title="Akannikah.id">
+						<img class="image" alt="Akannikah.id" style="height: 32px;" src="https://kaceku.onrender.com/static/img/Akannikah.id.png">
+					</a>
+					<a href="https://merakit.co.id" target="_blank" title="Merakit Indonesia">
+						<img class="image" alt="Merakit Indonesia" src="https://kaceku.onrender.com/static/img/merakit.co.id.png">
+					</a>
+					<a href="https://eksan127.blogspot.com" target="_blank" title="Eksan127">
+						<img class="image" alt="Eksan127" src="https://kaceku.onrender.com/static/img/eksan127.png">
+					</a>
+					<a href="https://azhe.my.id" target="_blank" title="azhe403">azhe403</a>
+            	</div>
+          	</div>
+        </div>
+    </div>	
 </div>
 <div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
@@ -120,19 +107,20 @@ function init() {
   </div>
 </div>
 <button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
-<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
+<script type='text/javascript' class='troverlay'>(function() {var trbtnId = trbtnOverlay.init('Donasi','#be1e2d','https://trakteer.id/jovanzers/tip/embed/modal','https://cdn.trakteer.id/images/mix/cendol.png','40','floating-left');trbtnOverlay.draw(trbtnId);})();</script>
+<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ?'position: fixed;': ''} ${UI.hide_footer ? ' display:none;': ' display:block;'}">
     <div class="container" style="padding-top: 15px;">
       <div class="row">
       <div class="col-lg-4 col-md-12 text-lg-start">
-      <i class="fa-brands fa-pied-piper-alt"></i> ${new Date().getFullYear()} - <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
-	    </div>
-      <div class="col-lg-4 col-md-12">
-      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> 
-      ${UI.credit ? '<span>© All Copy Rights Reserved ®™</span>' : ''}
+      © ${new Date().getFullYear()} <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
+      ${UI.credit ? '<p>Redesigned with <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-heart-fill" fill="red" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z" /> </svg> by <a href="https://www.npmjs.com/package/@googledrive/index" target="_blank">TheFirstSpeedster</a>, based on Open Source Softwares.</p>' : ''}
       </div>
-       <div class="col-lg-4 col-md-12 text-lg-end">
+      <div class="col-lg-4 col-md-12">
+      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> ∙ <a href="${UI.contact_link}">Contact</a>
+      </div>
+      <div class="col-lg-4 col-md-12 text-lg-end">
         <p>
-        <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
+          <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
         </p>
       </div>
 	  <script>
@@ -156,7 +144,7 @@ function init() {
       </div>
 	</div>
 </footer>`;
-$('body').html(html);
+	$('body').html(html);
 }
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.3 78" style="width: 1.3em;">
 <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"></path>
