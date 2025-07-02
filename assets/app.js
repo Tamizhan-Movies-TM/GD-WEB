@@ -338,7 +338,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 		page_index: params['page_index'] || 0
 	};
 	$('#update').show();
-	document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Connecting...</div></div></div>`;
+	document.getElementById('update').innerHTML = `<div class='alert alert-light-transparent' role='alert'> Connecting...</div></div></div>`;
 	if (fallback) {
 		path = "/0:fallback"
 	}
@@ -1804,7 +1804,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 				</table>
 	     </div>
 			 </div>
-		${UI.disable_video_download ? `` : `
+	${UI.disable_video_download ? `` : `
     <!-- First row of buttons -->
     <div class="d-flex justify-content-center gap-3 mb-3">
         <button type="button" class="glow-btn glow-warning"
