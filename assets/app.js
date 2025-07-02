@@ -146,6 +146,7 @@ function init() {
 </footer>`;
 	$('body').html(html);
 }
+
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.3 78" style="width: 1.3em;">
 <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"></path>
 <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"></path>
@@ -276,6 +277,14 @@ function nav(path) {
       </li>`;
 	var names = window.drive_names;
 	var drive_name = window.drive_names[cur];
+
+	// Dropdown to select different drive roots.
+	html += `<li class="nav-item dropdown"><a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">`+gdrive_icon+` ${drive_name}</a><div class="dropdown-menu" aria-labelledby="navbarDropdown">`;
+	names.forEach((name, idx) => {
+		html += `<a class="dropdown-item d-flex align-items-center gap-2"  href="/${idx}:/">`+gdrive_icon+` ${name}</a>`;
+	});
+	html += `</div></li>`;
+
 
 	html += `<li class="nav-item">
     <a class="nav-link" href="${UI.contact_link}" target="_blank"><i class="fas fa-paper-plane fa-fw"></i>${UI.nav_link_4}</a>
@@ -476,6 +485,7 @@ function list(path, id = '', fallback = false) {
 	<div class="card">
 		<div class="card-header d-flex align-items-center gap-2">
 			<span>${folder_ico}</span><span class="w-100 text-truncate" id="dirname">${folder_name}</span>
+			${folder_name !== drive_name ? '<a class="d-flex align-items-center d-none" href="#" id="sharer" target="_blank" title="via Google Drive">' + gdrive_icon + '</a>' : ``}
 		</div>
 		<div id="list" class="list-group list-group-flush text-break">
 		</div>
@@ -677,7 +687,8 @@ function append_files_to_fallback_list(path, files) {
 			item['createdTime'] = utc2jakarta(item['createdTime']);
 			// replace / with %2F
 			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">
+				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">
+				${UI.display_drive_link ? `<a class="d-flex align-items-center" href="https://kaceku.onrender.com/f/${item['fid']}" target="_blank" title="via Google Drive">${gdrive_icon}</a>` : ``}
 				${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
 			} else {
 				var totalsize = totalsize + Number(item.size || 0);
@@ -729,6 +740,7 @@ function append_files_to_fallback_list(path, files) {
 				}
 
 				html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
+				${UI.display_drive_link ? `<a class="d-flex align-items-center" href="https://kaceku.onrender.com/f/${item['fid']}" target="_blank" title="via Google Drive">${gdrive_icon}</a>` : ``}
 				${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
 			}
 		}
@@ -828,7 +840,8 @@ function append_files_to_list(path, files) {
 		item['createdTime'] = utc2jakarta(item['createdTime']);
 		// replace / with %2F
 		if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}<span class="d-flex gap-2">
+			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">
+			${UI.display_drive_link ? `<a class="d-flex align-items-center" href="https://kaceku.onrender.com/f/${item['fid']}" target="_blank" title="via Google Drive">${gdrive_icon}</a>` : ``}
 			${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
 		} else {
 			var totalsize = totalsize + Number(item.size || 0);
@@ -880,6 +893,7 @@ function append_files_to_list(path, files) {
 			}
 
 			html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
+			${UI.display_drive_link ? `<a class="d-flex align-items-center" href="https://kaceku.onrender.com/f/${item['fid']}" target="_blank" title="via Google Drive">${gdrive_icon}</a>` : ``}
 			${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
 		}
 	}
@@ -1116,7 +1130,8 @@ function append_search_result_to_list(files) {
 			}
 			item['createdTime'] = utc2jakarta(item['createdTime']);
 			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="#" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="color: ${UI.folder_text_color};" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel"><span>${folder_icon}</span>${item.name}</a> ${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}<span class="d-flex gap-2">
+				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="#" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="color: ${UI.folder_text_color};" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel"><span>${folder_icon}</span>${item.name}</a> ${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">
+				${UI.display_drive_link ? `<a class="d-flex align-items-center" href="https://kaceku.onrender.com/f/${item['fid']}" target="_blank" title="via Google Drive">${gdrive_icon}</a>` : ``}
 				${UI.display_download ? `<a class="d-flex align-items-center" href="#" title="via Index" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
 			} else {
 				var is_file = true;
@@ -1260,24 +1275,24 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			}
 		})
 		.then(function(obj) {
-    var href = `${obj.path}`;
-    var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F')
-    $('#SearchModelLabel').html(title);
-    btn = `<div class="btn-group">`+ gdrive_btn +`
-        <a href="/fallback?id=${file_id}${can_preview ? '&a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
-        </div>` + close_btn;
-    $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(btn);
-})
-.catch(function(error) {
-    console.log(error);
-    $('#SearchModelLabel').html(title);
-    btn = `<div class="btn-group">`+ gdrive_btn +`
-        <a href="/fallback?id=${file_id}${can_preview ? '&a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
-        </div>` + close_btn;
-    $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(btn);
-});
+			var href = `${obj.path}`;
+			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F')
+			$('#SearchModelLabel').html(title);
+			btn = `<div class="btn-group">`+ gdrive_btn +`
+				<a href="${encodedUrl}${can_preview ? '?a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
+				</div>` + close_btn;
+			$('#modal-body-space').html(content);
+			$('#modal-body-space-buttons').html(btn);
+		})
+		.catch(function(error) {
+			console.log(error);
+			$('#SearchModelLabel').html(title);
+			btn = `<div class="btn-group">`+ gdrive_btn +`
+				<a href="/fallback?id=${file_id}&${can_preview ? 'a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
+				</div>` + close_btn;
+			$('#modal-body-space').html(content);
+			$('#modal-body-space-buttons').html(btn);
+		});
 }
 
 function get_file(path, file, callback) {
@@ -1431,13 +1446,9 @@ async function file(path) {
 }
 
 const trakteerWidget = `<div class="col-md-12">
-  <div style="width: fit-content; margin-left: auto; margin-bottom: 15px;">
-    <div style="height:40px; line-height:40px; padding:0 20px; border-radius:4px; background-image: url('https://kaceku.onrender.com/static/img/pattern-32-inv.svg'), linear-gradient(#61045F, transparent), linear-gradient(to top left, lime, transparent), linear-gradient(to top right, blue, transparent); background-size: contain; background-position: left; background-repeat: repeat-x; background-blend-mode: darken;">
-      <marquee behavior="scroll" direction="left" scrollamount="6" style="color:white; font-weight:bold; font-size: 16px; text-shadow: 0 0 5px rgba(0,0,0,0.7);">
-        ִֶָ 𓂃˖˳·˖ ִֶָ ⋆🌷͙⋆ ִֶָ˖·˳˖𓂃 ִֶָ&nbsp;&nbsp;&nbsp;வணக்கம்&nbsp;&nbsp;&nbsp;நண்பர்களே,&nbsp;&nbsp;&nbsp;⋆.˚🦋༘⋆&nbsp;&nbsp;&nbsp;தமிழன்&nbsp;&nbsp;&nbsp;திரைப்படங்களுக்கு&nbsp;&nbsp;&nbsp;˙✧˖°🍿 ༘ 🎬⋆｡°&nbsp;&nbsp;&nbsp;உங்களை&nbsp;&nbsp;&nbsp;அன்புடன்&nbsp;&nbsp;&nbsp;வரவேற்கிறோம்!&nbsp;&nbsp;&nbsp;⊱🪷⊰˚&nbsp;&nbsp;&nbsp;உங்கள்&nbsp;&nbsp;&nbsp;அன்பு&nbsp;&nbsp;&nbsp;மற்றும்&nbsp;&nbsp;&nbsp;ஆதரவுக்கு&nbsp;&nbsp;&nbsp;நன்றி.&nbsp;&nbsp;&nbsp;༄˖°.🍂.ೃ࿔*:･🙌
-      </marquee>
-    </div>
-  </div>
+<div class="card" style="padding: 0 0 0.3rem 0;border-radius:.5rem;width:100%;overflow:hidden;">
+  <iframe src="https://stream.trakteer.id/running-text-default.html?rt_font=Lato&amp;rt_count=6&amp;rt_speed=normal&amp;rt_theme=default&amp;rt_1_clr1=rgba%280%2C+0%2C+0%2C+0%29&amp;rt_2_clr1=rgba%28190%2C+30%2C+45%2C+1%29&amp;rt_2_clr2=rgba%28255%2C+255%2C+255%2C+1%29&amp;rt_2_clr3=rgba%28255%2C+200%2C+73%2C+1%29&amp;rt_septype=image&amp;rt_messages=Donasi+kuy&amp;rt_txtshadow=false&amp;creator_name=jovanzers&amp;page_url=trakteer.id/jovanzers&amp;mod=3&amp;key=trstream-0Cd1Li6Gi6gLtK6GT84w&amp;hash=q07y4nqv7kp4wkxv" height="40px" width="100%" style="border:none; color-scheme: light;"></iframe>
+</div>
 </div>`;
 
 const copyButton = `<button onclick="copyFunction()" onmouseout="outFunc()" class="btn btn-primary"><span class="tooltiptext" id="myTooltip"><i class="fas fa-copy fa-fw"></i>Copy</span></button>`
@@ -1499,7 +1510,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 								<i class="fa-solid fa-tag fa-fw"></i>
 								<span class="tth">Type</span>
 							</th>
-							<td>${formatMimeType(mimeType)}</td>
+							<td>${mimeType}</td>
 						</tr>
 						<tr>
 							<th>
@@ -1611,7 +1622,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 								<i class="fa-solid fa-tag fa-fw"></i>
 								<span class="tth">Type</span>
 							</th>
-							<td>${formatMimeType(mimeType)}</td>
+							<td>${mimeType}</td>
 						</tr>
 						<tr>
 							<th>
@@ -1699,7 +1710,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
 
 
- // Document display video |mp4|webm|avi|
+// Document display video |mp4|webm|avi|
 function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	var url_base64 = btoa(url);
 	const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
@@ -1872,6 +1883,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 	document.head.appendChild(videoJsStylesheet);
 }
 
+
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	var url_base64 = btoa(url);
@@ -1884,121 +1896,109 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
 					<source src="${url}" type="audio/wav" />
 				</video>`;
 
-	const content = `
-    <div class="card">
-        <div class="card-header ${UI.file_view_alert_class}">
-            ${copyFileBox}
-            <i class="fas fa-file-alt fa-fw"></i>File Information
-        </div>
-        <div class="card-body row g-3">
-            ${!UI.disable_player ? `
-            <div class="col-lg-4 col-md-12">
-                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-                    ${player}
-                </div>
-            </div>
-            ` : ''}
-            <div class="${UI.disable_player ? 'col-12' : 'col-lg-8 col-md-12'}">
-                <table class="table table-dark">
-                    <tbody>
-                        <tr>
-                            <th><i class="fa-regular fa-folder-closed fa-fw"></i><span class="tth">Name</span></th>
-                            <td>${name}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-regular fa-clock fa-fw"></i><span class="tth">Datetime</span></th>
-                            <td>${createdTime}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-solid fa-tag fa-fw"></i><span class="tth">Type</span></th>
-                            <td>${formatMimeType(mimeType)}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-solid fa-box-archive fa-fw"></i><span class="tth">Size</span></th>
-                            <td>${size}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-solid fa-file-circle-check fa-fw"></i><span class="tth">Checksum</span></th>
-                            <td>MD5: <code>${md5Checksum}</code></td>
-                        </tr>
-                    </tbody>
-                </table>
-                
-                ${UI.disable_video_download ? '' : `
-                <div class="col-md-12">
-                    <div class="text-center">
-                        <p class="mb-2">Download via</p>
-                        <div class="btn-group text-center">
-                            <a href="${url}" type="button" class="btn btn-success">
-                                <i class="fas fa-bolt fa-fw"></i>Index Link
-                            </a>
-                            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
-                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span class="sr-only"></span>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">Playit</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">XPlayer</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">MX Player</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">VLC Player</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name_safe};end">1DM (Free)</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                `}
-            </div>
-        </div>
-    </div>`;
-    
-    $("#content").html(content);
+	var content = `
+	<div class="card">
+		<div class="card-header ${UI.file_view_alert_class}">
+			<i class="fas fa-file-alt fa-fw"></i>File Information
+		</div>
+		<div class="card-body row g-3">
+			<div class="col-lg-4 col-md-12">
+				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+					${UI.disable_player ? `<img class="object-fit-cover w-100 h-100 img-fluid rounded" src="${UI.audioposter}" alt="Thumbnail of ${name}" title="Thumbnail of ${name}">` : player}
+				</div>
+			</div>
+			<div class="col-lg-8 col-md-12">
+				<table class="table table-dark">
+					<tbody>
+						<tr>
+							<th>
+								<i class="fa-regular fa-folder-closed fa-fw"></i>
+								<span class="tth">Name</span>
+							</th>
+							<td>${name}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-regular fa-clock fa-fw"></i>
+								<span class="tth">Datetime</span>
+							</th>
+							<td>${createdTime}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-tag fa-fw"></i>
+								<span class="tth">Type</span>
+							</th>
+							<td>${mimeType}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-box-archive fa-fw"></i>
+								<span class="tth">Size</span>
+							</th>
+							<td>${size}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-file-circle-check fa-fw"></i>
+								<span class="tth">Checksum</span>
+							</th>
+							<td>MD5: <code>${md5Checksum}</code>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				${UI.disable_audio_download ? `` : `
+				<div class="input-group">
+					<span class="input-group-text" id="">Full URL</span>
+					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
+				</div>`}
+			</div>
+			${UI.disable_audio_download ? `` : `
+			<div class="col-md-12">
+				<div class="text-center">
+					<p class="mb-2">Download via</p>
+					<div class="btn-group text-center"> ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://kaceku.onrender.com/f/${file_id}" id="file_drive_link" target="_blank">`+gdrive_icon+`Google Drive</a>` : ``} <a href="${url}" type="button" class="btn btn-success">
+							<i class="fas fa-bolt fa-fw"></i>Index Link</a>
+						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<span class="sr-only"></span>
+						</button>
+						<div class="dropdown-menu">
+							<a class="dropdown-item" href="iina://weblink?url=${url}">IINA</a>
+							<a class="dropdown-item" href="potplayer://${url}">PotPlayer</a>
+							<a class="dropdown-item" href="vlc://${url}">VLC Mobile</a>
+							<a class="dropdown-item" href="${url}">VLC Desktop</a>
+							<a class="dropdown-item" href="nplayer-${url}">nPlayer</a>
+							<a class="dropdown-item" href="intent://${url}#Intent;type=audio/any;package=is.xyz.mpv;scheme=https;end;">mpv-android</a>
+							<a class="dropdown-item" href="mpv://${url_base64}">mpv x64</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;S.title=${encoded_name};end">MX Player (Free)</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.pro;S.title=${encoded_name};end">MX Player (Pro)</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
+						</div>
+					</div> `+ copyFileBox +`
+				</div>
+			</div>`}
+		</div>
+	</div>`;
+	$("#content").html(content);
 
-    // Initialize player if enabled
-    if (!UI.disable_player && player_js) {
-        const script = document.createElement('script');
-        script.src = player_js;
-        script.onload = () => {
-        switch(player_config.player) {
-        case "plyr":
-        new Plyr('#player');
-        break;
-        case "videojs":
-        videojs('vplayer', {fill: true});
-        break;
-        case "dplayer":
-        new DPlayer({
-        container: document.getElementById('player-container'),
-        screenshot: true,
-        video: {
-        url: url,
-        pic: poster,
-        thumbnails: poster
-                        }
-                    });
-                    break;
-                    case "jwplayer":
-                    jwplayer("player").setup({
-                        file: url,
-                        type: mimeTypeFixed,
-                        autostart: false,
-                        image: poster,
-                        width: "100%",
-                        aspectratio: "16:9",
-                        title: name
-                    });
-                    break;
-            }
-        };
-        document.head.appendChild(script);
-        
-        if (player_css) {
-            const css = document.createElement('link');
-            css.href = player_css;
-            css.rel = 'stylesheet';
-            document.head.appendChild(css);
-        }
-    }
+	// Load Video.js and initialize the player
+	var videoJsScript = document.createElement('script');
+	videoJsScript.src = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.min.js';
+	videoJsScript.onload = function() {
+		// Video.js is loaded, initialize the player
+		const player = videojs('aplayer');
+	};
+	document.head.appendChild(videoJsScript);
+
+	var videoJsStylesheet = document.createElement('link');
+	videoJsStylesheet.href = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css';
+	videoJsStylesheet.rel = 'stylesheet';
+	document.head.appendChild(videoJsStylesheet);
 }
+
 
 // Time conversion
 function utc2jakarta(utc_datetime) {
@@ -2018,32 +2018,6 @@ function utc2jakarta(utc_datetime) {
 	return `${date}-${month}-${year} ${hour}:${minute}`;
 }
 
-// MIME type formatting
-function formatMimeType(mime) {
-  if (!mime) return '';
-  
-  // Video type mapping
-  const videoFormats = {
-    'mp4': 'MP4',
-    'x-matroska': 'MKV', 
-    'quicktime': 'MOV',
-    'avi': 'AVI',
-    'mpeg': 'MPEG',
-    'webm': 'WEBM',
-    'ogg': 'OGG',
-    'x-ms-wmv': 'WMV',
-    'flv': 'FLV'
-  };
-
-  // Check if video type
-  if (mime.startsWith('video/')) {
-    const subtype = mime.split('/')[1];
-    const format = videoFormats[subtype] || subtype.toUpperCase();
-    return `${format} - ${mime}`;
-  }
-  
-  return mime;
-}
 
 // bytes adaptive conversion to KB, MB, GB
 function formatFileSize(bytes) {
