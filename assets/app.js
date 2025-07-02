@@ -1748,7 +1748,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	// Add the container and card elements
 	var content = `
 <div class="card">
-<div class="card-header text-truncate<i class="fas fa-file-alt fa-fw"></i>File Information"></div>
+<div class="card-header text-truncate<i class="fas fa-file-alt fa-fw"></i> File Information </div>
 	<div class="card-body">
 		<div class="row g-3">
 			<div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
