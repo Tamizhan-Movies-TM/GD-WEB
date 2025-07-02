@@ -1934,7 +1934,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
 				</video>`;
 
 	const content = `
-    <div class="card">Add commentMore actions
+    <div class="card">
       <div class="card-header ${UI.file_view_alert_class}">
        ${copyFileBox}
         <i class="fas fa-file-alt fa-fw"></i>File Information
