@@ -1356,9 +1356,7 @@ async function fallback(id, type) {
 			.catch(function(error) {
 				var content = `
 				<div class="card">
-					<div class="card-header ${UI.file_view_alert_class}">
-						<i class="fas fa-file-alt fa-fw"></i>File Information
-					</div>
+        <div class="card-header text-truncate ${UI.file_view_alert_class}"><i class="fas fa-file-alt fa-fw"></i>File Information </div>
 					<div class="card-body text-center">
 						<div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>404.</b> That’s an error. ` + error + `</div>
 						<p>The requested URL was not found on this server. That’s all we know.</p>
@@ -1426,9 +1424,7 @@ async function file(path) {
 		.catch(function(error) {
 			var content = `
 			<div class="card">
-				<div class="card-header ${UI.file_view_alert_class}">
-					<i class="fas fa-file-alt fa-fw"></i>File Information
-				</div>
+        <div class="card-header text-truncate ${UI.file_view_alert_class}"><i class="fas fa-file-alt fa-fw"></i>File Information </div>
 				<div class="card-body text-center">
 					<div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>404.</b> That’s an error. ` + error + `</div>
 					<p>The requested URL was not found on this server. That’s all we know.</p>
@@ -1468,9 +1464,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 	// Add the container and card elements // wait until image is loaded and then hide spinner
 	var content = `
 	<div class="card">
-		<div class="card-header ${UI.file_view_alert_class}">
-			<i class="fas fa-file-alt fa-fw"></i>File Information
-		</div>
+        <div class="card-header text-truncate ${UI.file_view_alert_class}"><i class="fas fa-file-alt fa-fw"></i>File Information </div>
 		<div class="card-body row g-3">
 			<div class="col-lg-4 col-md-12">${poster && !mimeType.startsWith('application/vnd.google-apps') ? `
 				<div id="preview" class="h-100 border border-dark rounded d-flex justify-content-center align-items-center position-relative" style="--bs-border-opacity: .5; min-height: 200px;">
@@ -1581,9 +1575,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	// Add the container and card elements
 	var content = `
 	<div class="card">
-		<div class="card-header ${UI.file_view_alert_class}">
-			<i class="fas fa-file-alt fa-fw"></i>File Information
-		</div>
+        <div class="card-header text-truncate ${UI.file_view_alert_class}"><i class="fas fa-file-alt fa-fw"></i>File Information </div>
 		<div class="card-body row g-3">
 			<div class="col-lg-4 col-md-12">
 				<div id="preview" class="h-100 border border-dark rounded d-flex justify-content-center align-items-center position-relative" style="--bs-border-opacity: .5;">
@@ -1746,10 +1738,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		}
 	}
 	// Add the container and card elements
-	var content = `
-<div class="card">
-<div class="card-header text-truncate ${UI.file_view_alert_class}"><i class="fas fa-file-alt fa-fw"></i>File Information 
-</div>
+	<div class="card">
+  <div class="card-header text-truncate ${UI.file_view_alert_class}"><i class="fas fa-file-alt fa-fw"></i>File Information </div>
 	<div class="card-body">
 		<div class="row g-3">
 			<div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
@@ -1943,10 +1933,8 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
 
 	const content = `
     <div class="card">
-        <div class="card-header ${UI.file_view_alert_class}">
-            ${copyFileBox}
-            <i class="fas fa-file-alt fa-fw"></i>File Information
-        </div>
+    <div class="card-header text-truncate ${UI.file_view_alert_class}"><i class="fas fa-file-alt fa-fw"></i>File Information </div>
+     ${copyFileBox}
         <div class="card-body row g-3">
             ${!UI.disable_player ? `
             <div class="col-lg-4 col-md-12">
