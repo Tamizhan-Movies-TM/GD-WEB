@@ -1934,9 +1934,11 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
 				</video>`;
 
 	const content = `
-    <div class="card">
-    <div class="card-header text-truncate ${UI.file_view_alert_class}"><i class="fas fa-file-alt fa-fw"></i>File Information </div>
-     ${copyFileBox}
+    <div class="card">Add commentMore actions
+      <div class="card-header ${UI.file_view_alert_class}">
+       ${copyFileBox}
+        <i class="fas fa-file-alt fa-fw"></i>File Information
+        </div>
         <div class="card-body row g-3">
             ${!UI.disable_player ? `
             <div class="col-lg-4 col-md-12">
