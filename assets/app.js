@@ -340,7 +340,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 		page_index: params['page_index'] || 0
 	};
 	$('#update').show();
-	document.getElementById('update').innerHTML = `<div class='alert alert-light-transparent' role='alert'> Connecting...</div></div></div>`;
+	document.getElementById('update').innerHTML = `<div class='alert alert-into' role='alert'> Connecting...</div></div></div>`;
 	if (fallback) {
 		path = "/0:fallback"
 	}
