@@ -2,6 +2,89 @@
 // v2.3.5
 // Initialize the page
 function init() {
+	// Add Vapor theme outline button styles
+   const style = document.createElement('style');
+    style.textContent = `
+        /* Base Button Styles */
+        .glow-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            z-index: 1;
+            border: 2px solid;
+            border-radius: 8px;
+            font-weight: bold;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            width: 160px;
+            margin-bottom: 10px;
+            color: white !important; /* Force white text always */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            outline: none;
+        }
+
+        /* Color Definitions */
+        .glow-warning {
+            border-color: #ffcc00;
+            --btn-color: #ffcc00;
+        }
+        .glow-info {
+            border-color: #00ccff;
+            --btn-color: #00ccff;
+        }
+        .glow-success {
+            border-color: #00ff99;
+            --btn-color: #00ff99;
+        }
+        .glow-danger {
+            border-color: #ff6666;
+            --btn-color: #ff6666;
+        }
+
+        /* Click Effect - Inner Color Fill */
+        .glow-btn:active {
+            background-color: var(--btn-color);
+            background-image: linear-gradient(
+                to bottom,
+                var(--btn-color),
+                rgba(0,0,0,0.2)
+            );
+            box-shadow: 
+                0 0 10px var(--btn-color),
+                inset 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        /* Hover Effect */
+        .glow-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--btn-color);
+        }
+
+        /* Internal Shine Animation */
+        .glow-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.2),
+                transparent
+            );
+            transition: all 0.6s ease;
+            z-index: -1;
+        }
+        .glow-btn:hover::before {
+            left: 100%;
+        }
+    `;
+    document.head.appendChild(style);
+	
 	document.siteName = $('title').html();
 	var html = `<header>
    <div id="nav">
@@ -11,84 +94,13 @@ function init() {
 <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
 	<div class="row align-items-start g-3">
 		`+trakteerWidget;
-		if (!window.location.href.toLowerCase().includes(':search?q=') && window.location.pathname.toLowerCase() !== '/fallback') {
-			html += `
-		<div class="col-md-12">
-			<div class="card">
-				<nav style="--bs-breadcrumb-divider: '/';" aria-label="breadcrumb">
-					<ol class="breadcrumb" id="folderne">
-						<li class="breadcrumb-item"><a href="/">❤️ Roots</a></li>`;
-							var navfulllink = window.location.pathname;
-							var navarray = navfulllink.trim('/').split('/');
-							var currentPath = '/';
-
-							if (navarray.length > 0) {
-								for (var i in navarray) {
-									var pathPart = navarray[i];
-									var decodedPathPart = decodeURIComponent(pathPart).replace(/\//g, '%2F');
-									var trimmedPathPart = decodedPathPart.replace(/\?.+/g, "$'");
-									var displayedPathPart = trimmedPathPart.length > 50 ? trimmedPathPart.slice(0, 50) + '...' : trimmedPathPart.slice(0, 50);
-									currentPath += pathPart + '/';
-									
-									if (parseInt(i) === navarray.length - 1) {
-										if (window.location.href.toLowerCase().includes('a=view')) {
-											break;
-										}
-										html += `<li class="breadcrumb-item active" aria-current="page">${displayedPathPart}</li>`;
-									} else {
-										html += `<li class="breadcrumb-item"><a href="${currentPath}">${displayedPathPart}</a></li>`;
-									}
-
-									if (displayedPathPart === '') {
-										break;
-									}
-								}
-							}
-							html += `</ol>
-				</nav>
-			</div>
-		</div>`;
-		}
-	html += `<div id="content" style="${UI.fixed_footer ?' padding-bottom: clamp(170px, 100%, 300px);': ''}"></div>
-	</div>
-	<div class="row g-3 mt-0">
-        <div class="col-lg-6 col-md-12">
-          	<div class="card text-white mb-3 h-100">
-				<div class="card-header">
-					<i class="fa-solid fa-mug-hot fa-fw"></i>Donate a coffee
-				</div>
-            	<div class="card-body d-flex align-items-center justify-content-center">
-					<div class="donate btn p-0">
-						<a class="btn" href="https://trakteer.id/jovanzers/tip" title="Click me!" style="background: #BE1E2D;" target="_blank">
-						<i class="fab fa-paypal"></i>Trakteer </a>
-						<div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
-							<div style="padding-bottom: 1rem;">Thank you very much ❤</div>
-							<img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
-						</div>
-					</div>
-            	</div>
-        	</div>
-        </div>
-        <div class="col-lg-6 col-md-12">
-          	<div class="card text-white mb-3 h-100">
-            	<div class="card-header">
-              		<i class="fa-regular fa-snowflake fa-fw"></i>Sponsors
-            	</div>
-            	<div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
-					<a href="https://akannikah.id" target="_blank" title="Akannikah.id">
-						<img class="image" alt="Akannikah.id" style="height: 32px;" src="https://kaceku.onrender.com/static/img/Akannikah.id.png">
-					</a>
-					<a href="https://merakit.co.id" target="_blank" title="Merakit Indonesia">
-						<img class="image" alt="Merakit Indonesia" src="https://kaceku.onrender.com/static/img/merakit.co.id.png">
-					</a>
-					<a href="https://eksan127.blogspot.com" target="_blank" title="Eksan127">
-						<img class="image" alt="Eksan127" src="https://kaceku.onrender.com/static/img/eksan127.png">
-					</a>
-					<a href="https://azhe.my.id" target="_blank" title="azhe403">azhe403</a>
-            	</div>
-          	</div>
-        </div>
-    </div>	
+		html += `
+<div class="col-md-12">
+    <div class="card bg-dark bg-opacity-10"> 
+        <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
+    </div>
+</div>
+</div>
 </div>
 <div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
@@ -107,20 +119,19 @@ function init() {
   </div>
 </div>
 <button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
-<script type='text/javascript' class='troverlay'>(function() {var trbtnId = trbtnOverlay.init('Donasi','#be1e2d','https://trakteer.id/jovanzers/tip/embed/modal','https://cdn.trakteer.id/images/mix/cendol.png','40','floating-left');trbtnOverlay.draw(trbtnId);})();</script>
-<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ?'position: fixed;': ''} ${UI.hide_footer ? ' display:none;': ' display:block;'}">
+<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
     <div class="container" style="padding-top: 15px;">
       <div class="row">
       <div class="col-lg-4 col-md-12 text-lg-start">
-      © ${new Date().getFullYear()} <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
-      ${UI.credit ? '<p>Redesigned with <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-heart-fill" fill="red" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z" /> </svg> by <a href="https://www.npmjs.com/package/@googledrive/index" target="_blank">TheFirstSpeedster</a>, based on Open Source Softwares.</p>' : ''}
-      </div>
+      <i class="fa-brands fa-pied-piper-alt"></i> ${new Date().getFullYear()} - <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
+	    </div>
       <div class="col-lg-4 col-md-12">
-      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> ∙ <a href="${UI.contact_link}">Contact</a>
+      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> 
+      ${UI.credit ? '<span>© All Copy Rights Reserved ®™</span>' : ''}
       </div>
-      <div class="col-lg-4 col-md-12 text-lg-end">
+       <div class="col-lg-4 col-md-12 text-lg-end">
         <p>
-          <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
+        <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
         </p>
       </div>
 	  <script>
@@ -144,9 +155,8 @@ function init() {
       </div>
 	</div>
 </footer>`;
-	$('body').html(html);
+$('body').html(html);
 }
-
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.3 78" style="width: 1.3em;">
 <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"></path>
 <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"></path>
@@ -277,14 +287,6 @@ function nav(path) {
       </li>`;
 	var names = window.drive_names;
 	var drive_name = window.drive_names[cur];
-
-	// Dropdown to select different drive roots.
-	html += `<li class="nav-item dropdown"><a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">`+gdrive_icon+` ${drive_name}</a><div class="dropdown-menu" aria-labelledby="navbarDropdown">`;
-	names.forEach((name, idx) => {
-		html += `<a class="dropdown-item d-flex align-items-center gap-2"  href="/${idx}:/">`+gdrive_icon+` ${name}</a>`;
-	});
-	html += `</div></li>`;
-
 
 	html += `<li class="nav-item">
     <a class="nav-link" href="${UI.contact_link}" target="_blank"><i class="fas fa-paper-plane fa-fw"></i>${UI.nav_link_4}</a>
@@ -485,7 +487,6 @@ function list(path, id = '', fallback = false) {
 	<div class="card">
 		<div class="card-header d-flex align-items-center gap-2">
 			<span>${folder_ico}</span><span class="w-100 text-truncate" id="dirname">${folder_name}</span>
-			${folder_name !== drive_name ? '<a class="d-flex align-items-center d-none" href="#" id="sharer" target="_blank" title="via Google Drive">' + gdrive_icon + '</a>' : ``}
 		</div>
 		<div id="list" class="list-group list-group-flush text-break">
 		</div>
@@ -687,8 +688,7 @@ function append_files_to_fallback_list(path, files) {
 			item['createdTime'] = utc2jakarta(item['createdTime']);
 			// replace / with %2F
 			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">
-				${UI.display_drive_link ? `<a class="d-flex align-items-center" href="https://kaceku.onrender.com/f/${item['fid']}" target="_blank" title="via Google Drive">${gdrive_icon}</a>` : ``}
+				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">
 				${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
 			} else {
 				var totalsize = totalsize + Number(item.size || 0);
@@ -740,7 +740,6 @@ function append_files_to_fallback_list(path, files) {
 				}
 
 				html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
-				${UI.display_drive_link ? `<a class="d-flex align-items-center" href="https://kaceku.onrender.com/f/${item['fid']}" target="_blank" title="via Google Drive">${gdrive_icon}</a>` : ``}
 				${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
 			}
 		}
@@ -840,8 +839,7 @@ function append_files_to_list(path, files) {
 		item['createdTime'] = utc2jakarta(item['createdTime']);
 		// replace / with %2F
 		if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">
-			${UI.display_drive_link ? `<a class="d-flex align-items-center" href="https://kaceku.onrender.com/f/${item['fid']}" target="_blank" title="via Google Drive">${gdrive_icon}</a>` : ``}
+			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}<span class="d-flex gap-2">
 			${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
 		} else {
 			var totalsize = totalsize + Number(item.size || 0);
@@ -893,7 +891,6 @@ function append_files_to_list(path, files) {
 			}
 
 			html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
-			${UI.display_drive_link ? `<a class="d-flex align-items-center" href="https://kaceku.onrender.com/f/${item['fid']}" target="_blank" title="via Google Drive">${gdrive_icon}</a>` : ``}
 			${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
 		}
 	}
@@ -1130,8 +1127,7 @@ function append_search_result_to_list(files) {
 			}
 			item['createdTime'] = utc2jakarta(item['createdTime']);
 			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="#" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="color: ${UI.folder_text_color};" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel"><span>${folder_icon}</span>${item.name}</a> ${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">
-				${UI.display_drive_link ? `<a class="d-flex align-items-center" href="https://kaceku.onrender.com/f/${item['fid']}" target="_blank" title="via Google Drive">${gdrive_icon}</a>` : ``}
+				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="#" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="color: ${UI.folder_text_color};" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel"><span>${folder_icon}</span>${item.name}</a> ${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}<span class="d-flex gap-2">
 				${UI.display_download ? `<a class="d-flex align-items-center" href="#" title="via Index" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
 			} else {
 				var is_file = true;
@@ -1275,24 +1271,24 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			}
 		})
 		.then(function(obj) {
-			var href = `${obj.path}`;
-			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F')
-			$('#SearchModelLabel').html(title);
-			btn = `<div class="btn-group">`+ gdrive_btn +`
-				<a href="${encodedUrl}${can_preview ? '?a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
-				</div>` + close_btn;
-			$('#modal-body-space').html(content);
-			$('#modal-body-space-buttons').html(btn);
-		})
-		.catch(function(error) {
-			console.log(error);
-			$('#SearchModelLabel').html(title);
-			btn = `<div class="btn-group">`+ gdrive_btn +`
-				<a href="/fallback?id=${file_id}&${can_preview ? 'a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
-				</div>` + close_btn;
-			$('#modal-body-space').html(content);
-			$('#modal-body-space-buttons').html(btn);
-		});
+    var href = `${obj.path}`;
+    var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F')
+    $('#SearchModelLabel').html(title);
+    btn = `<div class="btn-group">`+ gdrive_btn +`
+        <a href="/fallback?id=${file_id}${can_preview ? '&a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
+        </div>` + close_btn;
+    $('#modal-body-space').html(content);
+    $('#modal-body-space-buttons').html(btn);
+})
+.catch(function(error) {
+    console.log(error);
+    $('#SearchModelLabel').html(title);
+    btn = `<div class="btn-group">`+ gdrive_btn +`
+        <a href="/fallback?id=${file_id}${can_preview ? '&a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
+        </div>` + close_btn;
+    $('#modal-body-space').html(content);
+    $('#modal-body-space-buttons').html(btn);
+});
 }
 
 function get_file(path, file, callback) {
@@ -1446,9 +1442,13 @@ async function file(path) {
 }
 
 const trakteerWidget = `<div class="col-md-12">
-<div class="card" style="padding: 0 0 0.3rem 0;border-radius:.5rem;width:100%;overflow:hidden;">
-  <iframe src="https://stream.trakteer.id/running-text-default.html?rt_font=Lato&amp;rt_count=6&amp;rt_speed=normal&amp;rt_theme=default&amp;rt_1_clr1=rgba%280%2C+0%2C+0%2C+0%29&amp;rt_2_clr1=rgba%28190%2C+30%2C+45%2C+1%29&amp;rt_2_clr2=rgba%28255%2C+255%2C+255%2C+1%29&amp;rt_2_clr3=rgba%28255%2C+200%2C+73%2C+1%29&amp;rt_septype=image&amp;rt_messages=Donasi+kuy&amp;rt_txtshadow=false&amp;creator_name=jovanzers&amp;page_url=trakteer.id/jovanzers&amp;mod=3&amp;key=trstream-0Cd1Li6Gi6gLtK6GT84w&amp;hash=q07y4nqv7kp4wkxv" height="40px" width="100%" style="border:none; color-scheme: light;"></iframe>
-</div>
+  <div style="width: fit-content; margin-left: auto; margin-bottom: 15px;">
+    <div style="height:40px; line-height:40px; padding:0 20px; border-radius:4px; background-image: url('https://kaceku.onrender.com/static/img/pattern-32-inv.svg'), linear-gradient(#61045F, transparent), linear-gradient(to top left, lime, transparent), linear-gradient(to top right, blue, transparent); background-size: contain; background-position: left; background-repeat: repeat-x; background-blend-mode: darken;">
+      <marquee behavior="scroll" direction="left" scrollamount="6" style="color:white; font-weight:bold; font-size: 16px; text-shadow: 0 0 5px rgba(0,0,0,0.7);">
+        ִֶָ 𓂃˖˳·˖ ִֶָ ⋆🌷͙⋆ ִֶָ˖·˳˖𓂃 ִֶָ&nbsp;&nbsp;&nbsp;வணக்கம்&nbsp;&nbsp;&nbsp;நண்பர்களே,&nbsp;&nbsp;&nbsp;⋆.˚🦋༘⋆&nbsp;&nbsp;&nbsp;தமிழன்&nbsp;&nbsp;&nbsp;திரைப்படங்களுக்கு&nbsp;&nbsp;&nbsp;˙✧˖°🍿 ༘ 🎬⋆｡°&nbsp;&nbsp;&nbsp;உங்களை&nbsp;&nbsp;&nbsp;அன்புடன்&nbsp;&nbsp;&nbsp;வரவேற்கிறோம்!&nbsp;&nbsp;&nbsp;⊱🪷⊰˚&nbsp;&nbsp;&nbsp;உங்கள்&nbsp;&nbsp;&nbsp;அன்பு&nbsp;&nbsp;&nbsp;மற்றும்&nbsp;&nbsp;&nbsp;ஆதரவுக்கு&nbsp;&nbsp;&nbsp;நன்றி.&nbsp;&nbsp;&nbsp;༄˖°.🍂.ೃ࿔*:･🙌
+      </marquee>
+    </div>
+  </div>
 </div>`;
 
 const copyButton = `<button onclick="copyFunction()" onmouseout="outFunc()" class="btn btn-primary"><span class="tooltiptext" id="myTooltip"><i class="fas fa-copy fa-fw"></i>Copy</span></button>`
@@ -1510,7 +1510,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 								<i class="fa-solid fa-tag fa-fw"></i>
 								<span class="tth">Type</span>
 							</th>
-							<td>${mimeType}</td>
+							<td>${formatMimeType(mimeType)}</td>
 						</tr>
 						<tr>
 							<th>
@@ -1622,7 +1622,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 								<i class="fa-solid fa-tag fa-fw"></i>
 								<span class="tth">Type</span>
 							</th>
-							<td>${mimeType}</td>
+							<td>${formatMimeType(mimeType)}</td>
 						</tr>
 						<tr>
 							<th>
@@ -1710,13 +1710,19 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
 
 
-// Document display video |mp4|webm|avi|
-function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-	var url_base64 = btoa(url);
-	const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-	let player
-	if (!UI.disable_player) {
-		if (player_config.player == "plyr") {
+ // Document display video  mkv|mp4|webm|avi| 
+   function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+	 // Define all player icons
+    const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
+    const new_download_icon = `<img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
+	  var url_base64 = btoa(url);
+	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
+	  let player
+	  if (!UI.disable_player) {
+		 if (player_config.player == "plyr") {
 			player = `<video id="player" playsinline controls data-poster="${poster}">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
@@ -1743,17 +1749,22 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 	}
 	// Add the container and card elements
 	var content = `
-	<div class="card">
-		<div class="card-header ${UI.file_view_alert_class}">
-			<i class="fas fa-file-alt fa-fw"></i>File Information
-		</div>
-		<div class="card-body row g-3">
-			<div class="col-lg-4 col-md-12">
-				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-					${player}
-				</div>
-			</div>
-			<div class="col-lg-8 col-md-12">
+<div class="card">
+<div class="card-header ${UI.file_view_alert_class}">
+ <i class="fas fa-file-alt fa-fw"></i>File Information
+ </div>
+	<div class="card-body">
+		<div class="row g-3">
+			<div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
+				<div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  
+					<div style="position: relative; padding-bottom: 56.25%;"> 
+						<div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+						${player} 
+					 </div>
+			    </div>
+				 </div>
+			  </div>
+			 <div class="col-lg-8 col-md-12">
 				<table class="table table-dark">
 					<tbody>
 						<tr>
@@ -1761,76 +1772,114 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 								<i class="fa-regular fa-folder-closed fa-fw"></i>
 								<span class="tth">Name</span>
 							</th>
-							<td>${name}</td>
-						</tr>
-						<tr>
+						 <td>${name}</td>
+						 </tr>
+						 <tr>
 							<th>
-								<i class="fa-regular fa-clock fa-fw"></i>
-								<span class="tth">Datetime</span>
-							</th>
+							 <i class="fa-regular fa-clock fa-fw"></i>
+							 <span class="tth">Datetime</span>
+							 </th>
 							<td>${createdTime}</td>
-						</tr>
-						<tr>
+						 </tr>
+						 <tr>
 							<th>
 								<i class="fa-solid fa-tag fa-fw"></i>
 								<span class="tth">Type</span>
 							</th>
-							<td>${mimeType}</td>
+						<td>${formatMimeType(mimeType)}</td>
 						</tr>
 						<tr>
 							<th>
-								<i class="fa-solid fa-box-archive fa-fw"></i>
-								<span class="tth">Size</span>
+							 <i class="fa-solid fa-box-archive fa-fw"></i>
+							 <span class="tth">Size</span>
 							</th>
-							<td>${size}</td>
-						</tr>
-						<tr>
+						 <td>${size}</td>
+						 </tr>
+						 <tr>
 							<th>
-								<i class="fa-solid fa-file-circle-check fa-fw"></i>
-								<span class="tth">Checksum</span>
+							<i class="fa-solid fa-file-circle-check fa-fw"></i>
+							<span class="tth">Checksum</span>
 							</th>
 							<td>MD5: <code>${md5Checksum}</code>
-							</td>
+						 </td>
 						</tr>
 					</tbody>
 				</table>
-				${UI.disable_video_download ? `` : `
-				<div class="input-group">
-					<span class="input-group-text" id="">Full URL</span>
-					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
-				</div>`}
-			</div>
-			${UI.disable_video_download ? `` : `
-			<div class="col-md-12">
-				<div class="text-center">
-					<p class="mb-2">Download via</p>
-					<div class="btn-group text-center"> ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://kaceku.onrender.com/f/${file_id}" id="file_drive_link" target="_blank">`+gdrive_icon+`Google Drive</a>` : ``} <a href="${url}" type="button" class="btn btn-success">
-							<i class="fas fa-bolt fa-fw"></i>Index Link</a>
-						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							<span class="sr-only"></span>
-						</button>
-						<div class="dropdown-menu">
-							<a class="dropdown-item" href="iina://weblink?url=${url}">IINA</a>
-							<a class="dropdown-item" href="potplayer://${url}">PotPlayer</a>
-							<a class="dropdown-item" href="vlc://${url}">VLC Mobile</a>
-							<a class="dropdown-item" href="${url}">VLC Desktop</a>
-							<a class="dropdown-item" href="nplayer-${url}">nPlayer</a>
-							<a class="dropdown-item" href="intent://${url}#Intent;type=video/any;package=is.xyz.mpv;scheme=https;end;">mpv-android</a>
-							<a class="dropdown-item" href="mpv://${url_base64}">mpv x64</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;S.title=${encoded_name};end">MX Player (Free)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.pro;S.title=${encoded_name};end">MX Player (Pro)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-						</div>
-					</div> `+ copyFileBox +`
-				</div>
-			</div>`}
-		</div>
-	</div>`;
-	$("#content").html(content);
+	     </div>
+			 </div>
+		${UI.disable_video_download ? `` : `
+    <!-- First row of buttons -->
+    <div class="d-flex justify-content-center gap-3 mb-3">
+        <button type="button" class="glow-btn glow-warning"
+            onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center">
+                <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">
+                VLC Player
+            </span>
+        </button>
 
-	// Load Video.js and initialize the player
+        <button type="button" class="glow-btn glow-info"
+            onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1">
+                <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">
+                MX Player
+            </span>
+        </button>
+    </div>
+    
+    <!-- Second row of buttons -->
+    <div class="d-flex justify-content-center gap-3 mb-4">
+        <button type="button" class="glow-btn glow-success"
+            onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1">
+                <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">
+                XPlayer
+            </span>
+        </button>
+
+        <button type="button" class="glow-btn glow-danger"
+            onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+            <span class="d-flex align-items-center gap-1"> 
+                <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">
+                PLAYit
+            </span>
+        </button>
+      </div>
+			<div class="row mt-2">
+			<div class="col-md-12">
+				<div class="d-flex justify-content-center">
+					<div class="btn-group">
+						<a href="${url}" type="button" class="btn btn-success">
+							<i class="fas fa-bolt fa-fw"></i>Index Download Link
+                </a>
+                 <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                   <span class="sr-only"></span>
+                     </button>
+                      <div class="dropdown-menu">
+                       <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                        <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 24px; width: 24px; margin-right: 5px;"> Playit
+                         </a>
+                          <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                          <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 24px; width: 24px; margin-right: 5px;"> XPlayer
+                           </a>
+                           <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                           <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 24px; width: 24px; margin-right: 5px;"> MX Player
+                           </a>
+                           <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">
+                           <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 24px; width: 24px; margin-right: 5px;"> VLC Player
+                           </a>
+                           <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">
+                           <img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 24px; width: 24px; margin-right: 5px;"> 1DM (Free)
+                          </a>
+                        </div>
+					            </div> 
+				             </div>
+			            </div>`}
+		            </div>
+	            </div>`;
+	  $("#content").html(content);
+
+  // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
 	videoJsScript.onload = function() {
@@ -1883,7 +1932,6 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
 	document.head.appendChild(videoJsStylesheet);
 }
 
-
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	var url_base64 = btoa(url);
@@ -1896,109 +1944,121 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
 					<source src="${url}" type="audio/wav" />
 				</video>`;
 
-	var content = `
-	<div class="card">
-		<div class="card-header ${UI.file_view_alert_class}">
-			<i class="fas fa-file-alt fa-fw"></i>File Information
-		</div>
-		<div class="card-body row g-3">
-			<div class="col-lg-4 col-md-12">
-				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-					${UI.disable_player ? `<img class="object-fit-cover w-100 h-100 img-fluid rounded" src="${UI.audioposter}" alt="Thumbnail of ${name}" title="Thumbnail of ${name}">` : player}
-				</div>
-			</div>
-			<div class="col-lg-8 col-md-12">
-				<table class="table table-dark">
-					<tbody>
-						<tr>
-							<th>
-								<i class="fa-regular fa-folder-closed fa-fw"></i>
-								<span class="tth">Name</span>
-							</th>
-							<td>${name}</td>
-						</tr>
-						<tr>
-							<th>
-								<i class="fa-regular fa-clock fa-fw"></i>
-								<span class="tth">Datetime</span>
-							</th>
-							<td>${createdTime}</td>
-						</tr>
-						<tr>
-							<th>
-								<i class="fa-solid fa-tag fa-fw"></i>
-								<span class="tth">Type</span>
-							</th>
-							<td>${mimeType}</td>
-						</tr>
-						<tr>
-							<th>
-								<i class="fa-solid fa-box-archive fa-fw"></i>
-								<span class="tth">Size</span>
-							</th>
-							<td>${size}</td>
-						</tr>
-						<tr>
-							<th>
-								<i class="fa-solid fa-file-circle-check fa-fw"></i>
-								<span class="tth">Checksum</span>
-							</th>
-							<td>MD5: <code>${md5Checksum}</code>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				${UI.disable_audio_download ? `` : `
-				<div class="input-group">
-					<span class="input-group-text" id="">Full URL</span>
-					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
-				</div>`}
-			</div>
-			${UI.disable_audio_download ? `` : `
-			<div class="col-md-12">
-				<div class="text-center">
-					<p class="mb-2">Download via</p>
-					<div class="btn-group text-center"> ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://kaceku.onrender.com/f/${file_id}" id="file_drive_link" target="_blank">`+gdrive_icon+`Google Drive</a>` : ``} <a href="${url}" type="button" class="btn btn-success">
-							<i class="fas fa-bolt fa-fw"></i>Index Link</a>
-						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							<span class="sr-only"></span>
-						</button>
-						<div class="dropdown-menu">
-							<a class="dropdown-item" href="iina://weblink?url=${url}">IINA</a>
-							<a class="dropdown-item" href="potplayer://${url}">PotPlayer</a>
-							<a class="dropdown-item" href="vlc://${url}">VLC Mobile</a>
-							<a class="dropdown-item" href="${url}">VLC Desktop</a>
-							<a class="dropdown-item" href="nplayer-${url}">nPlayer</a>
-							<a class="dropdown-item" href="intent://${url}#Intent;type=audio/any;package=is.xyz.mpv;scheme=https;end;">mpv-android</a>
-							<a class="dropdown-item" href="mpv://${url_base64}">mpv x64</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;S.title=${encoded_name};end">MX Player (Free)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.pro;S.title=${encoded_name};end">MX Player (Pro)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
-							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-						</div>
-					</div> `+ copyFileBox +`
-				</div>
-			</div>`}
-		</div>
-	</div>`;
-	$("#content").html(content);
+	const content = `
+    <div class="card">
+        <div class="card-header ${UI.file_view_alert_class}">
+            ${copyFileBox}
+            <i class="fas fa-file-alt fa-fw"></i>File Information
+        </div>
+        <div class="card-body row g-3">
+            ${!UI.disable_player ? `
+            <div class="col-lg-4 col-md-12">
+                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+                    ${player}
+                </div>
+            </div>
+            ` : ''}
+            <div class="${UI.disable_player ? 'col-12' : 'col-lg-8 col-md-12'}">
+                <table class="table table-dark">
+                    <tbody>
+                        <tr>
+                            <th><i class="fa-regular fa-folder-closed fa-fw"></i><span class="tth">Name</span></th>
+                            <td>${name}</td>
+                        </tr>
+                        <tr>
+                            <th><i class="fa-regular fa-clock fa-fw"></i><span class="tth">Datetime</span></th>
+                            <td>${createdTime}</td>
+                        </tr>
+                        <tr>
+                            <th><i class="fa-solid fa-tag fa-fw"></i><span class="tth">Type</span></th>
+                            <td>${formatMimeType(mimeType)}</td>
+                        </tr>
+                        <tr>
+                            <th><i class="fa-solid fa-box-archive fa-fw"></i><span class="tth">Size</span></th>
+                            <td>${size}</td>
+                        </tr>
+                        <tr>
+                            <th><i class="fa-solid fa-file-circle-check fa-fw"></i><span class="tth">Checksum</span></th>
+                            <td>MD5: <code>${md5Checksum}</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                ${UI.disable_video_download ? '' : `
+                <div class="col-md-12">
+                    <div class="text-center">
+                        <p class="mb-2">Download via</p>
+                        <div class="btn-group text-center">
+                            <a href="${url}" type="button" class="btn btn-success">
+                                <i class="fas fa-bolt fa-fw"></i>Index Link
+                            </a>
+                            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="sr-only"></span>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">Playit</a>
+                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">XPlayer</a>
+                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">MX Player</a>
+                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">VLC Player</a>
+                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name_safe};end">1DM (Free)</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `}
+            </div>
+        </div>
+    </div>`;
+    
+    $("#content").html(content);
 
-	// Load Video.js and initialize the player
-	var videoJsScript = document.createElement('script');
-	videoJsScript.src = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.min.js';
-	videoJsScript.onload = function() {
-		// Video.js is loaded, initialize the player
-		const player = videojs('aplayer');
-	};
-	document.head.appendChild(videoJsScript);
-
-	var videoJsStylesheet = document.createElement('link');
-	videoJsStylesheet.href = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css';
-	videoJsStylesheet.rel = 'stylesheet';
-	document.head.appendChild(videoJsStylesheet);
+    // Initialize player if enabled
+    if (!UI.disable_player && player_js) {
+        const script = document.createElement('script');
+        script.src = player_js;
+        script.onload = () => {
+        switch(player_config.player) {
+        case "plyr":
+        new Plyr('#player');
+        break;
+        case "videojs":
+        videojs('vplayer', {fill: true});
+        break;
+        case "dplayer":
+        new DPlayer({
+        container: document.getElementById('player-container'),
+        screenshot: true,
+        video: {
+        url: url,
+        pic: poster,
+        thumbnails: poster
+                        }
+                    });
+                    break;
+                    case "jwplayer":
+                    jwplayer("player").setup({
+                        file: url,
+                        type: mimeTypeFixed,
+                        autostart: false,
+                        image: poster,
+                        width: "100%",
+                        aspectratio: "16:9",
+                        title: name
+                    });
+                    break;
+            }
+        };
+        document.head.appendChild(script);
+        
+        if (player_css) {
+            const css = document.createElement('link');
+            css.href = player_css;
+            css.rel = 'stylesheet';
+            document.head.appendChild(css);
+        }
+    }
 }
-
 
 // Time conversion
 function utc2jakarta(utc_datetime) {
@@ -2018,6 +2078,32 @@ function utc2jakarta(utc_datetime) {
 	return `${date}-${month}-${year} ${hour}:${minute}`;
 }
 
+// MIME type formatting
+function formatMimeType(mime) {
+  if (!mime) return '';
+  
+  // Video type mapping
+  const videoFormats = {
+    'mp4': 'MP4',
+    'x-matroska': 'MKV', 
+    'quicktime': 'MOV',
+    'avi': 'AVI',
+    'mpeg': 'MPEG',
+    'webm': 'WEBM',
+    'ogg': 'OGG',
+    'x-ms-wmv': 'WMV',
+    'flv': 'FLV'
+  };
+
+  // Check if video type
+  if (mime.startsWith('video/')) {
+    const subtype = mime.split('/')[1];
+    const format = videoFormats[subtype] || subtype.toUpperCase();
+    return `${format} - ${mime}`;
+  }
+  
+  return mime;
+}
 
 // bytes adaptive conversion to KB, MB, GB
 function formatFileSize(bytes) {
