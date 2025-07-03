@@ -2,6 +2,27 @@
 // v2.3.5
 // Initialize the page
 function init() {
+	// Add vapor theme CSS
+  const style = document.createElement('style');
+  style.textContent = `
+    .btn-vapor {
+      --bs-btn-bg: var(--bs-primary);
+      --bs-btn-border-color: var(--bs-primary);
+      --bs-btn-hover-bg: #ff4dbd;
+      --bs-btn-hover-border-color: #ff3cb8;
+      --bs-btn-active-bg: #ff3cb8;
+      --bs-btn-active-border-color: #ff2bb3;
+      --bs-btn-color: #000 !important;
+    }
+    .btn-vapor.btn-success {
+      --bs-btn-bg: var(--bs-success);
+      --bs-btn-border-color: var(--bs-success);
+      --bs-btn-hover-bg: #00ffe2;
+      --bs-btn-hover-border-color: #00ffe2;
+    }
+  `;
+  document.head.appendChild(style);
+	
 	document.siteName = $('title').html();
 	var html = `<header>
    <div id="nav">
@@ -1633,7 +1654,15 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
     const new_download_icon = `<img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
-	  var url_base64 = btoa(url);
+    const playerBtn = document.createElement('a');
+    playerBtn.href = player.url;
+    playerBtn.className = 'btn btn-sm btn-primary btn-vapor'; // ← ADDED btn-vapor
+    playerBtn.innerHTML = `<i class="${player.icon}"></i> ${player.name}`;
+    const downloadBtn = document.createElement('a');
+    downloadBtn.href = downloadUrl;
+    downloadBtn.className = 'btn btn-lg btn-success btn-vapor'; // ← ADDED btn-vapor
+    downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
+		 var url_base64 = btoa(url);
 	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 	  let player
 	  if (!UI.disable_player) {
