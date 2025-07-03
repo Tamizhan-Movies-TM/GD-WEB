@@ -1794,6 +1794,41 @@ var content = `
 
     // Set the content
     $("#content").html(content);
+
+		 // Add event listener for the download button
+    if (!UI.disable_video_download) {
+        document.getElementById('download-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const button = this;
+            const spinner = button.querySelector('#download-spinner');
+            
+            // Show spinner and disable button
+            spinner.style.display = 'block';
+            button.disabled = true;
+            
+            // Change button text
+            button.innerHTML = `${new_download_icon} Downloading...`;
+            
+            // Simulate download process (1.5 seconds)
+            setTimeout(() => {
+                // Create a hidden link to trigger the actual download
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = name;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                // Hide spinner and restore button after 0.5s
+                setTimeout(() => {
+                    spinner.style.display = 'none';
+                    button.disabled = false;
+                    button.innerHTML = `${new_download_icon} DOWNLOAD`;
+                }, 500);
+            }, 1500);
+        });
+		}
 		 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
