@@ -1663,7 +1663,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		}
 	}
 
-// Add the container and card elements	 	 
+// Add the container and card elements	 	  
 var content = `
 <div class="card">
     <div class="card-header text-truncate ${UI.file_view_alert_class}">
@@ -1708,36 +1708,46 @@ var content = `
                 </table>
             </div>
         </div>
-      ${UI.disable_video_download ? `` : `
-            <!-- Player buttons container -->
-            <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
-              <button type="button" class="player-btn"
+       ${UI.disable_video_download ? `` : `
+            <!-- First row of buttons - fixed width -->
+            <div class="d-flex justify-content-center gap-3 mb-3">
+              <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                <span>${vlc_icon} VLC Player</span>
+               <span class="d-flex align-items-center">
+                ${vlc_icon} VLC Player
+               </span>
               </button>
 
-              <button type="button" class="player-btn"
+              <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                <span>${mxplayer_icon} MX Player</span>
+                <span class="d-flex align-items-center gap-1">
+                ${mxplayer_icon} MX Player
+                </span>
               </button> 
-
-              <button type="button" class="player-btn"
+            </div>
+            
+            <!-- Second row of buttons - fixed width -->
+            <div class="d-flex justify-content-center gap-3 mb-4">
+              <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                <span>${xplayer_icon} XPlayer</span>
+               <span class="d-flex align-items-center gap-1">
+               ${xplayer_icon} XPlayer
+               </span>
               </button>
 
-              <button type="button" class="player-btn"
+              <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                <span>${playit_icon} PLAYit</span>
+               <span class="d-flex align-items-center gap-1"> 
+               ${playit_icon} PLAYit
+	       </span>
               </button>
             </div>
             
-            <!-- Download button -->
+              <!-- DOWNLOAD BUTTON -->
             <div class="d-flex justify-content-center">
-              <button id="download-btn" class="download-btn"
-                onclick="this.querySelector('.spinner').style.display='block'; setTimeout(function(){ window.location.href='${url}'; }, 100);">
-                <span>${new_download_icon} DOWNLOAD</span>
-                <div class="spinner" style="display: none;">
+              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;" onclick="startDownload('${url}')">
+                ${new_download_icon} DOWNLOAD
+                <div id="download-spinner" class="spinner" style="display: none;">
                   <div class="spinner-circle"></div>
                 </div>
               </button>
@@ -1769,138 +1779,6 @@ var content = `
         to { transform: rotate(360deg); }
       }
       
-      /* Player button styles - Matching reference URL */
-      .player-btn {
-        min-width: 160px;
-        padding: 12px 16px;
-        color: white !important;
-        font-weight: 500;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-        background: rgba(0, 0, 0, 0.3);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        z-index: 1;
-      }
-      
-      .player-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          45deg,
-          rgba(255, 255, 255, 0.05),
-          rgba(255, 255, 255, 0.1),
-          rgba(255, 255, 255, 0.05)
-        );
-        background-size: 200% 200%;
-        animation: shimmer 3s infinite linear;
-        z-index: -1;
-      }
-      
-      .player-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3), 0 0 15px rgba(0, 200, 255, 0.5);
-        background: rgba(0, 0, 0, 0.5);
-      }
-      
-      .player-btn:active {
-        transform: translateY(0);
-      }
-      
-      /* Download button style */
-      .download-btn {
-        min-width: 200px;
-        padding: 14px 32px;
-        color: white !important;
-        font-weight: 700;
-        border-radius: 8px;
-        border: none;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        transition: all 0.3s ease;
-        background: linear-gradient(135deg, #1e9bff, #0077ff);
-        box-shadow: 0 4px 15px rgba(0, 119, 255, 0.4);
-        position: relative;
-        overflow: hidden;
-        font-size: 1.1rem;
-        z-index: 1;
-      }
-      
-      .download-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          45deg,
-          rgba(255, 255, 255, 0.1),
-          rgba(255, 255, 255, 0.2),
-          rgba(255, 255, 255, 0.1)
-        );
-        background-size: 200% 200%;
-        animation: shimmer 3s infinite linear;
-        z-index: -1;
-      }
-      
-      .download-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0, 119, 255, 0.6), 0 0 20px rgba(0, 200, 255, 0.7);
-        background: linear-gradient(135deg, #1e9bff, #0066cc);
-      }
-      
-      .download-btn:active {
-        transform: translateY(0);
-      }
-      
-      /* Shimmer animation */
-      @keyframes shimmer {
-        0% {
-          background-position: -200% 0;
-        }
-        100% {
-          background-position: 200% 0;
-        }
-      }
-      
-      /* Background pattern from your app */
-      .player-btn, .download-btn {
-        position: relative;
-      }
-      
-      .player-btn::after, .download-btn::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-image: 
-          linear-gradient(to right, rgba(97, 4, 95, 0.2), transparent),
-          linear-gradient(to bottom left, rgba(0, 255, 0, 0.1), transparent),
-          linear-gradient(to bottom right, rgba(0, 0, 255, 0.1), transparent),
-          url('https://kaceku.onrender.com/static/img/pattern-32-inv.svg');
-        background-size: contain;
-        background-position: left;
-        background-repeat: repeat-x;
-        background-blend-mode: darken;
-        opacity: 0.8;
-        z-index: -2;
-      }
-      
       /* Center button content */
       .d-flex.align-items-center {
         display: flex;
@@ -1916,6 +1794,7 @@ var content = `
 
     // Set the content
     $("#content").html(content);
+
 		 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
