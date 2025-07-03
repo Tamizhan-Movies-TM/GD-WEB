@@ -1663,7 +1663,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		}
 	}
 
-// Add the container and card elements
+// Add the container and card elements	 
 var content = `
 <div class="card">
     <div class="card-header text-truncate ${UI.file_view_alert_class}">
@@ -1711,14 +1711,14 @@ var content = `
      ${UI.disable_video_download ? `` : `
             <!-- First row of buttons - fixed width -->
             <div class="d-flex justify-content-center gap-3 mb-3">
-              <button type="button" class="player-btn vlc-btn d-flex justify-content-center align-items-center" style="width: 160px;"
+              <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                <span class="d-flex align-items-center">
                 ${vlc_icon} VLC Player
                </span>
               </button>
 
-              <button type="button" class="player-btn mxplayer-btn d-flex justify-content-center align-items-center" style="width: 160px;"
+              <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 <span class="d-flex align-items-center gap-1">
                 ${mxplayer_icon} MX Player
@@ -1728,25 +1728,24 @@ var content = `
             
             <!-- Second row of buttons - fixed width -->
             <div class="d-flex justify-content-center gap-3 mb-4">
-              <button type="button" class="player-btn xplayer-btn d-flex justify-content-center align-items-center" style="width: 160px;"
+              <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                <span class="d-flex align-items-center gap-1">
                ${xplayer_icon} XPlayer
                </span>
               </button>
 
-              <button type="button" class="player-btn playit-btn d-flex justify-content-center align-items-center" style="width: 160px;"
+              <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                <span class="d-flex align-items-center gap-1"> 
                ${playit_icon} PLAYit
-	       </span>
+							 </span>
               </button>
             </div>
             
               <!-- DOWNLOAD BUTTON -->
             <div class="d-flex justify-content-center">
-              <button id="download-btn" class="player-btn download-btn btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" 
-                      style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
+              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
                 ${new_download_icon} DOWNLOAD
                 <div id="download-spinner" class="spinner" style="display: none;">
                   <div class="spinner-circle"></div>
@@ -1759,48 +1758,6 @@ var content = `
     </div>
     
     <style>
-      /* Button Styles */
-      .player-btn {
-        border-width: 2px !important;
-        color: white !important;
-        font-weight: 500;
-        position: relative;
-        transition: all 0.3s ease;
-        outline: none !important;
-      }
-      
-      /* Button Glow Effects */
-      .vlc-btn {
-        border-color: #ffc107 !important;
-        box-shadow: 0 0 8px rgba(255, 193, 7, 0.7);
-      }
-      
-      .mxplayer-btn {
-        border-color: #0dcaf0 !important;
-        box-shadow: 0 0 8px rgba(13, 202, 240, 0.7);
-      }
-      
-      .xplayer-btn {
-        border-color: #198754 !important;
-        box-shadow: 0 0 8px rgba(25, 135, 84, 0.7);
-      }
-      
-      .playit-btn {
-        border-color: #dc3545 !important;
-        box-shadow: 0 0 8px rgba(220, 53, 69, 0.7);
-      }
-      
-      .download-btn {
-        border-color: #6c757d !important;
-        box-shadow: 0 0 10px rgba(108, 117, 125, 0.8);
-      }
-      
-      /* Hover Effects */
-      .player-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
-      }
-      
       /* Loading spinner styles */
       .spinner {
         position: absolute;
@@ -1822,45 +1779,21 @@ var content = `
         to { transform: rotate(360deg); }
       }
       
-      /* Disabled state */
-      .player-btn:disabled {
-        opacity: 0.6;
-        transform: none !important;
-        box-shadow: none !important;
+      /* Center button content */
+      .d-flex.align-items-center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .gap-2 {
+        gap: 8px;
       }
     </style>
     `;
 
     // Set the content
     $("#content").html(content);
-    
-    // Download button functionality
-    document.getElementById('download-btn').addEventListener('click', function() {
-      const btn = this;
-      const spinner = document.getElementById('download-spinner');
-      
-      // Disable button and show spinner
-      btn.disabled = true;
-      spinner.style.display = 'block';
-      
-      // Change button text
-      const originalText = btn.innerHTML;
-      btn.innerHTML = `${new_download_icon} DOWNLOADING...`;
-      
-      // Simulate 3 second download
-      setTimeout(function() {
-        // Trigger actual download
-        window.location.href = '${url}';
-        
-        // Hide spinner and reset button
-        spinner.style.display = 'none';
-        btn.innerHTML = originalText;
-        
-        // Keep button disabled until page refresh
-        btn.classList.add('disabled');
-      }, 3000);
-    });
-
 		 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
