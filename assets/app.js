@@ -1663,7 +1663,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		}
 	}
 
-// Add the container and card elements	  
+// Add the container and card elements	 	 
 var content = `
 <div class="card">
     <div class="card-header text-truncate ${UI.file_view_alert_class}">
@@ -1709,43 +1709,32 @@ var content = `
             </div>
         </div>
      ${UI.disable_video_download ? `` : `
-            <!-- First row of buttons - fixed width -->
-            <div class="d-flex justify-content-center gap-3 mb-3">
-              <button type="button" class="play-btn play-btn-vlc"
+            <!-- Player buttons container -->
+            <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
+              <button type="button" class="player-btn vlc-btn"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span>
                 ${vlc_icon} VLC Player
-               </span>
               </button>
 
-              <button type="button" class="play-btn play-btn-mx"
+              <button type="button" class="player-btn mx-btn"
                 onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                <span>
                 ${mxplayer_icon} MX Player
-                </span>
               </button> 
-            </div>
-            
-            <!-- Second row of buttons - fixed width -->
-            <div class="d-flex justify-content-center gap-3 mb-4">
-              <button type="button" class="play-btn play-btn-xplayer"
+
+              <button type="button" class="player-btn xplayer-btn"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span>
-               ${xplayer_icon} XPlayer
-               </span>
+                ${xplayer_icon} XPlayer
               </button>
 
-              <button type="button" class="play-btn play-btn-playit"
+              <button type="button" class="player-btn playit-btn"
                 onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span> 
-               ${playit_icon} PLAYit
-							 </span>
+                ${playit_icon} PLAYit
               </button>
             </div>
             
-              <!-- DOWNLOAD BUTTON WITH BLINKING EFFECT -->
+            <!-- EXACT DOWNLOAD BUTTON AS REQUESTED -->
             <div class="d-flex justify-content-center">
-              <button id="download-btn" class="download-btn"
+              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;"
                 onclick="this.querySelector('.spinner').style.display='block'; setTimeout(function(){ window.location.href='${url}'; }, 100);">
                 ${new_download_icon} DOWNLOAD
                 <div class="spinner" style="display: none;">
@@ -1780,128 +1769,65 @@ var content = `
         to { transform: rotate(360deg); }
       }
       
-      /* Player button styles */
-      .play-btn {
-        width: 160px;
-        padding: 10px 5px;
+      /* Player button styles - Clean and modern */
+      .player-btn {
+        min-width: 160px;
+        padding: 12px 16px;
         color: white !important;
-        font-weight: normal;
-        border-width: 3px;
+        font-weight: 600;
         border-radius: 8px;
-        transition: all 0.3s ease;
+        border: none;
         display: flex;
         justify-content: center;
         align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         position: relative;
-        z-index: 1;
-        background-color: rgba(0,0,0,0.2) !important;
-        box-shadow: 0 0 10px currentColor;
-        animation: constant-glow 2s infinite alternate;
+        overflow: hidden;
       }
       
-      .play-btn::before {
+      .player-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      }
+      
+      .player-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .player-btn::after {
         content: '';
         position: absolute;
-        top: -3px;
-        left: -3px;
-        right: -3px;
-        bottom: -3px;
-        z-index: -1;
-        border-radius: 10px;
-        opacity: 0.7;
-        animation: pulse-glow 2s infinite alternate;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+        pointer-events: none;
       }
       
-      .play-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      .vlc-btn {
+        background: linear-gradient(to bottom, #ff9800, #ff5722);
       }
       
-      .play-btn-vlc {
-        border-color: #ffc107;
-      }
-      .play-btn-vlc::before {
-        background: linear-gradient(45deg, #ffc107, #ff9800, #ff5722);
+      .mx-btn {
+        background: linear-gradient(to bottom, #00bcd4, #0097a7);
       }
       
-      .play-btn-mx {
-        border-color: #0dcaf0;
-      }
-      .play-btn-mx::before {
-        background: linear-gradient(45deg, #0dcaf0, #00bcd4, #0097a7);
+      .xplayer-btn {
+        background: linear-gradient(to bottom, #4CAF50, #2E7D32);
       }
       
-      .play-btn-xplayer {
-        border-color: #198754;
-      }
-      .play-btn-xplayer::before {
-        background: linear-gradient(45deg, #198754, #4CAF50, #8BC34A);
+      .playit-btn {
+        background: linear-gradient(to bottom, #f44336, #d32f2f);
       }
       
-      .play-btn-playit {
-        border-color: #dc3545;
-      }
-      .play-btn-playit::before {
-        background: linear-gradient(45deg, #dc3545, #e91e63, #ff5722);
-      }
-      
-      /* Download button with blinking effect */
-      .download-btn {
-        width: 180px;
-        padding: 12px 10px;
-        color: white !important;
-        font-weight: bold;
-        border-width: 3px;
-        border-radius: 8px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-        z-index: 1;
-        background-color: rgba(0,0,0,0.2) !important;
-        border-color: #9c27b0;
-        animation: blink-glow 1.5s infinite;
-      }
-      
-      .download-btn::before {
-        content: '';
-        position: absolute;
-        top: -3px;
-        left: -3px;
-        right: -3px;
-        bottom: -3px;
-        z-index: -1;
-        border-radius: 10px;
-        background: linear-gradient(45deg, #9c27b0, #673ab7, #3f51b5);
-        opacity: 0.7;
-      }
-      
-      .download-btn:hover {
-        transform: scale(1.05);
-        animation: none;
-        box-shadow: 0 0 20px #9c27b0;
-      }
-      
-      /* Glow animations */
-      @keyframes constant-glow {
-        0% { box-shadow: 0 0 8px currentColor; }
-        100% { box-shadow: 0 0 15px currentColor; }
-      }
-      
-      @keyframes pulse-glow {
-        0% { opacity: 0.5; }
-        100% { opacity: 0.9; }
-      }
-      
-      @keyframes blink-glow {
-        0%, 100% { 
-          box-shadow: 0 0 10px #9c27b0, 0 0 20px #9c27b0; 
-          opacity: 1;
-        }
-        50% { 
-          box-shadow: 0 0 15px #673ab7, 0 0 30px #673ab7; 
-          opacity: 0.8;
-        }
+      /* Download button hover effect */
+      #download-btn:hover {
+        background-color: rgba(108, 117, 125, 0.1) !important;
+        box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
       }
       
       /* Center button content */
