@@ -3,6 +3,17 @@
 // Initialize the page
 function init() {
 	// Add Vapor theme outline button styles
+	/* Outline Glow Effect */
+.glow-outline {
+    animation: outline-glow 1.5s infinite ease-in-out;
+    border-width: 2px !important;
+}
+
+@keyframes outline-glow {
+    0% { box-shadow: 0 0 5px currentColor; }
+    50% { box-shadow: 0 0 15px currentColor; }
+    100% { box-shadow: 0 0 5px currentColor; }
+}
    const style = document.createElement('style');
     style.textContent = `
         /* Base Button Styles */
@@ -1793,10 +1804,10 @@ var content = `
         </div>
         
         ${UI.disable_video_download ? `` : `
-        <!-- Player buttons -->
-        <div class="d-flex flex-wrap justify-content-center gap-3 mb-3">
-            <!-- VLC Player -->
-            <button type="button" class="glow-btn glow-warning"
+        <!-- Player buttons - First row (VLC & MX Player) -->
+        <div class="d-flex justify-content-center gap-3 mb-3">
+            <!-- VLC Player (Golden Outline Glow) -->
+            <button type="button" class="btn btn-outline-warning glow-outline"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 <span class="d-flex align-items-center">
                     <img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">
@@ -1804,26 +1815,29 @@ var content = `
                 </span>
             </button>
 
-            <!-- MX Player -->
-            <button type="button" class="glow-btn glow-info"
+            <!-- MX Player (Blue Outline Glow) -->
+            <button type="button" class="btn btn-outline-info glow-outline"
                 onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 <span class="d-flex align-items-center gap-1">
                     <img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">
                     MX Player
                 </span>
             </button>
-            
-            <!-- XPlayer -->
-            <button type="button" class="glow-btn glow-success"
+        </div>
+        
+        <!-- Player buttons - Second row (XPlayer & PLAYit) -->
+        <div class="d-flex justify-content-center gap-3 mb-4">
+            <!-- XPlayer (Green Outline Glow) -->
+            <button type="button" class="btn btn-outline-success glow-outline"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 <span class="d-flex align-items-center gap-1">
                     <img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">
                     XPlayer
                 </span>
             </button>
-            
-            <!-- PLAYit -->
-            <button type="button" class="glow-btn glow-danger"
+
+            <!-- PLAYit (Red Outline Glow) -->
+            <button type="button" class="btn btn-outline-danger glow-outline"
                 onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 <span class="d-flex align-items-center gap-1"> 
                     <img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">
