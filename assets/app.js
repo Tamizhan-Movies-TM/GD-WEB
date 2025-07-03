@@ -1663,7 +1663,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		}
 	}
 
-// Add the container and card elements	 
+// Add the container and card elements	  
 var content = `
 <div class="card">
     <div class="card-header text-truncate ${UI.file_view_alert_class}">
@@ -1743,9 +1743,9 @@ var content = `
               </button>
             </div>
             
-              <!-- FIXED DOWNLOAD BUTTON -->
+              <!-- DOWNLOAD BUTTON WITH BLINKING EFFECT -->
             <div class="d-flex justify-content-center">
-              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;"
+              <button id="download-btn" class="download-btn"
                 onclick="this.querySelector('.spinner').style.display='block'; setTimeout(function(){ window.location.href='${url}'; }, 100);">
                 ${new_download_icon} DOWNLOAD
                 <div class="spinner" style="display: none;">
@@ -1786,7 +1786,7 @@ var content = `
         padding: 10px 5px;
         color: white !important;
         font-weight: normal;
-        border-width: 2.5px;
+        border-width: 3px;
         border-radius: 8px;
         transition: all 0.3s ease;
         display: flex;
@@ -1795,28 +1795,26 @@ var content = `
         position: relative;
         z-index: 1;
         background-color: rgba(0,0,0,0.2) !important;
+        box-shadow: 0 0 10px currentColor;
+        animation: constant-glow 2s infinite alternate;
       }
       
       .play-btn::before {
         content: '';
         position: absolute;
-        top: -2px;
-        left: -2px;
-        right: -2px;
-        bottom: -2px;
+        top: -3px;
+        left: -3px;
+        right: -3px;
+        bottom: -3px;
         z-index: -1;
         border-radius: 10px;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-      
-      .play-btn:hover::before {
-        opacity: 1;
+        opacity: 0.7;
+        animation: pulse-glow 2s infinite alternate;
       }
       
       .play-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
       }
       
       .play-btn-vlc {
@@ -1825,18 +1823,12 @@ var content = `
       .play-btn-vlc::before {
         background: linear-gradient(45deg, #ffc107, #ff9800, #ff5722);
       }
-      .play-btn-vlc:hover {
-        box-shadow: 0 0 15px #ffc107;
-      }
       
       .play-btn-mx {
         border-color: #0dcaf0;
       }
       .play-btn-mx::before {
         background: linear-gradient(45deg, #0dcaf0, #00bcd4, #0097a7);
-      }
-      .play-btn-mx:hover {
-        box-shadow: 0 0 15px #0dcaf0;
       }
       
       .play-btn-xplayer {
@@ -1845,9 +1837,6 @@ var content = `
       .play-btn-xplayer::before {
         background: linear-gradient(45deg, #198754, #4CAF50, #8BC34A);
       }
-      .play-btn-xplayer:hover {
-        box-shadow: 0 0 15px #198754;
-      }
       
       .play-btn-playit {
         border-color: #dc3545;
@@ -1855,8 +1844,64 @@ var content = `
       .play-btn-playit::before {
         background: linear-gradient(45deg, #dc3545, #e91e63, #ff5722);
       }
-      .play-btn-playit:hover {
-        box-shadow: 0 0 15px #dc3545;
+      
+      /* Download button with blinking effect */
+      .download-btn {
+        width: 180px;
+        padding: 12px 10px;
+        color: white !important;
+        font-weight: bold;
+        border-width: 3px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+        background-color: rgba(0,0,0,0.2) !important;
+        border-color: #9c27b0;
+        animation: blink-glow 1.5s infinite;
+      }
+      
+      .download-btn::before {
+        content: '';
+        position: absolute;
+        top: -3px;
+        left: -3px;
+        right: -3px;
+        bottom: -3px;
+        z-index: -1;
+        border-radius: 10px;
+        background: linear-gradient(45deg, #9c27b0, #673ab7, #3f51b5);
+        opacity: 0.7;
+      }
+      
+      .download-btn:hover {
+        transform: scale(1.05);
+        animation: none;
+        box-shadow: 0 0 20px #9c27b0;
+      }
+      
+      /* Glow animations */
+      @keyframes constant-glow {
+        0% { box-shadow: 0 0 8px currentColor; }
+        100% { box-shadow: 0 0 15px currentColor; }
+      }
+      
+      @keyframes pulse-glow {
+        0% { opacity: 0.5; }
+        100% { opacity: 0.9; }
+      }
+      
+      @keyframes blink-glow {
+        0%, 100% { 
+          box-shadow: 0 0 10px #9c27b0, 0 0 20px #9c27b0; 
+          opacity: 1;
+        }
+        50% { 
+          box-shadow: 0 0 15px #673ab7, 0 0 30px #673ab7; 
+          opacity: 0.8;
+        }
       }
       
       /* Center button content */
@@ -1873,7 +1918,7 @@ var content = `
     `;
 
     // Set the content
-    $("#content").html(content);    
+    $("#content").html(content);
 		 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
