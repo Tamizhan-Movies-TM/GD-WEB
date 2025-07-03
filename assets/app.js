@@ -1750,7 +1750,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 var content = `
 <div class="card">
     <div class="card-header text-truncate ${UI.file_view_alert_class}">
-        <i class="fas fa-file-alt fa-fw"></i>File Information 
+        <i class="fas fa-file-alt fa-fw"></i> File Information 
     </div>
     <div class="card-body">
         <div class="row g-3">
@@ -1775,13 +1775,6 @@ var content = `
                         </tr>
                         <tr>
                             <th>
-                                <i class="fa-regular fa-clock fa-fw"></i>
-                                <span class="tth">Datetime</span>
-                            </th>
-                            <td>${createdTime}</td>
-                        </tr>
-                        <tr>
-                            <th>
                                 <i class="fa-solid fa-tag fa-fw"></i>
                                 <span class="tth">Type</span>
                             </th>
@@ -1794,21 +1787,15 @@ var content = `
                             </th>
                             <td>${size}</td>
                         </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-file-circle-check fa-fw"></i>
-                                <span class="tth">Checksum</span>
-                            </th>
-                            <td>MD5: <code>${md5Checksum}</code></td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
         
         ${UI.disable_video_download ? `` : `
-        <!-- Player buttons - First row -->
-        <div class="d-flex justify-content-center gap-3 mb-3">
+        <!-- Player buttons -->
+        <div class="d-flex flex-wrap justify-content-center gap-3 mb-3">
+            <!-- VLC Player -->
             <button type="button" class="glow-btn glow-warning"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 <span class="d-flex align-items-center">
@@ -1817,6 +1804,7 @@ var content = `
                 </span>
             </button>
 
+            <!-- MX Player -->
             <button type="button" class="glow-btn glow-info"
                 onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 <span class="d-flex align-items-center gap-1">
@@ -1824,10 +1812,8 @@ var content = `
                     MX Player
                 </span>
             </button>
-        </div>
-        
-        <!-- Player buttons - Second row -->
-        <div class="d-flex justify-content-center gap-3 mb-4">
+            
+            <!-- XPlayer -->
             <button type="button" class="glow-btn glow-success"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 <span class="d-flex align-items-center gap-1">
@@ -1835,7 +1821,8 @@ var content = `
                     XPlayer
                 </span>
             </button>
-
+            
+            <!-- PLAYit -->
             <button type="button" class="glow-btn glow-danger"
                 onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 <span class="d-flex align-items-center gap-1"> 
@@ -1845,13 +1832,13 @@ var content = `
             </button>
         </div>
         
-        <!-- Download button with dropdown -->
+        <!-- Download button -->
         <div class="row mt-2">
             <div class="col-md-12">
                 <div class="d-flex justify-content-center">
                     <div class="btn-group">
                         <a href="${url}" type="button" class="btn btn-success">
-                            <i class="fas fa-bolt fa-fw"></i>Index Download Link
+                            <i class="fas fa-bolt fa-fw"></i> Index Download Link
                         </a>
                         <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="sr-only"></span>
