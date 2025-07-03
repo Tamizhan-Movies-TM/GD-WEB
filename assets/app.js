@@ -1711,16 +1711,16 @@ var content = `
      ${UI.disable_video_download ? `` : `
             <!-- First row of buttons - fixed width -->
             <div class="d-flex justify-content-center gap-3 mb-3">
-              <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
+              <button type="button" class="play-btn play-btn-vlc"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span class="d-flex align-items-center">
+               <span>
                 ${vlc_icon} VLC Player
                </span>
               </button>
 
-              <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
+              <button type="button" class="play-btn play-btn-mx"
                 onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                <span class="d-flex align-items-center gap-1">
+                <span>
                 ${mxplayer_icon} MX Player
                 </span>
               </button> 
@@ -1728,26 +1728,27 @@ var content = `
             
             <!-- Second row of buttons - fixed width -->
             <div class="d-flex justify-content-center gap-3 mb-4">
-              <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
+              <button type="button" class="play-btn play-btn-xplayer"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span class="d-flex align-items-center gap-1">
+               <span>
                ${xplayer_icon} XPlayer
                </span>
               </button>
 
-              <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
+              <button type="button" class="play-btn play-btn-playit"
                 onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span class="d-flex align-items-center gap-1"> 
+               <span> 
                ${playit_icon} PLAYit
 							 </span>
               </button>
             </div>
             
-              <!-- DOWNLOAD BUTTON -->
+              <!-- FIXED DOWNLOAD BUTTON -->
             <div class="d-flex justify-content-center">
-              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
+              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;"
+                onclick="this.querySelector('.spinner').style.display='block'; setTimeout(function(){ window.location.href='${url}'; }, 100);">
                 ${new_download_icon} DOWNLOAD
-                <div id="download-spinner" class="spinner" style="display: none;">
+                <div class="spinner" style="display: none;">
                   <div class="spinner-circle"></div>
                 </div>
               </button>
@@ -1779,6 +1780,85 @@ var content = `
         to { transform: rotate(360deg); }
       }
       
+      /* Player button styles */
+      .play-btn {
+        width: 160px;
+        padding: 10px 5px;
+        color: white !important;
+        font-weight: normal;
+        border-width: 2.5px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+        background-color: rgba(0,0,0,0.2) !important;
+      }
+      
+      .play-btn::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        z-index: -1;
+        border-radius: 10px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      .play-btn:hover::before {
+        opacity: 1;
+      }
+      
+      .play-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      }
+      
+      .play-btn-vlc {
+        border-color: #ffc107;
+      }
+      .play-btn-vlc::before {
+        background: linear-gradient(45deg, #ffc107, #ff9800, #ff5722);
+      }
+      .play-btn-vlc:hover {
+        box-shadow: 0 0 15px #ffc107;
+      }
+      
+      .play-btn-mx {
+        border-color: #0dcaf0;
+      }
+      .play-btn-mx::before {
+        background: linear-gradient(45deg, #0dcaf0, #00bcd4, #0097a7);
+      }
+      .play-btn-mx:hover {
+        box-shadow: 0 0 15px #0dcaf0;
+      }
+      
+      .play-btn-xplayer {
+        border-color: #198754;
+      }
+      .play-btn-xplayer::before {
+        background: linear-gradient(45deg, #198754, #4CAF50, #8BC34A);
+      }
+      .play-btn-xplayer:hover {
+        box-shadow: 0 0 15px #198754;
+      }
+      
+      .play-btn-playit {
+        border-color: #dc3545;
+      }
+      .play-btn-playit::before {
+        background: linear-gradient(45deg, #dc3545, #e91e63, #ff5722);
+      }
+      .play-btn-playit:hover {
+        box-shadow: 0 0 15px #dc3545;
+      }
+      
       /* Center button content */
       .d-flex.align-items-center {
         display: flex;
@@ -1793,7 +1873,7 @@ var content = `
     `;
 
     // Set the content
-    $("#content").html(content);        
+    $("#content").html(content);    
 		 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
