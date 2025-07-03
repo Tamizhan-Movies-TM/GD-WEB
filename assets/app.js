@@ -1663,9 +1663,9 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		}
 	}
 
-// Add the container and card elements	 	  
+// Add the container and card elements
 var content = `
-       <div class="card">
+<div class="card">
     <div class="card-header text-truncate ${UI.file_view_alert_class}">
         <i class="fas fa-file-alt fa-fw"></i> File Information 
     </div>
@@ -1688,7 +1688,7 @@ var content = `
                                 <i class="fa-regular fa-folder-closed fa-fw"></i>
                                 <span class="tth">Name</span>
                             </th>
-                            <td>${name}</td>
+                          <td>${name}</td>
                         </tr>
                         <tr>
                             <th>
@@ -1702,178 +1702,164 @@ var content = `
                                 <i class="fa-solid fa-box-archive fa-fw"></i>
                                 <span class="tth">Size</span>
                             </th>
-                            <td>${size}</td>
+                          <td>${size}</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
-        ${UI.disable_video_download ? `` : `
-        <!-- Player buttons section -->
-        <div class="player-buttons-container">
-            <!-- First row of buttons -->
+     ${UI.disable_video_download ? `` : `
+            <!-- First row of buttons - fixed width -->
             <div class="d-flex justify-content-center gap-3 mb-3">
-                <button type="button" class="player-btn btn btn-outline-warning" onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span>${vlc_icon} VLC Player</span>
-                </button>
-                <button type="button" class="player-btn btn btn-outline-info" onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span>${mxplayer_icon} MX Player</span>
-                </button>
-            </div>
-            
-            <!-- Second row of buttons -->
-            <div class="d-flex justify-content-center gap-3 mb-4">
-                <button type="button" class="player-btn btn btn-outline-success" onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span>${xplayer_icon} XPlayer</span>
-                </button>
-                <button type="button" class="player-btn btn btn-outline-danger" onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span>${playit_icon} PLAYit</span>
-                </button>
-            </div>
-            
-            <!-- Download button -->
-            <div class="d-flex justify-content-center">
-                <button id="download-btn" class="download-btn btn btn-outline-light">
-                    ${new_download_icon} DOWNLOAD
-                    <div id="download-spinner" class="spinner">
-                        <div class="spinner-circle"></div>
-                    </div>
-                </button>
-            </div>
-        </div>
-        `}
-    </div>
-</div>
+              <button type="button" class="player-btn vlc-btn d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+               <span class="d-flex align-items-center">
+                ${vlc_icon} VLC Player
+               </span>
+              </button>
 
-<style>
-    /* Player buttons styling */
-    .player-btn {
-        width: 160px;
-        color: white !important;
+              <button type="button" class="player-btn mxplayer-btn d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                <span class="d-flex align-items-center gap-1">
+                ${mxplayer_icon} MX Player
+                </span>
+              </button> 
+            </div>
+            
+            <!-- Second row of buttons - fixed width -->
+            <div class="d-flex justify-content-center gap-3 mb-4">
+              <button type="button" class="player-btn xplayer-btn d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+               <span class="d-flex align-items-center gap-1">
+               ${xplayer_icon} XPlayer
+               </span>
+              </button>
+
+              <button type="button" class="player-btn playit-btn d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+               <span class="d-flex align-items-center gap-1"> 
+               ${playit_icon} PLAYit
+	       </span>
+              </button>
+            </div>
+            
+              <!-- DOWNLOAD BUTTON -->
+            <div class="d-flex justify-content-center">
+              <button id="download-btn" class="player-btn download-btn btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" 
+                      style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
+                ${new_download_icon} DOWNLOAD
+                <div id="download-spinner" class="spinner" style="display: none;">
+                  <div class="spinner-circle"></div>
+                </div>
+              </button>
+            </div>
+          </div>
+        `}
+      </div>
+    </div>
+    
+    <style>
+      /* Button Styles */
+      .player-btn {
         border-width: 2px !important;
-        box-shadow: 0 0 10px rgba(255,255,255,0.3);
-        transition: all 0.3s ease;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 8px 12px;
-    }
-    
-    .player-btn:hover {
-        box-shadow: 0 0 15px rgba(255,255,255,0.5);
-        transform: translateY(-2px);
-    }
-    
-    .player-btn span {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    
-    /* Download button styling */
-    .download-btn {
-        padding: 10px 24px;
-        font-size: 1.1rem;
-        font-weight: bold;
         color: white !important;
-        border-width: 2px !important;
-        box-shadow: 0 0 10px rgba(255,255,255,0.3);
-        transition: all 0.3s ease;
+        font-weight: 500;
         position: relative;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .download-btn:hover:not(:disabled) {
-        box-shadow: 0 0 15px rgba(255,255,255,0.5);
+        transition: all 0.3s ease;
+        outline: none !important;
+      }
+      
+      /* Button Glow Effects */
+      .vlc-btn {
+        border-color: #ffc107 !important;
+        box-shadow: 0 0 8px rgba(255, 193, 7, 0.7);
+      }
+      
+      .mxplayer-btn {
+        border-color: #0dcaf0 !important;
+        box-shadow: 0 0 8px rgba(13, 202, 240, 0.7);
+      }
+      
+      .xplayer-btn {
+        border-color: #198754 !important;
+        box-shadow: 0 0 8px rgba(25, 135, 84, 0.7);
+      }
+      
+      .playit-btn {
+        border-color: #dc3545 !important;
+        box-shadow: 0 0 8px rgba(220, 53, 69, 0.7);
+      }
+      
+      .download-btn {
+        border-color: #6c757d !important;
+        box-shadow: 0 0 10px rgba(108, 117, 125, 0.8);
+      }
+      
+      /* Hover Effects */
+      .player-btn:hover {
         transform: translateY(-2px);
-    }
-    
-    /* Loading spinner styles */
-    .spinner {
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
+      }
+      
+      /* Loading spinner styles */
+      .spinner {
         position: absolute;
-        right: 15px;
-        display: none;
-    }
-    
-    .spinner-circle {
-        width: 20px;
-        height: 20px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      
+      .spinner-circle {
+        width: 24px;
+        height: 24px;
         border: 3px solid rgba(255,255,255,0.3);
         border-radius: 50%;
         border-top-color: #fff;
         animation: spinner-rotate 1s linear infinite;
-    }
-    
-    @keyframes spinner-rotate {
+      }
+      
+      @keyframes spinner-rotate {
         to { transform: rotate(360deg); }
-    }
-    
-    /* Button container adjustments */
-    .player-buttons-container {
-        margin-top: 20px;
-    }
-</style>
+      }
+      
+      /* Disabled state */
+      .player-btn:disabled {
+        opacity: 0.6;
+        transform: none !important;
+        box-shadow: none !important;
+      }
+    </style>
+    `;
 
-<script>
-// Track download state
-let downloadCompleted = false;
-
-// Initialize the download button
-document.addEventListener('DOMContentLoaded', function() {
-    const downloadBtn = document.getElementById('download-btn');
-    const spinner = document.getElementById('download-spinner');
-    
-    // Check if download was already completed
-    if (sessionStorage.getItem('downloadCompleted')) {
-        downloadBtn.disabled = true;
-        downloadBtn.innerHTML = `${new_download_icon} DOWNLOAD COMPLETED`;
-        return;
-    }
-    
-    downloadBtn.addEventListener('click', function() {
-        if (!downloadCompleted) {
-            startDownload('${url}');
-        }
-    });
-});
-
-function startDownload(url) {
-    const btn = document.getElementById('download-btn');
-    const spinner = document.getElementById('download-spinner');
-    
-    // Disable the button and show spinner
-    btn.disabled = true;
-    spinner.style.display = 'block';
-    downloadCompleted = true;
-    
-    // Simulate download for 3 seconds
-    setTimeout(function() {
-        // Create a temporary anchor element to trigger download
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = '${name}';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        
-        // Update button state
-        spinner.style.display = 'none';
-        btn.innerHTML = `${new_download_icon} DOWNLOAD COMPLETED`;
-        
-        // Store in sessionStorage that download was completed
-        sessionStorage.setItem('downloadCompleted', 'true');
-    }, 3000);
-}
-</script>
-   </div>
-        `}
-    </div>
-</div>`;
-		
     // Set the content
     $("#content").html(content);
+    
+    // Download button functionality
+    document.getElementById('download-btn').addEventListener('click', function() {
+      const btn = this;
+      const spinner = document.getElementById('download-spinner');
+      
+      // Disable button and show spinner
+      btn.disabled = true;
+      spinner.style.display = 'block';
+      
+      // Change button text
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `${new_download_icon} DOWNLOADING...`;
+      
+      // Simulate 3 second download
+      setTimeout(function() {
+        // Trigger actual download
+        window.location.href = '${url}';
+        
+        // Hide spinner and reset button
+        spinner.style.display = 'none';
+        btn.innerHTML = originalText;
+        
+        // Keep button disabled until page refresh
+        btn.classList.add('disabled');
+      }, 3000);
+    });
 
 		 
   // Load Video.js and initialize the player
