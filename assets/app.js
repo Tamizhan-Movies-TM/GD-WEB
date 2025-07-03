@@ -1708,35 +1708,35 @@ var content = `
                 </table>
             </div>
         </div>
-        ${UI.disable_video_download ? `` : `
+      ${UI.disable_video_download ? `` : `
             <!-- Player buttons container -->
             <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
               <button type="button" class="player-btn"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${vlc_icon} VLC Player
+                <span>${vlc_icon} VLC Player</span>
               </button>
 
               <button type="button" class="player-btn"
                 onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${mxplayer_icon} MX Player
+                <span>${mxplayer_icon} MX Player</span>
               </button> 
 
               <button type="button" class="player-btn"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${xplayer_icon} XPlayer
+                <span>${xplayer_icon} XPlayer</span>
               </button>
 
               <button type="button" class="player-btn"
                 onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                ${playit_icon} PLAYit
+                <span>${playit_icon} PLAYit</span>
               </button>
             </div>
             
-            <!-- EXACT DOWNLOAD BUTTON AS REQUESTED -->
+            <!-- Download button -->
             <div class="d-flex justify-content-center">
               <button id="download-btn" class="download-btn"
                 onclick="this.querySelector('.spinner').style.display='block'; setTimeout(function(){ window.location.href='${url}'; }, 100);">
-                ${new_download_icon} DOWNLOAD
+                <span>${new_download_icon} DOWNLOAD</span>
                 <div class="spinner" style="display: none;">
                   <div class="spinner-circle"></div>
                 </div>
@@ -1769,65 +1769,59 @@ var content = `
         to { transform: rotate(360deg); }
       }
       
-      /* Player button styles - Vapor theme */
+      /* Player button styles - Matching reference URL */
       .player-btn {
         min-width: 160px;
         padding: 12px 16px;
-        color: #fff !important;
-        font-weight: 600;
+        color: white !important;
+        font-weight: 500;
         border-radius: 8px;
-        border: none;
+        border: 1px solid rgba(255, 255, 255, 0.2);
         display: flex;
         justify-content: center;
         align-items: center;
         gap: 8px;
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
-        background: linear-gradient(145deg, #6f42c1, #0dcaf0);
-        text-shadow: 0 0 15px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 255, 255, 0.5);
-        box-shadow: 
-          0 0 0.2rem rgba(0, 0, 0, 0.15),
-          0 0 0.2rem rgba(0, 0, 0, 0.1),
-          0 0 2rem rgba(111, 66, 193, 0.1),
-          0 0 0.8rem rgba(13, 202, 240, 0.3),
-          0 0 2.8rem rgba(111, 66, 193, 0.45),
-          inset 0 0 1.3rem rgba(13, 202, 240, 0.9);
-        animation: vapor-pulse 2s infinite alternate;
+        background: rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1;
       }
       
-      .player-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 
-          0 0 0.5rem rgba(0, 0, 0, 0.3),
-          0 0 0.5rem rgba(0, 0, 0, 0.2),
-          0 0 3rem rgba(111, 66, 193, 0.3),
-          0 0 1.5rem rgba(13, 202, 240, 0.5),
-          0 0 4rem rgba(111, 66, 193, 0.65),
-          inset 0 0 1.8rem rgba(13, 202, 240, 1);
-      }
-      
-      .player-btn:active {
-        transform: translateY(0);
-      }
-      
-      .player-btn::after {
+      .player-btn::before {
         content: '';
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%);
-        pointer-events: none;
-        z-index: 1;
+        background: linear-gradient(
+          45deg,
+          rgba(255, 255, 255, 0.05),
+          rgba(255, 255, 255, 0.1),
+          rgba(255, 255, 255, 0.05)
+        );
+        background-size: 200% 200%;
+        animation: shimmer 3s infinite linear;
+        z-index: -1;
       }
       
-      /* Download button - Vapor theme */
+      .player-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3), 0 0 15px rgba(0, 200, 255, 0.5);
+        background: rgba(0, 0, 0, 0.5);
+      }
+      
+      .player-btn:active {
+        transform: translateY(0);
+      }
+      
+      /* Download button style */
       .download-btn {
         min-width: 200px;
         padding: 14px 32px;
-        color: #fff !important;
+        color: white !important;
         font-weight: 700;
         border-radius: 8px;
         border: none;
@@ -1836,67 +1830,75 @@ var content = `
         align-items: center;
         gap: 10px;
         transition: all 0.3s ease;
-        background: linear-gradient(145deg, #d63384, #6f42c1);
-        text-shadow: 0 0 15px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 255, 255, 0.5);
-        box-shadow: 
-          0 0 0.2rem rgba(0, 0, 0, 0.15),
-          0 0 0.2rem rgba(0, 0, 0, 0.1),
-          0 0 2rem rgba(214, 51, 132, 0.1),
-          0 0 0.8rem rgba(111, 66, 193, 0.3),
-          0 0 2.8rem rgba(214, 51, 132, 0.45),
-          inset 0 0 1.3rem rgba(111, 66, 193, 0.9);
-        animation: vapor-pulse 2s infinite alternate;
+        background: linear-gradient(135deg, #1e9bff, #0077ff);
+        box-shadow: 0 4px 15px rgba(0, 119, 255, 0.4);
         position: relative;
         overflow: hidden;
+        font-size: 1.1rem;
+        z-index: 1;
       }
       
-      .download-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 
-          0 0 0.5rem rgba(0, 0, 0, 0.3),
-          0 0 0.5rem rgba(0, 0, 0, 0.2),
-          0 0 3rem rgba(214, 51, 132, 0.3),
-          0 0 1.5rem rgba(111, 66, 193, 0.5),
-          0 0 4rem rgba(214, 51, 132, 0.65),
-          inset 0 0 1.8rem rgba(111, 66, 193, 1);
-      }
-      
-      .download-btn:active {
-        transform: translateY(0);
-      }
-      
-      .download-btn::after {
+      .download-btn::before {
         content: '';
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%);
-        pointer-events: none;
-        z-index: 1;
+        background: linear-gradient(
+          45deg,
+          rgba(255, 255, 255, 0.1),
+          rgba(255, 255, 255, 0.2),
+          rgba(255, 255, 255, 0.1)
+        );
+        background-size: 200% 200%;
+        animation: shimmer 3s infinite linear;
+        z-index: -1;
       }
       
-      /* Vapor animations */
-      @keyframes vapor-pulse {
+      .download-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 119, 255, 0.6), 0 0 20px rgba(0, 200, 255, 0.7);
+        background: linear-gradient(135deg, #1e9bff, #0066cc);
+      }
+      
+      .download-btn:active {
+        transform: translateY(0);
+      }
+      
+      /* Shimmer animation */
+      @keyframes shimmer {
         0% {
-          box-shadow: 
-            0 0 0.2rem rgba(0, 0, 0, 0.15),
-            0 0 0.2rem rgba(0, 0, 0, 0.1),
-            0 0 2rem rgba(111, 66, 193, 0.1),
-            0 0 0.8rem rgba(13, 202, 240, 0.3),
-            0 0 2.8rem rgba(111, 66, 193, 0.45),
-            inset 0 0 1.3rem rgba(13, 202, 240, 0.9);
+          background-position: -200% 0;
         }
         100% {
-          box-shadow: 
-            0 0 0.4rem rgba(0, 0, 0, 0.25),
-            0 0 0.4rem rgba(0, 0, 0, 0.2),
-            0 0 3rem rgba(111, 66, 193, 0.2),
-            0 0 1.2rem rgba(13, 202, 240, 0.4),
-            0 0 3.5rem rgba(111, 66, 193, 0.55),
-            inset 0 0 1.6rem rgba(13, 202, 240, 1);
+          background-position: 200% 0;
         }
+      }
+      
+      /* Background pattern from your app */
+      .player-btn, .download-btn {
+        position: relative;
+      }
+      
+      .player-btn::after, .download-btn::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+          linear-gradient(to right, rgba(97, 4, 95, 0.2), transparent),
+          linear-gradient(to bottom left, rgba(0, 255, 0, 0.1), transparent),
+          linear-gradient(to bottom right, rgba(0, 0, 255, 0.1), transparent),
+          url('https://kaceku.onrender.com/static/img/pattern-32-inv.svg');
+        background-size: contain;
+        background-position: left;
+        background-repeat: repeat-x;
+        background-blend-mode: darken;
+        opacity: 0.8;
+        z-index: -2;
       }
       
       /* Center button content */
