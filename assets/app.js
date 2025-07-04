@@ -1844,8 +1844,8 @@ var content = `
     <style>
       /* Loading spinner styles */
         .glow-secondary {
-         border-color: #9d00ff; 
-         --btn-color: #9d00ff;
+         border-color: #ff00aa; 
+         --btn-color: #ff00aa;
       }
     
       .spinner {
