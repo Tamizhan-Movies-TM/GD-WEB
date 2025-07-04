@@ -1824,106 +1824,93 @@ var content = `
                ${playit_icon} PLAYit
 							 </span>
               </button>
-            </div>
 						
-            <!-- DOWNLOAD BUTTON -->
-  <div class="d-flex justify-content-center">
-  <button id="download-btn" class="btn btn-outline-pink btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
-     ${new_download_icon} DOWNLOAD
-    <div id="download-spinner" class="spinner" style="display: none;">
-      <div class="spinner-circle"></div>
+						 <!-- DOWNLOAD BUTTON -->
+            <div class="d-flex justify-content-center gap-3 mb-3">
+              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
+                 ${new_download_icon} DOWNLOAD
+                <div id="download-spinner" class="spinner" style="display: none;">
+                  <div class="spinner-circle"></div>
+                </div>
+              </button>
+            </div>
+          </div>
+        `}
+      </div>
     </div>
-  </button>
-</div>
-</div>
-`
-</div>
-</div>
+    
+    <style>
+      /* Loading spinner styles */
+      .spinner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      
+      .spinner-circle {
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spinner-rotate 1s linear infinite;
+      }
+      
+      @keyframes spinner-rotate {
+        to { transform: rotate(360deg); }
+      }
+      
+      /* Center button content */
+      .d-flex.align-items-center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .gap-2 {
+        gap: 8px;
+      }
+    </style>
+    `;
 
-<style>
-  /* Pink color styles */
-  .btn-outline-pink {
-    color: #ff69b4;
-    border-color: #ff69b4;
-  }
-  
-  .btn-outline-pink:hover {
-    color: white;
-    background-color: #ff69b4;
-    border-color: #ff69b4;
-  }
-  
-  /* Loading spinner styles */
-  .spinner {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-  
-  .spinner-circle {
-    width: 24px;
-    height: 24px;
-    border: 3px solid rgba(255,105,180,0.3);
-    border-radius: 50%;
-    border-top-color: #ff69b4;
-    animation: spinner-rotate 1s linear infinite;
-  }
-  
-  @keyframes spinner-rotate {
-    to { transform: rotate(360deg); }
-  }
-  
-  /* Center button content */
-  .d-flex.align-items-center {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .gap-2 {
-    gap: 8px;
-  }
-</style>
-`;
+    // Set the content
+    $("#content").html(content);
 
-// Set the content
-$("#content").html(content);
-
-// Add event listener for the download button
-if (!UI.disable_video_download) {
-    document.getElementById('download-btn').addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        const button = this;
-        const spinner = button.querySelector('#download-spinner');
-        
-        // Show spinner and disable button
-        spinner.style.display = 'block';
-        button.disabled = true;
-        
-        // Change button text
-        button.innerHTML = `${new_download_icon} Downloading...`;
-        
-        // Simulate download process (1.5 seconds)
-        setTimeout(() => {
-            // Create a hidden link to trigger the actual download
-            const downloadLink = document.createElement('a');
-            downloadLink.href = url;
-            downloadLink.download = name;
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
+		 // Add event listener for the download button
+    if (!UI.disable_video_download) {
+        document.getElementById('download-btn').addEventListener('click', function(e) {
+            e.preventDefault();
             
-            // Hide spinner and restore button after 0.5s
+            const button = this;
+            const spinner = button.querySelector('#download-spinner');
+            
+            // Show spinner and disable button
+            spinner.style.display = 'block';
+            button.disabled = true;
+            
+            // Change button text
+            button.innerHTML = `${new_download_icon} Downloading...`;
+            
+            // Simulate download process (1.5 seconds)
             setTimeout(() => {
-                spinner.style.display = 'none';
-                button.disabled = false;
-                button.innerHTML = `${new_download_icon} DOWNLOAD`;
-            }, 500);
-        }, 1500);
-    });
-}
+                // Create a hidden link to trigger the actual download
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = name;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                // Hide spinner and restore button after 0.5s
+                setTimeout(() => {
+                    spinner.style.display = 'none';
+                    button.disabled = false;
+                    button.innerHTML = `${new_download_icon} DOWNLOAD`;
+                }, 500);
+            }, 1500);
+        });
+		}
 		 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
