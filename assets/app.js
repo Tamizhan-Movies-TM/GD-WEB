@@ -82,6 +82,23 @@ function init() {
         .glow-btn:hover::before {
             left: 100%;
         }
+		
+.glow-primary {
+  border: 1px solid #ff00ff !important;
+  background: transparent !important;
+  color: #ff00ff !important;
+  text-shadow: 0 0 8px rgba(255, 0, 255, 0.7);
+  box-shadow: 
+    0 0 10px #ff00ff,
+    inset 0 0 5px #ff00ff;
+}
+
+.glow-primary:hover {
+  background: rgba(255, 0, 255, 0.1) !important;
+  box-shadow: 
+    0 0 15px #ff00ff,
+    inset 0 0 10px #ff00ff;
+}
     `;
     document.head.appendChild(style);
 	
@@ -1828,7 +1845,7 @@ var content = `
             
               <!-- DOWNLOAD BUTTON -->
             <div class="d-flex justify-content-center">
-              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
+              <button id="download-btn" class="glow-btn glow-primary" btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
                  ${new_download_icon} DOWNLOAD
                 <div id="download-spinner" class="spinner" style="display: none;">
                   <div class="spinner-circle"></div>
