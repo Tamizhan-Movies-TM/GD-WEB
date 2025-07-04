@@ -1810,7 +1810,7 @@ var content = `
             </div>
             
             <!-- Second row of buttons - fixed width -->
-            <div class="d-flex justify-content-center gap-3 mb-3">
+            <div class="d-flex justify-content-center gap-3 mb-4">
               <button type="button" class="glow-btn glow-success" d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                <span class="d-flex align-items-center gap-1">
