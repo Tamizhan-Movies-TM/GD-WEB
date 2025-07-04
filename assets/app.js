@@ -1792,56 +1792,53 @@ var content = `
             </div>
         </div>
      ${UI.disable_video_download ? `` : `
-<!-- Player buttons container -->
-<div class="d-flex flex-column align-items-center gap-3 mb-3">
-  <!-- First row - VLC and MX Player -->
-  <div class="d-flex justify-content-center gap-3 w-100">
-    <button type="button" class="glow-btn glow-warning d-flex justify-content-center align-items-center flex-grow-0" style="width: 160px;"
-      onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-      <span class="d-flex align-items-center">
-        ${vlc_icon} VLC Player
-      </span>
-    </button>
+            <!-- First row of buttons - fixed width -->
+            <div class="d-flex justify-content-center gap-3 mb-3">
+              <button type="button" class="glow-btn glow-warning" d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+               <span class="d-flex align-items-center">
+                ${vlc_icon} VLC Player
+               </span>
+              </button>
 
-    <button type="button" class="glow-btn glow-info d-flex justify-content-center align-items-center flex-grow-0" style="width: 160px;"
-      onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-      <span class="d-flex align-items-center gap-1">
-        ${mxplayer_icon} MX Player
-      </span>
-    </button> 
-  </div>
-  
-  <!-- Second row - XPlayer and Playit -->
-  <div class="d-flex justify-content-center gap-3 w-100">
-    <button type="button" class="glow-btn glow-success d-flex justify-content-center align-items-center flex-grow-0" style="width: 160px;"
-      onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-      <span class="d-flex align-items-center gap-1">
-        ${xplayer_icon} XPlayer
-      </span>
-    </button>
+              <button type="button" class="glow-btn glow-info" d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                <span class="d-flex align-items-center gap-1">
+                ${mxplayer_icon} MX Player
+                </span>
+              </button> 
+            </div>
+            
+            <!-- Second row of buttons - fixed width -->
+            <div class="d-flex justify-content-center gap-3 mb-4">
+              <button type="button" class="glow-btn glow-success" d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+               <span class="d-flex align-items-center gap-1">
+               ${xplayer_icon} XPlayer
+               </span>
+              </button>
 
-    <button type="button" class="glow-btn glow-danger d-flex justify-content-center align-items-center flex-grow-0" style="width: 160px;"
-      onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-      <span class="d-flex align-items-center gap-1"> 
-        ${playit_icon} PLAYit
-      </span>
-    </button>
-  </div>
-  
-  <!-- Third row - Download button -->
-  <div class="d-flex justify-content-center w-100 mt-1">
-    <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2 flex-grow-0" 
-            style="width: 160px; padding: 10px 24px; font-size: 1.1rem; position: relative;">
-      ${new_download_icon} DOWNLOAD
-      <div id="download-spinner" class="spinner" style="display: none;">
-        <div class="spinner-circle"></div>
-      </div>
-    </button>
-      </div>
-      </div>
+              <button type="button" class="glow-btn glow-danger" d-flex justify-content-center align-items-center" style="width: 160px;"
+                onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+               <span class="d-flex align-items-center gap-1"> 
+               ${playit_icon} PLAYit
+							 </span>
+              </button>
+            </div>
+            
+              <!-- DOWNLOAD BUTTON -->
+            <div class="d-flex justify-content-center w-100 mt-1">
+              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
+                 ${new_download_icon} DOWNLOAD
+                <div id="download-spinner" class="spinner" style="display: none;">
+                  <div class="spinner-circle"></div>
+                </div>
+              </button>
+            </div>
+          </div>
         `}
       </div>
-      </div>
+    </div>
     
     <style>
       /* Loading spinner styles */
