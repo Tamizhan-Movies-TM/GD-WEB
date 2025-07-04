@@ -1828,8 +1828,8 @@ var content = `
 						
 						 <!-- DOWNLOAD BUTTON -->
             <div class="d-flex justify-content-center gap-3 mb-3">
-            <button id="download-btn" class="glow-btn glow-pink btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" 
-            style="width: 50%; padding: 10px 24px; font-size: 1.1rem; position: relative;">
+            <button id="download-btn" class="glow-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" 
+            style="width: 60%; padding: 10px 24px; font-size: 1.1rem; position: relative;">
             ${new_download_icon} DOWNLOAD
             <div id="download-spinner" class="spinner" style="display: none;">
             <div class="spinner-circle"></div>
@@ -1850,13 +1850,13 @@ var content = `
     /* Glow effect (matches Vapor's neon style) */
     box-shadow: 0 0 5px #9d00ff, 0 0 10px #9d00aa;
     text-shadow: 0 0 5px rgba(157, 0, 255, 0.5);
-    }
+   }
 
-    .glow-outline-secondary:hover, .glow-outline-secondary:active {
-     background-color: #9d00ff; /* Solid fill on hover */
-     color: #fff;
-     box-shadow: 0 0 15px #9d00ff, 0 0 30px #9d00aa;
-     }
+   .glow-outline-secondary:hover, .glow-outline-secondary:active {
+    background-color: #9d00ff; /* Solid fill on hover */
+    color: #fff;
+    box-shadow: 0 0 15px #9d00ff, 0 0 30px #9d00aa;
+    }
       .spinner {
         position: absolute;
         top: 50%;
