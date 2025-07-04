@@ -5,49 +5,28 @@ function init() {
 // Add Vapor theme outline button styles
    const style = document.createElement('style');
 style.textContent = `
-    /* Modified Vapor Theme Button Styles */
+    /* Vapor Theme Button Styles - Fixed Outline */
     .glow-btn {
         position: relative;
         overflow: hidden;
         transition: all 0.2s ease;
         z-index: 1;
-        border: 2px solid;
+        border: none;
         border-radius: 8px;
         font-weight: bold;
         padding: 8px 16px;
-        background: transparent !important;
+        background: transparent;
         width: 160px;
         margin-bottom: 10px;
-        color: white !important;
         display: flex;
         justify-content: center;
         align-items: center;
         outline: none;
+        /* Text color matches border by default */
+        color: var(--btn-color) !important;
     }
 
-    /* Color Definitions */
-    .glow-warning {
-        --btn-color: #ffcc00;
-        color: #ffcc00 !important;
-    }
-    .glow-info {
-        --btn-color: #00ccff;
-        color: #00ccff !important;
-    }
-    .glow-success {
-        --btn-color: #00ff99;
-        color: #00ff99 !important;
-    }
-    .glow-danger {
-        --btn-color: #ff6666;
-        color: #ff6666 !important;
-    }
-    .glow-secondary {
-        --btn-color: #ff00aa;
-        color: #ff00aa !important;
-    }
-
-    /* Border positioned below content */
+    /* Fixed Outline Border (always below content) */
     .glow-btn::after {
         content: '';
         position: absolute;
@@ -55,9 +34,47 @@ style.textContent = `
         left: 0;
         right: 0;
         bottom: 0;
-        border: 2px solid var(--btn-color);
+        border: 2px solid;
         border-radius: 8px;
         z-index: -1;
+        /* Prevent blinking by avoiding transitions */
+        transition: none;
+    }
+
+    /* Color Definitions with fixed borders */
+    .glow-warning {
+        --btn-color: #ffcc00;
+    }
+    .glow-warning::after {
+        border-color: #ffcc00;
+    }
+    
+    .glow-info {
+        --btn-color: #00ccff;
+    }
+    .glow-info::after {
+        border-color: #00ccff;
+    }
+    
+    .glow-success {
+        --btn-color: #00ff99;
+    }
+    .glow-success::after {
+        border-color: #00ff99;
+    }
+    
+    .glow-danger {
+        --btn-color: #ff6666;
+    }
+    .glow-danger::after {
+        border-color: #ff6666;
+    }
+    
+    .glow-secondary {
+        --btn-color: #ff00aa;
+    }
+    .glow-secondary::after {
+        border-color: #ff00aa;
     }
 
     /* Click Effect - Full Color Fill */
@@ -68,7 +85,7 @@ style.textContent = `
             inset 0 0 10px rgba(255,255,255,0.3);
     }
     .glow-btn:active,
-    .glow-btn:active * {
+    .glow-btn:active .glow-btn-content {
         color: white !important;
     }
 
@@ -106,6 +123,16 @@ style.textContent = `
         display: flex;
         align-items: center;
         gap: 8px;
+        /* Inherit button color */
+        color: inherit;
+        transition: color 0.2s ease;
+    }
+    
+    /* Ensure images maintain proper sizing */
+    .glow-btn-content img {
+        height: 24px;
+        width: 24px;
+        object-fit: contain;
     }
 `;
 document.head.appendChild(style);
