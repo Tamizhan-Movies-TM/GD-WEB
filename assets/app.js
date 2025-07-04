@@ -1832,15 +1832,15 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             
             <!-- UPDATED DOWNLOAD BUTTON WITH GRADIENT OUTLINE -->
             <div class="d-flex justify-content-center gap-3 mb-3">
-                <button id="download-btn" class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-base font-bold text-gray-900 rounded-lg group bg-gradient-to-br from-pink-500 to-orange-400 group-hover:from-pink-500 group-hover:to-orange-400 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800">
-                    <span id="download-text" class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent d-flex align-items-center gap-2">
-                        ${new_download_icon} DOWNLOAD
-                    </span>
-                    <div id="download-spinner" class="spinner" style="display: none;">
-                        <div class="spinner-circle"></div>
-                    </div>
-                </button>
-            </div>
+            <button id="download-btn" class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-base font-bold text-gray-900 rounded-lg group bg-gradient-to-br from-pink-500 to-orange-400 group-hover:from-pink-500 group-hover:to-orange-400 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800">
+           <span id="download-text" class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent d-flex align-items-center gap-2">
+           ${new_download_icon} DOWNLOAD
+         </span>
+         <div id="download-spinner" class="spinner" style="display: none;">
+         <div class="spinner-circle"></div>
+        </div>
+       </button>
+       </div>
         `}
     </div>
 </div>
