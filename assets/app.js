@@ -2,105 +2,98 @@
 // v2.3.5
 // Initialize the page
 function init() {
-  // Add Vapor theme outline button styles
-   const style = document.createElement('style');
-    style.textContent = `
-        /* Base Button Styles */
-        .glow-btn {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.2s ease;
-            z-index: 1;
-            border: 2px solid;
-            border-radius: 8px;
-            font-weight: bold;
-            padding: 8px 16px;
-            background: rgba(0, 0, 0, 0.3);
-            width: 160px;
-            margin-bottom: 10px;
-            color: white !important; /* Force white text always */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            outline: none;
-        }
+// Add Vapor theme outline button styles
+const style = document.createElement('style');
+style.textContent = `
+    /* Base Button Styles */
+    .glow-btn {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.2s ease;
+        z-index: 1;
+        border: 2px solid;
+        border-radius: 8px;
+        font-weight: bold;
+        padding: 8px 16px;
+        background: rgba(0, 0, 0, 0.3);
+        width: 160px;
+        margin-bottom: 10px;
+        color: white !important; /* Force white text always */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        outline: none;
+    }
 
-        /* Color Definitions */
-        .glow-warning {
-            border-color: #ffcc00;
-            --btn-color: #ffcc00;
-        }
-        .glow-info {
-            border-color: #00ccff;
-            --btn-color: #00ccff;
-        }
-        .glow-success {
-            border-color: #00ff99;
-            --btn-color: #00ff99;
-        }
-        .glow-danger {
-            border-color: #ff6666;
-            --btn-color: #ff6666;
-        }
+    /* Color Definitions */
+    .glow-primary {
+        border-color: #ff00ff;
+        --btn-color: #ff00ff;
+        text-shadow: 0 0 5px rgba(255, 0, 255, 0.7);
+    }
+    .glow-warning {
+        border-color: #ffcc00;
+        --btn-color: #ffcc00;
+    }
+    .glow-info {
+        border-color: #00ccff;
+        --btn-color: #00ccff;
+    }
+    .glow-success {
+        border-color: #00ff99;
+        --btn-color: #00ff99;
+    }
+    .glow-danger {
+        border-color: #ff6666;
+        --btn-color: #ff6666;
+    }
 
-        /* Click Effect - Inner Color Fill */
-        .glow-btn:active {
-            background-color: var(--btn-color);
-            background-image: linear-gradient(
-                to bottom,
-                var(--btn-color),
-                rgba(0,0,0,0.2)
-            );
-            box-shadow: 
-                0 0 10px var(--btn-color),
-                inset 0 0 10px rgba(255,255,255,0.3);
-        }
+    /* Click Effect - Inner Color Fill */
+    .glow-btn:active {
+        background-color: var(--btn-color);
+        background-image: linear-gradient(
+            to bottom,
+            var(--btn-color),
+            rgba(0,0,0,0.2)
+        );
+        box-shadow: 
+            0 0 10px var(--btn-color),
+            inset 0 0 10px rgba(255,255,255,0.3);
+    }
 
-        /* Hover Effect */
-        .glow-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px var(--btn-color);
-        }
+    /* Hover Effect */
+    .glow-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 15px var(--btn-color);
+    }
 
-        /* Internal Shine Animation */
-        .glow-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255,255,255,0.2),
-                transparent
-            );
-            transition: all 0.6s ease;
-            z-index: -1;
-        }
-        .glow-btn:hover::before {
-            left: 100%;
-        }
-		
-.glow-primary {
-  border: 1px solid #ff00ff !important;
-  background: transparent !important;
-  color: #ff00ff !important;
-  text-shadow: 0 0 8px rgba(255, 0, 255, 0.7);
-  box-shadow: 
-    0 0 10px #ff00ff,
-    inset 0 0 5px #ff00ff;
-}
+    /* Enhanced hover for primary */
+    .glow-primary:hover {
+        box-shadow: 0 0 20px var(--btn-color);
+    }
 
-.glow-primary:hover {
-  background: rgba(255, 0, 255, 0.1) !important;
-  box-shadow: 
-    0 0 15px #ff00ff,
-    inset 0 0 10px #ff00ff;
-}
-    `;
-    document.head.appendChild(style);
+    /* Internal Shine Animation */
+    .glow-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255,255,255,0.2),
+            transparent
+        );
+        transition: all 0.6s ease;
+        z-index: -1;
+    }
+    .glow-btn:hover::before {
+        left: 100%;
+    }
+`;
+document.head.appendChild(style);
 	
 	document.siteName = $('title').html();
 	var html = `<header>
