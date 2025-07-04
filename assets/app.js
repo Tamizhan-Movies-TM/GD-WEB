@@ -4,117 +4,90 @@
 function init() {
 // Add Vapor theme outline button styles
    const style = document.createElement('style');
-style.textContent = `
-    /* Vapor Theme Button Styles - Transparent with White Text */
-    .glow-btn {
-        position: relative;
-        overflow: hidden;
-        transition: all 0.2s ease;
-        z-index: 1;
-        border: none;
-        border-radius: 8px;
-        font-weight: bold;
-        padding: 8px 16px;
-        background: transparent !important;
-        width: 160px;
-        margin-bottom: 10px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        outline: none;
-        color: white !important;
-    }
+    style.textContent = `
+        /* Base Button Styles */
+        .glow-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            z-index: 1;
+            border: 2px solid;
+            border-radius: 8px;
+            font-weight: bold;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            width: 160px;
+            margin-bottom: 10px;
+            color: white !important; /* Force white text always */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            outline: none;
+        }
 
-    /* Outline Border (always below content) */
-    .glow-btn::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        border: 2px solid;
-        border-radius: 8px;
-        z-index: -1;
-        transition: none;
-    }
+        /* Color Definitions */
+        .glow-warning {
+            border-color: #ffcc00;
+            --btn-color: #ffcc00;
+        }
+        .glow-info {
+            border-color: #00ccff;
+            --btn-color: #00ccff;
+        }
+        .glow-success {
+            border-color: #00ff99;
+            --btn-color: #00ff99;
+        }
+        .glow-danger {
+            border-color: #ff6666;
+            --btn-color: #ff6666;
+        }
+				.glow-secondary {
+           border-color: #ff00aa; 
+            --btn-color: #ff00aa;
+       }
 
-    /* Color Definitions */
-    .glow-warning::after {
-        border-color: #ffcc00;
-        --btn-color: #ffcc00;
-    }
-    .glow-info::after {
-        border-color: #00ccff;
-        --btn-color: #00ccff;
-    }
-    .glow-success::after {
-        border-color: #00ff99;
-        --btn-color: #00ff99;
-    }
-    .glow-danger::after {
-        border-color: #ff6666;
-        --btn-color: #ff6666;
-    }
-    .glow-secondary::after {
-        border-color: #ff00aa;
-        --btn-color: #ff00aa;
-    }
+        /* Click Effect - Inner Color Fill */
+        .glow-btn:active {
+            background-color: var(--btn-color);
+            background-image: linear-gradient(
+                to bottom,
+                var(--btn-color),
+                rgba(0,0,0,0.2)
+            );
+            box-shadow: 
+                0 0 10px var(--btn-color),
+                inset 0 0 10px rgba(255,255,255,0.3);
+        }
 
-    /* Click Effect - Full Color Fill */
-    .glow-btn:active {
-        background-color: var(--btn-color) !important;
-        box-shadow: 
-            0 0 10px var(--btn-color),
-            inset 0 0 10px rgba(255,255,255,0.3);
-    }
+        /* Hover Effect */
+        .glow-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--btn-color);
+        }
 
-    /* Hover Effect */
-    .glow-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0 15px var(--btn-color);
-    }
-
-    /* Internal Shine Animation */
-    .glow-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255,255,255,0.1),
-            transparent
-        );
-        transition: all 0.6s ease;
-        z-index: -1;
-    }
-    .glow-btn:hover::before {
-        left: 100%;
-    }
-    
-    /* Content styling - always white */
-    .glow-btn-content {
-        position: relative;
-        z-index: 2;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: white !important;
-    }
-    
-    /* Logo whitening */
-    .glow-btn-content img {
-        height: 24px;
-        width: 24px;
-        object-fit: contain;
-        filter: brightness(0) invert(1); /* Make logos white */
-    }
-`;
-document.head.appendChild(style);
+        /* Internal Shine Animation */
+        .glow-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.2),
+                transparent
+            );
+            transition: all 0.6s ease;
+            z-index: -1;
+        }
+        .glow-btn:hover::before {
+            left: 100%;
+        }
+    `;
+    document.head.appendChild(style);
 	
 	document.siteName = $('title').html();
 	var html = `<header>
