@@ -9,7 +9,7 @@ function init() {
         .glow-btn {
             position: relative;
             overflow: hidden;
-            transition: all 0.5s ease;
+            transition: all 0.2s ease;
             z-index: 1;
             border: 2px solid;
             border-radius: 8px;
@@ -1828,7 +1828,7 @@ var content = `
             
               <!-- DOWNLOAD BUTTON -->
             <div class="d-flex justify-content-center">
-              <button id="download-btn" class="btn btn-outline-success btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
+              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
                  ${new_download_icon} DOWNLOAD
                 <div id="download-spinner" class="spinner" style="display: none;">
                   <div class="spinner-circle"></div>
