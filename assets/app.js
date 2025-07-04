@@ -1843,20 +1843,11 @@ var content = `
     
     <style>
       /* Loading spinner styles */
-			.glow-outline-secondary {
-    color: #9d00ff; /* Electric purple text */
-    border-color: #9d00ff; /* Glowing border */
-    background-color: transparent;
-    /* Glow effect (matches Vapor's neon style) */
-    box-shadow: 0 0 5px #9d00ff, 0 0 10px #9d00aa;
-    text-shadow: 0 0 5px rgba(157, 0, 255, 0.5);
-   }
-
-   .glow-outline-secondary:hover, .glow-outline-secondary:active {
-    background-color: #9d00ff; /* Solid fill on hover */
-    color: #fff;
-    box-shadow: 0 0 15px #9d00ff, 0 0 30px #9d00aa;
-    }
+        .glow-secondary {
+         border-color: #9d00ff; 
+         --btn-color: #9d00ff;
+      }
+    
       .spinner {
         position: absolute;
         top: 50%;
