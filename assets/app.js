@@ -23,6 +23,8 @@ style.textContent = `
         justify-content: center;
         align-items: center;
         outline: none;
+        text-decoration: none !important;
+        cursor: pointer;
     }
 
     /* Color Definitions */
@@ -67,7 +69,7 @@ style.textContent = `
         box-shadow: 0 0 15px var(--btn-color);
     }
 
-    /* Enhanced hover for primary */
+    /* Enhanced glow for primary (pink) */
     .glow-primary:hover {
         box-shadow: 0 0 20px var(--btn-color);
     }
@@ -91,6 +93,13 @@ style.textContent = `
     }
     .glow-btn:hover::before {
         left: 100%;
+    }
+    
+    /* Button container alignment */
+    .button-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 15px;
     }
 `;
 document.head.appendChild(style);
@@ -1838,7 +1847,7 @@ var content = `
             
               <!-- DOWNLOAD BUTTON -->
             <div class="d-flex justify-content-center">
-              <button id="download-btn" class="glow-btn glow-primary" btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
+              <button id="download-btn" class="btn glow-btn glow-primary" btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
                  ${new_download_icon} DOWNLOAD
                 <div id="download-spinner" class="spinner" style="display: none;">
                   <div class="spinner-circle"></div>
