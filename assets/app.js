@@ -15,7 +15,7 @@ function init() {
             border-radius: 8px;
             font-weight: bold;
             padding: 8px 16px;
-            background: rgba(0, 0, 0, 0.3);
+            background: transparent !important;
             width: 160px;
             margin-bottom: 10px;
             color: white !important; /* Force white text always */
@@ -42,6 +42,10 @@ function init() {
             border-color: #ff6666;
             --btn-color: #ff6666;
         }
+				.glow-secondary {
+           border-color: #ff00aa; 
+            --btn-color: #ff00aa;
+       }
 
         /* Click Effect - Inner Color Fill */
         .glow-btn:active {
@@ -1843,11 +1847,6 @@ var content = `
     
     <style>
       /* Loading spinner styles */
-        .glow-secondary {
-         border-color: #ff00aa; 
-         --btn-color: #ff00aa;
-      }
-    
       .spinner {
         position: absolute;
         top: 50%;
