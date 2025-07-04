@@ -5,27 +5,49 @@ function init() {
 // Add Vapor theme outline button styles
    const style = document.createElement('style');
 style.textContent = `
-    /* Vapor Theme Button Styles - Transparent with White Text */
+    /* Modified Vapor Theme Button Styles */
     .glow-btn {
         position: relative;
         overflow: hidden;
         transition: all 0.2s ease;
         z-index: 1;
-        border: none;
+        border: 2px solid;
         border-radius: 8px;
         font-weight: bold;
         padding: 8px 16px;
         background: transparent !important;
         width: 160px;
         margin-bottom: 10px;
+        color: white !important;
         display: flex;
         justify-content: center;
         align-items: center;
         outline: none;
-        color: white !important;
     }
 
-    /* Outline Border (always below content) */
+    /* Color Definitions */
+    .glow-warning {
+        --btn-color: #ffcc00;
+        color: #ffcc00 !important;
+    }
+    .glow-info {
+        --btn-color: #00ccff;
+        color: #00ccff !important;
+    }
+    .glow-success {
+        --btn-color: #00ff99;
+        color: #00ff99 !important;
+    }
+    .glow-danger {
+        --btn-color: #ff6666;
+        color: #ff6666 !important;
+    }
+    .glow-secondary {
+        --btn-color: #ff00aa;
+        color: #ff00aa !important;
+    }
+
+    /* Border positioned below content */
     .glow-btn::after {
         content: '';
         position: absolute;
@@ -33,32 +55,9 @@ style.textContent = `
         left: 0;
         right: 0;
         bottom: 0;
-        border: 2px solid;
+        border: 2px solid var(--btn-color);
         border-radius: 8px;
         z-index: -1;
-        transition: none;
-    }
-
-    /* Color Definitions */
-    .glow-warning::after {
-        border-color: #ffcc00;
-        --btn-color: #ffcc00;
-    }
-    .glow-info::after {
-        border-color: #00ccff;
-        --btn-color: #00ccff;
-    }
-    .glow-success::after {
-        border-color: #00ff99;
-        --btn-color: #00ff99;
-    }
-    .glow-danger::after {
-        border-color: #ff6666;
-        --btn-color: #ff6666;
-    }
-    .glow-secondary::after {
-        border-color: #ff00aa;
-        --btn-color: #ff00aa;
     }
 
     /* Click Effect - Full Color Fill */
@@ -67,6 +66,10 @@ style.textContent = `
         box-shadow: 
             0 0 10px var(--btn-color),
             inset 0 0 10px rgba(255,255,255,0.3);
+    }
+    .glow-btn:active,
+    .glow-btn:active * {
+        color: white !important;
     }
 
     /* Hover Effect */
@@ -96,22 +99,13 @@ style.textContent = `
         left: 100%;
     }
     
-    /* Content styling - always white */
+    /* Content styling */
     .glow-btn-content {
         position: relative;
         z-index: 2;
         display: flex;
         align-items: center;
         gap: 8px;
-        color: white !important;
-    }
-    
-    /* Logo whitening */
-    .glow-btn-content img {
-        height: 24px;
-        width: 24px;
-        object-fit: contain;
-        filter: brightness(0) invert(1); /* Make logos white */
     }
 `;
 document.head.appendChild(style);
