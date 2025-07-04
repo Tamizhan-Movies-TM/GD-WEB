@@ -82,6 +82,18 @@ function init() {
         .glow-btn:hover::before {
             left: 100%;
         }
+				 .btn-pink-outline {
+            color: white !important; /* Always white text */
+            border-color: #ff69b4 !important;
+            background-color: transparent !important;
+        }
+        .btn-pink-outline:hover {
+            background-color: #ff69b4 !important;
+            /* Text remains white from base style */
+        }
+        .btn-pink-outline .fas {
+            color: white !important; /* Ensures icon is white too */
+        }
     `;
     document.head.appendChild(style);
 	
