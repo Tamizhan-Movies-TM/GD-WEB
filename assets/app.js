@@ -1810,7 +1810,7 @@ var content = `
             </div>
             
             <!-- Second row of buttons - fixed width -->
-            <div class="d-flex justify-content-center gap-2 mb-3">
+            <div class="d-flex justify-content-center gap-3 mb-3">
               <button type="button" class="glow-btn glow-success" d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                <span class="d-flex align-items-center gap-1">
@@ -1827,7 +1827,7 @@ var content = `
 							</div>
 						
 						 <!-- DOWNLOAD BUTTON -->
-            <div class="d-flex justify-content-center gap-1 mb-2">
+            <div class="d-flex justify-content-center gap-3 mb-3">
               <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
                  ${new_download_icon} DOWNLOAD
                 <div id="download-spinner" class="spinner" style="display: none;">
