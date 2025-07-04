@@ -1794,14 +1794,14 @@ var content = `
      ${UI.disable_video_download ? `` : `
             <!-- First row of buttons - fixed width -->
             <div class="d-flex justify-content-center gap-3 mb-3">
-              <button type="button" class="btn btn-outline-warning d-flex justify-content-center align-items-center" style="width: 160px;"
+              <button type="button" class="glow-btn glow-warning" d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                <span class="d-flex align-items-center">
                 ${vlc_icon} VLC Player
                </span>
               </button>
 
-              <button type="button" class="btn btn-outline-info d-flex justify-content-center align-items-center" style="width: 160px;"
+              <button type="button" class="glow-btn glow-info" d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                 <span class="d-flex align-items-center gap-1">
                 ${mxplayer_icon} MX Player
@@ -1811,14 +1811,14 @@ var content = `
             
             <!-- Second row of buttons - fixed width -->
             <div class="d-flex justify-content-center gap-3 mb-4">
-              <button type="button" class="btn btn-outline-success d-flex justify-content-center align-items-center" style="width: 160px;"
+              <button type="button" class="glow-btn glow-success" d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                <span class="d-flex align-items-center gap-1">
                ${xplayer_icon} XPlayer
                </span>
               </button>
 
-              <button type="button" class="btn btn-outline-danger d-flex justify-content-center align-items-center" style="width: 160px;"
+              <button type="button" class="glow-btn glow-danger" d-flex justify-content-center align-items-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
                <span class="d-flex align-items-center gap-1"> 
                ${playit_icon} PLAYit
