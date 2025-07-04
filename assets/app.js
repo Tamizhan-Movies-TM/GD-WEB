@@ -42,10 +42,6 @@ function init() {
             border-color: #ff6666;
             --btn-color: #ff6666;
         }
-				.glow-pink {
-            border-color: #ff69b4; 
-            --btn-color: #ff69b4;
-        }
 
         /* Click Effect - Inner Color Fill */
         .glow-btn:active {
@@ -1832,7 +1828,7 @@ var content = `
 						
 						 <!-- DOWNLOAD BUTTON -->
             <div class="d-flex justify-content-center gap-3 mb-3">
-              <button id="download-btn" class="glow-btn glow-pink btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
+              <button id="download-btn" class="glow-btn glow-pink btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; outline: 0.5rem position: relative;">
                  ${new_download_icon} DOWNLOAD
                 <div id="download-spinner" class="spinner" style="display: none;">
                   <div class="spinner-circle"></div>
@@ -1846,6 +1842,10 @@ var content = `
     
     <style>
       /* Loading spinner styles */
+			.glow-pink {
+       border-color: #ff69b4;
+       --btn-color: #ff69b4;
+      }
       .spinner {
         position: absolute;
         top: 50%;
