@@ -89,9 +89,8 @@ style.textContent = `
     }
     .glow-btn:hover::before {
         left: 100%;
-    }
-`;
-document.head.appendChild(style);
+    }`;
+   document.head.appendChild(style);
 	
 	document.siteName = $('title').html();
 	var html = `<header>
@@ -1843,7 +1842,6 @@ var content = `
              </div>
            </button>
           </div>`}
-        </div>
     
     <style>
       /* Loading spinner styles */
