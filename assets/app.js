@@ -103,8 +103,7 @@ document.head.appendChild(style);
 </header>
 <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
 <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
-	<div class="row align-items-start g-3">
-    </div>
+	<div class="row align-items-start g-2">
 		`+tamizhanWidget;
 		html += ` 
     <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
