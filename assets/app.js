@@ -1842,10 +1842,8 @@ var content = `
             <div class="spinner-circle"></div>
              </div>
            </button>
-          </div>
-        `}
-      </div>
-    </div>
+          </div>`}
+        </div>
     
     <style>
       /* Loading spinner styles */
@@ -1879,10 +1877,8 @@ var content = `
       .gap-2 {
         gap: 8px;
       }
-    </style>
-    `;
-
-    $("#content").html(content);
+    </style>`;
+   $("#content").html(content);
 
 		 // Add event listener for the download button
     if (!UI.disable_video_download) {
