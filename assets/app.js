@@ -45,8 +45,8 @@ style.textContent = `
         --btn-color: #00ff99;
     }
     .glow-danger {
-        border-color: #ED2939;
-        --btn-color: #ED2939;
+        border-color: #ff3b6c;
+        --btn-color: #ff3b6c;
     }
     .glow-secondary {
         border-color: #ff00aa; 
