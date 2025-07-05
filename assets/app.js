@@ -1832,8 +1832,8 @@ var content = `
 						 <!-- DOWNLOAD BUTTON -->
             <div class="d-flex justify-content-center gap-3 mb-3">
             <button id="download-btn" class="glow-btn glow-secondary" btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" 
-            style="width: 60%; padding: 10px 24px; font-size: 1.1rem; position: relative;">
-            ${new_download_icon} DOWNLOAD
+            style="width: 50%; padding: 10px 24px; font-size: 1.1rem; position: relative;">
+            ${new_download_icon}&nbsp;&nbsp;DOWNLOAD
             <div id="download-spinner" class="spinner" style="display: none;">
             <div class="spinner-circle"></div>
              </div>
