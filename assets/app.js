@@ -1285,7 +1285,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 .catch(function(error) {
     console.log(error);
     $('#SearchModelLabel').html(title);
-    btn = `<div class="btn-group">`+ gdrive_btn +`
+    btn = `<div class="btn btn-success">
         <a href="/fallback?id=${file_id}${can_preview ? '&a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
         </div>` + close_btn;
     $('#modal-body-space').html(content);
