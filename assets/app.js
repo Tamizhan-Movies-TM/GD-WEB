@@ -45,8 +45,8 @@ style.textContent = `
         --btn-color: #00ff99;
     }
     .glow-danger {
-        border-color: #ff6666;
-        --btn-color: #ff6666;
+        border-color: #ff0000;
+        --btn-color: #ff0000;
     }
     .glow-secondary {
         border-color: #ff00aa; 
@@ -1835,9 +1835,6 @@ var content = `
                     </span>
                 </button>
             </div>
-						</tr>
-						<tr>
-							<th>
                         
             <!-- DOWNLOAD BUTTON -->
                 <div class="d-flex justify-content-center gap-3 mb-3">
@@ -1888,7 +1885,6 @@ var content = `
       }
     </style>
     `;
-
     // Set the content
     $("#content").html(content);
     
