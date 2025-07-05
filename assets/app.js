@@ -1204,7 +1204,6 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 	var title = `Loading...`;
 	$('#SearchModelLabel').html(title);
 	var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
-	var gdrive_btn = `<a class="btn btn-secondary d-flex align-items-center gap-2" </a>`;
 	var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
 	$('#modal-body-space').html(content);
 	$('#modal-body-space-buttons').html(close_btn);
@@ -1276,8 +1275,8 @@ function onSearchResultItemClick(file_id, can_preview, file) {
     var href = `${obj.path}`;
     var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F')
     $('#SearchModelLabel').html(title);
-    btn = `<div class="btn btn-success">
-        <a href="/fallback?id=${file_id}${can_preview ? '&a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
+    btn = `<div class="btn-group">
+        <a href="/fallback?id=${file_id}${can_preview ? '&a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index Link</a>
         </div>` + close_btn;
     $('#modal-body-space').html(content);
     $('#modal-body-space-buttons').html(btn);
@@ -1285,8 +1284,8 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 .catch(function(error) {
     console.log(error);
     $('#SearchModelLabel').html(title);
-    btn = `<div class="btn btn-success">
-        <a href="/fallback?id=${file_id}${can_preview ? '&a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index</a>
+    btn = `<div class="btn-group">
+        <a href="/fallback?id=${file_id}${can_preview ? '&a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index Link</a>
         </div>` + close_btn;
     $('#modal-body-space').html(content);
     $('#modal-body-space-buttons').html(btn);
