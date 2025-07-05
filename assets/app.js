@@ -17,7 +17,6 @@ style.textContent = `
         padding: 8px 16px;
         background: transparent; /* Fully transparent background */
         width: 160px;
-        margin-bottom: 10px 0;
         color: white !important; /* Always white text */
         display: flex;
         justify-content: center;
@@ -1836,6 +1835,9 @@ var content = `
                     </span>
                 </button>
             </div>
+						</tr>
+						<tr>
+							<th>
                         
             <!-- DOWNLOAD BUTTON -->
                 <div class="d-flex justify-content-center gap-3 mb-3">
