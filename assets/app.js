@@ -1833,56 +1833,58 @@ var content = `
             </div>
                         
             <!-- DOWNLOAD BUTTON -->
-            <div class="d-flex justify-content-center gap-2 mb-3">
-                <button id="download-btn" class="glow-btn glow-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" 
-                    style="width: 200px; padding: 8px 35px; font-size: 1rem; position: relative;">
-                    ${new_download_icon} DOWNLOAD
-                    <div id="download-spinner" class="spinner" style="display: none;">
-                    <div class="spinner-circle"></div>
-                  </div>
-                </button>
-              </div>
-            </div>`}
-           </div>
+            <div class="d-flex justify-content-center">
+              <button id="download-btn" class="btn btn-outline-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" style="padding: 10px 24px; font-size: 1.1rem; position: relative;">
+                ${new_download_icon} DOWNLOAD
+                <div id="download-spinner" class="spinner" style="display: none;">
+                  <div class="spinner-circle"></div>
+                </div>
+              </button>
+            </div>
           </div>
+        `}
+      </div>
+    </div>
     
     <style>
-        /* Loading spinner styles */
-        .spinner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        
-        .spinner-circle {
-            width: 24px;
-            height: 24px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spinner-rotate 1s linear infinite;
-        }
-        
-        @keyframes spinner-rotate {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Center button content */
-        .d-flex.align-items-center {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .gap-2 {
-            gap: 5px;
-        }
+      /* Loading spinner styles */
+      .spinner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      
+      .spinner-circle {
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spinner-rotate 1s linear infinite;
+      }
+      
+      @keyframes spinner-rotate {
+        to { transform: rotate(360deg); }
+      }
+      
+      /* Center button content */
+      .d-flex.align-items-center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .gap-2 {
+        gap: 8px;
+      }
     </style>
-</div>`;
-$("#content").html(content);
+    `;
 
-		 // Add event listener for the download button
+    // Set the content
+    $("#content").html(content);
+    
+    // Add event listener for the download button
     if (!UI.disable_video_download) {
         document.getElementById('download-btn').addEventListener('click', function(e) {
             e.preventDefault();
@@ -1895,7 +1897,7 @@ $("#content").html(content);
             button.disabled = true;
             
             // Change button text
-            button.innerHTML = `${new_download_icon} Downloading...`;
+            button.innerHTML = `${new_download_icon} DOWNLOADING...`;
             
             // Simulate download process (1.5 seconds)
             setTimeout(() => {
