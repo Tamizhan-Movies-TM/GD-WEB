@@ -91,7 +91,7 @@ style.textContent = `
         left: 100%;
 	 }
 		.card > *:last-child {
-  margin-bottom: 10px;
+  margin-bottom: 0;
     }`;
    document.head.appendChild(style);
 	
