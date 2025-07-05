@@ -17,7 +17,6 @@ style.textContent = `
         padding: 8px 16px;
         background: transparent; 
         width: 160px;
-        margin-bottom: 2px;
         color: white !important; 
         display: flex;
         justify-content: center;
