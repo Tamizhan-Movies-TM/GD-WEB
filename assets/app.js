@@ -1799,76 +1799,70 @@ var content = `
             </div>
         </div>
      ${UI.disable_video_download ? `` : `
+        <!-- Player buttons container -->
+        <div class="mt-4">
             <!-- First row of buttons - fixed width -->
-            <div class="d-flex justify-content-center gap-3 mb-3">
-              <button type="button" class="glow-btn glow-warning" d-flex justify-content-center align-items-center" style="width: 160px;"
+            <div class="d-flex flex-wrap justify-content-center gap-3 mb-3">
+              <button type="button" class="glow-btn glow-warning d-flex align-items-center justify-content-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span class="d-flex align-items-center">
                 ${vlc_icon} VLC Player
-               </span>
               </button>
 
-              <button type="button" class="glow-btn glow-info" d-flex justify-content-center align-items-center" style="width: 160px;"
+              <button type="button" class="glow-btn glow-info d-flex align-items-center justify-content-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                <span class="d-flex align-items-center gap-1">
                 ${mxplayer_icon} MX Player
-                </span>
               </button> 
             </div>
             
             <!-- Second row of buttons - fixed width -->
-            <div class="d-flex justify-content-center gap-3 mb-3">
-              <button type="button" class="glow-btn glow-success" d-flex justify-content-center align-items-center" style="width: 160px;"
+            <div class="d-flex flex-wrap justify-content-center gap-3 mb-3">
+              <button type="button" class="glow-btn glow-success d-flex align-items-center justify-content-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span class="d-flex align-items-center gap-1">
-               ${xplayer_icon} XPlayer
-               </span>
+                ${xplayer_icon} XPlayer
               </button>
 
-              <button type="button" class="glow-btn glow-danger" d-flex justify-content-center align-items-center" style="width: 160px;"
+              <button type="button" class="glow-btn glow-danger d-flex align-items-center justify-content-center" style="width: 160px;"
                 onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-               <span class="d-flex align-items-center gap-1"> 
-               ${playit_icon} PLAYit
-							 </span>
+                ${playit_icon} PLAYit
               </button>
-							</div>
-						
-						 <!-- DOWNLOAD BUTTON -->
-            <div class="d-flex justify-content-center gap-3 mb-3">
-            <button id="download-btn" class="glow-btn glow-secondary" btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" 
-            style="width: 50%; padding: 10px 24px; font-size: 1.1rem; position: relative;">
-            ${new_download_icon}&nbsp;&nbsp;DOWNLOAD
-            <div id="download-spinner" class="spinner" style="display: none;">
-            <div class="spinner-circle"></div>
-             </div>
-           </button>
             </div>
-          </div>
+						
+            <!-- DOWNLOAD BUTTON -->
+            <div class="d-flex justify-content-center">
+              <button id="download-btn" class="glow-btn glow-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" 
+                style="width: 50%; padding: 10px 24px; font-size: 1.1rem; position: relative;">
+                ${new_download_icon}&nbsp;&nbsp;DOWNLOAD
+                <div id="download-spinner" class="spinner" style="display: none;">
+                  <div class="spinner-circle"></div>
+                </div>
+              </button>
+            </div>
+        </div>
         `}
-      </div>
     </div>
-    
-    <style>
-      /* Loading spinner styles */
-      .spinner {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
-      
-      .spinner-circle {
-        width: 24px;
-        height: 24px;
-        border: 3px solid rgba(255,255,255,0.3);
-        border-radius: 50%;
-        border-top-color: #fff;
-        animation: spinner-rotate 1s linear infinite;
-      }
-      
-      @keyframes spinner-rotate {
-        to { transform: rotate(360deg); }
-      }
+</div>
+
+<style>
+  /* Loading spinner styles */
+  .spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  .spinner-circle {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spinner-rotate 1s linear infinite;
+  }
+  
+  @keyframes spinner-rotate {
+    to { transform: rotate(360deg); }
+  }
       
       /* Center button content */
       .d-flex.align-items-center {
