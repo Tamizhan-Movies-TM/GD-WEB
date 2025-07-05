@@ -102,7 +102,7 @@ document.head.appendChild(style);
    </div>
 </header>
 <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
-<div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
+<div class="container" style="margin-top: 8px; margin-bottom: 50px;">
 	<div class="row align-items-start g-3">
 		`+TamizhanWidget;
 		html += ` 
