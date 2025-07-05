@@ -33,8 +33,8 @@ style.textContent = `
 
     /* Color Definitions */
     .glow-warning {
-        border-color: #ffcc00;
-        --btn-color: #ffcc00;
+        border-color: #E85E00;
+        --btn-color: #E85E00;
     }
     .glow-info {
         border-color: #00ccff;
