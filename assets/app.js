@@ -15,10 +15,10 @@ style.textContent = `
         border-radius: 8px;
         font-weight: bold;
         padding: 8px 16px;
-        background: transparent; /* Fully transparent background */
+        background: transparent; 
         width: 160px;
-        margin-bottom: 0;
-        color: white !important; /* Always white text */
+        margin-bottom: 2px;
+        color: white !important; 
         display: flex;
         justify-content: center;
         align-items: center;
@@ -89,6 +89,9 @@ style.textContent = `
     }
     .glow-btn:hover::before {
         left: 100%;
+	 }
+		.card > *:last-child {
+  margin-bottom: 10px;
     }`;
    document.head.appendChild(style);
 	
