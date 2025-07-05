@@ -15,15 +15,21 @@ style.textContent = `
         border-radius: 8px;
         font-weight: bold;
         padding: 8px 16px;
-        background: transparent; 
+        background: transparent; /* Fully transparent background */
         width: 160px;
-        color: white !important; 
+        margin-bottom: 10px;
+        color: white !important; /* Always white text */
         display: flex;
         justify-content: center;
         align-items: center;
         outline: none;
         /* Constant glow effect */
         box-shadow: 0 0 10px var(--btn-color);
+    }
+
+    /* FIX FOR GAP ISSUE IN CARDS */
+    .card .glow-btn {
+        margin-bottom: 0; /* Remove bottom margin in cards */
     }
 
     /* Color Definitions */
@@ -88,11 +94,8 @@ style.textContent = `
     }
     .glow-btn:hover::before {
         left: 100%;
-	 }
-		.card > *:last-child {
-  margin-bottom: 0;
     }`;
-   document.head.appendChild(style);
+document.head.appendChild(style);
 	
 	document.siteName = $('title').html();
 	var html = `<header>
