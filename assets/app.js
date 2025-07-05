@@ -15,10 +15,10 @@ function init() {
             border-radius: 8px;
             font-weight: bold;
             padding: 8px 16px;
-            background: transparent && rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.3);
             width: 160px;
             margin-bottom: 10px;
-            color: white !important; /* Force white text always */
+            color: white !important; 
             display: flex;
             justify-content: center;
             align-items: center;
