@@ -14,7 +14,7 @@ style.textContent = `
         border: 2px solid;
         border-radius: 8px;
         font-weight: bold;
-        padding: 8px 16px;
+        padding: 8px 12px;
         background: transparent; /* Fully transparent background */
         width: 160px;
         color: white !important; /* Always white text */
@@ -102,7 +102,7 @@ document.head.appendChild(style);
    </div>
 </header>
 <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
-<div class="container" style="margin-top: 15px; margin-bottom: 60px;">
+<div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
 	<div class="row align-items-start g-3">
 		`+TamizhanWidget;
 		html += ` 
