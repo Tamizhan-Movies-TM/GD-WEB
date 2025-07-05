@@ -1838,12 +1838,10 @@ var content = `
                     style="width: 200px; padding: 8px 35px; font-size: 1rem; position: relative;">
                     ${new_download_icon} DOWNLOAD
                     <div id="download-spinner" class="spinner" style="display: none;">
-                        <div class="spinner-circle"></div>
-                    </div>
-                </button>
-            </div>
-        `}
-    </div>
+                    <div class="spinner-circle"></div>
+                  </button>
+              </div>`}
+           </div>
     
     <style>
         /* Loading spinner styles */
