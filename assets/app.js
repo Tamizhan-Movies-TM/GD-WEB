@@ -28,7 +28,7 @@ style.textContent = `
 
     /* FIX FOR GAP ISSUE IN CARDS */
     .card .glow-btn {
-        margin-bottom: 2px; 
+        margin-bottom: 4px; 
     }
 
     /* Color Definitions */
