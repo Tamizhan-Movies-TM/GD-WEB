@@ -1834,103 +1834,92 @@ var content = `
                 </button>
             </div>
                         
-            <!-- DOWNLOAD BUTTON WITH GLITCH ANIMATION -->
-          <div class="d-flex justify-content-center gap-3">
-            <button id="download-btn" class="glow-btn glow-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" 
-                style="width: 200px; padding: 8px 35px; font-size: 1rem; position: relative;">
-              ${new_download_icon}
-              <span id="download-text">DOWNLOAD</span>
-            </button>
+            <!-- DOWNLOAD BUTTON -->
+                <div class="d-flex justify-content-center gap-3">
+                <button id="download-btn" class="glow-btn glow-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" 
+                    style="width: 200px; padding: 8px 35px; font-size: 1rem; position: relative;">
+                    ${new_download_icon} DOWNLOAD
+                    <div id="download-spinner" class="spinner" style="display: none;">
+                    <div class="spinner-circle"></div>
+                </div>
+              </button>
+            </div>
           </div>
         `}
       </div>
-    
-      <style>
-        /* Glitch text animation - Cloudflare compatible */
-        #download-btn.downloading #download-text {
-          position: relative;
-          display: inline-block;
-        }
-        
-        #download-btn.downloading #download-text::before {
-          content: "Downloading...";
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          animation: glitch-anim 1.5s linear infinite;
-          color: #09ff00;
-          text-shadow: 0 0 5px rgba(9, 255, 0, 0.7);
-          overflow: hidden;
-        }
-        
-        @keyframes glitch-anim {
-          0% { content: "D#"; }
-          10% { content: "Do."; }
-          20% { content: "Dow^"; }
-          30% { content: "Down-"; }
-          40% { content: "Downl_"; }
-          50% { content: "Downlo0"; }
-          60% { content: "Downloa+"; }
-          70% { content: "Download@"; }
-          80% { content: "Downloadi?"; }
-          90% { content: "Downloadin="; }
-          100% { content: "Downloading..."; }
-        }
-        
-        /* Center button content */
-        .d-flex.align-items-center {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .gap-2 {
-          gap: 8px;
-        }
-      </style>
     </div>
-  `;
-  
-  $("#content").html(content);
-  
-  // Add event listener for the download button
-  if (!UI.disable_video_download) {
-    document.getElementById('download-btn').addEventListener('click', function(e) {
-      e.preventDefault();
+    
+    <style>
+      /* Loading spinner styles */
+      .spinner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
       
-      const button = this;
-      const textSpan = document.getElementById('download-text');
+      .spinner-circle {
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spinner-rotate 1s linear infinite;
+      }
       
-      // Disable button during download
-      button.disabled = true;
+      @keyframes spinner-rotate {
+        to { transform: rotate(360deg); }
+      }
       
-      // Add downloading class to trigger glitch animation
-      button.classList.add('downloading');
+      /* Center button content */
+      .d-flex.align-items-center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
       
-      // Change text to "Downloading..." (will be hidden but needed for accessibility)
-      textSpan.textContent = "Downloading...";
-      
-      // Simulate download process (1.5 seconds)
-      setTimeout(() => {
-        // Create a hidden link to trigger the actual download
-        const downloadLink = document.createElement('a');
-        downloadLink.href = url;
-        downloadLink.download = name;
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-        
-        // Re-enable button after download completes
-        setTimeout(() => {
-          button.disabled = false;
-          button.classList.remove('downloading');
-          textSpan.textContent = "DOWNLOAD";
-        }, 500);
-      }, 1500);
-    });
-  }
+      .gap-2 {
+        gap: 8px;
+      }
+    </style>
+    `;
+    // Set the content
+    $("#content").html(content);
+    
+    // Add event listener for the download button
+    if (!UI.disable_video_download) {
+        document.getElementById('download-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const button = this;
+            const spinner = button.querySelector('#download-spinner');
+            
+            // Show spinner and disable button
+            spinner.style.display = 'block';
+            button.disabled = true;
+            
+            // Change button text
+            button.innerHTML = `${new_download_icon} Downloading...`;
+            
+            // Simulate download process (1.5 seconds)
+            setTimeout(() => {
+                // Create a hidden link to trigger the actual download
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = name;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                // Hide spinner and restore button after 0.5s
+                setTimeout(() => {
+                    spinner.style.display = 'none';
+                    button.disabled = false;
+                    button.innerHTML = `${new_download_icon} DOWNLOAD`;
+                }, 500);
+            }, 1500);
+        });
+		}
 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
