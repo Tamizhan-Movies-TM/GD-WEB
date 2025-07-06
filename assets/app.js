@@ -107,9 +107,7 @@ document.head.appendChild(style);
 		`+TamizhanWidget;
 		html += ` 
     <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
-    </div>
-</div>
-</div>
+  </div>
 </div>
 <div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
@@ -1849,7 +1847,6 @@ var content = `
           </div>
         `}
       </div>
-    </div>
     
     <style>
       /* Loading spinner styles */
@@ -1883,9 +1880,7 @@ var content = `
       .gap-2 {
         gap: 8px;
       }
-    </style>
-    `;
-    // Set the content
+    </style>`;
     $("#content").html(content);
     
     // Add event listener for the download button
