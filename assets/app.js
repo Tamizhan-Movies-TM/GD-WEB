@@ -1839,81 +1839,44 @@ var content = `
             <button id="download-btn" class="glow-btn glow-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" 
                 style="width: 200px; padding: 8px 35px; font-size: 1rem; position: relative;">
               ${new_download_icon}
-              <span class="buttonpro" id="download-text">DOWNLOAD</span>
-              <div id="download-spinner" class="spinner" style="display: none;">
-                <div class="spinner-circle"></div>
-              </div>
+              <span id="download-text">DOWNLOAD</span>
             </button>
           </div>
         `}
       </div>
     
       <style>
-        /* Loading spinner styles */
-        .spinner {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-        }
-        
-        .spinner-circle {
-          width: 24px;
-          height: 24px;
-          border: 3px solid rgba(255,255,255,0.3);
-          border-radius: 50%;
-          border-top-color: #fff;
-          animation: spinner-rotate 1s linear infinite;
-        }
-        
-        @keyframes spinner-rotate {
-          to { transform: rotate(360deg); }
-        }
-        
-        /* Glitch text animation */
-        .buttonpro {
+        /* Glitch text animation - Cloudflare compatible */
+        #download-btn.downloading #download-text {
           position: relative;
           display: inline-block;
         }
         
-        .buttonpro.downloading {
-          color: transparent;
-        }
-        
-        .buttonpro.downloading::before {
-          content: "";
+        #download-btn.downloading #download-text::before {
+          content: "Downloading...";
           position: absolute;
           top: 0;
           left: 0;
           width: 100%;
           height: 100%;
-          animation: chitchat linear infinite 1.5s;
-          color: rgb(9, 255, 0);
+          animation: glitch-anim 1.5s linear infinite;
+          color: #09ff00;
+          text-shadow: 0 0 5px rgba(9, 255, 0, 0.7);
           overflow: hidden;
         }
         
-        @keyframes chitchat {
-          0% { content: "#"; }
-          5% { content: "."; }
-          10% { content: "^{"; }
-          15% { content: "-!"; }
-          20% { content: "#$_"; }
-          25% { content: "№:0"; }
-          30% { content: "#{+."; }
-          35% { content: "@}-?"; }
-          40% { content: "?{4@%"; }
-          45% { content: "=.,^!"; }
-          50% { content: "?2@%"; }
-          55% { content: "\\;1}]"; }
-          60% { content: "?{%:%"; right: 0; }
-          65% { content: "|{f[4"; right: 0; }
-          70% { content: "{4%0%"; right: 0; }
-          75% { content: "'1_0<"; right: 0; }
-          80% { content: "{0%"; right: 0; }
-          85% { content: "]>'"; right: 0; }
-          90% { content: "4"; right: 0; }
-          95% { content: "2"; right: 0; }
-          100% { content: ""; right: 0; }
+        @keyframes glitch-anim {
+          0% { content: "D#"; }
+          10% { content: "Do."; }
+          20% { content: "Dow^"; }
+          30% { content: "Down-"; }
+          40% { content: "Downl_"; }
+          50% { content: "Downlo0"; }
+          60% { content: "Downloa+"; }
+          70% { content: "Download@"; }
+          80% { content: "Downloadi?"; }
+          90% { content: "Downloadin="; }
+          100% { content: "Downloading..."; }
         }
         
         /* Center button content */
@@ -1939,15 +1902,15 @@ var content = `
       
       const button = this;
       const textSpan = document.getElementById('download-text');
-      const spinner = button.querySelector('#download-spinner');
       
-      // Show spinner and disable button
-      spinner.style.display = 'block';
+      // Disable button during download
       button.disabled = true;
       
-      // Add glitch animation class and change text
+      // Add downloading class to trigger glitch animation
+      button.classList.add('downloading');
+      
+      // Change text to "Downloading..." (will be hidden but needed for accessibility)
       textSpan.textContent = "Downloading...";
-      textSpan.classList.add('downloading');
       
       // Simulate download process (1.5 seconds)
       setTimeout(() => {
@@ -1959,12 +1922,11 @@ var content = `
         downloadLink.click();
         document.body.removeChild(downloadLink);
         
-        // Hide spinner and restore button after 0.5s
+        // Re-enable button after download completes
         setTimeout(() => {
-          spinner.style.display = 'none';
           button.disabled = false;
+          button.classList.remove('downloading');
           textSpan.textContent = "DOWNLOAD";
-          textSpan.classList.remove('downloading');
         }, 500);
       }, 1500);
     });
