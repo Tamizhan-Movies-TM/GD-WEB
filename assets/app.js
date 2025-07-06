@@ -15,9 +15,9 @@ style.textContent = `
         border-radius: 8px;
         font-weight: bold;
         padding: 8px 16px;
-        background: transparent; /* Fully transparent background */
+        background: transparent;
         width: 160px;
-        color: white !important; /* Always white text */
+        color: white !important;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -28,7 +28,7 @@ style.textContent = `
 
     /* FIX FOR GAP ISSUE IN CARDS */
     .card .glow-btn {
-        margin-bottom: 4px; /* Remove bottom margin in cards */
+        margin-bottom: 2px; 
     }
 
     /* Color Definitions */
