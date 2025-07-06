@@ -1836,7 +1836,7 @@ var content = `
                         
             <!-- DOWNLOAD BUTTON -->
                 <div class="d-flex justify-content-center gap-3 mb-3">
-                <button id="download-btn" class="glow-btn glow-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-1" 
+                <button id="download-btn" class="glow-btn glow-secondary btn-lg fw-bold d-flex align-items-center justify-content-center" 
                     style="width: 200px; padding: 8px 35px; font-size: 1rem; position: relative;">
                     ${new_download_icon} DOWNLOAD
                     <div id="download-spinner" class="spinner" style="display: none;">
@@ -1880,7 +1880,8 @@ var content = `
       .gap-2 {
         gap: 8px;
       }
-    </style>`;
+    </style>
+		`;
     $("#content").html(content);
     
     // Add event listener for the download button
