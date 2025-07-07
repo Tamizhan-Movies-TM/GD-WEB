@@ -1280,21 +1280,38 @@ function onSearchResultItemClick(file_id, can_preview, file) {
     var href = `${obj.path}`;
     var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F')
     $('#SearchModelLabel').html(title);
+    
+    // Create the URL to copy
+    const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+    
     btn = `<div class="btn-group">
-        <a href="/fallback?id=${file_id}${can_preview ? '&a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index Link</a>
+        <a href="${fileUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index Link</a>
+        <button type="button" class="btn btn-info copy-url-btn" data-url="${fileUrl}">
+            <i class="fas fa-copy fa-fw"></i> Copy URL
+        </button>
         </div>` + close_btn;
+    
     $('#modal-body-space').html(content);
     $('#modal-body-space-buttons').html(btn);
 })
 .catch(function(error) {
     console.log(error);
     $('#SearchModelLabel').html(title);
+    
+    // Create the URL to copy
+    const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+    
     btn = `<div class="btn-group">
-        <a href="/fallback?id=${file_id}${can_preview ? '&a=view' : ''}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index Link</a>
+        <a href="${fileUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index Link</a>
+        <button type="button" class="btn btn-info copy-url-btn" data-url="${fileUrl}">
+            <i class="fas fa-copy fa-fw"></i> Copy URL
+        </button>
         </div>` + close_btn;
+    
     $('#modal-body-space').html(content);
     $('#modal-body-space-buttons').html(btn);
 });
+
 }
 
 function get_file(path, file, callback) {
@@ -1309,6 +1326,31 @@ function get_file(path, file, callback) {
 		});
 	}
 }
+
+// Add this clipboard function at the end of your app.js file
+$(document).on('click', '.copy-url-btn', function() {
+    const url = $(this).data('url');
+    const absoluteUrl = new URL(url, window.location.href).toString();
+    
+    navigator.clipboard.writeText(absoluteUrl)
+        .then(() => {
+            // Show success feedback
+            const $this = $(this);
+            const originalText = $this.html();
+            $this.html('<i class="fas fa-check fa-fw"></i> Copied!');
+            $this.removeClass('btn-info').addClass('btn-success');
+            
+            // Revert after 1.5 seconds
+            setTimeout(() => {
+                $this.html(originalText);
+                $this.removeClass('btn-success').addClass('btn-info');
+            }, 1500);
+        })
+        .catch(err => {
+            console.error('Failed to copy URL:', err);
+            alert('Failed to copy URL: ' + err.message);
+        });
+});
 
 async function fallback(id, type) {
 	if (type) { // is a file id
