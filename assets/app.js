@@ -703,7 +703,7 @@ function append_files_to_fallback_list(path, files) {
 				item['size'] = formatFileSize(item['size']) || '—';
 				var is_file = true
 				var epn = item.name;
-				var link = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+				var link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
 				var pn = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
 				var c = "file";
 				// README is displayed after the last page is loaded, otherwise it will affect the scroll event
@@ -854,7 +854,7 @@ function append_files_to_list(path, files) {
 			item['size'] = formatFileSize(item['size']) || '—';
 			var is_file = true
 			var epn = item.name;
-			var link = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+			var link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
 			var pn = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
 			var c = "file";
 			// README is displayed after the last page is loaded, otherwise it will affect the scroll event
@@ -1143,7 +1143,7 @@ function append_search_result_to_list(files) {
 				item['size'] = formatFileSize(item['size']) || '—';
 				item['md5Checksum'] = item['md5Checksum'] || '—';
 				var ext = item.fileExtension;
-				var link = UI.second_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+				var link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
 				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="$item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
 
 				if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
@@ -1388,7 +1388,7 @@ async function fallback(id, type) {
 					const md5Checksum = obj.md5Checksum || '—';
 					const size = formatFileSize(obj.size) || '—';
 					const encoded_name = encodeURIComponent(name);
-					const url = UI.second_domain_for_dl ? UI.downloaddomain + obj.link : window.location.origin + obj.link;
+					const url = UI.random_domain_for_dl ? UI.downloaddomain + obj.link : window.location.origin + obj.link;
 					const file_id = obj.fid;
 					var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
 					if (mimeType.includes("video") || video.includes(fileExtension)) {
@@ -1458,7 +1458,7 @@ async function file(path) {
 				const md5Checksum = obj.md5Checksum || '—';
 				const size = formatFileSize(obj.size) || '—';
 				const encoded_name = encodeURIComponent(name);
-				const url = UI.second_domain_for_dl ? UI.downloaddomain + obj.link : window.location.origin + obj.link;
+				const url = UI.random_domain_for_dl ? UI.downloaddomain + obj.link : window.location.origin + obj.link;
 				const file_id = obj.fid;
 				var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
 				if (mimeType.includes("video") || video.includes(fileExtension)) {
