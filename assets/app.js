@@ -3,6 +3,18 @@
 // v2.3.6
 // Initialize the page
 function init() {
+	$(document).on('click', '.copy-btn', function() {
+    const url = $(this).data('url');
+    navigator.clipboard.writeText(url).then(() => {
+        // Show toast notification
+        const $toast = $(`<div class="toast-alert">Copied to clipboard!</div>`);
+        $('body').append($toast);
+        $toast.fadeIn().delay(1500).fadeOut(() => $(this).remove());
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+        alert('Failed to copy URL to clipboard');
+    });
+});
 // Create and inject vapor theme button styles
 const style = document.createElement('style');
 style.textContent = `
@@ -900,7 +912,14 @@ function append_files_to_list(path, files) {
 
 			html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
 	    ${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
-		}
+		   <button type="button" class="d-flex align-items-center bg-transparent border-0 p-0 text-reset copy-btn" data-url="${fullUrl}" title="Copy URL">
+        <svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+            <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+        </svg>
+    </button>
+</span></div>`;
+   }
 	}
 	if (is_file && UI.allow_selecting_files) {
 		document.getElementById('select_items').style.display = 'block';
