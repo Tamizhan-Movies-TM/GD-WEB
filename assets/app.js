@@ -2255,19 +2255,6 @@ $(function() {
 	render(path);
 });
 
-// Add this after all your existing code
-$(document).on('click', '.copy-btn', function() {
-    const url = $(this).data('url');
-    navigator.clipboard.writeText(url).then(() => {
-        // Show toast notification
-        const $toast = $(`<div class="toast-alert">Copied to clipboard!</div>`);
-        $('body').append($toast);
-        $toast.fadeIn().delay(1500).fadeOut(() => $(this).remove());
-    }).catch(err => {
-        console.error('Failed to copy: ', err);
-        alert('Failed to copy URL to clipboard');
-    });
-});
 // Copy to Clipboard for Direct Links, This will be modified soon with other UI
 function copyFunction() {
 	var copyText = document.getElementById("dlurl");
