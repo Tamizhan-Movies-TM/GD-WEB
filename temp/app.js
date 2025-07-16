@@ -112,12 +112,12 @@ document.head.appendChild(style);
         <div class="col-lg-6 col-md-12">
           	<div class="card text-white mb-3 h-100">
 				<div class="card-header">
-					<i class="fa-solid fa-hand-holding-dollar"></i></i>Donate &nbsp;Rs:1 &nbsp;to &nbsp;Rs:10
+					<i class="fa-solid fa-hand-holding-dollar"></i></i>Pay &nbsp;Rs:1 &nbsp;To &nbsp;get &nbsp;one &nbsp;free &nbsp;movie &nbsp;direct &nbsp;link 
 				 </div>
             	<div class="card-body d-flex align-items-center justify-content-center">
 					<div class="donate btn p-0">
 						<a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
-						<i class="fa-solid fa-money-check-dollar"></i>Payment </a>
+						<i class="fa-solid fa-money-check-dollar"></i>Click Here To Payment</a>
 						<div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
 							<div style="padding-bottom: 1rem;">Thank you very much ❤</div>
 							<img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
