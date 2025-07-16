@@ -112,7 +112,7 @@ document.head.appendChild(style);
         <div class="col-lg-6 col-md-12">
           	<div class="card text-white mb-3 h-100">
 				<div class="card-header">
-					<i class="fa-solid fa-hand-holding-dollar"></i></i>Donate &nbsp;Rs:1 to Rs:10
+					<i class="fa-solid fa-hand-holding-dollar"></i></i>Donate &nbsp;Rs:1 &nbsp;to &nbsp;Rs:10
 				 </div>
             	<div class="card-body d-flex align-items-center justify-content-center">
 					<div class="donate btn p-0">
