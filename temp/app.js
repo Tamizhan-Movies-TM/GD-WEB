@@ -129,7 +129,7 @@ document.head.appendChild(style);
         <div class="col-lg-6 col-md-12">
           	<div class="card text-white mb-3 h-100">
             	<div class="card-header">
-              		<i class="fa-regular fa-snowflake fa-fw"></i>Sponsors
+              		<i class="fa-regular fa-telegram fa-fw"></i>Join Our Telegram Channels
             	</div>
             	<div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
 					<a href="https://akannikah.id" target="_blank" title="Akannikah.id">
