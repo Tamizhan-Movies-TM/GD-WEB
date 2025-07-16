@@ -139,7 +139,7 @@ document.head.appendChild(style);
 						<img class="image" alt="Merakit Indonesia" src="https://kaceku.onrender.com/static/img/merakit.co.id.png">
 					</a>
 					<a href="https://telegram.me/hollywood_tamizhan_movies" target="_blank" title="hollywood">
-						<img class="image" alt="Movies" src="https://i.ibb.co/JRpQTNwQ/Hollywood.png">
+						<img class="image" alt="Movies" style="height: 32px;" src="https://i.ibb.co/JRpQTNwQ/Hollywood.png">
 					</a>
 					<a href="https://azhe.my.id" target="_blank" title="azhe403">azhe403</a>
           </div>
