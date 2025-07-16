@@ -132,14 +132,14 @@ document.head.appendChild(style);
              <i class="fa-brands fa-telegram fa-fw"></i>&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
             </div>
             <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
-					<a href="https://akannikah.id" target="_blank" title="Akannikah.id">
-						<img class="image" alt="Akannikah.id" style="height: 32px;" src="https://kaceku.onrender.com/static/img/Akannikah.id.png">
+					<a href="https://telegram.me/p9abEnd3wHAxZjQ9" target="_blank" title="tamizahan_Movies">
+						<img class="image" alt="tamizhan" style="height: 40px;" src="https://i.ibb.co/9y0Zh6F/Picsart-xzy.png">
 					</a>
-					<a href="https://merakit.co.id" target="_blank" title="Merakit Indonesia">
-						<img class="image" alt="Merakit Indonesia" src="https://kaceku.onrender.com/static/img/merakit.co.id.png">
+					<a href="https://merakit.co.id" target="_blank" title="தமிழன்_முவிஸ்">
+						<img class="image" alt="தமிழன்" style="height: 40px;" src="https://i.ibb.co/9y0Zh6F/Picsart-xzy.png">
 					</a>
 					<a href="https://telegram.me/hollywood_tamizhan_movies" target="_blank" title="hollywood">
-						<img class="image" alt="Movies" style="height: 32px;" src="https://i.ibb.co/JRpQTNwQ/Hollywood.png">
+						<img class="image" alt="Movies" style="height: 40px;" src="https://i.ibb.co/JRpQTNwQ/Hollywood.png">
 					</a>
 					<a href="https://azhe.my.id" target="_blank" title="azhe403">azhe403</a>
           </div>
