@@ -168,8 +168,8 @@ document.head.appendChild(style);
 <footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
     <div class="container" style="padding-top: 15px;">
       <div class="row">
-      <div class="col-lg-4 col-md-12 text-lg-start">
-      <span><i class="fa-brands fa-pied-piper-alt"></i>${new Date().getFullYear()} - </span><a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
+      <div class="col-lg-4 col-md-12">
+      <i class="fa-brands fa-pied-piper-alt"></i> ${new Date().getFullYear()} - <a href=" ${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
 	    </div>
       <div class="col-lg-4 col-md-12">
       <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> 
