@@ -116,7 +116,7 @@ document.head.appendChild(style);
 				    </div>
                 <div class="card-body">
                     <p class="mb-3 text-center"><a href="${UI.contact_link}" title="Contact Admin" class="text-decoration-underline">Contact Admin</a><br>You'll Receive a Direct Link for your Requested Movies (No ads, direct links only)</p>
-                    <div class="d-flex justify-content-center mb-0">
+                    <div class="d-flex justify-content-center mb+1">
                         <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
                          <i class="fa-solid fa-money-check-dollar"></i>Click Here To Payment</a>
                       </div>
