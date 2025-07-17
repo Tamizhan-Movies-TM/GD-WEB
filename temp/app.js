@@ -108,19 +108,22 @@ document.head.appendChild(style);
 		`+TamizhanWidget;
  html += `<div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
 	</div>
-	<div class="row">
+	<div class="row g-3 mt-0">
         <div class="col-lg-6 col-md-12">
-          	<div class="card text-white mb-3 h-100">
+          <div class="card text-white mb-3 h-100">
 				<div class="card-header">
 					<i class="fa-solid fa-hand-holding-dollar"></i> Premium &nbsp;Membership
 				    </div>
                 <div class="card-body">
                     <p class="mb-3 text-center"><a href="${UI.contact_link}" title="Contact Admin" class="text-decoration-underline">Contact Admin</a><br>You'll Receive a Direct Link for your Requested Movies (No ads, direct links only)</p>
-                    <div class="d-flex justify-content-center">
+                    <div class="d-flex align-items-center justify-content-center">
+										  <div class="donate btn p-0">
                         <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
-                         <i class="fa-solid fa-money-check-dollar"></i> Click Here To Payment
-                        </a>
-                    </div>
+                         <i class="fa-solid fa-money-check-dollar"></i> Click Here To Payment </a>
+                        <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
+							         <div style="padding-bottom: 1rem;">Thank you very much ❤</div>
+							       <img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
+						        </div> 
                    <div>
                  </div>
               </div>
