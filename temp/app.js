@@ -117,13 +117,13 @@ document.head.appendChild(style);
             <div class="card-body">
                 <p class="mb-3 text-center">Pay ₹5 and send the payment screenshot to <a href="${UI.contact_link}" title="Contact Admin" class="text-decoration-underline">Admin</a>. You'll receive a direct link for your requested movies ✅ (No ads, direct links only)</p>
                 <div class="d-flex justify-content-center">
-                    <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click to make Payment" style="background: #3B556E;" target="_blank">
-                        <i class="fa-solid fa-money-check-dollar"></i> Click Here To Payment
-                   </div>
-                <div class="qrcode card text-center mt-3" style="padding: 1rem 1rem 0 1rem;">
-                    <div class="mb-2">Thank you very much ❤</div>
-                    <img alt="Love" class="img-fluid" src="https://kaceku.onrender.com/static/img/love.png"></a>
-                </div>
+               <div class="donate btn p-0">
+						   <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
+						  <i class="fa-solid fa-money-check-dollar"></i>Click Here To Payment</a>
+						  <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
+							<div style="padding-bottom: 1rem;">Thank you very much ❤</div>
+							<img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
+						 </div>
              </div>
         	 </div>
           </div>
