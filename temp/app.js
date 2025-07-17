@@ -109,31 +109,31 @@ document.head.appendChild(style);
  html += `<div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
 	</div>
 	<div class="row g-3 mt-0">
-    <div class="col-lg-6 col-md-12">
-        <div class="card text-white mb-3 h-100">
-            <div class="card-header">
-                <i class="fa-solid fa-hand-holding-dollar"></i> Pay ₹5
-            </div>
-            <div class="card-body">
-                <p class="mb-3 text-center">Pay ₹5 and send the payment screenshot to <a href="${UI.contact_link}" title="Contact Admin" class="text-decoration-underline">Admin</a>. You'll receive a direct link for your requested movies ✅ (No ads, direct links only)</p>
-                <div class="d-flex justify-content-center">
-               <div class="donate btn p-0">
-						   <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
-						  <i class="fa-solid fa-money-check-dollar"></i>Click Here To Payment</a>
-						  <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
-							<div style="padding-bottom: 1rem;">Thank you very much ❤</div>
-							<img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
-						 </div>
-            					    </div>
-             </div>
-        	 </div>
-          </div>
-           <div class="col-lg-6 col-md-12">
+        <div class="col-lg-6 col-md-12">
           	<div class="card text-white mb-3 h-100">
-             <div class="card-header">
-             <i class="fa-brands fa-telegram fa-fw"></i>&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
-            </div>
-            <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
+				<div class="card-header">
+					<i class="fa-solid fa-hand-holding-dollar"></i> Pay ₹5
+				 </div>
+                <div class="card-body">
+                    <p class="mb-3 text-center">Pay ₹5 and send the payment screenshot to <a href="${UI.contact_link}" title="Contact Admin" class="text-decoration-underline">Admin</a>.<br>You'll receive a direct link for your requested movies (No ads, direct links only)</p>
+                    <div class="d-flex justify-content-center mb-3">
+                        <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
+                            <i class="fa-solid fa-money-check-dollar"></i> Click Here To Payment
+                        </a>
+                    </div>
+                    <div class="text-center mt-4">
+                        <p class="small">© 2025 - Tamizhan Movies</p>
+                        <a href="https://www.dmca.com" target="_blank" class="small">DMCA © All Copy Rights Reserved 😊™</a>
+                    </div>
+                </div>
+        	</div>
+        </div>
+        <div class="col-lg-6 col-md-12">
+          	<div class="card text-white mb-3 h-100">
+                <div class="card-header">
+                    <i class="fa-brands fa-telegram fa-fw"></i> Join Our Telegram Channels
+                </div>
+                <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
 					<a href="https://telegram.me/+p9abEnd3wHAxZjQ9" target="_blank" title="tamizahan_Movies">
 						<img class="image" alt="tamizhan" style="height: 45px;" src="https://i.ibb.co/9y0Zh6F/Picsart-xzy.png">
 					</a>
@@ -145,8 +145,9 @@ document.head.appendChild(style);
 					</a>
 					<a href="https://telegram.me/+4ZuXoVoy8841MjM1" target="_blank" title="telegram">
 						<img class="image" alt="telegram" style="height: 50px;" src="https://i.ibb.co/84TDPHg1/ef456f9f9052b4e8821c20a22f377838.png">
-          </div> 
-          </div>
+                    </a>
+                </div> 
+            </div>
         </div>
     </div>	
 </div>
