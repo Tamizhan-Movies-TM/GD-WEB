@@ -106,19 +106,19 @@ document.head.appendChild(style);
 <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
 	<div class="row align-items-start g-3">
 		`+TamizhanWidget;
-   html += `<div id="content" style="${UI.fixed_footer ?' padding-bottom: clamp(170px, 100%, 300px);': ''}"></div>
+ html += `<div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
 	</div>
 	<div class="row g-3 mt-0">
         <div class="col-lg-6 col-md-12">
           	<div class="card text-white mb-3 h-100">
 				<div class="card-header">
-					<i class="fa-solid fa-hand-holding-dollar"></i></i>Pay ₹5
+					<i class="fa-solid fa-hand-holding-dollar"></i> Pay ₹5
 				 </div>
           <div class="card-body d-flex align-items-center justify-content-center">
-					<p class="mb-3">Pay ₹1 and send the payment screenshot to <a href="${UI.contact_link}" title="Contact Admin.">Contact Admin</a>. You'll receive a direct link for your requested movie ✅ (no ads Links,)</p>
+					<p class="mb-3">Pay ₹5 and send the payment screenshot to <a href="${UI.contact_link}" title="Contact Admin.">Contact Admin</a>. You'll receive a direct link for your requested movie ✅ (no ads Links)</p>
 					<div class="donate btn p-0">
 						<a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
-						<i class="fa-solid fa-money-check-dollar"></i>Click Here To Payment</a>
+						<i class="fa-solid fa-money-check-dollar"></i> Click Here To Payment</a>
 						<div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
 							<div style="padding-bottom: 1rem;">Thank you very much ❤</div>
 							<img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
@@ -202,7 +202,7 @@ document.head.appendChild(style);
       </div>
 	</div>
 </footer>`;
-	$('body').html(html);
+$('body').html(html);
 }
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.3 78" style="width: 1.3em;">
 <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"></path>
