@@ -112,9 +112,10 @@ document.head.appendChild(style);
         <div class="col-lg-6 col-md-12">
           	<div class="card text-white mb-3 h-100">
 				<div class="card-header">
-					<i class="fa-solid fa-hand-holding-dollar"></i></i>Pay &nbs;₹1
+					<i class="fa-solid fa-hand-holding-dollar"></i></i>Pay ₹5
 				 </div>
           <div class="card-body d-flex align-items-center justify-content-center">
+					<p class="mb-3">Pay ₹1 and send the payment screenshot to <a href="${UI.contact_link}" title="Contact Admin.">Contact Admin</a>. You'll receive a direct link for your requested movie ✅ (no ads Links,)</p>
 					<div class="donate btn p-0">
 						<a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
 						<i class="fa-solid fa-money-check-dollar"></i>Click Here To Payment</a>
