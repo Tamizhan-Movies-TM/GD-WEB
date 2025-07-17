@@ -109,24 +109,27 @@ document.head.appendChild(style);
    html += `<div id="content" style="${UI.fixed_footer ?' padding-bottom: clamp(170px, 100%, 300px);': ''}"></div>
 	</div>
 	<div class="row g-3 mt-0">
-        <div class="col-lg-6 col-md-12">
-          	<div class="card text-white mb-3 h-100">
-				<div class="card-header">
-					<i class="fa-solid fa-hand-holding-dollar"></i></i>Pay &nbsp;1 &nbsp;Rupee &nbsp;To &nbsp;get &nbsp;one &nbsp;free &nbsp;movie &nbsp;direct &nbsp;link 
-				 </div>
-            	<div class="card-body d-flex align-items-center justify-content-center">
-					<div class="donate btn p-0">
-						<a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
-						<i class="fa-solid fa-money-check-dollar"></i>Click Here To Payment</a>
-						<div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
-							<div style="padding-bottom: 1rem;">Thank you very much ❤</div>
-							<img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
-						</div>
-					</div>
-            	</div>
-        	</div>
-        </div>
-        <div class="col-lg-6 col-md-12">
+    <div class="col-lg-6 col-md-12">
+        <div class="card text-white mb-3 h-100">
+            <div class="card-header">
+                <i class="fa-solid fa-hand-holding-dollar"></i> Pay ₹5
+               </div>
+               <div class="card-body d-flex align-items-center justify-content-center">
+                <div class="text-center">
+                    <p class="mb-3">Pay ₹5 and send the payment screenshot to @Tamizhan_Movies. You'll receive a direct streaming and download links for your requested one movie ✅ (no ads, no URL shortener links)</p>
+                    <div class="donate btn p-0">
+                        <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
+                          <i class="fa-solid fa-money-check-dollar"></i> Click Here To Payment
+                          </a>
+                        <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
+                      <div style="padding-bottom: 1rem;">Thank you very much ❤</div>
+                     <img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
+                   </div>
+					      </div>
+             </div>
+        	 </div>
+          </div>
+           <div class="col-lg-6 col-md-12">
           	<div class="card text-white mb-3 h-100">
              <div class="card-header">
              <i class="fa-brands fa-telegram fa-fw"></i>&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
