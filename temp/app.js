@@ -110,21 +110,46 @@ document.head.appendChild(style);
     <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
   </div>
 </div>
-<div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="SearchModelLabel"></h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true"></span>
-        </button>
-      </div>
-      <div class="modal-body" id="modal-body-space">
-      </div>
-      <div class="modal-footer justify-content-center" id="modal-body-space-buttons">
-      </div>
-    </div>
-  </div>
+  <div class="row g-3 mt-0">
+     <div class="col-lg-6 col-md-12">
+        <div class="card text-white mb-3 h-100">
+	      <div class="card-header">
+        <i class="fa-solid fa-hand-holding-dollar"></i>Donate &nbsp;Rs:1 &nbsp;to &nbsp;Rs:10
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center">
+        <div class="donate btn p-0">
+	       <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
+        <i class="fa-solid fa-money-check-dollar"></i>Click Here To Payment </a>
+        <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
+        <div style="padding-bottom: 1rem;">Thank you very much ❤</div> 
+        <img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
+	       </div>
+					</div>
+          </div>
+        	</div>
+        </div>
+           <div class="col-lg-6 col-md-12">
+          	<div class="card text-white mb-3 h-100">
+             <div class="card-header">
+             <i class="fa-brands fa-telegram fa-fw"></i>&nbsp;&nbsp;Join Our Telegram Channels
+            </div>
+            <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
+					<a href="https://telegram.me/+p9abEnd3wHAxZjQ9" target="_blank" title="tamizahan_Movies">
+						<img class="image" alt="tamizhan" style="height: 45px;" src="https://i.ibb.co/9y0Zh6F/Picsart-xzy.png">
+					</a>
+					<a href="https://telegram.me/+O7Lvm8svY-0yZjhl" target="_blank" title="தமிழன்_முவிஸ்">
+						<img class="image" alt="தமிழன்" style="height: 45px;" src="https://i.ibb.co/9y0Zh6F/Picsart-xzy.png">
+					</a>
+					<a href="https://telegram.me/hollywood_tamizhan_movies" target="_blank" title="hollywood">
+						<img class="image" alt="Movies" style="height: 45px;" src="https://i.ibb.co/4ndMRYDG/Hollywood.png">
+					</a>
+					<a href="https://telegram.me/+4ZuXoVoy8841MjM1" target="_blank" title="telegram">
+						<img class="image" alt="telegram" style="height: 50px;" src="https://i.ibb.co/84TDPHg1/ef456f9f9052b4e8821c20a22f377838.png">
+					</a>
+          </div> 
+          	</div>
+        </div>
+    </div>	
 </div>
 <button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
 <footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
