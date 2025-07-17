@@ -115,15 +115,14 @@ document.head.appendChild(style);
                 <i class="fa-solid fa-hand-holding-dollar"></i> Pay ₹5
             </div>
             <div class="card-body">
-                <p class="mb-3 text-center">Pay ₹5 and send the payment screenshot to <a href="${UI.contact_link}" title="Contact Admin" class="text-decoration-underline">Admin</a>. You'll receive a direct link for your requested movie ✅ (No ads, direct links only)</p>
+                <p class="mb-3 text-center">Pay ₹5 and send the payment screenshot to <a href="${UI.contact_link}" title="Contact Admin" class="text-decoration-underline">Admin</a>. You'll receive a direct link for your requested movies ✅ (No ads, direct links only)</p>
                 <div class="d-flex justify-content-center">
-                    <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click to make payment" style="background: #3B556E;" target="_blank">
-                        <i class="fa-solid fa-money-check-dollar"></i> Make Payment
-                    </a>
-                </div>
+                    <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click to make Payment" style="background: #3B556E;" target="_blank">
+                        <i class="fa-solid fa-money-check-dollar"></i> Click Here To Payment
+                   </div>
                 <div class="qrcode card text-center mt-3" style="padding: 1rem 1rem 0 1rem;">
                     <div class="mb-2">Thank you very much ❤</div>
-                    <img alt="Love" class="img-fluid" src="https://kaceku.onrender.com/static/img/love.png">
+                    <img alt="Love" class="img-fluid" src="https://kaceku.onrender.com/static/img/love.png"></a>
                 </div>
              </div>
         	 </div>
