@@ -119,7 +119,6 @@ document.head.appendChild(style);
 					<div class="d-flex justify-content-center">
 						<a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
 						<i class="fa-solid fa-money-check-dollar"></i> Click Here To Payment</a>
-					</div>
 					<div class="qrcode card text-center mt-3" style="padding: 1rem 1rem 0 1rem;">
 						<div style="padding-bottom: 1rem;">Thank you very much ❤</div>
 						<img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
