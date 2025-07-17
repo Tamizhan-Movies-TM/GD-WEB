@@ -124,13 +124,14 @@ document.head.appendChild(style);
 							<div style="padding-bottom: 1rem;">Thank you very much ❤</div>
 							<img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
 						 </div>
-</div>
+            					    </div>
+             </div>
         	 </div>
           </div>
            <div class="col-lg-6 col-md-12">
           	<div class="card text-white mb-3 h-100">
              <div class="card-header">
-             <i class="fa-brands fa-telegram fa-fw"></i>&nbsp;&nbsp;Join Our Telegram Channels
+             <i class="fa-brands fa-telegram fa-fw"></i>&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
             </div>
             <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
 					<a href="https://telegram.me/+p9abEnd3wHAxZjQ9" target="_blank" title="tamizahan_Movies">
@@ -144,7 +145,6 @@ document.head.appendChild(style);
 					</a>
 					<a href="https://telegram.me/+4ZuXoVoy8841MjM1" target="_blank" title="telegram">
 						<img class="image" alt="telegram" style="height: 50px;" src="https://i.ibb.co/84TDPHg1/ef456f9f9052b4e8821c20a22f377838.png">
-					</a>
           </div> 
           </div>
         </div>
