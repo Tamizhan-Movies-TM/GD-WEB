@@ -106,48 +106,9 @@ document.head.appendChild(style);
 <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
 	<div class="row align-items-start g-3">
 		`+TamizhanWidget;
- html += `<div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
-	</div>
-	</div>
-	<div class="row g-3 mt-0">
-        <div class="col-lg-6 col-md-12">
-          	<div class="card text-white mb-3 h-100">
-				<div class="card-header">
-					<i class="fa-solid fa-hand-holding-dollar"></i>Donate &nbsp;Rs:1 &nbsp;to &nbsp;Rs:10
-				 </div>
-            	<div class="card-body d-flex align-items-center justify-content-center">
-					<div class="donate btn p-0">
-						<a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
-						<i class="fa-solid fa-money-check-dollar"></i>Click Here To Payment </a>
-						<div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
-							<div style="padding-bottom: 1rem;">Thank you very much ❤</div>
-							<img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
-						</div>
-             </div>
-        	 </div>
-          </div>
-           <div class="col-lg-6 col-md-12">
-          	<div class="card text-white mb-3 h-100">
-             <div class="card-header">
-             <i class="fa-brands fa-telegram fa-fw"></i>&nbsp;&nbsp;Join Our Telegram Channels
-            </div>
-            <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
-					<a href="https://telegram.me/+p9abEnd3wHAxZjQ9" target="_blank" title="tamizahan_Movies">
-						<img class="image" alt="tamizhan" style="height: 45px;" src="https://i.ibb.co/9y0Zh6F/Picsart-xzy.png">
-					</a>
-					<a href="https://telegram.me/+O7Lvm8svY-0yZjhl" target="_blank" title="தமிழன்_முவிஸ்">
-						<img class="image" alt="தமிழன்" style="height: 45px;" src="https://i.ibb.co/9y0Zh6F/Picsart-xzy.png">
-					</a>
-					<a href="https://telegram.me/hollywood_tamizhan_movies" target="_blank" title="hollywood">
-						<img class="image" alt="Movies" style="height: 45px;" src="https://i.ibb.co/4ndMRYDG/Hollywood.png">
-					</a>
-					<a href="https://telegram.me/+4ZuXoVoy8841MjM1" target="_blank" title="telegram">
-						<img class="image" alt="telegram" style="height: 50px;" src="https://i.ibb.co/84TDPHg1/ef456f9f9052b4e8821c20a22f377838.png">
-					</a>
-          </div> 
-          </div>
-        </div>
-    </div>	
+		html += ` 
+    <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
+  </div>
 </div>
 <div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
@@ -176,9 +137,9 @@ document.head.appendChild(style);
       <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> 
       ${UI.credit ? '<span>© All Copy Rights Reserved ®™</span>' : ''}
       </div>
-      <div class="col-lg-4 col-md-12 text-lg-end">
+       <div class="col-lg-4 col-md-12 text-lg-end">
         <p>
-          <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
+        <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
         </p>
       </div>
 	  <script>
@@ -939,7 +900,7 @@ function append_files_to_list(path, files) {
 
 			html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
 	    ${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
-   }
+		}
 	}
 	if (is_file && UI.allow_selecting_files) {
 		document.getElementById('select_items').style.display = 'block';
