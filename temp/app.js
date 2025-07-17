@@ -124,14 +124,13 @@ document.head.appendChild(style);
 							<div style="padding-bottom: 1rem;">Thank you very much ❤</div>
 							<img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
 						 </div>
-             </div>
-             </div>
+</div>
         	 </div>
           </div>
            <div class="col-lg-6 col-md-12">
           	<div class="card text-white mb-3 h-100">
              <div class="card-header">
-             <i class="fa-brands fa-telegram fa-fw"></i>&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
+             <i class="fa-brands fa-telegram fa-fw"></i>&nbsp;&nbsp;Join Our Telegram Channels
             </div>
             <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
 					<a href="https://telegram.me/+p9abEnd3wHAxZjQ9" target="_blank" title="tamizahan_Movies">
@@ -145,6 +144,7 @@ document.head.appendChild(style);
 					</a>
 					<a href="https://telegram.me/+4ZuXoVoy8841MjM1" target="_blank" title="telegram">
 						<img class="image" alt="telegram" style="height: 50px;" src="https://i.ibb.co/84TDPHg1/ef456f9f9052b4e8821c20a22f377838.png">
+					</a>
           </div> 
           </div>
         </div>
@@ -203,7 +203,7 @@ document.head.appendChild(style);
       </div>
 	</div>
 </footer>`;
-	$('body').html(html);
+$('body').html(html);
 }
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.3 78" style="width: 1.3em;">
 <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"></path>
