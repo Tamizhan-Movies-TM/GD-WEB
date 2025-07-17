@@ -116,7 +116,7 @@ document.head.appendChild(style);
                </div>
                <div class="card-body d-flex align-items-center justify-content-center">
                 <div class="text-center">
-                    <p class="mb-3">Pay ₹5 and send the payment screenshot to href="${UI.contact_link}". You'll receive a direct streaming and download links for your requested one movie ✅ (no ads, no URL shortener links)</p>
+                    <p class="mb-3">Pay ₹5 and send the payment screenshot to <a href="${UI.contact_link}" title="Payment Screenshot Send To Admin Contact.">Contact Admin</a>. You'll receive a direct streaming and download link for your requested one movie ✅ (no ads, no URL shortener links)</p>
                     <div class="donate btn p-0">
                         <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
                           <i class="fa-solid fa-money-check-dollar"></i> Click Here To Payment
