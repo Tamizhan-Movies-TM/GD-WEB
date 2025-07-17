@@ -107,97 +107,99 @@ document.head.appendChild(style);
 	<div class="row align-items-start g-3">
 		`+TamizhanWidget;
  html += `<div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
-</div>
-<div class="row g-3 mt-0">
-    <div class="col-lg-6 col-md-12">
-        <div class="card text-white mb-3 h-100">
-            <div class="card-header">
-                <i class="fa-solid fa-hand-holding-dollar"></i> Premium Membership
-            </div>
-            <div class="card-body d-flex flex-column">
-                <p class="mb-3 text-center"><a href="${UI.contact_link}" title="Contact Admin" class="text-decoration-underline">Contact Admin</a><br>You'll Receive a Direct Link for your Requested Movies (No ads, direct links only)</p>
-                <div class="d-flex justify-content-center mt-auto">
-                    <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
-                        <i class="fa-solid fa-money-check-dollar"></i> Click Here To Payment
-                    </a>
+	</div>
+	<div class="row g-3 mt-0">
+        <div class="col-lg-6 col-md-12">
+          	<div class="card text-white mb-3 h-100">
+				<div class="card-header">
+					<i class="fa-solid fa-hand-holding-dollar"></i> Premium &nbsp;Membership
+				    </div>
+                 <div class="card-body">
+                    <p class="mb-3 text-center"><a href="${UI.contact_link}" title="Contact Admin" class="text-decoration-underline">Contact Admin</a><br>You'll Receive a Direct Link for your Requested Movies (No ads, direct links only)</p>
+                    <div class="d-flex justify-content-center">
+                        <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
+                         <i class="fa-solid fa-money-check-dollar"></i> Click Here To Payment
+                        </a>
+                    </div>
+                  <div>
+              </div>
+        	 </div>
+        </div>
+        <div class="col-lg-6 col-md-12">
+          	<div class="card text-white mb-3 h-100">
+                <div class="card-header">
+                    <i class="fa-brands fa-telegram fa-fw"></i> Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
                 </div>
+                <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
+					<a href="https://telegram.me/+p9abEnd3wHAxZjQ9" target="_blank" title="tamizahan_Movies">
+						<img class="image" alt="tamizhan" style="height: 45px;" src="https://i.ibb.co/9y0Zh6F/Picsart-xzy.png">
+					</a>
+					<a href="https://telegram.me/+O7Lvm8svY-0yZjhl" target="_blank" title="தமிழன்_முவிஸ்">
+						<img class="image" alt="தமிழன்" style="height: 45px;" src="https://i.ibb.co/9y0Zh6F/Picsart-xzy.png">
+					</a>
+					<a href="https://telegram.me/hollywood_tamizhan_movies" target="_blank" title="hollywood">
+						<img class="image" alt="Movies" style="height: 45px;" src="https://i.ibb.co/4ndMRYDG/Hollywood.png">
+					</a>
+					<a href="https://telegram.me/+4ZuXoVoy8841MjM1" target="_blank" title="telegram">
+						<img class="image" alt="telegram" style="height: 50px;" src="https://i.ibb.co/84TDPHg1/ef456f9f9052b4e8821c20a22f377838.png">
+                    </a>
+                </div> 
             </div>
         </div>
-    </div>
-    <div class="col-lg-6 col-md-12">
-        <div class="card text-white mb-3 h-100">
-            <div class="card-header">
-                <i class="fa-brands fa-telegram fa-fw"></i> Join Our Telegram Channels
-            </div>
-            <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
-                <a href="https://telegram.me/+p9abEnd3wHAxZjQ9" target="_blank" title="tamizahan_Movies">
-                    <img class="image" alt="tamizhan" style="height: 45px;" src="https://i.ibb.co/9y0Zh6F/Picsart-xzy.png">
-                </a>
-                <a href="https://telegram.me/+O7Lvm8svY-0yZjhl" target="_blank" title="தமிழன்_முவிஸ்">
-                    <img class="image" alt="தமிழன்" style="height: 45px;" src="https://i.ibb.co/9y0Zh6F/Picsart-xzy.png">
-                </a>
-                <a href="https://telegram.me/hollywood_tamizhan_movies" target="_blank" title="hollywood">
-                    <img class="image" alt="Movies" style="height: 45px;" src="https://i.ibb.co/4ndMRYDG/Hollywood.png">
-                </a>
-                <a href="https://telegram.me/+4ZuXoVoy8841MjM1" target="_blank" title="telegram">
-                    <img class="image" alt="telegram" style="height: 50px;" src="https://i.ibb.co/84TDPHg1/ef456f9f9052b4e8821c20a22f377838.png">
-                </a>
-            </div>
-        </div>
-    </div>
+    </div>	
 </div>
 <div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="SearchModelLabel"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true"></span>
-                </button>
-            </div>
-            <div class="modal-body" id="modal-body-space">
-            </div>
-            <div class="modal-footer justify-content-center" id="modal-body-space-buttons">
-            </div>
-        </div>
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="SearchModelLabel"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="modal-body" id="modal-body-space">
+      </div>
+      <div class="modal-footer justify-content-center" id="modal-body-space-buttons">
+      </div>
     </div>
+  </div>
 </div>
 <button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
 <footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
     <div class="container" style="padding-top: 15px;">
-        <div class="row">
-            <div class="col-lg-4 col-md-12 text-lg-start">
-                <i class="fa-brands fa-pied-piper-alt"></i> ${new Date().getFullYear()} - <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
-            </div>
-            <div class="col-lg-4 col-md-12">
-                <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> 
-                ${UI.credit ? '<span>© All Copy Rights Reserved ®™</span>' : ''}
-            </div>
-            <div class="col-lg-4 col-md-12 text-lg-end">
-                <p>
-                    <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
-                </p>
-            </div>
-            <script>
-                let btt = document.getElementById("back-to-top");
-                window.onscroll = function () {
-                    scrollFunction();
-                };
-                function scrollFunction() {
-                    if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
-                        btt.style.display = "block";
-                    } else {
-                        btt.style.display = "none";
-                    }
-                }
-                btt.addEventListener("click", backToTop);
-                function backToTop() {
-                    document.body.scrollTop = 0;
-                    document.documentElement.scrollTop = 0;
-                }
-            </script>
-        </div>
-    </div>
+      <div class="row">
+      <div class="col-lg-4 col-md-12 text-lg-start">
+      <i class="fa-brands fa-pied-piper-alt"></i> ${new Date().getFullYear()} - <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
+	    </div>
+      <div class="col-lg-4 col-md-12">
+      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> 
+      ${UI.credit ? '<span>© All Copy Rights Reserved ®™</span>' : ''}
+      </div>
+      <div class="col-lg-4 col-md-12 text-lg-end">
+        <p>
+          <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
+        </p>
+      </div>
+	  <script>
+		let btt = document.getElementById("back-to-top");
+		window.onscroll = function () {
+			scrollFunction();
+		};
+		function scrollFunction() {
+			if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+				btt.style.display = "block";
+			} else {
+				btt.style.display = "none";
+			}
+		}
+		btt.addEventListener("click", backToTop);
+		function backToTop() {
+			document.body.scrollTop = 0;
+			document.documentElement.scrollTop = 0;
+		}
+	  </script>
+      </div>
+	</div>
 </footer>`;
 $('body').html(html);
 }
