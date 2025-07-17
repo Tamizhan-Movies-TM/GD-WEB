@@ -115,21 +115,15 @@ document.head.appendChild(style);
                 <i class="fa-solid fa-hand-holding-dollar"></i> Pay ₹5
             </div>
             <div class="card-body">
-                <h3 class="text-center mb-3">Tamizhan Movies</h3>
-                <p class="mb-3 text-center">Pay ₹5 and send the payment screenshot to Admin.<br>
-                You'll receive a direct link for your requested movie 👍 (No ads, direct links only)</p>
-                
-                <div class="d-flex justify-content-center mb-3">
-                    <a class="btn" href="#" title="Make Payment" style="background: #3B556E;">
+                <p class="mb-3 text-center">Pay ₹5 and send the payment screenshot to <a href="${UI.contact_link}" title="Contact Admin" class="text-decoration-underline">Admin</a>. You'll receive a direct link for your requested movie ✅ (No ads, direct links only)</p>
+                <div class="d-flex justify-content-center">
+                    <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click to make payment" style="background: #3B556E;" target="_blank">
                         <i class="fa-solid fa-money-check-dollar"></i> Make Payment
                     </a>
                 </div>
-
-                <div class="text-center mt-3">
-                    <p class="mb-2">Thank you very much ❤</p>
-                    <a href="#" class="d-inline-block" id="loveImage">
-                        <img alt="Love" class="img-fluid" src="https://kaceku.onrender.com/static/img/love.png" style="display: none;">
-                    </a>
+                <div class="qrcode card text-center mt-3" style="padding: 1rem 1rem 0 1rem;">
+                    <div class="mb-2">Thank you very much ❤</div>
+                    <img alt="Love" class="img-fluid" src="https://kaceku.onrender.com/static/img/love.png">
                 </div>
              </div>
         	 </div>
