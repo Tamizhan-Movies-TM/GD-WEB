@@ -112,10 +112,10 @@ document.head.appendChild(style);
         <div class="col-lg-6 col-md-12">
           	<div class="card text-white mb-3 h-100">
 				<div class="card-header">
-					<i class="fa-solid fa-hand-holding-dollar"></i> Pay ₹5
+					<i class="fa-solid fa-hand-holding-dollar"></i> Premium &nbsp;&nbsp;Membership
 				    </div>
                 <div class="card-body">
-                    <p class="mb-3 text-center">Pay ₹5 and Send The Payment Screenshot To <a href="${UI.contact_link}" title="Contact Admin" class="text-decoration-underline">Admin</a>.<br>You'll Receive a Direct Link for your Requested Movies (No ads, direct links only)</p>
+                    <p class="mb-3 text-center">Pay &nbsp;₹5 &nbsp;and &nbsp;Send &nbsp;The &nbsp;Payment &nbsp;Screenshot &nbsp;To <a href="${UI.contact_link}" title="Contact Admin" class="text-decoration-underline">Admin</a>.<br>You'll Receive a Direct Link for your Requested Movies (No ads, direct links only)</p>
                     <div class="d-flex justify-content-center">
                         <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
                          <i class="fa-solid fa-money-check-dollar"></i> Click Here To Payment
@@ -129,7 +129,7 @@ document.head.appendChild(style);
         <div class="col-lg-6 col-md-12">
           	<div class="card text-white mb-3 h-100">
                 <div class="card-header">
-                    <i class="fa-brands fa-telegram fa-fw"></i> Join Our Telegram Channels
+                    <i class="fa-brands fa-telegram fa-fw"></i> Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
                 </div>
                 <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
 					<a href="https://telegram.me/+p9abEnd3wHAxZjQ9" target="_blank" title="tamizahan_Movies">
