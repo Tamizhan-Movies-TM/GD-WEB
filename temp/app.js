@@ -115,17 +115,15 @@ document.head.appendChild(style);
 					<i class="fa-solid fa-hand-holding-dollar"></i> Pay ₹5
 				 </div>
                 <div class="card-body">
-                    <p class="mb-3 text-center">Pay ₹5 and send the payment screenshot to <a href="${UI.contact_link}" title="Contact Admin" class="text-decoration-underline">Admin</a>.<br>You'll receive a direct link for your requested movies (No ads, direct links only)</p>
+                    <p class="mb-2 text-center">Pay ₹5 and send the payment screenshot to <a href="${UI.contact_link}" title="Contact Admin" class="text-decoration-underline">Admin</a>.<br>You'll receive a direct link for your requested movies (No ads, direct links only)</p>
                     <div class="d-flex justify-content-center mb-3">
                         <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
                             <i class="fa-solid fa-money-check-dollar"></i> Click Here To Payment
                         </a>
                     </div>
-                    <div class="text-center mt-4">
-                        <p class="small">© 2025 - Tamizhan Movies</p>
-                        <a href="https://www.dmca.com" target="_blank" class="small">DMCA © All Copy Rights Reserved 😊™</a>
-                    </div>
-                </div>
+                   <div>
+                 </div>
+              </div>
         	</div>
         </div>
         <div class="col-lg-6 col-md-12">
