@@ -126,7 +126,6 @@ document.head.appendChild(style);
            </div>
           </div>
          </div>
-        </div>
         <div class="col-lg-6 col-md-12">
           	<div class="card text-white mb-3 h-100">
                 <div class="card-header">
