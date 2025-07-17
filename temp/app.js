@@ -109,7 +109,6 @@ document.head.appendChild(style);
 		html += ` 
     <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
   </div>
-</div>
   <div class="row g-3 mt-0">
      <div class="col-lg-6 col-md-12">
         <div class="card text-white mb-3 h-100">
@@ -127,7 +126,7 @@ document.head.appendChild(style);
 					</div>
           </div>
         	</div>
-        </div>
+           </div>
            <div class="col-lg-6 col-md-12">
           	<div class="card text-white mb-3 h-100">
              <div class="card-header">
