@@ -113,7 +113,7 @@ document.head.appendChild(style);
      <div class="col-lg-6 col-md-12">
         <div class="card text-white mb-3 h-100">
 	      <div class="card-header">
-        <i class="fa-solid fa-hand-holding-dollar"></i>Donate &nbsp;Rs:1 &nbsp;to &nbsp;Rs:10
+        <i class="fa-solid fa-hand-holding-dollar"></i>Donate:&nbsp;&nbsp;₹&nbsp;5
         </div>
         <div class="card-body d-flex align-items-center justify-content-center">
         <div class="donate btn p-0">
@@ -149,6 +149,22 @@ document.head.appendChild(style);
           	</div>
         </div>
     </div>	
+</div>
+<div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="SearchModelLabel"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="modal-body" id="modal-body-space">
+      </div>
+      <div class="modal-footer justify-content-center" id="modal-body-space-buttons">
+      </div>
+    </div>
+  </div>
 </div>
 <button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
 <footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
