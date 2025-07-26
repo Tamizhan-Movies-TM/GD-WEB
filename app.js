@@ -139,7 +139,7 @@ document.head.appendChild(style);
 					<a href="https://telegram.me/hollywood_tamizhan_movies" target="_blank" title="hollywood">
 						<img class="image" alt="Movies" style="height: 45px;" src="https://i.ibb.co/4ndMRYDG/Hollywood.png">
 					</a>
-		       <a href="https://telegram.me/+66ZClp17JDVjYWE1" target="_blank" title="Tamizhan_Web_Series">
+		       <a href="https://t.me/+2ik3fxXcl9RlZDZl" target="_blank" title="Tamizhan_Web_Series">
 						<img class="image" alt="தமிழன்" style="height: 45px;" src="https://i.ibb.co/DHpmKDWn/Web.png">
 					</a>
 					<a href="https://telegram.me/+4ZuXoVoy8841MjM1" target="_blank" title="telegram">
