@@ -136,11 +136,11 @@ document.head.appendChild(style);
 					<a href="https://telegram.me/+p9abEnd3wHAxZjQ9" target="_blank" title="tamizahan_Movies">
 						<img class="image" alt="tamizhan" style="height: 45px;" src="https://i.ibb.co/9y0Zh6F/Picsart-xzy.png">
 					</a>
-					<a href="https://telegram.me/+O7Lvm8svY-0yZjhl" target="_blank" title="Tamizhan_Web_Series">
-						<img class="image" alt="தமிழன்" style="height: 45px;" src="https://i.ibb.co/DHpmKDWn/Web.png">
-					</a>
 					<a href="https://telegram.me/hollywood_tamizhan_movies" target="_blank" title="hollywood">
 						<img class="image" alt="Movies" style="height: 45px;" src="https://i.ibb.co/4ndMRYDG/Hollywood.png">
+					</a>
+		       <a href="https://telegram.me/+66ZClp17JDVjYWE1" target="_blank" title="Tamizhan_Web_Series">
+						<img class="image" alt="தமிழன்" style="height: 45px;" src="https://i.ibb.co/DHpmKDWn/Web.png">
 					</a>
 					<a href="https://telegram.me/+4ZuXoVoy8841MjM1" target="_blank" title="telegram">
 						<img class="image" alt="telegram" style="height: 50px;" src="https://i.ibb.co/84TDPHg1/ef456f9f9052b4e8821c20a22f377838.png">
