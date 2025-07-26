@@ -130,17 +130,17 @@ document.head.appendChild(style);
            <div class="col-lg-6 col-md-12">
           	<div class="card text-white mb-3 h-100">
              <div class="card-header">
-             <i class="fa-brands fa-telegram fa-fw"></i>&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
+             <i class="fa-brands fa-telegram fa-fw"></i>&nbsp;&nbsp;Join Our Telegram Channels
             </div>
             <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
 					<a href="https://telegram.me/+p9abEnd3wHAxZjQ9" target="_blank" title="tamizahan_Movies">
 						<img class="image" alt="tamizhan" style="height: 45px;" src="https://i.ibb.co/9y0Zh6F/Picsart-xzy.png">
 					</a>
-					<a href="https://telegram.me/+O7Lvm8svY-0yZjhl" target="_blank" title="தமிழன்_முவிஸ்">
-						<img class="image" alt="தமிழன்" style="height: 45px;" src="https://i.ibb.co/9y0Zh6F/Picsart-xzy.png">
-					</a>
 					<a href="https://telegram.me/hollywood_tamizhan_movies" target="_blank" title="hollywood">
 						<img class="image" alt="Movies" style="height: 45px;" src="https://i.ibb.co/4ndMRYDG/Hollywood.png">
+					</a>
+		       <a href="https://telegram.me/+66ZClp17JDVjYWE1" target="_blank" title="Tamizhan_Web_Series">
+						<img class="image" alt="தமிழன்" style="height: 45px;" src="https://i.ibb.co/DHpmKDWn/Web.png">
 					</a>
 					<a href="https://telegram.me/+4ZuXoVoy8841MjM1" target="_blank" title="telegram">
 						<img class="image" alt="telegram" style="height: 50px;" src="https://i.ibb.co/84TDPHg1/ef456f9f9052b4e8821c20a22f377838.png">
