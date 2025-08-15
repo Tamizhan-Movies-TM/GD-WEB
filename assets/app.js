@@ -1761,11 +1761,11 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   // Document display video  mkv|mp4|webm|avi| 
    function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	 // Define all player icons
-    const vlc_icon = `<img src="https://i.ibb.co/8DWdwRnr/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const mxplayer_icon = `<img src="https://i.ibb.co/xqytzzbY/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const xplayer_icon = `<img src="https://i.ibb.co/x83mLGBD/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const playit_icon = `<img src="https://i.ibb.co/F4Fm9yRx/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
-    const new_download_icon = `<img src="https://i.ibb.co/yBs1P9wN/Download.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
+    const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
 		 var url_base64 = btoa(url);
 	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 	  let player
