@@ -134,16 +134,16 @@ document.head.appendChild(style);
             </div>
             <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
 					<a href="https://telegram.me/+9GGQhM4m9ehlZjJk" target="_blank" title="tamizahan_Movies">
-						<img class="image" alt="tamizhan" style="height: 45px;" src="https://i.ibb.co/9y0Zh6F/Picsart-xzy.png">
+						<img class="image" alt="tamizhan" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/tm-icon.png">
 					</a>
 					<a href="https://telegram.me/hollywood_tamizhan_movies" target="_blank" title="Hollywood_Tamizhan_Movies">
-						<img class="image" alt="Movies" style="height: 45px;" src="https://i.ibb.co/4ndMRYDG/Hollywood.png">
+						<img class="image" alt="Movies" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/htm-icon.png">
 					</a>
 		       <a href="https://telegram.me/+E7prcFHaZgQ1ODQ0" target="_blank" title="Tamizhan_Web_Series">
-						<img class="image" alt="தமிழன்" style="height: 45px;" src="https://i.ibb.co/DHpmKDWn/Web.png">
+						<img class="image" alt="தமிழன்" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/tws-icon.png">
 					</a>
 					<a href="https://telegram.me/+Ivkonm8ozAFiOGJk" target="_blank" title="Tamizhan_backup">
-						<img class="image" alt="telegram" style="height: 50px;" src="https://i.ibb.co/84TDPHg1/ef456f9f9052b4e8821c20a22f377838.png">
+						<img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/telegram.png">
 					</a>
           </div> 
           	</div>
