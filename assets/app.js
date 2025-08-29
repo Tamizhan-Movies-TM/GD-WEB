@@ -339,7 +339,7 @@ function sleep(milliseconds) {
  * @param resultCallback Success Result Callback
  * @param authErrorCallback Pass Error Callback
  */
-function requestListPath(path, params, resultCallback, authErrorCallback, retries = 3,  = false) {
+function requestListPath(path, params, resultCallback, authErrorCallback, retries = 3, fallback = false) {
 	var requestData = {
 		id: params['id'] || '',
 		type: 'folder',
@@ -349,12 +349,12 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 	};
 	$('#update').show();
 	document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Connecting...</div></div></div>`;
-	if () {
-		path = "/0:"
+	if (fallback) {
+		path = "/0:fallback"
 	}
 
 	function performRequest() {
-		fetch( ? "/0:" : path, {
+		fetch(fallback ? "/0:fallback" : path, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -470,11 +470,11 @@ function requestSearch(params, resultCallback, retries = 3) {
 
 
 // Render file list
-function list(path, id = '',  = false) {
+function list(path, id = '', fallback = false) {
 	console.log(id);
 	var cur = window.current_drive_order || 0;
 	var drive_name = window.drive_names[cur];
-	var folder_name = ! ? decodeURIComponent(path.split('/').filter(Boolean).pop()) : 'Files';
+	var folder_name = !fallback ? decodeURIComponent(path.split('/').filter(Boolean).pop()) : 'Files';
 	var folder_ico = folder_icon;
 	if (folder_name === cur + ':') {
 		folder_ico = gdrive_icon;
@@ -515,7 +515,7 @@ function list(path, id = '',  = false) {
 
 	function handleSuccessResult(res, path, prevReqParams) {
 		console.log(res, path, prevReqParams);
-		if () {
+		if (fallback) {
 			title(res['name']);
 			$('#dirname').html(res['name']);
 		}
@@ -531,15 +531,15 @@ function list(path, id = '',  = false) {
 			$(window).off('scroll');
 			window.scroll_status.event_bound = false;
 			window.scroll_status.loading_lock = false;
-			if () {
-				append_files_to__list(path, res['data']['files']);
+			if (fallback) {
+				append_files_to_fallback_list(path, res['data']['files']);
 			} else {
 				append_files_to_list(path, res['data']['files']);
 			}
 		} else {
 			console.log('doing something...')
-			if () {
-				append_files_to__list(path, res['data']['files']);
+			if (fallback) {
+				append_files_to_fallback_list(path, res['data']['files']);
 			} else {
 				append_files_to_list(path, res['data']['files']);
 			}
@@ -560,8 +560,8 @@ function list(path, id = '',  = false) {
 							.insertBefore('#readme_md');
 
 						let $list = $('#list');
-						if () {
-							console.log(' inside handleSuccessResult');
+						if (fallback) {
+							console.log('fallback inside handleSuccessResult');
 							requestListPath(path, {
 									id: id,
 									password: prevReqParams['password'],
@@ -569,7 +569,7 @@ function list(path, id = '',  = false) {
 									page_index: $list.data('curPageIndex') + 1
 								},
 								handleSuccessResult,
-								null, 5, id,  = true);
+								null, 5, id, fallback = true);
 						} else {
 							requestListPath(path, {
 									password: prevReqParams['password'],
@@ -591,14 +591,14 @@ function list(path, id = '',  = false) {
 		}
 	}
 
-	if () {
-		console.log(' inside list');
+	if (fallback) {
+		console.log('fallback inside list');
 		requestListPath(path, {
 				id: id,
 				password: password
 			},
 			handleSuccessResult,
-			null, null,  = true);
+			null, null, fallback = true);
 	} else {
 		console.log("handling this")
 		requestListPath(path, {
@@ -672,9 +672,9 @@ function askPassword(path) {
  * @param path
  * @param files request result
  */
-function append_files_to__list(path, files) {
+function append_files_to_fallback_list(path, files) {
 	try {
-		console.log('append_files_to__list');
+		console.log('append_files_to_fallback_list');
 		var $list = $('#list');
 		// Is it the last page of data?
 		var is_lastpage_loaded = null === $list.data('nextPageToken');
@@ -692,7 +692,7 @@ function append_files_to__list(path, files) {
 		}
 		for (i in files) {
 			var item = files[i];
-			var p = "/?id=" + item.id
+			var p = "/fallback?id=" + item.id
 			item['createdTime'] = utc2jakarta(item['createdTime']);
 			// replace / with %2F
 			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
@@ -1286,7 +1286,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
 			$('#SearchModelLabel').html(title);
 			
-			btn = `<div class="btn-group">
+			btn = `<div class="btn">
 				<a href="${shortxlinksUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
 				</div>` + close_btn;
 			
@@ -1297,8 +1297,8 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			console.log(error);
 			$('#SearchModelLabel').html(title);
 			
-			btn = `<div class="btn-group">
-				<a href="${shortxlinksUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortX Link</a>
+			btn = `<div class="btn">
+				<a href="${shortxlinksUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
 				</div>` + close_btn;
 			
 			$('#modal-body-space').html(content);
