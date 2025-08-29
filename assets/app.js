@@ -1286,7 +1286,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
 			$('#SearchModelLabel').html(title);
 			
-			btn = `<div class="btn">
+			btn = `<div class="btn-group">
 				<a href="${shortxlinksUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
 				</div>` + close_btn;
 			
@@ -1297,13 +1297,14 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			console.log(error);
 			$('#SearchModelLabel').html(title);
 			
-			btn = `<div class="btn">
+			btn = `<div class="btn-group">
 				<a href="${shortxlinksUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
 				</div>` + close_btn;
 			
 			$('#modal-body-space').html(content);
 			$('#modal-body-space-buttons').html(btn);
 		});
+
 }
 
 function get_file(path, file, callback) {
