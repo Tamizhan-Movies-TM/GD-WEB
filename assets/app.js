@@ -1205,88 +1205,160 @@ function append_search_result_to_list(files) {
  * @param a_ele Clicked element
  */
 function onSearchResultItemClick(file_id, can_preview, file) {
-    var cur = window.current_drive_order;
-    var title = `Loading...`;
-    $('#SearchModelLabel').html(title);
-    var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
-    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
-    $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(close_btn);
-    var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
-    var p = {
-        id: file_id
-    };
-    content = `
-    <table class="table table-dark mb-0">
-        <tbody>
-            <tr>
-                <th>
-                    <i class="fa-regular fa-folder-closed fa-fw"></i>
-                    <span class="tth">Name</span>
-                </th>
-                <td>${file['name']}</td>
-            </tr>
-            <tr>
-                <th>
-                    <i class="fa-regular fa-clock fa-fw"></i>
-                    <span class="tth">Datetime</span>
-                </th>
-                <td>${file['createdTime']}</td>
-            </tr>
-            <tr>
-                <th>
-                    <i class="fa-solid fa-tag fa-fw"></i>
-                    <span class="tth">Type</span>
-                </th>
-                <td>${file['mimeType']}</td>
-            </tr>`;
-    if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
-        content += `
-            <tr>
-                <th>
-                    <i class="fa-solid fa-box-archive fa-fw"></i>
-                    <span class="tth">Size</span>
-                </th>
-                <td>${file['size']}</td>
-            </tr>
-            <tr>
-                <th>
-                    <i class="fa-solid fa-file-circle-check fa-fw"></i>
-                    <span class="tth">Checksum</span>
-                </th>
-                <td>MD5: <code>${file['md5Checksum']}</code>
-                </td>
-            </tr>`;
-    }
-    content += `
-        </tbody>
-    </table>`;
-    
-    // Generate the direct URL
-    const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
-    const encodedUrl = encodeURIComponent(directUrl);
-    const apiToken = 'c71342bc5deab6b9a408d2501968365c6cb7ffe0';
-    const apiUrl = `https://shortxlinks.com/api?api=${apiToken}&url=${encodedUrl}&alias=CustomAlias`;
-
-    // Fetch the shortened URL
-    fetch(apiUrl)
-        .then(response => response.json())
-        .then(data => {
-            let shortUrl = data.status === 'success' ? data.shortenedUrl : '#';
-            let btn = `<div class="btn-group">
-                <a href="${shortUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
-                </div>` + close_btn;
-            
-            $('#modal-body-space').html(content);
-            $('#modal-body-space-buttons').html(btn);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            $('#modal-body-space').html(content);
-            $('#modal-body-space-buttons').html(close_btn);
-        });
+	var cur = window.current_drive_order;
+	var title = `Loading...`;
+	$('#SearchModelLabel').html(title);
+	var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
+	var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
+	$('#modal-body-space').html(content);
+	$('#modal-body-space-buttons').html(close_btn);
+	var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
+	var p = {
+		id: file_id
+	};
+	content = `
+	<table class="table table-dark mb-0">
+		<tbody>
+			<tr>
+				<th>
+					<i class="fa-regular fa-folder-closed fa-fw"></i>
+					<span class="tth">Name</span>
+				</th>
+				<td>${file['name']}</td>
+			</tr>
+			<tr>
+				<th>
+					<i class="fa-regular fa-clock fa-fw"></i>
+					<span class="tth">Datetime</span>
+				</th>
+				<td>${file['createdTime']}</td>
+			</tr>
+			<tr>
+				<th>
+					<i class="fa-solid fa-tag fa-fw"></i>
+					<span class="tth">Type</span>
+				</th>
+				<td>${file['mimeType']}</td>
+			</tr>`;
+	if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
+		content += `
+			<tr>
+				<th>
+					<i class="fa-solid fa-box-archive fa-fw"></i>
+					<span class="tth">Size</span>
+				</th>
+				<td>${file['size']}</td>
+			</tr>
+			<tr>
+				<th>
+					<i class="fa-solid fa-file-circle-check fa-fw"></i>
+					<span class="tth">Checksum</span>
+				</th>
+				<td>MD5: <code>${file['md5Checksum']}</code>
+				</td>
+			</tr>`;
+	}
+	content += `
+		</tbody>
+	</table>`;
+	
+	// Create the direct URL
+	const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+	
+	// Encode the URL for the API call
+	const long_url = encodeURIComponent(directUrl);
+	const api_token = 'c71342bc5deab6b9a408d2501968365c6cb7ffe0';
+	const api_url = `https://shortxlinks.com/api?api=${api_token}&url=${long_url}&alias=CustomAlias`;
+	
+	// Request a path
+	fetch(`/${cur}:id2path`, {
+			method: 'POST',
+			body: JSON.stringify(p),
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			}
+		})
+		.then(function(response) {
+			if (response.ok) {
+				return response.json();
+			} else {
+				throw new Error('Request failed.');
+			}
+		})
+		.then(function(obj) {
+			var href = `${obj.path}`;
+			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+			$('#SearchModelLabel').html(title);
+			
+			// Fetch the shortened URL
+			fetch(api_url)
+				.then(response => response.json())
+				.then(data => {
+					if (data.status === 'error') {
+						console.error(data.message);
+						// Fallback to direct URL if shortening fails
+						btn = `<div class="btn-group">
+							<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
+							</div>` + close_btn;
+					} else {
+						// Use the shortened URL
+						btn = `<div class="btn-group">
+							<a href="${data.shortenedUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
+							<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
+							</div>` + close_btn;
+					}
+					
+					$('#modal-body-space').html(content);
+					$('#modal-body-space-buttons').html(btn);
+				})
+				.catch(error => {
+					console.error('Error shortening URL:', error);
+					// Fallback to direct URL
+					btn = `<div class="btn-group">
+						<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
+						</div>` + close_btn;
+					
+					$('#modal-body-space').html(content);
+					$('#modal-body-space-buttons').html(btn);
+				});
+		})
+		.catch(function(error) {
+			console.log(error);
+			$('#SearchModelLabel').html(title);
+			
+			// Fetch the shortened URL even if path request fails
+			fetch(api_url)
+				.then(response => response.json())
+				.then(data => {
+					if (data.status === 'error') {
+						console.error(data.message);
+						// Fallback to direct URL if shortening fails
+						btn = `<div class="btn-group">
+							<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
+							</div>` + close_btn;
+					} else {
+						// Use the shortened URL
+						btn = `<div class="btn-group">
+							<a href="${data.shortenedUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
+							<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
+							</div>` + close_btn;
+					}
+					
+					$('#modal-body-space').html(content);
+					$('#modal-body-space-buttons').html(btn);
+				})
+				.catch(error => {
+					console.error('Error shortening URL:', error);
+					// Fallback to direct URL
+					btn = `<div class="btn-group">
+						<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
+						</div>` + close_btn;
+					
+					$('#modal-body-space').html(content);
+					$('#modal-body-space-buttons').html(btn);
+				});
+		});
 }
-
 function get_file(path, file, callback) {
 	var key = "file_path_" + path + file['createdTime'];
 	var data = localStorage.getItem(key);
