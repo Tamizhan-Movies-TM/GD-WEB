@@ -1261,6 +1261,12 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 	content += `
 		</tbody>
 	</table>`;
+	
+	// Create the shortxlinks URL
+	const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+	const encodedUrl = encodeURIComponent(directUrl);
+	const shortxlinksUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodedUrl}`;
+	
 	// Request a path
 	fetch(`/${cur}:id2path`, {
 			method: 'POST',
@@ -1277,41 +1283,34 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			}
 		})
 		.then(function(obj) {
-    var href = `${obj.path}`;
-    var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F')
-    $('#SearchModelLabel').html(title);
-    
-    // Create the URL to copy
-    const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
-    
-    btn = `<div class="btn-group">
-        <a href="${fileUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index Link</a>
-        <button type="button" class="btn btn-info copy-url-btn" data-url="${fileUrl}">
-            <i class="fas fa-copy fa-fw"></i> Copy URL
-        </button>
-        </div>` + close_btn;
-    
-    $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(btn);
-})
-.catch(function(error) {
-    console.log(error);
-    $('#SearchModelLabel').html(title);
-    
-    // Create the URL to copy
-    const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
-    
-    btn = `<div class="btn-group">
-        <a href="${fileUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index Link</a>
-        <button type="button" class="btn btn-info copy-url-btn" data-url="${fileUrl}">
-            <i class="fas fa-copy fa-fw"></i> Copy URL
-        </button>
-        </div>` + close_btn;
-    
-    $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(btn);
-});
-
+			var href = `${obj.path}`;
+			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+			$('#SearchModelLabel').html(title);
+			
+			btn = `<div class="btn-group">
+				<a href="${shortxlinksUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortX Link</a>
+				<button type="button" class="btn btn-info copy-url-btn" data-url="${shortxlinksUrl}">
+					<i class="fas fa-copy fa-fw"></i> Copy URL
+				</button>
+				</div>` + close_btn;
+			
+			$('#modal-body-space').html(content);
+			$('#modal-body-space-buttons').html(btn);
+		})
+		.catch(function(error) {
+			console.log(error);
+			$('#SearchModelLabel').html(title);
+			
+			btn = `<div class="btn-group">
+				<a href="${shortxlinksUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortX Link</a>
+				<button type="button" class="btn btn-info copy-url-btn" data-url="${shortxlinksUrl}">
+					<i class="fas fa-copy fa-fw"></i> Copy URL
+				</button>
+				</div>` + close_btn;
+			
+			$('#modal-body-space').html(content);
+			$('#modal-body-space-buttons').html(btn);
+		});
 }
 
 function get_file(path, file, callback) {
