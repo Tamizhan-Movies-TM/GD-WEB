@@ -1287,11 +1287,11 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			$('#SearchModelLabel').html(title);
 			
 			btn = `<div class="btn-group">
-				<a href="${shortxlinksUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortX Link</a>
+				<a href="${shortxlinksUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
 				<button type="button" class="btn btn-info copy-url-btn" data-url="${shortxlinksUrl}">
 					<i class="fas fa-copy fa-fw"></i> Copy URL
 				</button>
-				</div>` + close_btn;
+				</div>`
 			
 			$('#modal-body-space').html(content);
 			$('#modal-body-space-buttons').html(btn);
@@ -1305,7 +1305,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 				<button type="button" class="btn btn-info copy-url-btn" data-url="${shortxlinksUrl}">
 					<i class="fas fa-copy fa-fw"></i> Copy URL
 				</button>
-				</div>` + close_btn;
+				</div>`
 			
 			$('#modal-body-space').html(content);
 			$('#modal-body-space-buttons').html(btn);
