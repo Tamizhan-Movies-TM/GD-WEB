@@ -1204,7 +1204,7 @@ function append_search_result_to_list(files) {
  * Search result item click event
  * @param a_ele Clicked element
  */
-function onSearchResultItemClick(file_id, can_preview, file) {
+{
 	var cur = window.current_drive_order;
 	var title = `Loading...`;
 	$('#SearchModelLabel').html(title);
@@ -1262,13 +1262,9 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 		</tbody>
 	</table>`;
 	
-	// Create the direct URL
+	// Create the shortxlinks URL WITHOUT encoding the destination URL
 	const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
-	
-	// Encode the URL for the API call
-	const long_url = encodeURIComponent(directUrl);
-	const api_token = 'c71342bc5deab6b9a408d2501968365c6cb7ffe0';
-	const api_url = `https://shortxlinks.com/api?api=${api_token}&url=${long_url}&alias=CustomAlias`;
+	const shortxlinksUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${directUrl}&alias=CustomAlias`;
 	
 	// Request a path
 	fetch(`/${cur}:id2path`, {
@@ -1290,74 +1286,25 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
 			$('#SearchModelLabel').html(title);
 			
-			// Fetch the shortened URL
-			fetch(api_url)
-				.then(response => response.json())
-				.then(data => {
-					if (data["status"] === 'error') {
-						console.error(data["message"]);
-						// Fallback to direct URL if shortening fails
-						btn = `<div class="btn-group">
-							<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
-							</div>` + close_btn;
-					} else {
-						// Use the shortened URL
-						btn = `<div class="btn-group">
-							<a href="${data["shortenedUrl"]}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
-							<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
-							</div>` + close_btn;
-					}
-					
-					$('#modal-body-space').html(content);
-					$('#modal-body-space-buttons').html(btn);
-				})
-				.catch(error => {
-					console.error('Error shortening URL:', error);
-					// Fallback to direct URL
-					btn = `<div class="btn-group">
-						<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
-						</div>` + close_btn;
-					
-					$('#modal-body-space').html(content);
-					$('#modal-body-space-buttons').html(btn);
-				});
+			btn = `<div class="btn-group">
+				<a href="${shortxlinksUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
+				</div>` + close_btn;
+			
+			$('#modal-body-space').html(content);
+			$('#modal-body-space-buttons').html(btn);
 		})
 		.catch(function(error) {
 			console.log(error);
 			$('#SearchModelLabel').html(title);
 			
-			// Fetch the shortened URL even if path request fails
-			fetch(api_url)
-				.then(response => response.json())
-				.then(data => {
-					if (data["status"] === 'error') {
-						console.error(data["message"]);
-						// Fallback to direct URL if shortening fails
-						btn = `<div class="btn-group">
-							<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
-							</div>` + close_btn;
-					} else {
-						// Use the shortened URL
-						btn = `<div class="btn-group">
-							<a href="${data["shortenedUrl"]}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
-							<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
-							</div>` + close_btn;
-					}
-					
-					$('#modal-body-space').html(content);
-					$('#modal-body-space-buttons').html(btn);
-				})
-				.catch(error => {
-					console.error('Error shortening URL:', error);
-					// Fallback to direct URL
-					btn = `<div class="btn-group">
-						<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
-						</div>` + close_btn;
-					
-					$('#modal-body-space').html(content);
-					$('#modal-body-space-buttons').html(btn);
-				});
+			btn = `<div class="btn-group">
+				<a href="${shortxlinksUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
+				</div>` + close_btn;
+			
+			$('#modal-body-space').html(content);
+			$('#modal-body-space-buttons').html(btn);
 		});
+
 }
 
 function get_file(path, file, callback) {
