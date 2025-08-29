@@ -1294,8 +1294,8 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			fetch(api_url)
 				.then(response => response.json())
 				.then(data => {
-					if (data.status === 'error') {
-						console.error(data.message);
+					if (data["status"] === 'error') {
+						console.error(data["message"]);
 						// Fallback to direct URL if shortening fails
 						btn = `<div class="btn-group">
 							<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
@@ -1303,7 +1303,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 					} else {
 						// Use the shortened URL
 						btn = `<div class="btn-group">
-							<a href="${data.shortenedUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
+							<a href="${data["shortenedUrl"]}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
 							<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
 							</div>` + close_btn;
 					}
@@ -1330,8 +1330,8 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			fetch(api_url)
 				.then(response => response.json())
 				.then(data => {
-					if (data.status === 'error') {
-						console.error(data.message);
+					if (data["status"] === 'error') {
+						console.error(data["message"]);
 						// Fallback to direct URL if shortening fails
 						btn = `<div class="btn-group">
 							<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
@@ -1339,7 +1339,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 					} else {
 						// Use the shortened URL
 						btn = `<div class="btn-group">
-							<a href="${data.shortenedUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
+							<a href="${data["shortenedUrl"]}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
 							<a href="${directUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Direct Link</a>
 							</div>` + close_btn;
 					}
@@ -1359,6 +1359,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 				});
 		});
 }
+
 function get_file(path, file, callback) {
 	var key = "file_path_" + path + file['createdTime'];
 	var data = localStorage.getItem(key);
