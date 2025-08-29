@@ -1264,7 +1264,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 	
 	// Create the shortxlinks URL WITHOUT encoding the destination URL
 	const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
-	const shortxlinksUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}&alias=CustomAlias`;
+	const shortxlinksUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${(directUrl)}&alias=CustomAlias`;
 	
 	// Request a path
 	fetch(`/${cur}:id2path`, {
