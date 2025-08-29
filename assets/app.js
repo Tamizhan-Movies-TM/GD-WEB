@@ -110,7 +110,7 @@ document.head.appendChild(style);
     <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
   </div>
 </div>
-<div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="false">
+<div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -1204,7 +1204,7 @@ function append_search_result_to_list(files) {
  * Search result item click event
  * @param a_ele Clicked element
  */
-{
+function onSearchResultItemClick(file_id, can_preview, file) {
 	var cur = window.current_drive_order;
 	var title = `Loading...`;
 	$('#SearchModelLabel').html(title);
@@ -1264,7 +1264,7 @@ function append_search_result_to_list(files) {
 	
 	// Create the shortxlinks URL WITHOUT encoding the destination URL
 	const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
-	const shortxlinksUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${directUrl}&alias=CustomAlias`;
+	const shortxlinksUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${directUrl}`;
 	
 	// Request a path
 	fetch(`/${cur}:id2path`, {
@@ -1304,7 +1304,6 @@ function append_search_result_to_list(files) {
 			$('#modal-body-space').html(content);
 			$('#modal-body-space-buttons').html(btn);
 		});
-
 }
 
 function get_file(path, file, callback) {
