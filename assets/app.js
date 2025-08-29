@@ -1117,194 +1117,207 @@ function render_search_result_list() {
  * Append a new page of search results
  * @param files
  */
-function append_search_result_to_list(files) {
-	try {
-		var cur = window.current_drive_order || 0;
-		var $list = $('#list');
-		// Is it the last page of data?
-		var is_lastpage_loaded = null === $list.data('nextPageToken');
-		// var is_firstpage = '0' == $list.data('curPageIndex');
+// Add the generateShortUrl function
+async function generateShortUrl(directUrl) {
+    try {
+        const response = await fetch(`https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}&alias=CustomAlias&format=json`);
+        const data = await response.json();
+        return data.shortUrl; // Assuming the API returns JSON with a shortUrl field
+    } catch (error) {
+        console.error('Error generating short URL:', error);
+        return directUrl; // Fallback to direct URL if there's an error
+    }
+}
 
-		html = "";
-		var totalsize = 0;
-		var is_file = false;
-		for (i in files) {
-			var item = files[i];
-			if (item['size'] == undefined) {
-				item['size'] = "";
-			}
-			item['createdTime'] = utc2jakarta(item['createdTime']);
-			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="#" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="color: ${UI.folder_text_color};" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel"><span>${folder_icon}</span>${item.name}</a> ${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}<span class="d-flex gap-2">
-				${UI.display_download ? `<a class="d-flex align-items-center" href="#" title="via Index" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
-			} else {
-				var is_file = true;
-				var totalsize = totalsize + Number(item.size || 0);
-				item['size'] = formatFileSize(item['size']) || '—';
-				item['md5Checksum'] = item['md5Checksum'] || '—';
-				var ext = item.fileExtension;
-				var link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
-				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="$item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
+async function append_search_result_to_list(files) {
+    try {
+        var cur = window.current_drive_order || 0;
+        var $list = $('#list');
+        // Is it the last page of data?
+        var is_lastpage_loaded = null === $list.data('nextPageToken');
+        // var is_firstpage = '0' == $list.data('curPageIndex');
 
-				if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
-					html += video_icon
-				} else if ("|html|php|css|go|java|js|json|txt|sh|".indexOf(`|${ext}|`) >= 0) {
-					html += code_icon
-				} else if ("|zip|rar|tar|.7z|.gz|".indexOf(`|${ext}|`) >= 0) {
-					html += zip_icon
-				} else if ("|bmp|jpg|jpeg|png|gif|".indexOf(`|${ext}|`) >= 0) {
-					html += image_icon
-				} else if ("|m4a|mp3|flac|wav|ogg|".indexOf(`|${ext}|`) >= 0) {
-					html += audio_icon
-				} else if ("|md|".indexOf(`|${ext}|`) >= 0) {
-					html += markdown_icon
-				} else if ("|pdf|".indexOf(`|${ext}|`) >= 0) {
-					html += pdf_icon
-				} else if (item.mimeType.startsWith('application/vnd.google-apps.')) {
-					html += `<img src="${item.iconLink}" class="d-flex" style="width: 1.24rem; margin-left: 0.12rem; margin-right: 0.12rem;">`
-				} else {
-					html += file_icon
-				}
+        html = "";
+        var totalsize = 0;
+        var is_file = false;
+        for (i in files) {
+            var item = files[i];
+            if (item['size'] == undefined) {
+                item['size'] = "";
+            }
+            item['createdTime'] = utc2jakarta(item['createdTime']);
+            
+            // Generate short URL for this item
+            const directUrl = `${window.location.origin}/fallback?id=${item.id}${item.mimeType !== 'application/vnd.google-apps.folder' ? '&a=view' : ''}`;
+            const shortUrl = await generateShortUrl(directUrl);
 
-				html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
-				${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
-			}
-		}
-		if (is_file && UI.allow_selecting_files) {
-			document.getElementById('select_items').style.display = 'block';
-		}
-		// When it is page 1, remove the horizontal loading bar
-		$list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
-		// When it is the last page, count and display the total number of items
-		if (is_lastpage_loaded) {
-			total_size = formatFileSize(totalsize) || '0 Bytes';
-			total_items = $list.find('.countitems').length;
-			total_files = $list.find('.size_items').length;
-			if (total_items == 0) {
-				$('#count').removeClass('d-none').find('.number').text("0 item");
-			} else if (total_items == 1) {
-				$('#count').removeClass('d-none').find('.number').text(total_items + " item");
-			} else {
-				$('#count').removeClass('d-none').find('.number').text(total_items + " items");
-			}
-			if (total_files == 0) {
-				$('#count').removeClass('d-none').find('.totalsize').text("0 file");
-			} else if (total_files == 1) {
-				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
-			} else {
-				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
-			}
-		}
-	} catch (e) {
-		console.log(e);
-	}
+            if (item['mimeType'] == 'application/vnd.google-apps.folder') {
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="#" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="color: ${UI.folder_text_color};" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")}, '${shortUrl}')" data-bs-toggle="modal" data-bs-target="#SearchModel"><span>${folder_icon}</span>${item.name}</a> ${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}<span class="d-flex gap-2">
+                ${UI.display_download ? `<a class="d-flex align-items-center" href="#" title="via Index" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")}, '${shortUrl}')" data-bs-toggle="modal" data-bs-target="#SearchModel"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
+            } else {
+                var is_file = true;
+                var totalsize = totalsize + Number(item.size || 0);
+                item['size'] = formatFileSize(item['size']) || '—';
+                item['md5Checksum'] = item['md5Checksum'] || '—';
+                var ext = item.fileExtension;
+                var link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="$item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")}, '${shortUrl}')" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
+
+                if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
+                    html += video_icon
+                } else if ("|html|php|css|go|java|js|json|txt|sh|".indexOf(`|${ext}|`) >= 0) {
+                    html += code_icon
+                } else if ("|zip|rar|tar|.7z|.gz|".indexOf(`|${ext}|`) >= 0) {
+                    html += zip_icon
+                } else if ("|bmp|jpg|jpeg|png|gif|".indexOf(`|${ext}|`) >= 0) {
+                    html += image_icon
+                } else if ("|m4a|mp3|flac|wav|ogg|".indexOf(`|${ext}|`) >= 0) {
+                    html += audio_icon
+                } else if ("|md|".indexOf(`|${ext}|`) >= 0) {
+                    html += markdown_icon
+                } else if ("|pdf|".indexOf(`|${ext}|`) >= 0) {
+                    html += pdf_icon
+                } else if (item.mimeType.startsWith('application/vnd.google-apps.')) {
+                    html += `<img src="${item.iconLink}" class="d-flex" style="width: 1.24rem; margin-left: 0.12rem; margin-right: 0.12rem;">`
+                } else {
+                    html += file_icon
+                }
+
+                html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
+                ${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
+            }
+        }
+        if (is_file && UI.allow_selecting_files) {
+            document.getElementById('select_items').style.display = 'block';
+        }
+        // When it is page 1, remove the horizontal loading bar
+        $list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
+        // When it is the last page, count and display the total number of items
+        if (is_lastpage_loaded) {
+            total_size = formatFileSize(totalsize) || '0 Bytes';
+            total_items = $list.find('.countitems').length;
+            total_files = $list.find('.size_items').length;
+            if (total_items == 0) {
+                $('#count').removeClass('d-none').find('.number').text("0 item");
+            } else if (total_items == 1) {
+                $('#count').removeClass('d-none').find('.number').text(total_items + " item");
+            } else {
+                $('#count').removeClass('d-none').find('.number').text(total_items + " items");
+            }
+            if (total_files == 0) {
+                $('#count').removeClass('d-none').find('.totalsize').text("0 file");
+            } else if (total_files == 1) {
+                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
+            } else {
+                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
+            }
+        }
+    } catch (e) {
+        console.log(e);
+    }
 }
 
 /**
  * Search result item click event
  * @param a_ele Clicked element
  */
-function onSearchResultItemClick(file_id, can_preview, file) {
-	var cur = window.current_drive_order;
-	var title = `Loading...`;
-	$('#SearchModelLabel').html(title);
-	var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
-	var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
-	$('#modal-body-space').html(content);
-	$('#modal-body-space-buttons').html(close_btn);
-	var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
-	var p = {
-		id: file_id
-	};
-	content = `
-	<table class="table table-dark mb-0">
-		<tbody>
-			<tr>
-				<th>
-					<i class="fa-regular fa-folder-closed fa-fw"></i>
-					<span class="tth">Name</span>
-				</th>
-				<td>${file['name']}</td>
-			</tr>
-			<tr>
-				<th>
-					<i class="fa-regular fa-clock fa-fw"></i>
-					<span class="tth">Datetime</span>
-				</th>
-				<td>${file['createdTime']}</td>
-			</tr>
-			<tr>
-				<th>
-					<i class="fa-solid fa-tag fa-fw"></i>
-					<span class="tth">Type</span>
-				</th>
-				<td>${file['mimeType']}</td>
-			</tr>`;
-	if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
-		content += `
-			<tr>
-				<th>
-					<i class="fa-solid fa-box-archive fa-fw"></i>
-					<span class="tth">Size</span>
-				</th>
-				<td>${file['size']}</td>
-			</tr>
-			<tr>
-				<th>
-					<i class="fa-solid fa-file-circle-check fa-fw"></i>
-					<span class="tth">Checksum</span>
-				</th>
-				<td>MD5: <code>${file['md5Checksum']}</code>
-				</td>
-			</tr>`;
-	}
-	content += `
-		</tbody>
-	</table>`;
-	
-	// Create the shortxlinks URL WITHOUT encoding the destination URL
-	const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
-	const shortxlinksUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${directUrl}&alias=CustomAlias`;
-	
-	// Request a path
-	fetch(`/${cur}:id2path`, {
-			method: 'POST',
-			body: JSON.stringify(p),
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
-			}
-		})
-		.then(function(response) {
-			if (response.ok) {
-				return response.json();
-			} else {
-				throw new Error('Request failed.');
-			}
-		})
-		.then(function(obj) {
-			var href = `${obj.path}`;
-			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
-			$('#SearchModelLabel').html(title);
-			
-			btn = `<div class="btn-group">
-				<a href="${shortxlinksUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
-				</div>` + close_btn;
-			
-			$('#modal-body-space').html(content);
-			$('#modal-body-space-buttons').html(btn);
-		})
-		.catch(function(error) {
-			console.log(error);
-			$('#SearchModelLabel').html(title);
-			
-			btn = `<div class="btn-group">
-				<a href="${shortxlinksUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
-				</div>` + close_btn;
-			
-			$('#modal-body-space').html(content);
-			$('#modal-body-space-buttons').html(btn);
-		});
-}
+function onSearchResultItemClick(file_id, can_preview, file, shortUrl) {
+    var cur = window.current_drive_order;
+    var title = `Loading...`;
+    $('#SearchModelLabel').html(title);
+    var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
+    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
+    $('#modal-body-space').html(content);
+    $('#modal-body-space-buttons').html(close_btn);
+    var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
+    var p = {
+        id: file_id
+    };
+    content = `
+    <table class="table table-dark mb-0">
+        <tbody>
+            <tr>
+                <th>
+                    <i class="fa-regular fa-folder-closed fa-fw"></i>
+                    <span class="tth">Name</span>
+                </th>
+                <td>${file['name']}</td>
+            </tr>
+            <tr>
+                <th>
+                    <i class="fa-regular fa-clock fa-fw"></i>
+                    <span class="tth">Datetime</span>
+                </th>
+                <td>${file['createdTime']}</td>
+            </tr>
+            <tr>
+                <th>
+                    <i class="fa-solid fa-tag fa-fw"></i>
+                    <span class="tth">Type</span>
+                </th>
+                <td>${file['mimeType']}</td>
+            </tr>`;
+    if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
+        content += `
+            <tr>
+                <th>
+                    <i class="fa-solid fa-box-archive fa-fw"></i>
+                    <span class="tth">Size</span>
+                </th>
+                <td>${file['size']}</td>
+            </tr>
+            <tr>
+                <th>
+                    <i class="fa-solid fa-file-circle-check fa-fw"></i>
+                    <span class="tth">Checksum</span>
+                </th>
+                <td>MD5: <code>${file['md5Checksum']}</code>
+                </td>
+            </tr>`;
+    }
+    content += `
+        </tbody>
+    </table>`;
+    
+    // Request a path
+    fetch(`/${cur}:id2path`, {
+            method: 'POST',
+            body: JSON.stringify(p),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+        .then(function(response) {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Request failed.');
+            }
+        })
+        .then(function(obj) {
+            var href = `${obj.path}`;
+            var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+            $('#SearchModelLabel').html(title);
+            
+            btn = `<div class="btn-group">
+                <a href="${shortUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
+                </div>` + close_btn;
+            
+            $('#modal-body-space').html(content);
+            $('#modal-body-space-buttons').html(btn);
+        })
+        .catch(function(error) {
+            console.log(error);
+            $('#SearchModelLabel').html(title);
+            
+            btn = `<div class="btn-group">
+                <a href="${shortUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
+                </div>` + close_btn;
+            
+            $('#modal-body-space').html(content);
+            $('#modal-body-space-buttons').html(btn);
+        });
+      }
 
 function get_file(path, file, callback) {
 	var key = "file_path_" + path + file['createdTime'];
