@@ -1228,11 +1228,11 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 		return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
 	}
 	
-	// Function to open in Chrome (with intent for Android or shortxlinks for desktop)
+	// Function to open in Chrome - ALWAYS use shortxlinks URL
 	function getChromeOpenUrl() {
 		if (/Android/i.test(navigator.userAgent)) {
-			// Android intent to open in Chrome
-			return `intent://${directUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+			// Android intent to open shortxlinks URL in Chrome
+			return `intent://${shortxlinksUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
 		} else {
 			// Use shortxlinks URL for desktop
 			return shortxlinksUrl;
@@ -1289,7 +1289,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 	const chromeButtonHtml = `
 		<a href="${getChromeOpenUrl()}" 
 		   class="btn btn-warning d-flex align-items-center gap-2" 
-		   ${isChromeBrowser() ? 'target="_blank"' : 'onclick="alert(\'Please use Chrome browser for best experience\');"'}
+		   target="_blank"
 		   title="Open in Chrome">
 			<img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
 			Open in Chrome
