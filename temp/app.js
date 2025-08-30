@@ -1205,142 +1205,135 @@ function append_search_result_to_list(files) {
  * @param a_ele Clicked element
  */
 function onSearchResultItemClick(file_id, can_preview, file) {
-    var cur = window.current_drive_order;
-    var title = `Loading...`;
-    $('#SearchModelLabel').html(title);
-    var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
-    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
-    $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(close_btn);
-    var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
-    var p = {
-        id: file_id
-    };
-    content = `
-    <table class="table table-dark mb-0">
-        <tbody>
-            <tr>
-                <th>
-                    <i class="fa-regular fa-folder-closed fa-fw"></i>
-                    <span class="tth">Name</span>
-                </th>
-                <td>${file['name']}</td>
-            </tr>
-            <tr>
-                <th>
-                    <i class="fa-regular fa-clock fa-fw"></i>
-                    <span class="tth">Datetime</span>
-                </th>
-                <td>${file['createdTime']}</td>
-            </tr>
-            <tr>
-                <th>
-                    <i class="fa-solid fa-tag fa-fw"></i>
-                    <span class="tth">Type</span>
-                </th>
-                <td>${file['mimeType']}</td>
-            </tr>`;
-    if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
-        content += `
-            <tr>
-                <th>
-                    <i class="fa-solid fa-box-archive fa-fw"></i>
-                    <span class="tth">Size</span>
-                </th>
-                <td>${file['size']}</td>
-            </tr>
-            <tr>
-                <th>
-                    <i class="fa-solid fa-file-circle-check fa-fw"></i>
-                    <span class="tth">Checksum</span>
-                </th>
-                <td>MD5: <code>${file['md5Checksum']}</code>
-                </td>
-            </tr>`;
-    }
-    content += `
-        </tbody>
-    </table>`;
-    
-    // Create the shortxlinks URL WITHOUT encoding the destination URL
-    const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
-    const shortxlinksUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${directUrl}&alias=CustomAlias`;
-    
-    // Browser detection
-    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    
-    // Request a path
-    fetch(`/${cur}:id2path`, {
-            method: 'POST',
-            body: JSON.stringify(p),
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        })
-        .then(function(response) {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('Request failed.');
-            }
-        })
-        .then(function(obj) {
-            var href = `${obj.path}`;
-            var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
-            $('#SearchModelLabel').html(title);
-            
-            let chromeButton = '';
-            if (!isChrome) {
-                chromeButton = `<a href="${shortxlinksUrl}" type="button" class="btn btn-primary" id="chrome-redirect-btn" target="_blank">
-                    <i class="fab fa-chrome fa-fw"></i> Open in Chrome
-                </a>`;
-            }
-            
-            btn = `<div class="btn-group">
-                ${chromeButton}
-                <a href="${shortxlinksUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
-                </div>` + close_btn;
-            
-            $('#modal-body-space').html(content);
-            $('#modal-body-space-buttons').html(btn);
-            
-            // Add event listener for Chrome redirect button
-            if (!isChrome) {
-                $('#chrome-redirect-btn').on('click', function(e) {
-                    e.preventDefault();
-                    alert('For the best experience, please open this link in Google Chrome browser.');
-                    window.open(shortxlinksUrl, '_blank');
-                });
-            }
-        })
-        .catch(function(error) {
-            console.log(error);
-            $('#SearchModelLabel').html(title);
-            
-            let chromeButton = '';
-            if (!isChrome) {
-                chromeButton = `<a href="${shortxlinksUrl}" type="button" class="btn btn-primary" id="chrome-redirect-btn" target="_blank">
-                    <i class="fab fa-chrome fa-fw"></i> Open in Chrome
-                </a>`;
-            }
-            
-            btn = `<div class="btn-group">
-                ${chromeButton}
-                <a href="${shortxlinksUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>ShortXLink</a>
-                </div>` + close_btn;
-            
-            $('#modal-body-space').html(content);
-            $('#modal-body-space-buttons').html(btn);
-            
-            // Add event listener for Chrome redirect button
-            if (!isChrome) {
-                $('#chrome-redirect-btn').on('click', function(e) {
-                    e.preventDefault();
-                    alert('For the best experience, please open this link in Google Chrome browser.');
-                    window.open(shortxlinksUrl, '_blank');
-                });
-            }
-        });
+	var cur = window.current_drive_order;
+	var title = `Loading...`;
+	$('#SearchModelLabel').html(title);
+	var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
+	var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
+	$('#modal-body-space').html(content);
+	$('#modal-body-space-buttons').html(close_btn);
+	var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
+	var p = {
+		id: file_id
+	};
+	
+	// Create the direct URL
+	const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+	
+	// Function to check if browser is Chrome
+	function isChromeBrowser() {
+		return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+	}
+	
+	// Function to open in Chrome (with intent for Android or regular link for desktop)
+	function getChromeOpenUrl() {
+		if (/Android/i.test(navigator.userAgent)) {
+			// Android intent to open in Chrome
+			return `intent://${directUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+		} else {
+			// Regular URL for desktop
+			return directUrl;
+		}
+	}
+	
+	content = `
+	<table class="table table-dark mb-0">
+		<tbody>
+			<tr>
+				<th>
+					<i class="fa-regular fa-folder-closed fa-fw"></i>
+					<span class="tth">Name</span>
+				</th>
+				<td>${file['name']}</td>
+			</tr>
+			<tr>
+				<th>
+					<i class="fa-regular fa-clock fa-fw"></i>
+					<span class="tth">Datetime</span>
+				</th>
+				<td>${file['createdTime']}</td>
+			</tr>
+			<tr>
+				<th>
+					<i class="fa-solid fa-tag fa-fw"></i>
+					<span class="tth">Type</span>
+				</th>
+				<td>${file['mimeType']}</td>
+			</tr>`;
+	if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
+		content += `
+			<tr>
+				<th>
+					<i class="fa-solid fa-box-archive fa-fw"></i>
+					<span class="tth">Size</span>
+				</th>
+				<td>${file['size']}</td>
+			</tr>
+			<tr>
+				<th>
+					<i class="fa-solid fa-file-circle-check fa-fw"></i>
+					<span class="tth">Checksum</span>
+				</th>
+				<td>MD5: <code>${file['md5Checksum']}</code>
+				</td>
+			</tr>`;
+	}
+	content += `
+		</tbody>
+	</table>`;
+	
+	// Create Chrome button HTML
+	const chromeButtonHtml = `
+		<a href="${getChromeOpenUrl()}" 
+		   class="btn btn-warning d-flex align-items-center gap-2" 
+		   ${isChromeBrowser() ? 'target="_blank"' : 'onclick="alert(\'Please use Chrome browser for best experience\');"'}
+		   title="Open in Chrome">
+			<img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
+			Open in Chrome
+		</a>`;
+	
+	// Request a path
+	fetch(`/${cur}:id2path`, {
+			method: 'POST',
+			body: JSON.stringify(p),
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			}
+		})
+		.then(function(response) {
+			if (response.ok) {
+				return response.json();
+			} else {
+				throw new Error('Request failed.');
+			}
+		})
+		.then(function(obj) {
+			var href = `${obj.path}`;
+			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+			$('#SearchModelLabel').html(title);
+			
+			// Add Chrome button to the button group
+			btn = `<div class="btn-group">
+				${chromeButtonHtml}
+				<a href="${directUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Open</a>
+				</div>` + close_btn;
+			
+			$('#modal-body-space').html(content);
+			$('#modal-body-space-buttons').html(btn);
+		})
+		.catch(function(error) {
+			console.log(error);
+			$('#SearchModelLabel').html(title);
+			
+			// Add Chrome button to the button group even if path request fails
+			btn = `<div class="btn-group">
+				${chromeButtonHtml}
+				<a href="${directUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Open</a>
+				</div>` + close_btn;
+			
+			$('#modal-body-space').html(content);
+			$('#modal-body-space-buttons').html(btn);
+		});
 }
 
 function get_file(path, file, callback) {
