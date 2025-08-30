@@ -1220,6 +1220,9 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 	// Create the direct URL
 	const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
 	
+	// Create the ShortXLinks URL
+	const shortxlinksUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}&alias=CustomAlias`;
+	
 	// Function to check if browser is Chrome
 	function isChromeBrowser() {
 		return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
@@ -1292,6 +1295,16 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			Open in Chrome
 		</a>`;
 	
+	// Create ShortXLinks button HTML
+	const shortxlinksButtonHtml = `
+		<a href="${shortxlinksUrl}" 
+		   class="btn btn-info d-flex align-items-center gap-2" 
+		   target="_blank"
+		   title="Get ShortXLink">
+			<i class="fas fa-link fa-fw"></i>
+			ShortXLink
+		</a>`;
+	
 	// Request a path
 	fetch(`/${cur}:id2path`, {
 			method: 'POST',
@@ -1312,10 +1325,10 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
 			$('#SearchModelLabel').html(title);
 			
-			// Add Chrome button to the button group
+			// Add Chrome and ShortXLinks buttons to the button group (removed the green Open button)
 			btn = `<div class="btn-group">
 				${chromeButtonHtml}
-				<a href="${directUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Open</a>
+				${shortxlinksButtonHtml}
 				</div>` + close_btn;
 			
 			$('#modal-body-space').html(content);
@@ -1325,10 +1338,10 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			console.log(error);
 			$('#SearchModelLabel').html(title);
 			
-			// Add Chrome button to the button group even if path request fails
+			// Add Chrome and ShortXLinks buttons to the button group even if path request fails
 			btn = `<div class="btn-group">
 				${chromeButtonHtml}
-				<a href="${directUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-external-link-alt fa-fw"></i>Open</a>
+				${shortxlinksButtonHtml}
 				</div>` + close_btn;
 			
 			$('#modal-body-space').html(content);
