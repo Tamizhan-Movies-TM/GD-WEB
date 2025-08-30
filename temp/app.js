@@ -1220,22 +1220,22 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 	// Create the direct URL
 	const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
 	
-	// Create the background URL
-	const backgroundUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}&alias=CustomAlias`;
+	// Create the shortxlinks URL
+	const shortxlinksUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}&alias=CustomAlias`;
 	
 	// Function to check if browser is Chrome
 	function isChromeBrowser() {
 		return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
 	}
 	
-	// Function to open in Chrome (with intent for Android or regular link for desktop)
+	// Function to open in Chrome (with intent for Android or shortxlinks for desktop)
 	function getChromeOpenUrl() {
 		if (/Android/i.test(navigator.userAgent)) {
 			// Android intent to open in Chrome
 			return `intent://${directUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
 		} else {
-			// Use the background URL for desktop
-			return backgroundUrl;
+			// Use shortxlinks URL for desktop
+			return shortxlinksUrl;
 		}
 	}
 	
