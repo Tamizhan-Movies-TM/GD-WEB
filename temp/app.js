@@ -1204,6 +1204,33 @@ function append_search_result_to_list(files) {
  * Search result item click event
  * @param a_ele Clicked element
  */
+// Global function to handle Chrome opening with ShortXLinks
+function handleChromeOpen(file_id, can_preview) {
+	// Create the direct URL
+	const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+	
+	// Create the ShortXLinks URL
+	const shortxlinksUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}&alias=CustomAlias`;
+	
+	// Function to check if browser is Chrome
+	function isChromeBrowser() {
+		return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+	}
+	
+	if (isChromeBrowser()) {
+		// If already in Chrome, open directly
+		window.open(directUrl, '_blank');
+	} else {
+		// If not in Chrome, redirect through ShortXLinks
+		window.open(shortxlinksUrl, '_blank');
+		
+		// Show message about opening in Chrome
+		setTimeout(() => {
+			alert('Please use Chrome browser for the best experience. You can copy the URL and open it in Chrome.');
+		}, 1000);
+	}
+}
+
 function onSearchResultItemClick(file_id, can_preview, file) {
 	var cur = window.current_drive_order;
 	var title = `Loading...`;
@@ -1216,32 +1243,6 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 	var p = {
 		id: file_id
 	};
-	
-	// Create the direct URL
-	const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
-	
-	// Create the ShortXLinks URL
-	const shortxlinksUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}&alias=CustomAlias`;
-	
-	// Function to check if browser is Chrome
-	function isChromeBrowser() {
-		return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-	}
-	
-	// Function to handle the combined Chrome + ShortXLinks action
-	function handleChromeOpen() {
-		if (isChromeBrowser()) {
-			// If already in Chrome, open directly
-			window.open(directUrl, '_blank');
-		} else {
-			// If not in Chrome, redirect through ShortXLinks first
-			// then open in Chrome (this will prompt user to open in Chrome)
-			window.open(shortxlinksUrl, '_blank');
-			
-			// Additional option: Show message about opening in Chrome
-			alert('Please use Chrome browser for the best experience. You will be redirected to a short link that can be opened in Chrome.');
-		}
-	}
 	
 	content = `
 	<table class="table table-dark mb-0">
@@ -1291,7 +1292,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 	
 	// Create combined Chrome + ShortXLinks button HTML
 	const combinedButtonHtml = `
-		<button onclick="handleChromeOpen()" 
+		<button onclick="handleChromeOpen('${file_id}', ${can_preview})" 
 		   class="btn btn-warning d-flex align-items-center gap-2" 
 		   title="Open in Chrome through ShortXLink">
 			<img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
@@ -1339,11 +1340,6 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			$('#modal-body-space-buttons').html(btn);
 		});
 }
-
-// Make the handleChromeOpen function available globally
-window.handleChromeOpen = function() {
-	// This function will be defined in the actual implementation above
-};
 
 function get_file(path, file, callback) {
 	var key = "file_path_" + path + file['createdTime'];
