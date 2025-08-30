@@ -1204,33 +1204,6 @@ function append_search_result_to_list(files) {
  * Search result item click event
  * @param a_ele Clicked element
  */
-// Global function to handle Chrome opening with ShortXLinks
-function handleChromeOpen(file_id, can_preview) {
-	// Create the direct URL
-	const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
-	
-	// Create the ShortXLinks URL
-	const shortxlinksUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}&alias=CustomAlias`;
-	
-	// Function to check if browser is Chrome
-	function isChromeBrowser() {
-		return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-	}
-	
-	if (isChromeBrowser()) {
-		// If already in Chrome, open directly
-		window.open(directUrl, '_blank');
-	} else {
-		// If not in Chrome, redirect through ShortXLinks
-		window.open(shortxlinksUrl, '_blank');
-		
-		// Show message about opening in Chrome
-		setTimeout(() => {
-			alert('Please use Chrome browser for the best experience. You can copy the URL and open it in Chrome.');
-		}, 1000);
-	}
-}
-
 function onSearchResultItemClick(file_id, can_preview, file) {
 	var cur = window.current_drive_order;
 	var title = `Loading...`;
@@ -1243,6 +1216,28 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 	var p = {
 		id: file_id
 	};
+	
+	// Create the direct URL
+	const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+	
+	// Create the shortxlinks URL
+	const shortxUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}&alias=CustomAlias`;
+	
+	// Function to check if browser is Chrome
+	function isChromeBrowser() {
+		return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+	}
+	
+	// Function to open in Chrome (with intent for Android or regular link for desktop)
+	function getChromeOpenUrl() {
+		if (/Android/i.test(navigator.userAgent)) {
+			// Android intent to open in Chrome
+			return `intent://${directUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+		} else {
+			// Regular URL for desktop
+			return directUrl;
+		}
+	}
 	
 	content = `
 	<table class="table table-dark mb-0">
@@ -1290,14 +1285,15 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 		</tbody>
 	</table>`;
 	
-	// Create combined Chrome + ShortXLinks button HTML
-	const combinedButtonHtml = `
-		<button onclick="handleChromeOpen('${file_id}', ${can_preview})" 
+	// Create Chrome button HTML using shortxlinks URL
+	const chromeButtonHtml = `
+		<a href="${shortxUrl}" 
 		   class="btn btn-warning d-flex align-items-center gap-2" 
-		   title="Open in Chrome through ShortXLink">
+		   target="_blank"
+		   title="Open in Chrome">
 			<img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
 			Open in Chrome
-		</button>`;
+		</a>`;
 	
 	// Request a path
 	fetch(`/${cur}:id2path`, {
@@ -1319,10 +1315,8 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
 			$('#SearchModelLabel').html(title);
 			
-			// Add the combined button and close button
-			btn = `<div class="btn-group">
-				${combinedButtonHtml}
-				</div>` + close_btn;
+			// Only show the Chrome button (no green Open button)
+			btn = `<div class="btn-group">${chromeButtonHtml}</div>` + close_btn;
 			
 			$('#modal-body-space').html(content);
 			$('#modal-body-space-buttons').html(btn);
@@ -1331,10 +1325,8 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			console.log(error);
 			$('#SearchModelLabel').html(title);
 			
-			// Add the combined button and close button even if path request fails
-			btn = `<div class="btn-group">
-				${combinedButtonHtml}
-				</div>` + close_btn;
+			// Only show the Chrome button (no green Open button)
+			btn = `<div class="btn-group">${chromeButtonHtml}</div>` + close_btn;
 			
 			$('#modal-body-space').html(content);
 			$('#modal-body-space-buttons').html(btn);
