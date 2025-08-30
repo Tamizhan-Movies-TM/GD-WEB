@@ -1228,14 +1228,18 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 		return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
 	}
 	
-	// Function to open in Chrome (with intent for Android or regular link for desktop)
-	function getChromeOpenUrl() {
-		if (/Android/i.test(navigator.userAgent)) {
-			// Android intent to open in Chrome
-			return `intent://${directUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+	// Function to handle the combined Chrome + ShortXLinks action
+	function handleChromeOpen() {
+		if (isChromeBrowser()) {
+			// If already in Chrome, open directly
+			window.open(directUrl, '_blank');
 		} else {
-			// Regular URL for desktop
-			return directUrl;
+			// If not in Chrome, redirect through ShortXLinks first
+			// then open in Chrome (this will prompt user to open in Chrome)
+			window.open(shortxlinksUrl, '_blank');
+			
+			// Additional option: Show message about opening in Chrome
+			alert('Please use Chrome browser for the best experience. You will be redirected to a short link that can be opened in Chrome.');
 		}
 	}
 	
@@ -1285,25 +1289,14 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 		</tbody>
 	</table>`;
 	
-	// Create Chrome button HTML
-	const chromeButtonHtml = `
-		<a href="${getChromeOpenUrl()}" 
+	// Create combined Chrome + ShortXLinks button HTML
+	const combinedButtonHtml = `
+		<button onclick="handleChromeOpen()" 
 		   class="btn btn-warning d-flex align-items-center gap-2" 
-		   ${isChromeBrowser() ? 'target="_blank"' : 'onclick="alert(\'Please use Chrome browser for best experience\');"'}
-		   title="Open in Chrome">
+		   title="Open in Chrome through ShortXLink">
 			<img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
 			Open in Chrome
-		</a>`;
-	
-	// Create ShortXLinks button HTML
-	const shortxlinksButtonHtml = `
-		<a href="${shortxlinksUrl}" 
-		   class="btn btn-info d-flex align-items-center gap-2" 
-		   target="_blank"
-		   title="Get ShortXLink">
-			<i class="fas fa-link fa-fw"></i>
-			ShortXLink
-		</a>`;
+		</button>`;
 	
 	// Request a path
 	fetch(`/${cur}:id2path`, {
@@ -1325,10 +1318,9 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
 			$('#SearchModelLabel').html(title);
 			
-			// Add Chrome and ShortXLinks buttons to the button group (removed the green Open button)
+			// Add the combined button and close button
 			btn = `<div class="btn-group">
-				${chromeButtonHtml}
-				${shortxlinksButtonHtml}
+				${combinedButtonHtml}
 				</div>` + close_btn;
 			
 			$('#modal-body-space').html(content);
@@ -1338,16 +1330,20 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			console.log(error);
 			$('#SearchModelLabel').html(title);
 			
-			// Add Chrome and ShortXLinks buttons to the button group even if path request fails
+			// Add the combined button and close button even if path request fails
 			btn = `<div class="btn-group">
-				${chromeButtonHtml}
-				${shortxlinksButtonHtml}
+				${combinedButtonHtml}
 				</div>` + close_btn;
 			
 			$('#modal-body-space').html(content);
 			$('#modal-body-space-buttons').html(btn);
 		});
 }
+
+// Make the handleChromeOpen function available globally
+window.handleChromeOpen = function() {
+	// This function will be defined in the actual implementation above
+};
 
 function get_file(path, file, callback) {
 	var key = "file_path_" + path + file['createdTime'];
