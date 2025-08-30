@@ -306,7 +306,7 @@ function nav(path) {
 <form class="d-flex" method="get" action="/${cur}:search">
 <div class="input-group">
 	<input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${search_text}" style="border-right:0;" required>
-	<button class="btn ${UI.search_button_class}" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;"><i class="fas fa-search" style="margin: 0"></i></button>
+	<button class="btn ${UI.search_button_class}" onclick="if($('#search_bar_form>input').val()) $('#search_bar_form').submit();" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;"><i class="fas fa-search" style="margin: 0"></i></button>
 </div>
 </form>
 </div>
@@ -420,19 +420,6 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
  * @param resultCallback Success callback
  */
 function requestSearch(params, resultCallback, retries = 3) {
-	// Build query string from params
-	var queryString = Object.keys(params)
-		.filter(key => params[key] !== null)
-		.map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]))
-		.join('&');
-
-	function performRequest(retries) {
-		fetch(`/${window.current_drive_order}:search?${queryString}`, {
-				method: 'GET', // Changed from POST to GET
-				headers: {
-					'Accept': 'application/json'
-				}
-			})
 	var p = {
 		q: params['q'] || null,
 		page_token: params['page_token'] || null,
@@ -985,10 +972,6 @@ function append_files_to_list(path, files) {
  */
 function render_search_result_list() {
 	var model = window.MODEL;
-	// Get search query from URL parameters
-	var urlParams = new URLSearchParams(window.location.search);
-	var searchQuery = urlParams.get('q') || model.q;
-	model.q = searchQuery;
 	var content = `
   	<div id="update"></div>
 	<div class="container" id="select_items" style="padding: 0px 50px 10px; display:none;">
