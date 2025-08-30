@@ -1220,8 +1220,8 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 	// Create the direct URL
 	const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
 	
-	// Create the shortxlinks URL
-	const shortxUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}&alias=CustomAlias`;
+	// Create the background URL
+	const backgroundUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}&alias=CustomAlias`;
 	
 	// Function to check if browser is Chrome
 	function isChromeBrowser() {
@@ -1234,8 +1234,8 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			// Android intent to open in Chrome
 			return `intent://${directUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
 		} else {
-			// Regular URL for desktop
-			return directUrl;
+			// Use the background URL for desktop
+			return backgroundUrl;
 		}
 	}
 	
@@ -1285,11 +1285,11 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 		</tbody>
 	</table>`;
 	
-	// Create Chrome button HTML using shortxlinks URL
+	// Create Chrome button HTML
 	const chromeButtonHtml = `
-		<a href="${shortxUrl}" 
+		<a href="${getChromeOpenUrl()}" 
 		   class="btn btn-warning d-flex align-items-center gap-2" 
-		   target="_blank"
+		   ${isChromeBrowser() ? 'target="_blank"' : 'onclick="alert(\'Please use Chrome browser for best experience\');"'}
 		   title="Open in Chrome">
 			<img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
 			Open in Chrome
@@ -1315,8 +1315,8 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
 			$('#SearchModelLabel').html(title);
 			
-			// Only show the Chrome button (no green Open button)
-			btn = `<div class="btn-group">${chromeButtonHtml}</div>` + close_btn;
+			// Only show Chrome button (removed the green open button)
+			btn = chromeButtonHtml + close_btn;
 			
 			$('#modal-body-space').html(content);
 			$('#modal-body-space-buttons').html(btn);
@@ -1325,8 +1325,8 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			console.log(error);
 			$('#SearchModelLabel').html(title);
 			
-			// Only show the Chrome button (no green Open button)
-			btn = `<div class="btn-group">${chromeButtonHtml}</div>` + close_btn;
+			// Only show Chrome button (removed the green open button)
+			btn = chromeButtonHtml + close_btn;
 			
 			$('#modal-body-space').html(content);
 			$('#modal-body-space-buttons').html(btn);
