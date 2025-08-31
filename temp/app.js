@@ -1266,7 +1266,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     try {
         // Make API call to get shortened URL
         // Using the API endpoint format from shortxlinks documentation
-        const shortxlinksApiUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${directUrl}&alias=CustomAlias`;
+        const shortxlinksApiUrl = `https://shortxlinks.com/api?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}&alias=CustomAlias`;
         
         const response = await fetch(shortxlinksApiUrl);
         const data = await response.json();
