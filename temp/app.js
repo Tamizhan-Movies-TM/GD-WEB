@@ -1346,7 +1346,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                target="_blank"
                title="Open in Chrome">
                 <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-                Open in Chrome (${shortUrl.split('/').pop()})
+                Open in Chrome 
             </a>`;
         
         // Request a path
