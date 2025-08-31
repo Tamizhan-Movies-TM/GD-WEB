@@ -1220,151 +1220,143 @@ function onSearchResultItemClick(file_id, can_preview, file) {
     // Create the direct URL
     const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
     
-    // Function to create short URL
-    async function createShortUrl(longUrl) {
-        try {
-            const response = await fetch('https://shortxlinks.com/api?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    url: longUrl,
-                    alias: 'CustomAlias' // You can customize this or leave empty for auto-generated
-                })
-            });
-            
-            const data = await response.json();
-            if (data.status === 'success') {
-                return data.shortenedUrl; // This should be something like "https://shortxlinks.com/rN8FdgS3"
-            } else {
-                console.error('Shortening failed:', data.message);
-                return longUrl; // Fallback to original URL
-            }
-        } catch (error) {
-            console.error('Error creating short URL:', error);
-            return longUrl; // Fallback to original URL
-        }
-    }
-    
-    // Function to check if browser is Chrome
-    function isChromeBrowser() {
-        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    }
-    
-    // Function to get Chrome open URL (using the shortened URL)
-    async function getChromeOpenUrl() {
-        const shortUrl = await createShortUrl(directUrl);
-        
-        if (/Android/i.test(navigator.userAgent)) {
-            // Android intent to open short URL in Chrome
-            return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
-        } else {
-            // Use short URL for desktop
-            return shortUrl;
-        }
-    }
-    
-    content = `
-    <table class="table table-dark mb-0">
-        <tbody>
-            <tr>
-                <th>
-                    <i class="fa-regular fa-folder-closed fa-fw"></i>
-                    <span class="tth">Name</span>
-                </th>
-                <td>${file['name']}</td>
-            </tr>
-            <tr>
-                <th>
-                    <i class="fa-regular fa-clock fa-fw"></i>
-                    <span class="tth">Datetime</span>
-                </th>
-                <td>${file['createdTime']}</td>
-            </tr>
-            <tr>
-                <th>
-                    <i class="fa-solid fa-tag fa-fw"></i>
-                    <span class="tth">Type</span>
-                </th>
-                <td>${file['mimeType']}</td>
-            </tr>`;
-    if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
-        content += `
-            <tr>
-                <th>
-                    <i class="fa-solid fa-box-archive fa-fw"></i>
-                    <span class="tth">Size</span>
-                </th>
-                <td>${file['size']}</td>
-            </tr>
-            <tr>
-                <th>
-                    <i class="fa-solid fa-file-circle-check fa-fw"></i>
-                    <span class="tth">Checksum</span>
-                </th>
-                <td>MD5: <code>${file['md5Checksum']}</code>
-                </td>
-            </tr>`;
-    }
-    content += `
-        </tbody>
-    </table>`;
-    
-    // Create Chrome button HTML (will be updated with actual short URL)
-    let chromeButtonHtml = `
-        <a href="#" 
-           class="btn btn-warning d-flex align-items-center gap-2" 
-           target="_blank"
-           title="Open in Chrome"
-           id="chrome-open-btn">
-            <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            Open in Chrome
-        </a>`;
-    
-    // Request a path
-    fetch(`/${cur}:id2path`, {
-            method: 'POST',
-            body: JSON.stringify(p),
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        })
-        .then(function(response) {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('Request failed.');
-            }
-        })
-        .then(async function(obj) {
-            var href = `${obj.path}`;
-            var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
-            $('#SearchModelLabel').html(title);
-            
-            // Get the shortened URL and update the button
-            const chromeOpenUrl = await getChromeOpenUrl();
-            $('#chrome-open-btn').attr('href', chromeOpenUrl);
-            
-            btn = chromeButtonHtml + close_btn;
-            
-            $('#modal-body-space').html(content);
-            $('#modal-body-space-buttons').html(btn);
-        })
-        .catch(async function(error) {
-            console.log(error);
-            $('#SearchModelLabel').html(title);
-            
-            // Get the shortened URL and update the button even if path request fails
-            const chromeOpenUrl = await getChromeOpenUrl();
-            $('#chrome-open-btn').attr('href', chromeOpenUrl);
-            
-            btn = chromeButtonHtml + close_btn;
-            
-            $('#modal-body-space').html(content);
-            $('#modal-body-space-buttons').html(btn);
+    // Function to generate short URL
+    function generateShortUrl(longUrl, callback) {
+        const apiUrl = 'https://shortxlinks.com/st';
+        const params = new URLSearchParams({
+            api: 'c71342bc5deab6b9a408d2501968365c6cb7ffe0',
+            url: longUrl,
+            format: 'json'
         });
-      }
+
+        fetch(`${apiUrl}?${params}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success' && data.shortenedUrl) {
+                    callback(data.shortenedUrl);
+                } else {
+                    // Fallback to direct URL if shortening fails
+                    callback(longUrl);
+                }
+            })
+            .catch(error => {
+                console.error('Error shortening URL:', error);
+                callback(longUrl); // Fallback to direct URL
+            });
+    }
+
+    // Generate short URL
+    generateShortUrl(directUrl, function(shortUrl) {
+        // Function to check if browser is Chrome
+        function isChromeBrowser() {
+            return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+        }
+        
+        // Function to open in Chrome - use the shortened URL
+        function getChromeOpenUrl() {
+            if (/Android/i.test(navigator.userAgent)) {
+                // Android intent to open short URL in Chrome
+                return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+            } else {
+                // Use short URL for desktop
+                return shortUrl;
+            }
+        }
+        
+        content = `
+        <table class="table table-dark mb-0">
+            <tbody>
+                <tr>
+                    <th>
+                        <i class="fa-regular fa-folder-closed fa-fw"></i>
+                        <span class="tth">Name</span>
+                    </th>
+                    <td>${file['name']}</td>
+                </tr>
+                <tr>
+                    <th>
+                        <i class="fa-regular fa-clock fa-fw"></i>
+                        <span class="tth">Datetime</span>
+                    </th>
+                    <td>${file['createdTime']}</td>
+                </tr>
+                <tr>
+                    <th>
+                        <i class="fa-solid fa-tag fa-fw"></i>
+                        <span class="tth">Type</span>
+                    </th>
+                    <td>${file['mimeType']}</td>
+                </tr>`;
+        if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
+            content += `
+                <tr>
+                    <th>
+                        <i class="fa-solid fa-box-archive fa-fw"></i>
+                        <span class="tth">Size</span>
+                    </th>
+                    <td>${file['size']}</td>
+                </tr>
+                <tr>
+                    <th>
+                        <i class="fa-solid fa-file-circle-check fa-fw"></i>
+                        <span class="tth">Checksum</span>
+                    </th>
+                    <td>MD5: <code>${file['md5Checksum']}</code>
+                    </td>
+                </tr>`;
+        }
+        content += `
+            </tbody>
+        </table>`;
+        
+        // Create Chrome button HTML with shortened URL
+        const chromeButtonHtml = `
+            <a href="${getChromeOpenUrl()}" 
+               class="btn btn-warning d-flex align-items-center gap-2" 
+               target="_blank"
+               title="Open in Chrome">
+                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
+                Open in Chrome
+            </a>`;
+        
+        // Request a path
+        fetch(`/${cur}:id2path`, {
+                method: 'POST',
+                body: JSON.stringify(p),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            })
+            .then(function(response) {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Request failed.');
+                }
+            })
+            .then(function(obj) {
+                var href = `${obj.path}`;
+                var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+                $('#SearchModelLabel').html(title);
+                
+                // Show Chrome button with shortened URL
+                btn = chromeButtonHtml + close_btn;
+                
+                $('#modal-body-space').html(content);
+                $('#modal-body-space-buttons').html(btn);
+            })
+            .catch(function(error) {
+                console.log(error);
+                $('#SearchModelLabel').html(title);
+                
+                // Show Chrome button with shortened URL (fallback)
+                btn = chromeButtonHtml + close_btn;
+                
+                $('#modal-body-space').html(content);
+                $('#modal-body-space-buttons').html(btn);
+            });
+    });
+}
 
 function get_file(path, file, callback) {
 	var key = "file_path_" + path + file['createdTime'];
