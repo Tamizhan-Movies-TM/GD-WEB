@@ -1222,27 +1222,36 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     
     try {
         // Make API call to get shortened URL
+        // Using the API endpoint format from shortxlinks documentation
         const shortxlinksApiUrl = `https://shortxlinks.com/api?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}`;
         
         const response = await fetch(shortxlinksApiUrl);
         const data = await response.json();
         
         // Extract the short URL from the response
-        // Adjust this based on the actual API response structure
-        const shortUrl = data.shortUrl || `https://shortxlinks.com/${data.code}`;
+        // Based on shortxlinks API documentation, the response should contain a shortened URL
+        let shortUrl;
+        if (data.status === "success" && data.shortenedUrl) {
+            shortUrl = data.shortenedUrl;
+        } else if (data.shorturl) {
+            shortUrl = data.shorturl;
+        } else {
+            // Fallback if the API response format is unexpected
+            throw new Error("Unexpected API response format");
+        }
         
         // Function to check if browser is Chrome
         function isChromeBrowser() {
             return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
         }
         
-        // Function to open in Chrome - ALWAYS use shortxlinks URL
+        // Function to open in Chrome - use the shortened URL
         function getChromeOpenUrl() {
             if (/Android/i.test(navigator.userAgent)) {
-                // Android intent to open shortxlinks URL in Chrome
+                // Android intent to open short URL in Chrome
                 return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
             } else {
-                // Use shortxlinks URL for desktop
+                // Use short URL for desktop
                 return shortUrl;
             }
         }
@@ -1293,7 +1302,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                target="_blank"
                title="Open in Chrome">
                 <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-                Open in Chrome
+                Open in Chrome (${shortUrl.split('/').pop()})
             </a>`;
         
         // Request a path
@@ -1336,6 +1345,24 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         console.error('Error generating short URL:', error);
         // Fallback to the direct URL if the API call fails
         const shortUrl = directUrl;
+        
+        // Create Chrome button HTML with fallback URL
+        const chromeButtonHtml = `
+            <a href="${directUrl}" 
+               class="btn btn-primary d-flex align-items-center gap-2" 
+               target="_blank"
+               title="Open in Chrome">
+                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
+                Open in Chrome (Direct Link)
+            </a>`;
+            
+        // Show error message but still allow the user to proceed
+        content += `<div class="alert alert-warning mt-3">Could not generate short URL: ${error.message}. Using direct link instead.</div>`;
+        
+        $('#SearchModelLabel').html(title);
+        btn = chromeButtonHtml + close_btn;
+        $('#modal-body-space').html(content);
+        $('#modal-body-space-buttons').html(btn);
     }
 }
 
