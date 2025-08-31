@@ -1170,45 +1170,48 @@ function append_search_result_to_list(files) {
 		var is_file = false;
 		for (i in files) {
 			var item = files[i];
+			
+			// Skip folders in search results
+			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
+				continue; // This will skip the rest of the loop for this item
+			}
+			
 			if (item['size'] == undefined) {
 				item['size'] = "";
 			}
 			item['createdTime'] = utc2jakarta(item['createdTime']);
-			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="#" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="color: ${UI.folder_text_color};" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel"><span>${folder_icon}</span>${item.name}</a> ${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}<span class="d-flex gap-2">
-				${UI.display_download ? `<a class="d-flex align-items-center" href="#" title="via Index" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
+			
+			// Only process files (folders are skipped above)
+			var is_file = true;
+			var totalsize = totalsize + Number(item.size || 0);
+			item['size'] = formatFileSize(item['size']) || '—';
+			item['md5Checksum'] = item['md5Checksum'] || '—';
+			var ext = item.fileExtension;
+			var link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="$item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
+
+			if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
+				html += video_icon
+			} else if ("|html|php|css|go|java|js|json|txt|sh|".indexOf(`|${ext}|`) >= 0) {
+				html += code_icon
+			} else if ("|zip|rar|tar|.7z|.gz|".indexOf(`|${ext}|`) >= 0) {
+				html += zip_icon
+			} else if ("|bmp|jpg|jpeg|png|gif|".indexOf(`|${ext}|`) >= 0) {
+				html += image_icon
+			} else if ("|m4a|mp3|flac|wav|ogg|".indexOf(`|${ext}|`) >= 0) {
+				html += audio_icon
+			} else if ("|md|".indexOf(`|${ext}|`) >= 0) {
+				html += markdown_icon
+			} else if ("|pdf|".indexOf(`|${ext}|`) >= 0) {
+				html += pdf_icon
+			} else if (item.mimeType.startsWith('application/vnd.google-apps.')) {
+				html += `<img src="${item.iconLink}" class="d-flex" style="width: 1.24rem; margin-left: 0.12rem; margin-right: 0.12rem;">`
 			} else {
-				var is_file = true;
-				var totalsize = totalsize + Number(item.size || 0);
-				item['size'] = formatFileSize(item['size']) || '—';
-				item['md5Checksum'] = item['md5Checksum'] || '—';
-				var ext = item.fileExtension;
-				var link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
-				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="$item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
-
-				if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
-					html += video_icon
-				} else if ("|html|php|css|go|java|js|json|txt|sh|".indexOf(`|${ext}|`) >= 0) {
-					html += code_icon
-				} else if ("|zip|rar|tar|.7z|.gz|".indexOf(`|${ext}|`) >= 0) {
-					html += zip_icon
-				} else if ("|bmp|jpg|jpeg|png|gif|".indexOf(`|${ext}|`) >= 0) {
-					html += image_icon
-				} else if ("|m4a|mp3|flac|wav|ogg|".indexOf(`|${ext}|`) >= 0) {
-					html += audio_icon
-				} else if ("|md|".indexOf(`|${ext}|`) >= 0) {
-					html += markdown_icon
-				} else if ("|pdf|".indexOf(`|${ext}|`) >= 0) {
-					html += pdf_icon
-				} else if (item.mimeType.startsWith('application/vnd.google-apps.')) {
-					html += `<img src="${item.iconLink}" class="d-flex" style="width: 1.24rem; margin-left: 0.12rem; margin-right: 0.12rem;">`
-				} else {
-					html += file_icon
-				}
-
-				html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
-				${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
+				html += file_icon
 			}
+
+			html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
+			${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
 		}
 		if (is_file && UI.allow_selecting_files) {
 			document.getElementById('select_items').style.display = 'block';
@@ -1256,6 +1259,29 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 	var p = {
 		id: file_id
 	};
+	
+	// Create the direct URL
+	const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+	
+	// Create the shortxlinks URL
+	const shortxlinksUrl = `https://shortxlinks.com/st?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}&alias=CustomAlias`;
+	
+	// Function to check if browser is Chrome
+	function isChromeBrowser() {
+		return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+	}
+	
+	// Function to open in Chrome - ALWAYS use shortxlinks URL
+	function getChromeOpenUrl() {
+		if (/Android/i.test(navigator.userAgent)) {
+			// Android intent to open shortxlinks URL in Chrome
+			return `intent://${shortxlinksUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+		} else {
+			// Use shortxlinks URL for desktop
+			return shortxlinksUrl;
+		}
+	}
+	
 	content = `
 	<table class="table table-dark mb-0">
 		<tbody>
@@ -1289,18 +1315,22 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 				</th>
 				<td>${file['size']}</td>
 			</tr>
-			<tr>
-				<th>
-					<i class="fa-solid fa-file-circle-check fa-fw"></i>
-					<span class="tth">Checksum</span>
-				</th>
-				<td>MD5: <code>${file['md5Checksum']}</code>
-				</td>
 			</tr>`;
 	}
 	content += `
 		</tbody>
 	</table>`;
+	
+	// Create Chrome button HTML
+	const chromeButtonHtml = `
+		<a href="${getChromeOpenUrl()}" 
+		   class="btn btn-warning d-flex align-items-center gap-2" 
+		   target="_blank"
+		   title="Open in Chrome">
+			<img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
+			Open in Chrome
+		</a>`;
+	
 	// Request a path
 	fetch(`/${cur}:id2path`, {
 			method: 'POST',
@@ -1317,41 +1347,26 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 			}
 		})
 		.then(function(obj) {
-    var href = `${obj.path}`;
-    var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F')
-    $('#SearchModelLabel').html(title);
-    
-    // Create the URL to copy
-    const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
-    
-    btn = `<div class="btn-group">
-        <a href="${fileUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index Link</a>
-        <button type="button" class="btn btn-info copy-url-btn" data-url="${fileUrl}">
-            <i class="fas fa-copy fa-fw"></i> Copy URL
-        </button>
-        </div>` + close_btn;
-    
-    $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(btn);
-})
-.catch(function(error) {
-    console.log(error);
-    $('#SearchModelLabel').html(title);
-    
-    // Create the URL to copy
-    const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
-    
-    btn = `<div class="btn-group">
-        <a href="${fileUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index Link</a>
-        <button type="button" class="btn btn-info copy-url-btn" data-url="${fileUrl}">
-            <i class="fas fa-copy fa-fw"></i> Copy URL
-        </button>
-        </div>` + close_btn;
-    
-    $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(btn);
-});
-
+			var href = `${obj.path}`;
+			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+			$('#SearchModelLabel').html(title);
+			
+			// Only show Chrome button (removed the green open button)
+			btn = chromeButtonHtml + close_btn;
+			
+			$('#modal-body-space').html(content);
+			$('#modal-body-space-buttons').html(btn);
+		})
+		.catch(function(error) {
+			console.log(error);
+			$('#SearchModelLabel').html(title);
+			
+			// Only show Chrome button (removed the green open button)
+			btn = chromeButtonHtml + close_btn;
+			
+			$('#modal-body-space').html(content);
+			$('#modal-body-space-buttons').html(btn);
+		});
 }
 
 function get_file(path, file, callback) {
