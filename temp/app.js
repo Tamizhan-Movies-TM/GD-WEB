@@ -184,36 +184,6 @@ const markdown_icon = `<svg width="1.5em" height="1.5em" viewBox="0 0 1024 1024"
 const pdf_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_44)"><g transform="matrix(1,0,0,1,0,0)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,24,24)"><path fill="rgb(255,87,34)" fill-opacity="1" d=" M16,21 C16,21 -16,21 -16,21 C-16,21 -16,-21 -16,-21 C-16,-21 6,-21 6,-21 C6,-21 16,-11 16,-11 C16,-11 16,21 16,21z"></path></g><g opacity="1" transform="matrix(1,0,0,1,33.75,9.25)"><path fill="rgb(251,233,231)" fill-opacity="1" d=" M4.75,4.75 C4.75,4.75 -4.75,4.75 -4.75,4.75 C-4.75,4.75 -4.75,-4.75 -4.75,-4.75 C-4.75,-4.75 4.75,4.75 4.75,4.75z"></path></g></g><g transform="matrix(1,0,0,1,24,24)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(255,255,255)" fill-opacity="1" d=" M-8,15 C-8.399999618530273,15 -8.699999809265137,14.899999618530273 -9,14.800000190734863 C-10.100000381469727,14.199999809265137 -10.199999809265137,13.300000190734863 -10,12.600000381469727 C-9.600000381469727,11.399999618530273 -7.400000095367432,9.899999618530273 -4.5,8.600000381469727 C-4.5,8.600000381469727 -4.5,8.600000381469727 -4.5,8.600000381469727 C-3.200000047683716,6.199999809265137 -2.200000047683716,3.700000047683716 -1.600000023841858,1.600000023841858 C-2.5999999046325684,-0.30000001192092896 -3.0999999046325684,-2.0999999046325684 -3.0999999046325684,-3.4000000953674316 C-3.0999999046325684,-4.099999904632568 -2.9000000953674316,-4.699999809265137 -2.5999999046325684,-5.199999809265137 C-2.200000047683716,-5.699999809265137 -1.600000023841858,-6 -0.800000011920929,-6 C0.10000000149011612,-6 0.800000011920929,-5.5 1.100000023841858,-4.599999904632568 C1.600000023841858,-3.4000000953674316 1.2999999523162842,-1.2000000476837158 0.6000000238418579,1.2999999523162842 C1.600000023841858,3 2.799999952316284,4.599999904632568 4.099999904632568,5.800000190734863 C6,5.400000095367432 7.699999809265137,5.199999809265137 8.800000190734863,5.400000095367432 C10.699999809265137,5.699999809265137 11,7 11,7.5 C11,9.600000381469727 8.800000190734863,9.600000381469727 8,9.600000381469727 C6.5,9.600000381469727 5,9 3.700000047683716,7.900000095367432 C3.700000047683716,7.900000095367432 3.700000047683716,7.900000095367432 3.700000047683716,7.900000095367432 C1.2999999523162842,8.5 -1.100000023841858,9.300000190734863 -3,10.199999809265137 C-4,11.899999618530273 -5,13.300000190734863 -5.900000095367432,14.100000381469727 C-6.800000190734863,14.800000190734863 -7.5,15 -8,15z M-6.800000190734863,12.100000381469727 C-7.300000190734863,12.399999618530273 -7.699999809265137,12.699999809265137 -7.900000095367432,13 C-7.699999809265137,12.899999618530273 -7.300000190734863,12.699999809265137 -6.800000190734863,12.100000381469727z M6.800000190734863,7.400000095367432 C7.199999809265137,7.5 7.599999904632568,7.599999904632568 8,7.599999904632568 C8.600000381469727,7.599999904632568 8.899999618530273,7.5 9,7.5 C9,7.5 9,7.5 9,7.5 C8.899999618530273,7.400000095367432 8.199999809265137,7.199999809265137 6.800000190734863,7.400000095367432z M-0.20000000298023224,3.799999952316284 C-0.6000000238418579,5 -1.2000000476837158,6.300000190734863 -1.7000000476837158,7.5 C-0.5,7.099999904632568 0.699999988079071,6.699999809265137 1.899999976158142,6.400000095367432 C1.100000023841858,5.599999904632568 0.4000000059604645,4.699999809265137 -0.20000000298023224,3.799999952316284z M-0.800000011920929,-4 C-0.8999999761581421,-4 -0.8999999761581421,-4 -0.8999999761581421,-4 C-1,-3.9000000953674316 -1.100000023841858,-3.200000047683716 -0.699999988079071,-1.7000000476837158 C-0.6000000238418579,-2.9000000953674316 -0.6000000238418579,-3.799999952316284 -0.800000011920929,-4z"></path></g></g></g></svg>`
 const file_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_63)"><g transform="matrix(1,0,0,1,7.75,2.75)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,16.25,21.25)"><path fill="rgb(144,201,248)" fill-opacity="1" d=" M16,21 C16,21 -16,21 -16,21 C-16,21 -16,-21 -16,-21 C-16,-21 6,-21 6,-21 C6,-21 16,-11 16,-11 C16,-11 16,21 16,21z"></path></g></g><g transform="matrix(1,0,0,1,15,21)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,1 C1,1 18,1 18,1"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,5 C1,5 14,5 14,5"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,9 C1,9 18,9 18,9"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,13 C1,13 14,13 14,13"></path></g></g><g transform="matrix(1,0,0,1,28.75,4.25)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,5,5)"><path fill="rgb(224,245,253)" fill-opacity="1" d=" M4.75,4.75 C4.75,4.75 -4.75,4.75 -4.75,4.75 C-4.75,4.75 -4.75,-4.75 -4.75,-4.75 C-4.75,-4.75 0,0 0,0 C0,0 4.75,4.75 4.75,4.75z"></path></g></g></g></svg>`
 
-// Function to generate short URL using ShortXLinks API
-async function generateShortUrl(longUrl) {
-    const apiKey = 'c71342bc5deab6b9a408d2501968365c6cb7ffe0';
-    const apiUrl = 'https://shortxlinks.com/api';
-    
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                api: apiKey,
-                url: longUrl
-            })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            return data.shortUrl; // This should return something like "https://shortxlinks.com/rN8FdgS3"
-        } else {
-            console.error('Failed to generate short URL');
-            return longUrl; // Fallback to long URL
-        }
-    } catch (error) {
-        console.error('Error generating short URL:', error);
-        return longUrl; // Fallback to long URL
-    }
-}
-
 // Don't know new OS thing, so I just copied it from the original source code and edited something.
 const Os = {
 	isWindows: navigator.userAgent.toUpperCase().indexOf('WIN') > -1, // .includes
@@ -1234,7 +1204,7 @@ function append_search_result_to_list(files) {
  * Search result item click event
  * @param a_ele Clicked element
  */
-function onSearchResultItemClick(file_id, can_preview, file) {
+async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     var title = `Loading...`;
     $('#SearchModelLabel').html(title);
@@ -1250,20 +1220,29 @@ function onSearchResultItemClick(file_id, can_preview, file) {
     // Create the direct URL
     const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
     
-    // Generate short URL
-    generateShortUrl(directUrl).then(shortUrl => {
+    try {
+        // Make API call to get shortened URL
+        const shortxlinksApiUrl = `https://shortxlinks.com/api?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}`;
+        
+        const response = await fetch(shortxlinksApiUrl);
+        const data = await response.json();
+        
+        // Extract the short URL from the response
+        // Adjust this based on the actual API response structure
+        const shortUrl = data.shortUrl || `https://shortxlinks.com/${data.code}`;
+        
         // Function to check if browser is Chrome
         function isChromeBrowser() {
             return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
         }
         
-        // Function to open in Chrome - use the shortened URL
+        // Function to open in Chrome - ALWAYS use shortxlinks URL
         function getChromeOpenUrl() {
             if (/Android/i.test(navigator.userAgent)) {
-                // Android intent to open short URL in Chrome
+                // Android intent to open shortxlinks URL in Chrome
                 return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
             } else {
-                // Use short URL for desktop
+                // Use shortxlinks URL for desktop
                 return shortUrl;
             }
         }
@@ -1307,7 +1286,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
             </tbody>
         </table>`;
         
-        // Create Chrome button HTML with the shortened URL
+        // Create Chrome button HTML
         const chromeButtonHtml = `
             <a href="${getChromeOpenUrl()}" 
                class="btn btn-primary d-flex align-items-center gap-2" 
@@ -1337,7 +1316,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
                 var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
                 $('#SearchModelLabel').html(title);
                 
-                // Only show Chrome button
+                // Only show Chrome button (removed the green open button)
                 btn = chromeButtonHtml + close_btn;
                 
                 $('#modal-body-space').html(content);
@@ -1347,13 +1326,17 @@ function onSearchResultItemClick(file_id, can_preview, file) {
                 console.log(error);
                 $('#SearchModelLabel').html(title);
                 
-                // Only show Chrome button
+                // Only show Chrome button (removed the green open button)
                 btn = chromeButtonHtml + close_btn;
                 
                 $('#modal-body-space').html(content);
                 $('#modal-body-space-buttons').html(btn);
             });
-    });
+    } catch (error) {
+        console.error('Error generating short URL:', error);
+        // Fallback to the direct URL if the API call fails
+        const shortUrl = directUrl;
+    }
 }
 
 function get_file(path, file, callback) {
