@@ -1260,8 +1260,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         id: file_id
     };
     
-    // Create the direct URL
-    const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+    // Create the direct URL with proper encoding of the file_id
+    const encodedFileId = encodeURIComponent(file_id);
+    const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
     
     try {
         // Make API call to get shortened URL
