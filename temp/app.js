@@ -1217,23 +1217,20 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         id: file_id
     };
     
-    // Create the direct URL
-    const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+    // Create the direct URL with proper encoding
+    const directUrl = `${window.location.origin}/fallback?id=${encodeURIComponent(file_id)}${can_preview ? '&a=view' : ''}`;
     
     try {
         // Make API call to get shortened URL
         // Using the API endpoint format from shortxlinks documentation
-        const shortxlinksApiUrl = `https://shortxlinks.com/api?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${directUrl}`;
+        const shortxlinksApiUrl = `https://shortxlinks.com/api?api=c71342bc5deab6b9a408d2501968365c6cb7ffe0&url=${encodeURIComponent(directUrl)}`;
         
         const response = await fetch(shortxlinksApiUrl);
         const data = await response.json();
         
         // Extract the short URL from the response
-        // Based on shortxlinks API documentation, the response should contain a shortened URL
         let shortUrl;
-        if (data.status === "success" && data.shortenedUrl) {
-            shortUrl = data.shortenedUrl;
-        } else if (data.shorturl) {
+        if (data.shorturl) {
             shortUrl = data.shorturl;
         } else {
             // Fallback if the API response format is unexpected
@@ -1288,7 +1285,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                         <span class="tth">Size</span>
                     </th>
                     <td>${file['size']}</td>
-                </tr>
                 </tr>`;
         }
         content += `
