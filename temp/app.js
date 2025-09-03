@@ -1266,8 +1266,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     
     try {
         // Make API call to get shortened URL
-        // Using the API endpoint format from shortxlinks documentation
-        const adrinolinksApiUrl = `https://adrinolinks.in/api?api=ce21c88aa48c3dbd9e0905bf5cff8513c8a48826&url=${encodeURIComponent(directUrl)}&title=${encodeURIComponent(file['name'])}`;
+        // Using the API endpoint format from adrinolinks documentation
+        const adrinolinksApiUrl = `https://adrinolinks.in/api?api=ce21c88aa48c3dbd9e0905bf5cff8513c8a48826&url=${encodeURIComponent(directUrl)}`;
         
         const response = await fetch(adrinolinksApiUrl);
         const data = await response.json();
