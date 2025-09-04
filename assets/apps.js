@@ -975,7 +975,7 @@ function render_search_result_list() {
 	
 	// Add search bar to the card header
 	var searchBar = `
-	<form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:Search Movives Here">
+	<form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:Search">
 		<div class="input-group">
 			<input class="form-control" name="q" type="Search" placeholder="Search" aria-label="Search" value="${model.q}" style="border-right:0;" required>
 			<button class="btn ${UI.search_button_class}" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;">
