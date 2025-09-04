@@ -1756,9 +1756,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	}
 }
 
-
-
-  // Document display video  mkv|mp4|webm|avi| 
+   // Document display video  mkv|mp4|webm|avi| 
    function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	 // Define all player icons
     const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
@@ -1796,173 +1794,88 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		}
 	}
 
-// Add the container and card elements	 
-var content = `
-<div class="card">
-    <div class="card-header text-truncate ${UI.file_view_alert_class}">
-        <i class="fas fa-file-alt fa-fw"></i> File Information 
-    </div>
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
-                <div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  
-                    <div style="position: relative; padding-bottom: 56.25%;"> 
-                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
-                            ${player} 
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-8 col-md-12">
-                <table class="table table-dark">
-                    <tbody>
-                        <tr>
-                            <th>
-                                <i class="fa-regular fa-folder-closed fa-fw"></i>
-                                <span class="tth">Name</span>
-                            </th>
-                            <td>${name}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-tag fa-fw"></i>
-                                <span class="tth">Type</span>
-                            </th>
-                            <td>${formatMimeType(mimeType)}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-box-archive fa-fw"></i>
-                                <span class="tth">Size</span>
-                            </th>
-                            <td>${size}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        ${UI.disable_video_download ? `` : `
-            <!-- First row of buttons - fixed width -->
-            <div class="d-flex justify-content-center gap-3 mb-3">
-                <button type="button" class="glow-btn glow-warning d-flex justify-content-center align-items-center" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center">
-                        ${vlc_icon} VLC Player
-                    </span>
-                </button>
-
-                <button type="button" class="glow-btn glow-info d-flex justify-content-center align-items-center" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center gap-1">
-                        ${mxplayer_icon} MX Player
-                    </span>
-                </button> 
-            </div>
-            
-            <!-- Second row of buttons - fixed width -->
-            <div class="d-flex justify-content-center gap-3 mb-3">
-                <button type="button" class="glow-btn glow-success d-flex justify-content-center align-items-center" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center gap-1">
-                        ${xplayer_icon} XPlayer
-                    </span>
-                </button>
-
-                <button type="button" class="glow-btn glow-danger d-flex justify-content-center align-items-center" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center gap-1"> 
-                        ${playit_icon} PLAYit
-                    </span>
-                </button>
-            </div>
-                        
-            <!-- DOWNLOAD BUTTON -->
-                <div class="d-flex justify-content-center gap-3">
-                <button id="download-btn" class="glow-btn glow-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" 
-                    style="width: 200px; padding: 8px 35px; font-size: 1rem; position: relative;">
-                    ${new_download_icon} DOWNLOAD
-                    <div id="download-spinner" class="spinner" style="display: none;">
-                    <div class="spinner-circle"></div>
-                </div>
-              </button>
-            </div>
-          </div>
-        `}
-      </div>
-    </div>
-    
-    <style>
-      /* Loading spinner styles */
-      .spinner {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
-      
-      .spinner-circle {
-        width: 24px;
-        height: 24px;
-        border: 3px solid rgba(255,255,255,0.3);
-        border-radius: 50%;
-        border-top-color: #fff;
-        animation: spinner-rotate 1s linear infinite;
-      }
-      
-      @keyframes spinner-rotate {
-        to { transform: rotate(360deg); }
-      }
-      
-      /* Center button content */
-      .d-flex.align-items-center {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      
-      .gap-2 {
-        gap: 8px;
-      }
-    </style>
-    `;
-    // Set the content
-    $("#content").html(content);
-    
-    // Add event listener for the download button
-    if (!UI.disable_video_download) {
-        document.getElementById('download-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const button = this;
-            const spinner = button.querySelector('#download-spinner');
-            
-            // Show spinner and disable button
-            spinner.style.display = 'block';
-            button.disabled = true;
-            
-            // Change button text
-            button.innerHTML = `${new_download_icon} Downloading...`;
-            
-            // Simulate download process (1.5 seconds)
-            setTimeout(() => {
-                // Create a hidden link to trigger the actual download
-                const downloadLink = document.createElement('a');
-                downloadLink.href = url;
-                downloadLink.download = name;
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
-                
-                // Hide spinner and restore button after 0.5s
-                setTimeout(() => {
-                    spinner.style.display = 'none';
-                    button.disabled = false;
-                    button.innerHTML = `${new_download_icon} DOWNLOAD`;
-                }, 500);
-            }, 1500);
-        });
-		}
-
+// Add the container and card elements
+	var content = `
+	<div class="card">
+		<div class="card-header ${UI.file_view_alert_class}">
+			<i class="fas fa-file-alt fa-fw"></i>File Information
+		</div>
+		<div class="card-body row g-3">
+			<div class="col-lg-4 col-md-12">
+				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+					${player}
+				</div>
+			</div>
+			<div class="col-lg-8 col-md-12">
+				<table class="table table-dark">
+					<tbody>
+						<tr>
+							<th>
+								<i class="fa-regular fa-folder-closed fa-fw"></i>
+								<span class="tth">Name</span>
+							</th>
+							<td>${name}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-regular fa-clock fa-fw"></i>
+								<span class="tth">Datetime</span>
+							</th>
+							<td>${createdTime}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-tag fa-fw"></i>
+								<span class="tth">Type</span>
+							</th>
+							<td>${formatMimeType(mimeType)}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-box-archive fa-fw"></i>
+								<span class="tth">Size</span>
+							</th>
+							<td>${size}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-file-circle-check fa-fw"></i>
+								<span class="tth">Checksum</span>
+							</th>
+							<td>MD5: <code>${md5Checksum}</code>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				${UI.disable_video_download ? `` : `
+				<div class="input-group">
+					<span class="input-group-text" id="">Full URL</span>
+					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
+				</div>`}
+			</div>
+			${UI.disable_video_download ? `` : `
+			<div class="col-md-12">
+				<div class="text-center">
+					<p class="mb-2">Download via</p>
+					<div class="btn-group text-center"> ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://drive.google.com/file/d/${file_id}" id="file_drive_link" target="_blank">`+gdrive_icon+`Google Drive</a>` : ``} <a href="${url}" type="button" class="btn btn-success">
+							<i class="fas fa-bolt fa-fw"></i>Index Link</a>
+						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<span class="sr-only"></span>
+						</button>
+						 <div class="dropdown-menu">
+				     <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
+	           <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
+             <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
+             <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
+             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">${new_download_icon} 1DM (Free)</a>
+						</div>
+					</div> `+ copyFileBox +`
+				</div>
+			</div>`}
+		</div>
+	</div>`;
+	$("#content").html(content);
+		 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
