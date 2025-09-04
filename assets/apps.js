@@ -977,7 +977,7 @@ function render_search_result_list() {
 	var searchBar = `
 	<form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:search">
 		<div class="input-group">
-			<input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${model.q}" style="border-right:0;" required>
+			<input class="form-control" name="q" type="Search Movives Here" placeholder="Search" aria-label="Search" value="${model.q}" style="border-right:0;" required>
 			<button class="btn ${UI.search_button_class}" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;">
 				<i class="fas fa-search" style="margin: 0"></i>
 			</button>
@@ -997,7 +997,7 @@ function render_search_result_list() {
 	</div>
 	<div class="card">
 		<div class="card-header">
-			<div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
+			<div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search : <code>${model.q}</code></div>
 			${searchBar}
 		</div>
 		<div id="list" class="list-group list-group-flush text-break">
