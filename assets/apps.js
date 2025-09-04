@@ -970,9 +970,24 @@ function append_files_to_list(path, files) {
 /**
  * Render the search results list. There is a lot of repetitive code, but there are different logics in it.
  */
+// Add this function to open the search modal
+function openSearchModal() {
+    $('#SearchModelLabel').html('<i class="fas fa-search fa-fw"></i> Search');
+    var content = `
+        <form id="search-form" method="get" action="/${window.current_drive_order}:search">
+            <div class="input-group">
+                <input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" required>
+            </div>
+        </form>`;
+    var btn = `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+               <button type="submit" form="search-form" class="btn btn-primary">Search</button>`;
+    $('#modal-body-space').html(content);
+    $('#modal-body-space-buttons').html(btn);
+}
+// In the render_search_result_list function, modify the card header to include the search button
 function render_search_result_list() {
-	var model = window.MODEL;
-	var content = `
+    var model = window.MODEL;
+    var content = `
   	<div id="update"></div>
 	<div class="container" id="select_items" style="padding: 0px 50px 10px; display:none;">
 		<div class="d-flex align-items-center justify-content-between">
@@ -984,18 +999,18 @@ function render_search_result_list() {
 		</div>
 	</div>
 	<div class="card">
-		<div class="card-header d-flex justify-content-between align-items-center">
-			<div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
-			<button class="btn btn-primary btn-sm" onclick="location.href='/${window.current_drive_order || 0}:/'">
-				<i class="fas fa-search fa-fw"></i> New Search
-			</button>
-		</div>
+		<div class="card-header text-truncate d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></span>
+            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#SearchModel" onclick="openSearchModal()">
+                <i class="fas fa-search-plus"></i> New Search
+            </button>
+        </div>
 		<div id="list" class="list-group list-group-flush text-break">
 		</div>
 		<div class="card-footer text-muted d-flex align-items-center gap-2" id="count"><span class="number badge text-bg-dark">0 item</span><span class="totalsize badge text-bg-dark"></span></div>
 	</div>
 	<div id="readme_md" style="display:none; padding: 20px 20px;"></div>`;
-	$('#content').html(content);
+    $('#content').html(content)
 
 	$('#list').html(`<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`);
 	$('#readme_md').hide().html('');
