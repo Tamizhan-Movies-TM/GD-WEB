@@ -973,12 +973,29 @@ function append_files_to_list(path, files) {
 function render_search_result_list() {
 	var model = window.MODEL;
 	
+	// Add CSS for the white search button
+	const style = document.createElement('style');
+	style.textContent = `
+		.white-search-btn {
+			background-color: white !important;
+			border-color: #198754 !important;
+			color: #198754 !important;
+		}
+		.white-search-btn:hover,
+		.white-search-btn:active,
+		.white-search-btn:focus {
+			background-color: #198754 !important;
+			color: white !important;
+		}
+	`;
+	document.head.appendChild(style);
+	
 	// Add search bar to the card header
 	var searchBar = `
 	<form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:search">
 		<div class="input-group">
 			<input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${model.q}" style="border-right:0; background-color: white; color: black;" required>
-			<button class="btn btn-outline-success" type="submit" style="background-color: white; border-color: #198754; border-left:0;">
+			<button class="btn btn-outline-success white-search-btn" type="submit" style="border-left:0;">
 				<i class="fas fa-search" style="margin: 0"></i>
 			</button>
 		</div>
