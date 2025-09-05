@@ -973,51 +973,13 @@ function append_files_to_list(path, files) {
 function render_search_result_list() {
 	var model = window.MODEL;
 	
-	// Add CSS for the custom search button styling
-	const style = document.createElement('style');
-	style.textContent = `
-		.white-btn-green-icon {
-			background-color: white !important;
-			border: 1px solid #00bc8c !important;
-			color: #00bc8c !important;
-		}
-		.white-btn-green-icon:hover,
-		.white-btn-green-icon:active,
-		.white-btn-green-icon:focus {
-			background-color: #00bc8c !important;
-			border-color: #00bc8c !important;
-			color: white !important;
-		}
-		.white-btn-green-icon .fas {
-			color: #00bc8c !important;
-		}
-		.white-btn-green-icon:hover .fas,
-		.white-btn-green-icon:active .fas,
-		.white-btn-green-icon:focus .fas {
-			color: white !important;
-		}
-		/* Fix alignment issues */
-		.search-input-group .form-control {
-			background-color: white !important;
-			color: black !important;
-			border-right: 0 !important;
-		}
-		.search-input-group .btn {
-			border-left: 0 !important;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
-	`;
-	document.head.appendChild(style);
-	
-	// Add search bar to the card header
+	// Add search bar to the card header with white background
 	var searchBar = `
 	<form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:search">
-		<div class="input-group search-input-group">
-			<input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${model.q}" required>
-			<button class="btn white-btn-green-icon" type="submit">
-				<i class="fas fa-search"></i>
+		<div class="input-group">
+			<input class="form-control bg-white text-dark" name="q" type="search" placeholder="Search" aria-label="Search" value="${model.q}" style="border-right:0;" required>
+			<button class="btn ${UI.search_button_class}" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;">
+				<i class="fas fa-search" style="margin: 0"></i>
 			</button>
 		</div>
 	</form>`;
