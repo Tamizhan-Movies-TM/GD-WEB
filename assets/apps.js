@@ -973,17 +973,6 @@ function append_files_to_list(path, files) {
 function render_search_result_list() {
 	var model = window.MODEL;
 	
-	// Add search bar to the card header with white text color
-	var searchBar = `
-	<form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:search">
-		<div class="input-group">
-			<input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${model.q}" style="border-right:0; color: white; background-color: transparent;" required>
-			<button class="btn ${UI.search_button_class}" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;">
-				<i class="fas fa-search" style="margin: 0"></i>
-			</button>
-		</div>
-	</form>`;
-	
 	var content = `
   	<div id="update"></div>
 	<div class="container" id="select_items" style="padding: 0px 50px 10px; display:none;">
@@ -997,8 +986,29 @@ function render_search_result_list() {
 	</div>
 	<div class="card">
 		<div class="card-header">
-			<div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
-			${searchBar}
+			<table class="table table-borderless mb-0">
+				<tbody>
+					<tr>
+						<th class="border-0 p-0">
+							<div class="d-flex justify-content-between align-items-center">
+								<div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
+							</div>
+						</th>
+					</tr>
+					<tr>
+						<td class="border-0 p-0 pt-2">
+							<form class="d-flex" method="get" action="/${window.current_drive_order}:search">
+								<div class="input-group">
+									<input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${model.q}" style="border-right:0;" required>
+									<button class="btn ${UI.search_button_class}" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;">
+										<i class="fas fa-search" style="margin: 0"></i>
+									</button>
+								</div>
+							</form>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 		<div id="list" class="list-group list-group-flush text-break">
 		</div>
@@ -1006,6 +1016,11 @@ function render_search_result_list() {
 	</div>
 	<div id="readme_md" style="display:none; padding: 20px 20px;"></div>`;
 	$('#content').html(content);
+
+	// The rest of the function remains exactly the same
+	$('#list').html(`<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`);
+	$('#readme_md').hide().html('');
+	$('#head_md').hide().html('');
 	
 	$('#list').html(`<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`);
 	$('#readme_md').hide().html('');
