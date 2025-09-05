@@ -1012,7 +1012,6 @@ function append_files_to_list(path, files) {
  */
 function render_search_result_list() {
 	var model = window.MODEL;
-	
 	var content = `
   	<div id="update"></div>
 	<div class="container" id="select_items" style="padding: 0px 50px 10px; display:none;">
@@ -1025,25 +1024,29 @@ function render_search_result_list() {
 		</div>
 	</div>
 	<div class="card">
-		<div class="card-header">
-			<div class="d-flex justify-content-between align-items-center flex-wrap">
-				<div class="text-truncate me-3"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
-				<form class="d-flex mt-2 mt-md-0" method="get" action="/${window.current_drive_order}:search">
-					<div class="input-group">
-						<input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${model.q}" style="border-right:0;" required>
-						<button class="btn ${UI.search_button_class}" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;">
-							<i class="fas fa-search" style="margin: 0"></i>
-						</button>
-					</div>
-				</form>
-			</div>
-		</div>
+		<div class="card-header text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
+		<table class="table table-dark mb-0">
+			<tbody>
+				<tr>
+					<th>
+						<form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:search">
+							<div class="input-group">
+								<input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${model.q}" style="border-right:0;" required>
+								<button class="btn ${UI.search_button_class}" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;">
+									<i class="fas fa-search" style="margin: 0"></i>
+								</button>
+							</div>
+						</form>
+					</th>
+				</tr>
+			</tbody>
+		</table>
 		<div id="list" class="list-group list-group-flush text-break">
 		</div>
 		<div class="card-footer text-muted d-flex align-items-center gap-2" id="count"><span class="number badge text-bg-dark">0 item</span><span class="totalsize badge text-bg-dark"></span></div>
 	</div>
 	<div id="readme_md" style="display:none; padding: 20px 20px;"></div>`;
-	$('#content').html(content);
+	$('#content').html(content);;
 
 	$('#list').html(`<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`);
 	$('#readme_md').hide().html('');
