@@ -1013,11 +1013,11 @@ function append_files_to_list(path, files) {
 function render_search_result_list() {
 	var model = window.MODEL;
 	
-	// Add search bar to the card header
+	// Add search bar to the card header with white background
 	var searchBar = `
 	<form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:search">
 		<div class="input-group">
-			<input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${model.q}" style="border-right:0;" required>
+			<input class="form-control bg-white text-dark" name="q" type="search" placeholder="Search" aria-label="Search" value="${model.q}" style="border-right:0;" required>
 			<button class="btn ${UI.search_button_class}" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;">
 				<i class="fas fa-search" style="margin: 0"></i>
 			</button>
@@ -1045,7 +1045,7 @@ function render_search_result_list() {
 		<div class="card-footer text-muted d-flex align-items-center gap-2" id="count"><span class="number badge text-bg-dark">0 item</span><span class="totalsize badge text-bg-dark"></span></div>
 	</div>
 	<div id="readme_md" style="display:none; padding: 20px 20px;"></div>`;
-	$('#content').html(content); 
+	$('#content').html(content);
 	
 	$('#list').html(`<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`);
 	$('#readme_md').hide().html('');
