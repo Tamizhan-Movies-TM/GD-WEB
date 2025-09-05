@@ -980,6 +980,11 @@ function render_search_result_list() {
 			background-color: white !important;
 			border-color: #00bc8c !important;
 			color: #00bc8c !important;
+			height: 38px; /* Match Bootstrap form-control height */
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 0.375rem 0.75rem;
 		}
 		.white-btn-green-icon:hover,
 		.white-btn-green-icon:active,
@@ -989,11 +994,21 @@ function render_search_result_list() {
 		}
 		.white-btn-green-icon .fas {
 			color: #00bc8c !important;
+			font-size: 1rem;
 		}
 		.white-btn-green-icon:hover .fas,
 		.white-btn-green-icon:active .fas,
 		.white-btn-green-icon:focus .fas {
 			color: white !important;
+		}
+		.search-input-group .form-control {
+			border-right: 0;
+			background-color: white;
+			color: black;
+		}
+		.search-input-group .form-control:focus {
+			box-shadow: none;
+			border-color: #00bc8c;
 		}
 	`;
 	document.head.appendChild(style);
@@ -1001,10 +1016,10 @@ function render_search_result_list() {
 	// Add search bar to the card header
 	var searchBar = `
 	<form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:search">
-		<div class="input-group">
-			<input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${model.q}" style="border-right:0; background-color: white; color: black;" required>
-			<button class="btn white-btn-green-icon" type="submit" style="border-left:0;">
-				<i class="fas fa-search" style="margin: 0"></i>
+		<div class="input-group search-input-group" style="height: 38px;">
+			<input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${model.q}" required>
+			<button class="btn white-btn-green-icon" type="submit">
+				<i class="fas fa-search"></i>
 			</button>
 		</div>
 	</form>`;
