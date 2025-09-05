@@ -978,8 +978,8 @@ function render_search_result_list() {
 	<form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:search">
 		<div class="input-group">
 			<input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${model.q}" style="border-right:0; background-color: white; color: black;" required>
-			<button class="btn" type="submit" style="background-color: white; border-color: rgba(140, 130, 115, 0.13); border-left:0;">
-				<i class="fas fa-search" style="margin: 0; color: black;"></i>
+			<button class="btn btn-outline-success" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;">
+				<i class="fas fa-search" style="margin: 0"></i>
 			</button>
 		</div>
 	</form>`;
