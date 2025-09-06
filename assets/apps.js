@@ -1785,14 +1785,11 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			<div class="col-md-12">
 				<div class="text-center">
 					<p class="mb-2">Download via</p>
-					<div class="btn-group text-center"> 
-               ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://drive.google.com/file/d/${file_id}" id="file_drive_link" target="_blank">`+gdrive_icon+`Google Drive</a>` : ``} 
-                <a href="${url}" type="button" class="btn btn-success">
-               <i class="fas fa-bolt fa-fw"></i>Index Link
-               </a>
-              <button class="btn btn-secondary" onclick="generateGdtotLink('${file_id}')" id="gdtot_link_btn">
-              <i class="fas fa-external-link-alt fa-fw"></i>GDTot Link
-              </button>
+					<div class="btn-group text-center"> ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://drive.google.com/file/d/${file_id}" id="file_drive_link" target="_blank">`+gdrive_icon+`Google Drive</a>` : ``} <a href="${url}" type="button" class="btn btn-success">
+							<i class="fas fa-bolt fa-fw"></i>Index Link</a>
+						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<span class="sr-only"></span>
+						</button>
 						 <div class="dropdown-menu">
 				     <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
 	           <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
@@ -2189,36 +2186,6 @@ async function copyFile(driveid) {
 	}
 }
 
-// Add this function to handle GDTot link generation
-async function generateGdtotLink(fileId) {
-  try {
-    const button = document.getElementById('gdtot_link_btn');
-    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
-    button.disabled = true;
-    
-    const response = await fetch(`/gdtot_generate?file_id=${fileId}`);
-    const data = await response.json();
-    
-    if (data.error) {
-      throw new Error(data.error);
-    }
-    
-    // Open the generated link in a new tab
-    if (data.download_url) {
-      window.open(data.download_url, '_blank');
-    } else {
-      throw new Error('No download URL received from API');
-    }
-    
-    button.innerHTML = 'GDTot Link';
-    button.disabled = false;
-  } catch (error) {
-    alert('Error generating GDTot link: ' + error.message);
-    const button = document.getElementById('gdtot_link_btn');
-    button.innerHTML = 'GDTot Link';
-    button.disabled = false;
-  }
-}
 
 // create a MutationObserver to listen for changes to the DOM
 const observer = new MutationObserver(() => {
