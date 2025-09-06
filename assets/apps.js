@@ -1737,32 +1737,39 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
    // Document display video  mkv|mp4|webm|avi| 
 async function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-    // Add GDTot conversion - replace Google Drive URL with GDTot URL
-    let driveButton = '';
-    if (UI.display_drive_link) {
-        const gdriveUrl = `https://drive.google.com/file/d/${file_id}`;
-        const gdtotLink = await convertToGDTot(gdriveUrl);
-        
-        if (gdtotLink) {
-            // Use GDTot link if conversion successful
-            driveButton = `<a class="btn btn-secondary d-flex align-items-center gap-2" href="${gdtotLink}" id="file_drive_link" target="_blank">
-                <i class="fas fa-external-link-alt fa-fw"></i>GDTot Link
-            </a>`;
-        } else {
-            // Fall back to Google Drive link if conversion fails
-            driveButton = `<a class="btn btn-secondary d-flex align-items-center gap-2" href="${gdriveUrl}" id="file_drive_link" target="_blank">
-                ${gdrive_icon}Google Drive
-            </a>`;
-        }
-    }
-		 
     // Define all player icons
     const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
     const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    var url_base64 = btoa(url);
+    // Add GDTot conversion - replace Google Drive URL with GDTot URL
+    let driveButton = '';
+    if (UI.display_drive_link) {
+        try {
+            const gdriveUrl = `https://drive.google.com/file/d/${file_id}`;
+            const gdtotLink = await convertToGDTot(gdriveUrl);
+            
+            if (gdtotLink) {
+                // Use GDTot link if conversion successful
+                driveButton = `<a class="btn btn-secondary d-flex align-items-center gap-2" href="${gdtotLink}" id="file_drive_link" target="_blank">
+                    <i class="fas fa-external-link-alt fa-fw"></i>GDTot Link
+                </a>`;
+            } else {
+                // Fall back to Google Drive link if conversion fails
+                driveButton = `<a class="btn btn-secondary d-flex align-items-center gap-2" href="${gdriveUrl}" id="file_drive_link" target="_blank">
+                    ${gdrive_icon}Google Drive
+                </a>`;
+            }
+        } catch (error) {
+            console.error('GDTot conversion failed:', error);
+            // Fall back to Google Drive link if conversion fails
+            driveButton = `<a class="btn btn-secondary d-flex align-items-center gap-2" href="https://drive.google.com/file/d/${file_id}" id="file_drive_link" target="_blank">
+                ${gdrive_icon}Google Drive
+            </a>`;
+        }
+    }
+	  var url_base64 = btoa(url);
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
     let player;
     let player_js;
