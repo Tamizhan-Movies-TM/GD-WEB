@@ -1771,7 +1771,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 				${UI.disable_video_download ? `` : `
 				<div class="input-group">
 					<span class="input-group-text" id="">Full URL</span>
-					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
+					<input type="text" class="form-control" id="dlurl" value="${nill}" readonly> ` + copyButton + `
 				</div>`}
 			</div>
 			${UI.disable_video_download ? `` : `
