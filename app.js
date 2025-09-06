@@ -1180,6 +1180,13 @@ function append_search_result_to_list(files) {
 		var is_lastpage_loaded = null === $list.data('nextPageToken');
 		// var is_firstpage = '0' == $list.data('curPageIndex');
 
+		// Sort files by size in descending order (largest first)
+		files.sort((a, b) => {
+			const sizeA = parseInt(a.size || 0);
+			const sizeB = parseInt(b.size || 0);
+			return sizeB - sizeA;
+		});
+
 		html = "";
 		var totalsize = 0;
 		var is_file = false;
