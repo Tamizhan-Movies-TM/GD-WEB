@@ -3,7 +3,101 @@
 // v2.3.6
 // Initialize the page
 function init() {
-document.siteName = $('title').html();
+// Create and inject vapor theme button styles
+const style = document.createElement('style');
+style.textContent = `
+    /* Base Button Styles */
+    .glow-btn {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.2s ease;
+        z-index: 1;
+        border: 2px solid;
+        border-radius: 8px;
+        font-weight: bold;
+        padding: 8px 16px;
+        background: transparent;
+        width: 160px;
+        color: white !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        outline: none;
+        /* Constant glow effect */
+        box-shadow: 0 0 10px var(--btn-color);
+    }
+
+    /* FIX FOR GAP ISSUE IN CARDS */
+    .card .glow-btn {
+        margin-bottom: 4px; 
+    }
+
+    /* Color Definitions */
+    .glow-warning {
+        border-color: #ffcc00;
+        --btn-color: #ffcc00;
+    }
+    .glow-info {
+        border-color: #00ccff;
+        --btn-color: #00ccff;
+    }
+    .glow-success {
+        border-color: #00ff99;
+        --btn-color: #00ff99;
+    }
+    .glow-danger {
+        border-color: #ff3b6c;
+        --btn-color: #ff3b6c;
+    }
+    .glow-secondary {
+        border-color: #ff00aa; 
+        --btn-color: #ff00aa;
+    }
+
+    /* Click Effect - Inner Color Fill */
+    .glow-btn:active {
+        background-color: var(--btn-color);
+        background-image: linear-gradient(
+            to bottom,
+            var(--btn-color),
+            rgba(0,0,0,0.2)
+        );
+        /* Enhanced glow on click */
+        box-shadow: 
+            0 0 15px var(--btn-color),
+            inset 0 0 10px rgba(255,255,255,0.3);
+    }
+
+    /* Hover Effect */
+    .glow-btn:hover {
+        transform: translateY(-2px);
+        /* Stronger glow on hover */
+        box-shadow: 0 0 20px var(--btn-color);
+    }
+
+    /* Internal Shine Animation */
+    .glow-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255,255,255,0.2),
+            transparent
+        );
+        transition: all 0.6s ease;
+        z-index: -1;
+    }
+    .glow-btn:hover::before {
+        left: 100%;
+    }`;
+document.head.appendChild(style);
+	
+	document.siteName = $('title').html();
 	var html = `<header>
    <div id="nav">
    </div>
@@ -878,18 +972,6 @@ function append_files_to_list(path, files) {
  */
 function render_search_result_list() {
 	var model = window.MODEL;
-	
-	// Add search bar to the card header with white background
-	var searchBar = `
-	<form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:search">
-		<div class="input-group">
-			<input class="form-control bg-white text-dark" name="q" type="search" placeholder="Search Movies here" aria-label="Search" value="${model.q}" style="border-right:0;" required>
-			  <button class="btn btn-success" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;">
-				<i class="fas fa-search" style="margin: 0"></i>
-			</button>
-		</div>
-	</form>`;
-	
 	var content = `
   	<div id="update"></div>
 	<div class="container" id="select_items" style="padding: 0px 50px 10px; display:none;">
@@ -902,17 +984,14 @@ function render_search_result_list() {
 		</div>
 	</div>
 	<div class="card">
-		<div class="card-header">
-			<div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
-			${searchBar}
-		</div>
+		<div class="card-header text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
 		<div id="list" class="list-group list-group-flush text-break">
 		</div>
 		<div class="card-footer text-muted d-flex align-items-center gap-2" id="count"><span class="number badge text-bg-dark">0 item</span><span class="totalsize badge text-bg-dark"></span></div>
 	</div>
 	<div id="readme_md" style="display:none; padding: 20px 20px;"></div>`;
 	$('#content').html(content);
-	
+
 	$('#list').html(`<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`);
 	$('#readme_md').hide().html('');
 	$('#head_md').hide().html('');
@@ -1045,13 +1124,6 @@ function append_search_result_to_list(files) {
 		// Is it the last page of data?
 		var is_lastpage_loaded = null === $list.data('nextPageToken');
 		// var is_firstpage = '0' == $list.data('curPageIndex');
-
-		// Sort files by size in descending order (largest first)
-		files.sort((a, b) => {
-			const sizeA = parseInt(a.size || 0);
-			const sizeB = parseInt(b.size || 0);
-			return sizeB - sizeA;
-		});
 
 		html = "";
 		var totalsize = 0;
