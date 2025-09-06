@@ -90,38 +90,6 @@ const markdown_icon = `<svg width="1.5em" height="1.5em" viewBox="0 0 1024 1024"
 const pdf_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_44)"><g transform="matrix(1,0,0,1,0,0)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,24,24)"><path fill="rgb(255,87,34)" fill-opacity="1" d=" M16,21 C16,21 -16,21 -16,21 C-16,21 -16,-21 -16,-21 C-16,-21 6,-21 6,-21 C6,-21 16,-11 16,-11 C16,-11 16,21 16,21z"></path></g><g opacity="1" transform="matrix(1,0,0,1,33.75,9.25)"><path fill="rgb(251,233,231)" fill-opacity="1" d=" M4.75,4.75 C4.75,4.75 -4.75,4.75 -4.75,4.75 C-4.75,4.75 -4.75,-4.75 -4.75,-4.75 C-4.75,-4.75 4.75,4.75 4.75,4.75z"></path></g></g><g transform="matrix(1,0,0,1,24,24)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="rgb(255,255,255)" fill-opacity="1" d=" M-8,15 C-8.399999618530273,15 -8.699999809265137,14.899999618530273 -9,14.800000190734863 C-10.100000381469727,14.199999809265137 -10.199999809265137,13.300000190734863 -10,12.600000381469727 C-9.600000381469727,11.399999618530273 -7.400000095367432,9.899999618530273 -4.5,8.600000381469727 C-4.5,8.600000381469727 -4.5,8.600000381469727 -4.5,8.600000381469727 C-3.200000047683716,6.199999809265137 -2.200000047683716,3.700000047683716 -1.600000023841858,1.600000023841858 C-2.5999999046325684,-0.30000001192092896 -3.0999999046325684,-2.0999999046325684 -3.0999999046325684,-3.4000000953674316 C-3.0999999046325684,-4.099999904632568 -2.9000000953674316,-4.699999809265137 -2.5999999046325684,-5.199999809265137 C-2.200000047683716,-5.699999809265137 -1.600000023841858,-6 -0.800000011920929,-6 C0.10000000149011612,-6 0.800000011920929,-5.5 1.100000023841858,-4.599999904632568 C1.600000023841858,-3.4000000953674316 1.2999999523162842,-1.2000000476837158 0.6000000238418579,1.2999999523162842 C1.600000023841858,3 2.799999952316284,4.599999904632568 4.099999904632568,5.800000190734863 C6,5.400000095367432 7.699999809265137,5.199999809265137 8.800000190734863,5.400000095367432 C10.699999809265137,5.699999809265137 11,7 11,7.5 C11,9.600000381469727 8.800000190734863,9.600000381469727 8,9.600000381469727 C6.5,9.600000381469727 5,9 3.700000047683716,7.900000095367432 C3.700000047683716,7.900000095367432 3.700000047683716,7.900000095367432 3.700000047683716,7.900000095367432 C1.2999999523162842,8.5 -1.100000023841858,9.300000190734863 -3,10.199999809265137 C-4,11.899999618530273 -5,13.300000190734863 -5.900000095367432,14.100000381469727 C-6.800000190734863,14.800000190734863 -7.5,15 -8,15z M-6.800000190734863,12.100000381469727 C-7.300000190734863,12.399999618530273 -7.699999809265137,12.699999809265137 -7.900000095367432,13 C-7.699999809265137,12.899999618530273 -7.300000190734863,12.699999809265137 -6.800000190734863,12.100000381469727z M6.800000190734863,7.400000095367432 C7.199999809265137,7.5 7.599999904632568,7.599999904632568 8,7.599999904632568 C8.600000381469727,7.599999904632568 8.899999618530273,7.5 9,7.5 C9,7.5 9,7.5 9,7.5 C8.899999618530273,7.400000095367432 8.199999809265137,7.199999809265137 6.800000190734863,7.400000095367432z M-0.20000000298023224,3.799999952316284 C-0.6000000238418579,5 -1.2000000476837158,6.300000190734863 -1.7000000476837158,7.5 C-0.5,7.099999904632568 0.699999988079071,6.699999809265137 1.899999976158142,6.400000095367432 C1.100000023841858,5.599999904632568 0.4000000059604645,4.699999809265137 -0.20000000298023224,3.799999952316284z M-0.800000011920929,-4 C-0.8999999761581421,-4 -0.8999999761581421,-4 -0.8999999761581421,-4 C-1,-3.9000000953674316 -1.100000023841858,-3.200000047683716 -0.699999988079071,-1.7000000476837158 C-0.6000000238418579,-2.9000000953674316 -0.6000000238418579,-3.799999952316284 -0.800000011920929,-4z"></path></g></g></g></svg>`
 const file_icon = `<svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#__lottie_element_63)"><g transform="matrix(1,0,0,1,7.75,2.75)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,16.25,21.25)"><path fill="rgb(144,201,248)" fill-opacity="1" d=" M16,21 C16,21 -16,21 -16,21 C-16,21 -16,-21 -16,-21 C-16,-21 6,-21 6,-21 C6,-21 16,-11 16,-11 C16,-11 16,21 16,21z"></path></g></g><g transform="matrix(1,0,0,1,15,21)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,1 C1,1 18,1 18,1"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,5 C1,5 14,5 14,5"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,9 C1,9 18,9 18,9"></path></g><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path stroke-linecap="butt" stroke-linejoin="miter" fill-opacity="0" stroke-miterlimit="10" stroke="rgb(24,118,210)" stroke-opacity="1" stroke-width="2" d=" M1,13 C1,13 14,13 14,13"></path></g></g><g transform="matrix(1,0,0,1,28.75,4.25)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,5,5)"><path fill="rgb(224,245,253)" fill-opacity="1" d=" M4.75,4.75 C4.75,4.75 -4.75,4.75 -4.75,4.75 C-4.75,4.75 -4.75,-4.75 -4.75,-4.75 C-4.75,-4.75 0,0 0,0 C0,0 4.75,4.75 4.75,4.75z"></path></g></g></g></svg>`
 
-// Add the GDTot conversion function here
-async function convertToGDTot(gdriveUrl) {
-    try {
-        const apiUrl = 'https://new26.gdtot.dad/api';
-        const apiToken = 'AMndIJhGWIy2k7K6Y1niu0AdxwWk0k';
-        
-        const formData = new FormData();
-        formData.append('token', apiToken);
-        formData.append('gdrive', gdriveUrl);
-        
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            body: formData
-        });
-        
-        if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-            return data.direct_link;
-        } else {
-            throw new Error(data.message || 'Failed to convert to GDTot');
-        }
-    } catch (error) {
-        console.error('GDTot conversion error:', error);
-        return null;
-    }
-}
-
 // Don't know new OS thing, so I just copied it from the original source code and edited something.
 const Os = {
 	isWindows: navigator.userAgent.toUpperCase().indexOf('WIN') > -1, // .includes
@@ -1472,114 +1440,95 @@ function generateCopyFileBox(file_id, cookie_folder_id) {
 }
 
 // Document display |zip|.exe/others direct downloads
-async function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-    // Add GDTot conversion - replace Google Drive URL with GDTot URL
-    let driveButton = '';
-    if (UI.display_drive_link) {
-        const gdriveUrl = `https://drive.google.com/file/d/${file_id}`;
-        const gdtotLink = await convertToGDTot(gdriveUrl);
-        
-        if (gdtotLink) {
-            // Use GDTot link if conversion successful
-            driveButton = `<a class="btn btn-secondary d-flex align-items-center gap-2" href="${gdtotLink}" id="file_drive_link" target="_blank">
-                <i class="fas fa-external-link-alt fa-fw"></i>GDTot Link
-            </a>`;
-        } else {
-            // Fall back to Google Drive link if conversion fails
-            driveButton = `<a class="btn btn-secondary d-flex align-items-center gap-2" href="${gdriveUrl}" id="file_drive_link" target="_blank">
-                ${gdrive_icon}Google Drive
-            </a>`;
-        }
-    }
+function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+	const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
-    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-
-    // Add the container and card elements // wait until image is loaded and then hide spinner
-    var content = `
-    <div class="card">
-        <div class="card-header ${UI.file_view_alert_class}">
-            <i class="fas fa-file-alt fa-fw"></i>File Information
-        </div>
-        <div class="card-body row g-3">
-            <div class="col-lg-4 col-md-12">${poster && !mimeType.startsWith('application/vnd.google-apps') ? `
-                <div id="preview" class="h-100 border border-dark rounded d-flex justify-content-center align-items-center position-relative" style="--bs-border-opacity: .5; min-height: 200px;">
-                    <div id="preview_spinner" class="spinner-border m-5" role="status"><span class="sr-only"></span></div>
-                    <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5; opacity: 0;">
-                        <span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
-                        <span>Preview</span>
-                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${name}"></a>
-                    </div>
-                </div>` : `
-                <div class="h-100 border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;">
-                    <span><i class="fa-solid fa-photo-film fa-2xl fa-fw"></i></span>
-                    <span>Thumbnail not available</span>
-                </div>`}
-            </div>
-            <div class="col-lg-8 col-md-12">
-                <table class="table table-dark">
-                    <tbody>
-                        <tr>
-                            <th>
-                                <i class="fa-regular fa-folder-closed fa-fw"></i>
-                                <span class="tth">Name</span>
-                            </th>
-                            <td>${name}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-regular fa-clock fa-fw"></i>
-                                <span class="tth">Datetime</span>
-                            </th>
-                            <td>${createdTime}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-tag fa-fw"></i>
-                                <span class="tth">Type</span>
-                            </th>
-                            <td>${formatMimeType(mimeType)}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-box-archive fa-fw"></i>
-                                <span class="tth">Size</span>
-                            </th>
-                            <td>${size}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-file-circle-check fa-fw"></i>
-                                <span class="tth">Checksum</span>
-                            </th>
-                            <td>MD5: <code>${md5Checksum}</code>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="input-group">
-                    <span class="input-group-text" id="">Full URL</span>
-                    <input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
-                </div>
-            </div>
-            <div class="col-md-12">
-                <div class="text-center">
-                    <p class="mb-2">Download via</p>
-                    <div class="btn-group text-center"> ${driveButton} <a href="${url}" type="button" class="btn btn-success">
-                            <i class="fas fa-bolt fa-fw"></i>Index Link</a>
-                        <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span class="sr-only"></span>
-                        </button>
-                        <div class="dropdown-menu">
-                            <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-                            <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
-                            <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-                        </div>
-                    </div> `+ copyFileBox +`
-                </div>
-            </div>
-        </div>
-    </div>`;
-    $('#content').html(content);
+	// Add the container and card elements // wait until image is loaded and then hide spinner
+	var content = `
+	<div class="card">
+		<div class="card-header ${UI.file_view_alert_class}">
+			<i class="fas fa-file-alt fa-fw"></i>File Information
+		</div>
+		<div class="card-body row g-3">
+			<div class="col-lg-4 col-md-12">${poster && !mimeType.startsWith('application/vnd.google-apps') ? `
+				<div id="preview" class="h-100 border border-dark rounded d-flex justify-content-center align-items-center position-relative" style="--bs-border-opacity: .5; min-height: 200px;">
+					<div id="preview_spinner" class="spinner-border m-5" role="status"><span class="sr-only"></span></div>
+					<div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5; opacity: 0;">
+						<span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
+						<span>Preview</span>
+						<a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${name}"></a>
+					</div>
+				</div>` : `
+				<div class="h-100 border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;">
+					<span><i class="fa-solid fa-photo-film fa-2xl fa-fw"></i></span>
+					<span>Thumbnail not available</span>
+				</div>`}
+			</div>
+			<div class="col-lg-8 col-md-12">
+				<table class="table table-dark">
+					<tbody>
+						<tr>
+							<th>
+								<i class="fa-regular fa-folder-closed fa-fw"></i>
+								<span class="tth">Name</span>
+							</th>
+							<td>${name}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-regular fa-clock fa-fw"></i>
+								<span class="tth">Datetime</span>
+							</th>
+							<td>${createdTime}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-tag fa-fw"></i>
+								<span class="tth">Type</span>
+							</th>
+							<td>${formatMimeType(mimeType)}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-box-archive fa-fw"></i>
+								<span class="tth">Size</span>
+							</th>
+							<td>${size}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-file-circle-check fa-fw"></i>
+								<span class="tth">Checksum</span>
+							</th>
+							<td>MD5: <code>${md5Checksum}</code>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="input-group">
+					<span class="input-group-text" id="">Full URL</span>
+					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
+				</div>
+			</div>
+			<div class="col-md-12">
+				<div class="text-center">
+					<p class="mb-2">Download via</p>
+					<div class="btn-group text-center"> ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://kaceku.onrender.com/f/${file_id}" id="file_drive_link" target="_blank">`+gdrive_icon+`Google Drive</a>` : ``} <a href="${url}" type="button" class="btn btn-success">
+							<i class="fas fa-bolt fa-fw"></i>Index Link</a>
+						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<span class="sr-only"></span>
+						</button>
+						<div class="dropdown-menu">
+							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
+							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
+						</div>
+					</div> `+ copyFileBox +`
+				</div>
+			</div>
+		</div>
+	</div>`;
+	$('#content').html(content);
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
 	var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
 	var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
@@ -1736,73 +1685,45 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 }
 
    // Document display video  mkv|mp4|webm|avi| 
-async function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-    // Define all player icons
+   function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+	 // Define all player icons
     const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
     const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    // Add GDTot conversion - replace Google Drive URL with GDTot URL
-    let driveButton = '';
-    if (UI.display_drive_link) {
-        try {
-            const gdriveUrl = `https://drive.google.com/file/d/${file_id}`;
-            const gdtotLink = await convertToGDTot(gdriveUrl);
-            
-            if (gdtotLink) {
-                // Use GDTot link if conversion successful
-                driveButton = `<a class="btn btn-secondary d-flex align-items-center gap-2" href="${gdtotLink}" id="file_drive_link" target="_blank">
-                    <i class="fas fa-external-link-alt fa-fw"></i>GDTot Link
-                </a>`;
-            } else {
-                // Fall back to Google Drive link if conversion fails
-                driveButton = `<a class="btn btn-secondary d-flex align-items-center gap-2" href="${gdriveUrl}" id="file_drive_link" target="_blank">
-                    ${gdrive_icon}Google Drive
-                </a>`;
-            }
-        } catch (error) {
-            console.error('GDTot conversion failed:', error);
-            // Fall back to Google Drive link if conversion fails
-            driveButton = `<a class="btn btn-secondary d-flex align-items-center gap-2" href="https://drive.google.com/file/d/${file_id}" id="file_drive_link" target="_blank">
-                ${gdrive_icon}Google Drive
-            </a>`;
-        }
-    }
-	  var url_base64 = btoa(url);
-    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-    let player;
-    let player_js;
-    let player_css;
-    
-    if (!UI.disable_player) {
-        if (player_config.player == "plyr") {
-            player = `<video id="player" playsinline controls data-poster="${poster}">
-                <source src="${url}" type="video/mp4" />
-                <source src="${url}" type="video/webm" />
-            </video>`;
-            player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js';
-            player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css';
-        } else if (player_config.player == "videojs") {
-            player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
-                <source src="${url}" type="video/mp4" />
-                <source src="${url}" type="video/webm" />
-                <source src="${url}" type="video/avi" />
-            </video>`;
-            player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js';
-            player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css';
-        } else if (player_config.player == "dplayer") {
-            player = `<div id="player-container"></div>`;
-            player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js';
-            player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css';
-        } else if (player_config.player == "jwplayer") {
-            player = `<div id="player"></div>`;
-            player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js';
-            player_css = '';
-        }
-    }
+		 var url_base64 = btoa(url);
+	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
+	  let player
+	  if (!UI.disable_player) {
+		 if (player_config.player == "plyr") {
+			player = `<video id="player" playsinline controls data-poster="${poster}">
+      <source src="${url}" type="video/mp4" />
+      <source src="${url}" type="video/webm" />
+        </video>`
+			player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
+			player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
+		} else if (player_config.player == "videojs") {
+			player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
+      <source src="${url}" type="video/mp4" />
+      <source src="${url}" type="video/webm" />
+      <source src="${url}" type="video/avi" />
+    </video>`
+			player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
+			player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
+		} else if (player_config.player == "dplayer") {
+			player = `<div id="player-container"></div>`
+			player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js'
+			player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css'
+		} else if (player_config.player == "jwplayer") {
+			player = `<div id="player"></div>`
+			player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
+			player_css = ''
+		}
+	}
+
 // Add the container and card elements
-var content = `
+	var content = `
 	<div class="card">
 		<div class="card-header ${UI.file_view_alert_class}">
 			<i class="fas fa-file-alt fa-fw"></i>File Information
@@ -1864,7 +1785,7 @@ var content = `
 			<div class="col-md-12">
 				<div class="text-center">
 					<p class="mb-2">Download via</p>
-					<div class="btn-group text-center"> ${driveButton} <a href="${url}" type="button" class="btn btn-success">
+					<div class="btn-group text-center"> ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://drive.google.com/file/d/${file_id}" id="file_drive_link" target="_blank">`+gdrive_icon+`Google Drive</a>` : ``} <a href="${url}" type="button" class="btn btn-success">
 							<i class="fas fa-bolt fa-fw"></i>Index Link</a>
 						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							<span class="sr-only"></span>
