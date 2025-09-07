@@ -2250,7 +2250,7 @@ function generateGDTotLink(fileUrl, fileId, callback) {
   const formData = new FormData();
   formData.append("email", "powerrange33@gmail.com");
   formData.append("api_token", "LSwzUMbxYQQdtuBslvb9HAxAXD3iew");
-  formData.append("url", `https://drive.google.com/file/d/${fileId}`); // Single URL, not multiple
+  formData.append("url", "https://drive.google.com/file/d/${fileId}"); 
   
   // Make API request
   fetch(apiUrl, {
