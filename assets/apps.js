@@ -1692,7 +1692,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
     const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
-		const gdtot_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/GDTot.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
 		 var url_base64 = btoa(url);
 	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 	  let player
@@ -1791,7 +1790,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   ${UI.display_drive_link ? ` 
   <button class="btn btn-secondary d-flex align-items-center gap-2 gdtot-btn" 
           data-file-id="${file_id}" data-file-url="${url}" id="gdtot_link_${file_id}">
-    ${gdtot_icon}GDTot Link
+    ${gdrive_icon}GDTot Link
   </button>` : ``} 
   <a href="${url}" type="button" class="btn btn-success">
     <i class="fas fa-bolt fa-fw"></i>Index Link
