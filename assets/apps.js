@@ -1786,29 +1786,29 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         <div class="text-center">
           <p class="mb-2">Download via</p>
           <div class="btn-group text-center"> 
-            <!-- GDTot Button (replaces Google Drive button) -->
-            ${UI.display_drive_link ? ` 
-            <button class="btn btn-secondary d-flex align-items-center gap-2 gdtot-btn" 
-                    data-file-id="${file_id}" data-file-url="${url}" id="gdtot_link_${file_id}">
-              ${gdrive_icon}GDTot Link
-            </button>` : ``} 
-            <a href="${url}" type="button" class="btn btn-success">
-              <i class="fas fa-bolt fa-fw"></i>Index Link
-            </a>
-            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
-                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="sr-only"></span>
-            </button>
-            <div class="dropdown-menu">
-              <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">${new_download_icon} 1DM (Free)</a>
-            </div>
-          </div>
-          <!-- GDTot Result Display Area -->
-          <div id="gdtot-result-${file_id}" class="mt-2 alert alert-info" style="display: none;"></div>
+  <!-- GDTot Button (replaces Google Drive button) -->
+  ${UI.display_drive_link ? ` 
+  <button class="btn btn-secondary d-flex align-items-center gap-2 gdtot-btn" 
+          data-file-id="${file_id}" data-file-url="${url}" id="gdtot_link_${file_id}">
+    ${gdrive_icon}GDTot Link
+  </button>` : ``} 
+  <a href="${url}" type="button" class="btn btn-success">
+    <i class="fas fa-bolt fa-fw"></i>Index Link
+  </a>
+  <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <span class="sr-only"></span>
+  </button>
+  <div class="dropdown-menu">
+    <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
+    <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
+    <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
+    <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
+    <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">${new_download_icon} 1DM (Free)</a>
+   </div>
+     </div>
+       <!-- GDTot Result Display Area -->
+         <div id="gdtot-result-${file_id}" class="mt-2 alert alert-info" style="display: none;"></div>
           ${copyFileBox}
         </div>
       </div>`}
@@ -1817,44 +1817,44 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   
   $("#content").html(content);
   
-  // Add click handler for the GDTot button
-  $(document).on('click', '.gdtot-btn', function() {
-    const fileId = $(this).data('file-id');
-    const fileUrl = $(this).data('file-url');
-    const resultDiv = $(`#gdtot-result-${fileId}`);
-    
-    // Show loading state
-    $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-    resultDiv.show().removeClass('alert-danger alert-success').addClass('alert-info').html('Generating GDTot link...');
-    
-    // Call GDTot API
-    generateGDTotLink(fileUrl, fileId, function(success, data) {
-      if (success) {
-        resultDiv.removeClass('alert-info alert-danger').addClass('alert-success').html(`
-          GDTot Link: <a href="${data.link}" target="_blank">${data.link}</a>
-          <button class="btn btn-sm btn-outline-secondary ms-2 copy-btn" data-text="${data.link}">
-            <i class="fas fa-copy"></i>
-          </button>
-        `);
-      } else {
-        resultDiv.removeClass('alert-info alert-success').addClass('alert-danger').html(`Error: ${data}`);
-      }
-      
-      // Reset button state
-      $(this).prop('disabled', false).html(`${gdrive_icon}GDTot Link`);
-    }.bind(this));
-  });
+ // Add click handler for the GDTot button
+$(document).on('click', '.gdtot-btn', function() {
+  const fileId = $(this).data('file-id');
+  const fileUrl = $(this).data('file-url');
+  const resultDiv = $(`#gdtot-result-${fileId}`);
   
-  // Add copy functionality for the generated link
-  $(document).on('click', '.copy-btn', function() {
-    const text = $(this).data('text');
-    navigator.clipboard.writeText(text).then(function() {
-      $(this).html('<i class="fas fa-check"></i>');
-      setTimeout(() => {
-        $(this).html('<i class="fas fa-copy"></i>');
-      }, 2000);
-    }.bind(this));
-  });
+  // Show loading state
+  $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+  resultDiv.show().removeClass('alert-danger alert-success').addClass('alert-info').html('Generating GDTot link...');
+  
+  // Call GDTot API
+  generateGDTotLink(fileUrl, fileId, function(success, data) {
+    if (success) {
+      resultDiv.removeClass('alert-info alert-danger').addClass('alert-success').html(`
+        GDTot Link: <a href="${data.link}" target="_blank">${data.link}</a>
+        <button class="btn btn-sm btn-outline-secondary ms-2 copy-btn" data-text="${data.link}">
+          <i class="fas fa-copy"></i>
+        </button>
+      `);
+    } else {
+      resultDiv.removeClass('alert-info alert-success').addClass('alert-danger').html(`Error: ${data}`);
+    }
+    
+    // Reset button state
+    $(this).prop('disabled', false).html(`${gdrive_icon}GDTot Link`);
+  }.bind(this));
+});
+
+// Add copy functionality for the generated link
+$(document).on('click', '.copy-btn', function() {
+  const text = $(this).data('text');
+  navigator.clipboard.writeText(text).then(function() {
+    $(this).html('<i class="fas fa-check"></i>');
+    setTimeout(() => {
+      $(this).html('<i class="fas fa-copy"></i>');
+    }, 2000);
+  }.bind(this));
+});
 		 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
@@ -2241,20 +2241,26 @@ async function copyFile(driveid) {
 // GDTot API function (add this at the end of your app.js file)
 function generateGDTotLink(fileUrl, fileId, callback) {
   const apiUrl = 'https://new.gdtot.com/api/upload/link';
-  const apiToken = 'p31IuNjeMEQVtfh7oKWQeXUPeTwqS';
   
-  // Create form data
+  // Create headers
+  const myHeaders = new Headers();
+  
+  // Create form data with the correct parameters
   const formData = new FormData();
-  formData.append('token', apiToken);
-  formData.append('link', fileUrl);
+  formData.append("email", "powermango33@gmail.com");
+  formData.append("api_token", "p31IuNjeMEQVtfh7oKWQeXUPeTwqS");
+  formData.append("url", fileUrl);
   
   // Make API request
   fetch(apiUrl, {
-    method: 'POST',
-    body: formData
+    method: "POST",
+    headers: myHeaders,
+    body: formData,
+    redirect: "follow"
   })
   .then(response => response.json())
   .then(data => {
+    console.log("GDTot API Response:", data);
     if (data.status === 'success' && data.link) {
       callback(true, { link: data.link });
     } else {
