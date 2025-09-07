@@ -2246,34 +2246,39 @@ function generateGDTotLink(fileUrl, fileId, callback) {
   // Create headers
   const myHeaders = new Headers();
   
-  function generateGDTotLink(fileUrl, fileId, callback) {
-  const apiUrl = 'https://new26.gdtot.dad/api/upload/link';
+  // Create form data with the correct parameters
+  const formData = new FormData();
+  formData.append("email", "powerrange33@gmail.com");
+  formData.append("api_token", "LSwzUMbxYQQdtuBslvb9HAxAXD3iew");
+  formData.append("url", "https://drive.google.com/file/d/${fileId}/view"); 
   
-  const myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
-
-  const urlencoded = new URLSearchParams();
-  urlencoded.append("email", "powerrange33@gmail.com");
-  urlencoded.append("api_token", "LSwzUMbxYQQdtuBslvb9HAxAXD3iew");
-  urlencoded.append("url", `https://drive.google.com/file/d/${fileId}/view`);
-
+  // Make API request
   fetch(apiUrl, {
     method: "POST",
     headers: myHeaders,
-    body: urlencoded,
+    body: formData,
     redirect: "follow"
   })
-  .then(response => response.text())
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
   .then(result => {
-    try {
-      const data = JSON.parse(result);
-      if (data.status === true && data.data && data.data.url) {
-        callback(true, { link: data.data.url });
+    console.log("GDTot API Response:", result);
+    
+    // Check response based on API documentation
+    if (result.status === true && result.data && result.data.length > 0) {
+      // Get the first item from the data array
+      const fileData = result.data[0];
+      if (fileData.url) {
+        callback(true, { link: fileData.url });
       } else {
-        callback(false, data.message || 'Unknown error from GDTot API');
+        callback(false, 'No URL returned from GDTot API');
       }
-    } catch (e) {
-      callback(false, 'Invalid JSON response from API');
+    } else {
+      callback(false, result.message || 'Unknown error from GDTot API');
     }
   })
   .catch(error => {
