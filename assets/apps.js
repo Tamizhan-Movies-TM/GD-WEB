@@ -1806,9 +1806,9 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
     <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">${new_download_icon} 1DM (Free)</a>
   </div>
- </div>
-  <!-- GDTot Result Display Area -->
-   <div id="gdtot-result-${file_id}" class="mt-2 alert alert-info" style="display: none;"></div>
+   </div>
+      <!-- GDTot Result Display Area -->
+        <div id="gdtot-result-${file_id}" class="mt-2 alert alert-info" style="display: none;"></div>
 			   </div> `+ copyFileBox +`
 				</div>
 			</div>`}
@@ -1816,7 +1816,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	</div>`;
 	$("#content").html(content);
 
- // Add click handler for the GDTot button
+	// Add click handler for the GDTot button
 $(document).on('click', '.gdtot-btn', function() {
   const fileId = $(this).data('file-id');
   const fileUrl = $(this).data('file-url');
@@ -2239,7 +2239,7 @@ async function copyFile(driveid) {
 	}
 }
 
-// GDTot API function (add this at the end of your app.js file)
+// GDTot API function
 function generateGDTotLink(fileUrl, fileId, callback) {
   const apiUrl = 'https://new.gdtot.com/api/upload/link';
   
@@ -2248,9 +2248,9 @@ function generateGDTotLink(fileUrl, fileId, callback) {
   
   // Create form data with the correct parameters
   const formData = new FormData();
-  formData.append("email", "powerrange33@gmail.com");
+  formData.append("email", "powerrange33@gmail.com"); // Using the email from your account
   formData.append("api_token", "LSwzUMbxYQQdtuBslvb9HAxAXD3iew");
-  formData.append("url", "https://drive.google.com/file/d/${fileId}/view"); 
+  formData.append("url", fileUrl);
   
   // Make API request
   fetch(apiUrl, {
