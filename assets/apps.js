@@ -2240,57 +2240,51 @@ async function copyFile(driveid) {
 	}
 }
 
-// GDTot API function (add this at the end of your app.js file)
+// Alternative GDTot API function using XMLHttpRequest
 function generateGDTotLink(fileUrl, fileId, callback) {
   const apiUrl = 'https://new.gdtot.com/api/upload/link';
   
-  // Create form data with the correct parameters
+  // Create form data
   const formData = new FormData();
   formData.append("email", "powermango33@gmail.com");
   formData.append("api_token", "CS2aA1hNrlUG8bFaZbtzOLLmq6o6R");
-  formData.append("url", fileUrl); // Correct parameter format
+  formData.append("url", fileUrl);
   
-  // Make API request
-  fetch(apiUrl, {
-    method: "POST",
-    body: formData,
-    // Don't set Content-Type header - let the browser set it with the correct boundary
-    // Don't set redirect: "follow" as it might cause CORS issues
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(result => {
-    console.log("GDTot API Response:", result);
-    
-    // Check response based on API documentation
-    if (result.status === true && result.data && result.data.length > 0) {
-      // Get the first item from the data array
-      const fileData = result.data[0];
-      if (fileData.url) {
-        callback(true, { link: fileData.url });
+  // Use XMLHttpRequest instead of fetch
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", apiUrl, true);
+  
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4) {
+      if (xhr.status === 200) {
+        try {
+          const result = JSON.parse(xhr.responseText);
+          console.log("GDTot API Response:", result);
+          
+          if (result.status === true && result.data && result.data.length > 0) {
+            const fileData = result.data[0];
+            if (fileData.url) {
+              callback(true, { link: fileData.url });
+            } else {
+              callback(false, 'No URL returned from GDTot API');
+            }
+          } else {
+            callback(false, result.message || 'Unknown error from GDTot API');
+          }
+        } catch (e) {
+          callback(false, 'Invalid JSON response from API');
+        }
       } else {
-        callback(false, 'No URL returned from GDTot API');
+        callback(false, `HTTP error! status: ${xhr.status}`);
       }
-    } else {
-      callback(false, result.message || 'Unknown error from GDTot API');
     }
-  })
-  .catch(error => {
-    console.error('GDTot API Error:', error);
-    
-    // More specific error messages
-    if (error.name === 'TypeError') {
-      callback(false, 'Network error. Please check your internet connection.');
-    } else if (error.message.includes('Failed to fetch')) {
-      callback(false, 'Cannot connect to GDTot API. This might be a CORS issue or the API might be down.');
-    } else {
-      callback(false, 'Failed to connect to GDTot API: ' + error.message);
-    }
-  });
+  };
+  
+  xhr.onerror = function() {
+    callback(false, 'Network error occurred');
+  };
+  
+  xhr.send(formData);
 }
 
 // create a MutationObserver to listen for changes to the DOM
