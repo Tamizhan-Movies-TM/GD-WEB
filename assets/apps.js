@@ -2244,21 +2244,18 @@ async function copyFile(driveid) {
 function generateGDTotLink(fileUrl, fileId, callback) {
   const apiUrl = 'https://new.gdtot.com/api/upload/link';
   
-  // Create headers
-  const myHeaders = new Headers();
-  
   // Create form data with the correct parameters
   const formData = new FormData();
   formData.append("email", "powermango33@gmail.com");
   formData.append("api_token", "CS2aA1hNrlUG8bFaZbtzOLLmq6o6R");
-  formData.append("url", fileUrl); // Single URL, not multiple
+  formData.append("url", fileUrl); // Correct parameter format
   
   // Make API request
   fetch(apiUrl, {
     method: "POST",
-    headers: myHeaders,
     body: formData,
-    redirect: "follow"
+    // Don't set Content-Type header - let the browser set it with the correct boundary
+    // Don't set redirect: "follow" as it might cause CORS issues
   })
   .then(response => {
     if (!response.ok) {
@@ -2284,7 +2281,15 @@ function generateGDTotLink(fileUrl, fileId, callback) {
   })
   .catch(error => {
     console.error('GDTot API Error:', error);
-    callback(false, 'Failed to connect to GDTot API: ' + error.message);
+    
+    // More specific error messages
+    if (error.name === 'TypeError') {
+      callback(false, 'Network error. Please check your internet connection.');
+    } else if (error.message.includes('Failed to fetch')) {
+      callback(false, 'Cannot connect to GDTot API. This might be a CORS issue or the API might be down.');
+    } else {
+      callback(false, 'Failed to connect to GDTot API: ' + error.message);
+    }
   });
 }
 
