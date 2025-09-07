@@ -1796,7 +1796,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     <i class="fas fa-bolt fa-fw"></i>Index Link
   </a>
   <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
-    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
     <span class="sr-only"></span>
   </button>
   <div class="dropdown-menu">
@@ -1805,10 +1805,10 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
     <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
     <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">${new_download_icon} 1DM (Free)</a>
-   </div>
-     </div>
-       <!-- GDTot Result Display Area -->
-         <div id="gdtot-result-${file_id}" class="mt-2 alert alert-info" style="display: none;"></div>
+  </div>
+</div>
+<!-- GDTot Result Display Area -->
+<div id="gdtot-result-${file_id}" class="mt-2 alert alert-info" style="display: none;"></div>
           ${copyFileBox}
         </div>
       </div>`}
@@ -1817,14 +1817,15 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   
   $("#content").html(content);
   
- // Add click handler for the GDTot button
+// Add click handler for the GDTot button
 $(document).on('click', '.gdtot-btn', function() {
   const fileId = $(this).data('file-id');
   const fileUrl = $(this).data('file-url');
   const resultDiv = $(`#gdtot-result-${fileId}`);
+  const button = $(this);
   
   // Show loading state
-  $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+  button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
   resultDiv.show().removeClass('alert-danger alert-success').addClass('alert-info').html('Generating GDTot link...');
   
   // Call GDTot API
@@ -1841,19 +1842,20 @@ $(document).on('click', '.gdtot-btn', function() {
     }
     
     // Reset button state
-    $(this).prop('disabled', false).html(`${gdrive_icon}GDTot Link`);
-  }.bind(this));
+    button.prop('disabled', false).html(`${gdrive_icon}GDTot Link`);
+  });
 });
 
 // Add copy functionality for the generated link
 $(document).on('click', '.copy-btn', function() {
   const text = $(this).data('text');
+  const button = $(this);
   navigator.clipboard.writeText(text).then(function() {
-    $(this).html('<i class="fas fa-check"></i>');
+    button.html('<i class="fas fa-check"></i>');
     setTimeout(() => {
-      $(this).html('<i class="fas fa-copy"></i>');
+      button.html('<i class="fas fa-copy"></i>');
     }, 2000);
-  }.bind(this));
+  });
 });
 		 
   // Load Video.js and initialize the player
@@ -2248,8 +2250,8 @@ function generateGDTotLink(fileUrl, fileId, callback) {
   // Create form data with the correct parameters
   const formData = new FormData();
   formData.append("email", "powermango33@gmail.com");
-  formData.append("api_token", "p31IuNjeMEQVtfh7oKWQeXUPeTwqS");
-  formData.append("url", fileUrl);
+  formData.append("api_token", "CS2aA1hNrlUG8bFaZbtzOLLmq6o6R");
+  formData.append("url", fileUrl); // Single URL, not multiple
   
   // Make API request
   fetch(apiUrl, {
@@ -2258,18 +2260,31 @@ function generateGDTotLink(fileUrl, fileId, callback) {
     body: formData,
     redirect: "follow"
   })
-  .then(response => response.json())
-  .then(data => {
-    console.log("GDTot API Response:", data);
-    if (data.status === 'success' && data.link) {
-      callback(true, { link: data.link });
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(result => {
+    console.log("GDTot API Response:", result);
+    
+    // Check response based on API documentation
+    if (result.status === true && result.data && result.data.length > 0) {
+      // Get the first item from the data array
+      const fileData = result.data[0];
+      if (fileData.url) {
+        callback(true, { link: fileData.url });
+      } else {
+        callback(false, 'No URL returned from GDTot API');
+      }
     } else {
-      callback(false, data.message || 'Unknown error from GDTot API');
+      callback(false, result.message || 'Unknown error from GDTot API');
     }
   })
   .catch(error => {
     console.error('GDTot API Error:', error);
-    callback(false, 'Failed to connect to GDTot API');
+    callback(false, 'Failed to connect to GDTot API: ' + error.message);
   });
 }
 
