@@ -1686,7 +1686,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
    // Document display video  mkv|mp4|webm|avi| 
  function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-  // Define all player icons
+    // Define all player icons
     const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
@@ -1829,8 +1829,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
         resultDiv.show().removeClass('alert-danger alert-success').addClass('alert-info').html('Generating GDTot link...');
         
-        // Call GDTot API
-        generateGDTotLink(fileUrl, fileId, function(success, data) {
+        // Call GDTot API with proxy
+        generateGDTotLinkWithProxy(fileUrl, fileId, function(success, data) {
             if (success) {
                 resultDiv.removeClass('alert-info alert-danger').addClass('alert-success').html(`
                     GDTot Link: <a href="${data.link}" target="_blank">${data.link}</a>
@@ -2241,12 +2241,11 @@ async function copyFile(driveid) {
 	}
 }
 
-// GDTot API function
-function generateGDTotLink(fileUrl, fileId, callback) {
-    const apiUrl = 'https://new.gdtot.com/api/upload/link';
-    
-    // Create headers
-    const myHeaders = new Headers();
+// GDTot API function with proxy
+function generateGDTotLinkWithProxy(fileUrl, fileId, callback) {
+    // Use a proxy to avoid CORS issues
+    const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+    const apiUrl = 'https://new26.gdtot.dad/api/upload/link';
     
     // Create form data with the correct parameters
     const formData = new FormData();
@@ -2254,12 +2253,15 @@ function generateGDTotLink(fileUrl, fileId, callback) {
     formData.append("api_token", "LSwzUMbxYQQdtuBslvb9HAxAXD3iew");
     formData.append("url", `https://drive.google.com/file/d/${fileId}/view`);
     
-    // Make API request
-    fetch(apiUrl, {
+    console.log("Sending request to GDTot API via proxy");
+    
+    // Make API request through proxy
+    fetch(proxyUrl + apiUrl, {
         method: "POST",
-        headers: myHeaders,
         body: formData,
-        redirect: "follow"
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
     .then(response => {
         if (!response.ok) {
@@ -2285,7 +2287,69 @@ function generateGDTotLink(fileUrl, fileId, callback) {
     })
     .catch(error => {
         console.error('GDTot API Error:', error);
-        callback(false, 'Failed to connect to GDTot API: ' + error.message);
+        
+        // More specific error messages
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            callback(false, 'Network error: Could not connect to GDTot API. This might be a CORS issue.');
+        } else {
+            callback(false, 'Failed to connect to GDTot API: ' + error.message);
+        }
+    });
+}
+
+// Original GDTot API function (for reference)
+function generateGDTotLink(fileUrl, fileId, callback) {
+    const apiUrl = 'https://new26.gdtot.dad/api/upload/link';
+    
+    // Create form data with the correct parameters
+    const formData = new FormData();
+    formData.append("email", "powerrange33@gmail.com");
+    formData.append("api_token", "LSwzUMbxYQQdtuBslvb9HAxAXD3iew");
+    formData.append("url", `https://drive.google.com/file/d/${fileId}/view`);
+    
+    console.log("Sending request to GDTot API with data:", {
+        email: "powerrange33@gmail.com",
+        api_token: "LSwzUMbxYQQdtuBslvb9HAxAXD3iew",
+        url: `https://drive.google.com/file/d/${fileId}/view`
+    });
+    
+    // Make API request
+    fetch(apiUrl, {
+        method: "POST",
+        body: formData,
+        mode: 'cors' // Ensure CORS mode is set
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(result => {
+        console.log("GDTot API Response:", result);
+        
+        // Check response based on API documentation
+        if (result.status === true && result.data && result.data.length > 0) {
+            // Get the first item from the data array
+            const fileData = result.data[0];
+            if (fileData.url) {
+                callback(true, { link: fileData.url });
+            } else {
+                callback(false, 'No URL returned from GDTot API');
+            }
+        } else {
+            callback(false, result.message || 'Unknown error from GDTot API');
+        }
+    })
+    .catch(error => {
+        console.error('GDTot API Error:', error);
+        
+        // More specific error messages
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            callback(false, 'Network error: Could not connect to GDTot API. This might be a CORS issue.');
+        } else {
+            callback(false, 'Failed to connect to GDTot API: ' + error.message);
+        }
     });
 }
 
