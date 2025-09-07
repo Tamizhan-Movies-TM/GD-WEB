@@ -1723,140 +1723,86 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	}
 
 // Add the container and card elements
-  var content = `
-  <div class="card">
-    <div class="card-header ${UI.file_view_alert_class}">
-      <i class="fas fa-file-alt fa-fw"></i>File Information
-    </div>
-    <div class="card-body row g-3">
-      <div class="col-lg-4 col-md-12">
-        <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-          ${player}
-        </div>
-      </div>
-      <div class="col-lg-8 col-md-12">
-        <table class="table table-dark">
-          <tbody>
-            <tr>
-              <th>
-                <i class="fa-regular fa-folder-closed fa-fw"></i>
-                <span class="tth">Name</span>
-              </th>
-              <td>${name}</td>
-            </tr>
-            <tr>
-              <th>
-                <i class="fa-regular fa-clock fa-fw"></i>
-                <span class="tth">Datetime</span>
-              </th>
-              <td>${createdTime}</td>
-            </tr>
-            <tr>
-              <th>
-                <i class="fa-solid fa-tag fa-fw"></i>
-                <span class="tth">Type</span>
-              </th>
-              <td>${formatMimeType(mimeType)}</td>
-            </tr>
-            <tr>
-              <th>
-                <i class="fa-solid fa-box-archive fa-fw"></i>
-                <span class="tth">Size</span>
-              </th>
-              <td>${size}</td>
-            </tr>
-            <tr>
-              <th>
-                <i class="fa-solid fa-file-circle-check fa-fw"></i>
-                <span class="tth">Checksum</span>
-              </th>
-              <td>MD5: <code>${md5Checksum}</code>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        ${UI.disable_video_download ? `` : `
-        <div class="input-group">
-          <span class="input-group-text" id="">Full URL</span>
-          <input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
-        </div>`}
-      </div>
-      ${UI.disable_video_download ? `` : `
-      <div class="col-md-12">
-        <div class="text-center">
-          <p class="mb-2">Download via</p>
-          <div class="btn-group text-center"> 
-  <!-- GDTot Button (replaces Google Drive button) -->
-  ${UI.display_drive_link ? ` 
-  <button class="btn btn-secondary d-flex align-items-center gap-2 gdtot-btn" 
-          data-file-id="${file_id}" data-file-url="${url}" id="gdtot_link_${file_id}">
-    ${gdrive_icon}GDTot Link
-  </button>` : ``} 
-  <a href="${url}" type="button" class="btn btn-success">
-    <i class="fas fa-bolt fa-fw"></i>Index Link
-  </a>
-  <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
-          data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    <span class="sr-only"></span>
-  </button>
-  <div class="dropdown-menu">
-    <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
-    <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
-    <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
-    <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
-    <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">${new_download_icon} 1DM (Free)</a>
-  </div>
-</div>
-<!-- GDTot Result Display Area -->
-<div id="gdtot-result-${file_id}" class="mt-2 alert alert-info" style="display: none;"></div>
-          ${copyFileBox}
-        </div>
-      </div>`}
-    </div>
-  </div>`;
-  
-  $("#content").html(content);
-  
-// Add click handler for the GDTot button
-$(document).on('click', '.gdtot-btn', function() {
-  const fileId = $(this).data('file-id');
-  const fileUrl = $(this).data('file-url');
-  const resultDiv = $(`#gdtot-result-${fileId}`);
-  const button = $(this);
-  
-  // Show loading state
-  button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-  resultDiv.show().removeClass('alert-danger alert-success').addClass('alert-info').html('Generating GDTot link...');
-  
-  // Call GDTot API
-  generateGDTotLink(fileUrl, fileId, function(success, data) {
-    if (success) {
-      resultDiv.removeClass('alert-info alert-danger').addClass('alert-success').html(`
-        GDTot Link: <a href="${data.link}" target="_blank">${data.link}</a>
-        <button class="btn btn-sm btn-outline-secondary ms-2 copy-btn" data-text="${data.link}">
-          <i class="fas fa-copy"></i>
-        </button>
-      `);
-    } else {
-      resultDiv.removeClass('alert-info alert-success').addClass('alert-danger').html(`Error: ${data}`);
-    }
-    
-    // Reset button state
-    button.prop('disabled', false).html(`${gdrive_icon}GDTot Link`);
-  });
-});
-
-// Add copy functionality for the generated link
-$(document).on('click', '.copy-btn', function() {
-  const text = $(this).data('text');
-  const button = $(this);
-  navigator.clipboard.writeText(text).then(function() {
-    button.html('<i class="fas fa-check"></i>');
-    setTimeout(() => {
-      button.html('<i class="fas fa-copy"></i>');
-    }, 2000);
-  });
-});
+	var content = `
+	<div class="card">
+		<div class="card-header ${UI.file_view_alert_class}">
+			<i class="fas fa-file-alt fa-fw"></i>File Information
+		</div>
+		<div class="card-body row g-3">
+			<div class="col-lg-4 col-md-12">
+				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+					${player}
+				</div>
+			</div>
+			<div class="col-lg-8 col-md-12">
+				<table class="table table-dark">
+					<tbody>
+						<tr>
+							<th>
+								<i class="fa-regular fa-folder-closed fa-fw"></i>
+								<span class="tth">Name</span>
+							</th>
+							<td>${name}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-regular fa-clock fa-fw"></i>
+								<span class="tth">Datetime</span>
+							</th>
+							<td>${createdTime}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-tag fa-fw"></i>
+								<span class="tth">Type</span>
+							</th>
+							<td>${formatMimeType(mimeType)}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-box-archive fa-fw"></i>
+								<span class="tth">Size</span>
+							</th>
+							<td>${size}</td>
+						</tr>
+						<tr>
+							<th>
+								<i class="fa-solid fa-file-circle-check fa-fw"></i>
+								<span class="tth">Checksum</span>
+							</th>
+							<td>MD5: <code>${md5Checksum}</code>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				${UI.disable_video_download ? `` : `
+				<div class="input-group">
+					<span class="input-group-text" id="">Full URL</span>
+					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
+				</div>`}
+			</div>
+			${UI.disable_video_download ? `` : `
+			<div class="col-md-12">
+				<div class="text-center">
+					<p class="mb-2">Download via</p>
+					<div class="btn-group text-center"> ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://drive.google.com/file/d/${file_id}" id="file_drive_link" target="_blank">`+gdrive_icon+`Google Drive</a>` : ``} <a href="${url}" type="button" class="btn btn-success">
+							<i class="fas fa-bolt fa-fw"></i>Index Link</a>
+						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<span class="sr-only"></span>
+						</button>
+						 <div class="dropdown-menu">
+				     <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
+	           <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
+             <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
+             <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
+             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">${new_download_icon} 1DM (Free)</a>
+						</div>
+					</div> `+ copyFileBox +`
+				</div>
+			</div>`}
+		</div>
+	</div>`;
+	$("#content").html(content);
 		 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
@@ -2240,52 +2186,6 @@ async function copyFile(driveid) {
 	}
 }
 
-// Alternative GDTot API function using XMLHttpRequest
-function generateGDTotLink(fileUrl, fileId, callback) {
-  const apiUrl = 'https://new.gdtot.com/api/upload/link';
-  
-  // Create form data
-  const formData = new FormData();
-  formData.append("email", "powermango33@gmail.com");
-  formData.append("api_token", "CS2aA1hNrlUG8bFaZbtzOLLmq6o6R");
-  formData.append("url", fileUrl);
-  
-  // Use XMLHttpRequest instead of fetch
-  const xhr = new XMLHttpRequest();
-  xhr.open("POST", apiUrl, true);
-  
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        try {
-          const result = JSON.parse(xhr.responseText);
-          console.log("GDTot API Response:", result);
-          
-          if (result.status === true && result.data && result.data.length > 0) {
-            const fileData = result.data[0];
-            if (fileData.url) {
-              callback(true, { link: fileData.url });
-            } else {
-              callback(false, 'No URL returned from GDTot API');
-            }
-          } else {
-            callback(false, result.message || 'Unknown error from GDTot API');
-          }
-        } catch (e) {
-          callback(false, 'Invalid JSON response from API');
-        }
-      } else {
-        callback(false, `HTTP error! status: ${xhr.status}`);
-      }
-    }
-  };
-  
-  xhr.onerror = function() {
-    callback(false, 'Network error occurred');
-  };
-  
-  xhr.send(formData);
-}
 
 // create a MutationObserver to listen for changes to the DOM
 const observer = new MutationObserver(() => {
