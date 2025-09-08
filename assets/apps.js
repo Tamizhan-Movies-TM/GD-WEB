@@ -2259,6 +2259,17 @@ function generateGDTotLink(fileUrl, fileId, callback) {
   });
 }
 
+// Add this to handle copy buttons for GDTot links
+$(document).on('click', '.copy-btn', function() {
+  const text = $(this).data('text');
+  navigator.clipboard.writeText(text).then(() => {
+    $(this).html('<i class="fas fa-check"></i>');
+    setTimeout(() => {
+      $(this).html('<i class="fas fa-copy"></i>');
+    }, 2000);
+  });
+});
+
 
 // create a MutationObserver to listen for changes to the DOM
 const observer = new MutationObserver(() => {
@@ -2273,14 +2284,3 @@ const options = {
 
 // observe changes to the body element
 observer.observe(document.documentElement, options);
-
-// Add this to handle copy buttons for GDTot links
-$(document).on('click', '.copy-btn', function() {
-  const text = $(this).data('text');
-  navigator.clipboard.writeText(text).then(() => {
-    $(this).html('<i class="fas fa-check"></i>');
-    setTimeout(() => {
-      $(this).html('<i class="fas fa-copy"></i>');
-    }, 2000);
-  });
-});
