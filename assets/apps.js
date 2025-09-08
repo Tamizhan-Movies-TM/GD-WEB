@@ -1816,7 +1816,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	</div>`;
 	$("#content").html(content);
 
- // Add click handler for the GDTot button
+// Update the click handler for the GDTot button
 $(document).on('click', '.gdtot-btn', function() {
   const fileId = $(this).data('file-id');
   const fileUrl = $(this).data('file-url');
@@ -1842,18 +1842,6 @@ $(document).on('click', '.gdtot-btn', function() {
     
     // Reset button state
     button.prop('disabled', false).html(`${gdrive_icon}GDTot Link`);
-  });
-});
-
-// Add copy functionality for the generated link
-$(document).on('click', '.copy-btn', function() {
-  const text = $(this).data('text');
-  const button = $(this);
-  navigator.clipboard.writeText(text).then(function() {
-    button.html('<i class="fas fa-check"></i>');
-    setTimeout(() => {
-      button.html('<i class="fas fa-copy"></i>');
-    }, 2000);
   });
 });
 		 
@@ -2241,44 +2229,44 @@ async function copyFile(driveid) {
 
 // GDTot API function (add this at the end of your app.js file)
 function generateGDTotLink(fileUrl, fileId, callback) {
-  const apiUrl = 'https://new.gdtot.com/api/upload/link';
-  
-  // Create headers
-  const myHeaders = new Headers();
+  const apiUrl = 'https://new26.gdtot.dad/ajax.php?ajax=filecreate';
   
   // Create form data with the correct parameters
   const formData = new FormData();
-  formData.append("email", "powermango33@gmail.com");
-  formData.append("api_token", "LSwzUMbxYQQdtuBslvb9HAxAXD3iew");
-  formData.append("url", "https://drive.google.com/file/d/${fileId}"); 
+  formData.append("url", `https://drive.google.com/file/d/${fileId}/view`);
+  
+  // Add additional parameters based on the HTML form
+  formData.append("enable_pack_title", "on");
+  formData.append("pack-title", "Auto Generated Pack");
   
   // Make API request
   fetch(apiUrl, {
     method: "POST",
-    headers: myHeaders,
     body: formData,
-    redirect: "follow"
+    redirect: "follow",
+    credentials: "include" // This sends cookies with the request
   })
   .then(response => {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return response.json();
+    return response.text();
   })
-  .then(result => {
-    console.log("GDTot API Response:", result);
+  .then(html => {
+    // Parse the HTML response to extract the GDTot link
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
     
-    // Check response based on API documentation
-    if (result.status === true && result.data && result.data.length > 0) {
-      // Get the first item from the data array
-      const fileData = result.data[0];
-      if (fileData.url) {
-        callback(true, { link: fileData.url });
-      } else {
-        callback(false, 'No URL returned from GDTot API');
-      }
+    // Look for the generated link in the response
+    const links = doc.querySelectorAll('a[href*="gdtot"]');
+    if (links.length > 0) {
+      const gdtotLink = links[0].href;
+      callback(true, { link: gdtotLink });
     } else {
-      callback(false, result.message || 'Unknown error from GDTot API');
+      // Try to find error messages
+      const errorElements = doc.querySelectorAll('.alert-danger, .text-danger');
+      const errorMsg = errorElements.length > 0 ? errorElements[0].textContent : 'No GDTot link found in response';
+      callback(false, errorMsg);
     }
   })
   .catch(error => {
