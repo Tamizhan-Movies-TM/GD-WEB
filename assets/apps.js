@@ -1799,13 +1799,11 @@ ${UI.disable_video_download ? `` : `
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="sr-only"></span>
             </button>
-            <div class="dropdown-menu">
-                <a class="dropdown-item" href="intent:${encodeURIComponent(url)}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encodeURIComponent(name)};end">${playit_icon} Playit</a>
-                <a class="dropdown-item" href="intent:${encodeURIComponent(url)}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encodeURIComponent(name)};end">${xplayer_icon} XPlayer</a>
-                <a class="dropdown-item" href="intent:${encodeURIComponent(url)}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encodeURIComponent(name)};end">${mxplayer_icon} MX Player</a>
-                <a class="dropdown-item" href="intent:${encodeURIComponent(url)}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encodeURIComponent(name)};end">${vlc_icon} VLC Player</a>
-                <a class="dropdown-item" href="intent:${encodeURIComponent(url)}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encodeURIComponent(name)};end">${new_download_icon} 1DM (Free)</a>
-            </div>
+          <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
+          <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">${new_download_icon} 1DM (Free)</a>
         </div>
         <!-- GDTot Result Display Area - Moved outside the button group -->
         <div id="gdtot-result-${file_id}" class="mt-2 alert alert-info" style="display: none;"></div>
@@ -1827,7 +1825,7 @@ $(document).on('click', '.gdtot-btn', function() {
   resultDiv.show().removeClass('alert-danger alert-success').addClass('alert-info').html('Generating GDTot link...');
   
   // Call GDTot API
-  generateGDTotLink(fileUrl, fileId, function(success, data) {
+  generateGDTotLink(null, fileId, function(success, data) {
     if (success) {
       resultDiv.removeClass('alert-info alert-danger').addClass('alert-success').html(`
         GDTot Link: <a href="${data.link}" target="_blank">${data.link}</a>
@@ -1839,7 +1837,7 @@ $(document).on('click', '.gdtot-btn', function() {
       resultDiv.removeClass('alert-info alert-success').addClass('alert-danger').html(`Error: ${data}`);
     }
     
-     // Reset button state
+    // Reset button state
     button.prop('disabled', false).html(`${gdrive_icon}GDTot Link`);
   });
 });
@@ -2241,16 +2239,43 @@ function generateGDTotLink(fileUrl, fileId, callback) {
   fetch(apiUrl, {
     method: "POST",
     body: formData,
-    redirect: "follow",
-    credentials: "include" // This sends cookies with the request
+    redirect: "follow"
   })
-  .then(response => response.json())
-  .then(data => {
-    if (data.status === "success" && data.file_id) {
-      const gdtotLink = `https://new.gdtot.com/file/${data.file_id}`;
-      callback(true, { link: gdtotLink });
-    } else {
-      callback(false, data.message || 'Failed to generate GDTot link');
+  .then(response => response.text())
+  .then(html => {
+    try {
+      // Parse the HTML response
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Check for success message
+      const successAlert = doc.querySelector('.alert.alert-success');
+      if (successAlert) {
+        // Try to find the GDTot link
+        const links = doc.querySelectorAll('a');
+        let gdtotLink = null;
+        
+        for (let link of links) {
+          if (link.href && link.href.includes('gdtot.com/file/')) {
+            gdtotLink = link.href;
+            break;
+          }
+        }
+        
+        if (gdtotLink) {
+          callback(true, { link: gdtotLink });
+        } else {
+          callback(false, 'GDTot link not found in response');
+        }
+      } else {
+        // Check for error message
+        const errorAlert = doc.querySelector('.alert.alert-danger');
+        const errorMsg = errorAlert ? errorAlert.textContent.trim() : 'Unknown error occurred';
+        callback(false, errorMsg);
+      }
+    } catch (error) {
+      console.error('Error parsing GDTot response:', error);
+      callback(false, 'Failed to parse GDTot response');
     }
   })
   .catch(error => {
