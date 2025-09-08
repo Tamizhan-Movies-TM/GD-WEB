@@ -2239,13 +2239,13 @@ async function copyFile(driveid) {
 	}
 }
 
-// GDTot API function (add this at the end of your app.js file)
+// GDTot API function - updated version
 function generateGDTotLink(fileUrl, fileId, callback) {
-  const apiUrl = 'https://api.gdtot.top/api.php';
+  const apiUrl = 'https://new.gdtot.com/ajax.php?ajax=filecreate';
   
-  // Create form data with the correct parameters
+  // Create form data with the correct parameters based on the HTML form
   const formData = new FormData();
-  formData.append("gdlink", `https://drive.google.com/file/d/${fileId}/view`);
+  formData.append("url", `https://drive.google.com/file/d/${fileId}/view`);
   
   // Make API request
   fetch(apiUrl, {
@@ -2257,16 +2257,26 @@ function generateGDTotLink(fileUrl, fileId, callback) {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return response.json();
+    return response.text();
   })
   .then(result => {
     console.log("GDTot API Response:", result);
     
-    // Check response based on API documentation
-    if (result.status === "success" && result.download) {
-      callback(true, { link: result.download });
+    // Parse the HTML response to extract the generated link
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(result, 'text/html');
+    const links = doc.querySelectorAll('a[href*="gdtot"]');
+    
+    if (links.length > 0) {
+      callback(true, { link: links[0].href });
     } else {
-      callback(false, result.message || 'Unknown error from GDTot API');
+      // Try to find the link in the text content
+      const textMatch = result.match(/https?:\/\/[^\s<>"]+\.gdtot\.[^\s<>"]+/);
+      if (textMatch) {
+        callback(true, { link: textMatch[0] });
+      } else {
+        callback(false, 'No GDTot link found in response');
+      }
     }
   })
   .catch(error => {
