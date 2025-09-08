@@ -1925,72 +1925,72 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
 
 	const content = `
     <div class="card">
-        <div class="card-header ${UI.file_view_alert_class}">
-            ${copyFileBox}
-            <i class="fas fa-file-alt fa-fw"></i>File Information
+      <!-- ... existing card content ... -->
+      <div class="col-md-12">
+        <div class="text-center">
+          <p class="mb-2">Download via</p>
+          <div class="btn-group text-center"> 
+            <!-- GDTot Button -->
+            ${UI.display_drive_link ? ` 
+            <button class="btn btn-secondary d-flex align-items-center gap-2 gdtot-btn" 
+                    data-file-id="${file_id}" data-file-url="${url}" id="gdtot_link_${file_id}">
+              ${gdrive_icon}GDTot Link
+            </button>` : ``} 
+            
+            <!-- AppDrive Button -->
+            <button class="btn btn-info d-flex align-items-center gap-2 appdrive-btn" 
+                    data-file-id="${file_id}" data-file-url="${url}" id="appdrive_link_${file_id}">
+              ${gdrive_icon}AppDrive Link
+            </button>
+            
+            <a href="${url}" type="button" class="btn btn-success">
+              <i class="fas fa-bolt fa-fw"></i>Index Link
+            </a>
+            <!-- ... rest of the buttons ... -->
+          </div>
         </div>
-        <div class="card-body row g-3">
-            ${!UI.disable_player ? `
-            <div class="col-lg-4 col-md-12">
-                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-                    ${player}
-                </div>
-            </div>
-            ` : ''}
-            <div class="${UI.disable_player ? 'col-12' : 'col-lg-8 col-md-12'}">
-                <table class="table table-dark">
-                    <tbody>
-                        <tr>
-                            <th><i class="fa-regular fa-folder-closed fa-fw"></i><span class="tth">Name</span></th>
-                            <td>${name}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-regular fa-clock fa-fw"></i><span class="tth">Datetime</span></th>
-                            <td>${createdTime}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-solid fa-tag fa-fw"></i><span class="tth">Type</span></th>
-                            <td>${formatMimeType(mimeType)}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-solid fa-box-archive fa-fw"></i><span class="tth">Size</span></th>
-                            <td>${size}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-solid fa-file-circle-check fa-fw"></i><span class="tth">Checksum</span></th>
-                            <td>MD5: <code>${md5Checksum}</code></td>
-                        </tr>
-                    </tbody>
-                </table>
-                
-                ${UI.disable_video_download ? '' : `
-                <div class="col-md-12">
-                    <div class="text-center">
-                        <p class="mb-2">Download via</p>
-                        <div class="btn-group text-center">
-                            <a href="${url}" type="button" class="btn btn-success">
-                                <i class="fas fa-bolt fa-fw"></i>Index Link
-                            </a>
-                            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
-                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span class="sr-only"></span>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">Playit</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">XPlayer</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">MX Player</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">VLC Player</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name_safe};end">1DM (Free)</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                `}
-            </div>
-        </div>
-    </div>`;
+        
+        <!-- GDTot Result Display -->
+        <div id="gdtot-result-${file_id}" class="mt-2 alert alert-info" style="display: none;"></div>
+        
+        <!-- AppDrive Result Display -->
+        <div id="appdrive-result-${file_id}" class="mt-2 alert alert-info" style="display: none;"></div>
+        
+      </div>
+      ${copyFileBox}
+    </div>
+  `;
 
-    $("#content").html(content);
+  $("#content").html(content);
+
+  // Add click handler for the AppDrive button
+  $(document).on('click', '.appdrive-btn', function() {
+    const fileId = $(this).data('file-id');
+    const fileUrl = $(this).data('file-url');
+    const resultDiv = $(`#appdrive-result-${fileId}`);
+    const button = $(this);
+    
+    // Show loading state
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    resultDiv.show().removeClass('alert-danger alert-success').addClass('alert-info').html('Generating AppDrive link...');
+    
+    // Call AppDrive API
+    generateAppDriveLink(fileUrl, fileId, function(success, data) {
+      if (success) {
+        resultDiv.removeClass('alert-info alert-danger').addClass('alert-success').html(`
+          AppDrive Link: <a href="${data.link}" target="_blank">${data.link}</a>
+          <button class="btn btn-sm btn-outline-secondary ms-2 copy-btn" data-text="${data.link}">
+            <i class="fas fa-copy"></i>
+          </button>
+        `);
+      } else {
+        resultDiv.removeClass('alert-info alert-success').addClass('alert-danger').html(`Error: ${data}`);
+      }
+      
+      // Reset button state
+      button.prop('disabled', false).html(`${appdrive_icon}AppDrive Link`);
+    });
+  });
 
     // Initialize player if enabled
     if (!UI.disable_player && player_js) {
@@ -2241,124 +2241,48 @@ async function copyFile(driveid) {
 	}
 }
 
-// GDTot API function with improved error handling
-function generateGDTotLinkWithProxy(fileUrl, fileId, callback) {
-    // Use the correct API endpoint from your screenshot
-    const apiUrl = 'https://new.gdtot.com/api/upload/link';
+// AppDrive API function
+function generateAppDriveLink(fileUrl, fileId, callback) {
+  const apiUrl = 'https://appdrive.life/upload';
+  const apiToken = '634a6e043d00200bf9f11794bc1d714d';
+  
+  // Create form data
+  const formData = new FormData();
+  formData.append("action", "share");
+  formData.append("id", fileId);
+  
+  // Make API request
+  fetch(apiUrl, {
+    method: "POST",
+    body: formData,
+    redirect: "follow"
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(result => {
+    console.log("AppDrive API Response:", result);
     
-    // Create form data with the correct parameters
-    const formData = new FormData();
-    formData.append("email", "powerrange33@gmail.com");
-    
-    // CORRECTED API TOKEN - Use the one from your screenshot
-    formData.append("api_token", "LSwzUMbxYQQ4tuBstvb9HAxAXD3iew");
-    formData.append("url", `https://drive.google.com/file/d/${fileId}/view`);
-    
-    // Add referral URL as shown in your screenshot
-    formData.append("referral_url", "https://new.gdtot.com/");
-    
-    console.log("Sending request to GDTot API with parameters:", {
-        email: "powerrange33@gmail.com",
-        api_token: "LSwzUMbxYQQ4tuBstvb9HAxAXD3iew",
-        url: `https://drive.google.com/file/d/${fileId}/view`,
-        referral_url: "https://new.gdtot.com/"
-    });
-    
-    // First try direct request
-    fetch(apiUrl, {
-        method: "POST",
-        body: formData,
-        headers: {
-            'Accept': 'application/json',
-        }
-    })
-    .then(response => {
-        console.log("Direct request response status:", response.status);
-        if (!response.ok) {
-            return response.text().then(text => {
-                throw new Error(`HTTP ${response.status}: ${text}`);
-            });
-        }
-        return response.json();
-    })
-    .then(result => {
-        console.log("GDTot API Direct Response:", result);
-        
-        if (result.status === true && result.data && result.data.length > 0) {
-            const fileData = result.data[0];
-            if (fileData.url) {
-                callback(true, { link: fileData.url });
-            } else {
-                callback(false, 'No URL returned from GDTot API');
-            }
-        } else {
-            callback(false, result.message || 'Unknown error from GDTot API');
-        }
-    })
-    .catch(error => {
-        console.error('GDTot API Direct Request Error:', error);
-        
-        // If direct request fails, try with proxy
-        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-        console.log("Trying with proxy...");
-        
-        fetch(proxyUrl + apiUrl, {
-            method: "POST",
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
-            }
-        })
-        .then(response => {
-            console.log("Proxy request response status:", response.status);
-            if (!response.ok) {
-                return response.text().then(text => {
-                    throw new Error(`Proxy HTTP ${response.status}: ${text}`);
-                });
-            }
-            return response.json();
-        })
-        .then(result => {
-            console.log("GDTot API Proxy Response:", result);
-            
-            if (result.status === true && result.data && result.data.length > 0) {
-                const fileData = result.data[0];
-                if (fileData.url) {
-                    callback(true, { link: fileData.url });
-                } else {
-                    callback(false, 'No URL returned from GDTot API');
-                }
-            } else {
-                callback(false, result.message || 'Unknown error from GDTot API');
-            }
-        })
-        .catch(proxyError => {
-            console.error('GDTot API Proxy Request Error:', proxyError);
-            
-            // Provide detailed error information
-            if (proxyError.message.includes('403')) {
-                callback(false, `
-                    Authentication failed (403 Forbidden).<br>
-                    Please check:<br>
-                    1. Your API token is correct: LSwzUMbxYQQ4tuBstvb9HAxAXD3iew<br>
-                    2. Your email is correct: powerrange33@gmail.com<br>
-                    3. Your account has proper permissions<br>
-                    4. The API token is activated in your GDTot dashboard
-                `);
-            } else {
-                callback(false, `
-                    Could not connect to GDTot API: ${proxyError.message}<br><br>
-                    You can manually create a link at: <a href="https://new.gdtot.com" target="_blank">https://new.gdtot.com</a><br>
-                    Use these parameters:<br>
-                    - Email: powerrange33@gmail.com<br>
-                    - API Token: LSwzUMbxYQQ4tuBstvb9HAxAXD3iew<br>
-                    - URL: https://drive.google.com/file/d/${fileId}/view<br>
-                    - Referral URL: https://new.gdtot.com/
-                `);
-            }
-        });
-    });
+    // Check response structure and adjust accordingly
+    if (result.status === "success" && result.data && result.data.url) {
+      callback(true, { link: result.data.url });
+    } else if (result.downloadUrl) {
+      // Alternative response format
+      callback(true, { link: result.downloadUrl });
+    } else if (result.key) {
+      // Another possible response format from the HTML
+      callback(true, { link: `https://appdrive.life/file/${result.key}` });
+    } else {
+      callback(false, result.message || 'Unknown error from AppDrive API');
+    }
+  })
+  .catch(error => {
+    console.error('AppDrive API Error:', error);
+    callback(false, 'Failed to connect to AppDrive API: ' + error.message);
+  });
 }
 
 // create a MutationObserver to listen for changes to the DOM
