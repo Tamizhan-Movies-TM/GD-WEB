@@ -2229,7 +2229,7 @@ async function copyFile(driveid) {
 
 // GDTot API function (add this at the end of your app.js file)
 function generateGDTotLink(fileUrl, fileId, callback) {
-  const apiUrl = 'https://new26.gdtot.dad/ajax.php?ajax=filecreate';
+  const apiUrl = 'https://new.gdtot.com/ajax.php?ajax=filecreate';
   
   // Create form data with the correct parameters
   const formData = new FormData();
