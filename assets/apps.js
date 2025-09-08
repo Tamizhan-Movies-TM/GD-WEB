@@ -2229,44 +2229,32 @@ async function copyFile(driveid) {
 
 // GDTot API function (add this at the end of your app.js file)
 function generateGDTotLink(fileUrl, fileId, callback) {
-  const apiUrl = 'https://new.gdtot.com/ajax.php?ajax=filecreate';
+  const apiUrl = 'https://api.gdtot.pro/api/file/create'; // Updated API endpoint
   
   // Create form data with the correct parameters
   const formData = new FormData();
   formData.append("url", `https://drive.google.com/file/d/${fileId}/view`);
-  
-  // Add additional parameters based on the HTML form
-  formData.append("enable_pack_title", "on");
-  formData.append("pack-title", "Auto Generated Pack");
+  formData.append("title", "Auto Generated Pack");
   
   // Make API request
   fetch(apiUrl, {
     method: "POST",
     body: formData,
-    redirect: "follow",
-    credentials: "include" // This sends cookies with the request
+    headers: {
+      'Accept': 'application/json',
+    }
   })
   .then(response => {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return response.text();
+    return response.json();
   })
-  .then(html => {
-    // Parse the HTML response to extract the GDTot link
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    
-    // Look for the generated link in the response
-    const links = doc.querySelectorAll('a[href*="gdtot"]');
-    if (links.length > 0) {
-      const gdtotLink = links[0].href;
-      callback(true, { link: gdtotLink });
+  .then(data => {
+    if (data && data.success && data.data && data.data.download_url) {
+      callback(true, { link: data.data.download_url });
     } else {
-      // Try to find error messages
-      const errorElements = doc.querySelectorAll('.alert-danger, .text-danger');
-      const errorMsg = errorElements.length > 0 ? errorElements[0].textContent : 'No GDTot link found in response';
-      callback(false, errorMsg);
+      callback(false, data.message || 'No GDTot link found in response');
     }
   })
   .catch(error => {
@@ -2274,11 +2262,6 @@ function generateGDTotLink(fileUrl, fileId, callback) {
     callback(false, 'Failed to connect to GDTot API: ' + error.message);
   });
 }
-
-// create a MutationObserver to listen for changes to the DOM
-const observer = new MutationObserver(() => {
-	updateCheckboxes();
-});
 
 // define the options for the observer (listen for changes to child elements)
 const options = {
