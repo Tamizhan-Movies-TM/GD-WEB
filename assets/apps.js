@@ -2227,16 +2227,24 @@ async function copyFile(driveid) {
 	}
 }
 
-// GDTot API function (add this at the end of your app.js file)
+// GDTot API function - updated version
 function generateGDTotLink(fileUrl, fileId, callback) {
-  const apiUrl = 'https://api.gdtot.pro/api/file/create'; // Updated API endpoint
+  // Use the correct GDTot API endpoint
+  const apiUrl = 'https://gdtot.pro/api/file/create';
   
-  // Create form data with the correct parameters
+  // Create proper form data with required parameters
   const formData = new FormData();
+  formData.append("type", "filecreate");
   formData.append("url", `https://drive.google.com/file/d/${fileId}/view`);
   formData.append("title", "Auto Generated Pack");
   
-  // Make API request
+  // Add authentication token if available (you might need to get this from user)
+  const authToken = localStorage.getItem('gdtot_token');
+  if (authToken) {
+    formData.append("token", authToken);
+  }
+
+  // Make API request with proper headers
   fetch(apiUrl, {
     method: "POST",
     body: formData,
@@ -2251,10 +2259,11 @@ function generateGDTotLink(fileUrl, fileId, callback) {
     return response.json();
   })
   .then(data => {
-    if (data && data.success && data.data && data.data.download_url) {
-      callback(true, { link: data.data.download_url });
+    if (data && data.status === "success" && data.link) {
+      callback(true, { link: data.link });
     } else {
-      callback(false, data.message || 'No GDTot link found in response');
+      const errorMsg = data.message || 'No GDTot link found in response';
+      callback(false, errorMsg);
     }
   })
   .catch(error => {
@@ -2263,10 +2272,15 @@ function generateGDTotLink(fileUrl, fileId, callback) {
   });
 }
 
+// create a MutationObserver to listen for changes to the DOM
+const observer = new MutationObserver(() => {
+    updateCheckboxes();
+});
+
 // define the options for the observer (listen for changes to child elements)
 const options = {
-	childList: true,
-	subtree: true
+    childList: true,
+    subtree: true
 };
 
 // observe changes to the body element
