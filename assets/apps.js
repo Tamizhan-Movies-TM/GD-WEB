@@ -2219,190 +2219,51 @@ async function copyFile(driveid) {
 	}
 }
 
-// Fixed GDFlix API function with correct URL and CORS solution
+// GDFlix API function - Direct link opening
 function generateGDFlixLink(fileId) {
-  // CORRECT domain: new4.gdflix.net
   const apiUrl = 'https://new4.gdflix.net/v2/share';
   const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
   
-  // Find the button that was clicked
-  const button = event ? event.target.closest('button') : document.querySelector('.gdflix-btn');
-  if (button) {
-    const originalText = button.innerHTML;
-    button.disabled = true;
-    button.innerHTML = '<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...';
-  }
+  // Construct the URL with proper parameters
+  const url = `${apiUrl}?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`;
   
-  // Use CORS proxy since direct requests are blocked
-  const targetUrl = `${apiUrl}?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`;
-  const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-  
-  console.log('Making request through CORS proxy...');
-  console.log('Target URL:', targetUrl);
-  console.log('Proxy URL:', proxyUrl);
-  
-  fetch(proxyUrl, {
-    method: 'GET',
+  // Make API request
+  fetch(url, {
+    method: "GET",
     headers: {
-      'Accept': 'application/json'
+      "Accept": "application/json"
     }
   })
   .then(response => {
-    console.log('Proxy response status:', response.status);
-    
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     return response.json();
   })
-  .then(proxyData => {
-    // Parse the proxied response
-    const data = JSON.parse(proxyData.contents);
+  .then(data => {
     console.log('GDFlix API response:', data);
     
     let gdflixLink = '';
     
-    // Handle successful response
     if (data && data.status === "success" && data.gdflix_link) {
       gdflixLink = data.gdflix_link;
     } 
     // Handle case where file is already shared
     else if (data && data.message === "File already Shared") {
-      if (data.gdflix_link) {
-        gdflixLink = data.gdflix_link;
-      } else {
-        // Construct the URL using the full file ID with correct domain
-        gdflixLink = `https://new4.gdflix.net/file/${fileId}`;
-      }
-    }
-    // Handle other success responses
-    else if (data && data.gdflix_link) {
-      gdflixLink = data.gdflix_link;
-    }
-    
-    // Reset button state
-    if (button) {
-      button.disabled = false;
-      button.innerHTML = originalText;
+      // Use the direct file pattern
+      gdflixLink = `https://new4.gdflix.net/file/${fileId.substring(0, 8)}`;
     }
     
     if (gdflixLink) {
-      console.log('Opening GDFlix link:', gdflixLink);
       // Open the GdFlix link directly in a new tab
       window.open(gdflixLink, '_blank');
-      showMessage('success', 'GDFlix link generated successfully!');
     } else {
-      console.error('No valid GDFlix link found in response:', data);
-      showMessage('error', 'Could not generate GDFlix link. Response: ' + JSON.stringify(data));
+      alert('Error: Could not generate GDFlix link');
     }
   })
   .catch(error => {
-    console.error('GDFlix API Error:', error);
-    
-    // Reset button state
-    if (button) {
-      button.disabled = false;
-      button.innerHTML = originalText;
-    }
-    
-    // Try alternative proxy as fallback
-    tryAlternativeProxy(fileId, button ? button.innerHTML : null);
-  });
-}
-
-// Alternative proxy fallback
-function tryAlternativeProxy(fileId, originalButtonText) {
-  console.log('Trying alternative CORS proxy...');
-  
-  const apiUrl = 'https://new4.gdflix.net/v2/share';
-  const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
-  const targetUrl = `${apiUrl}?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`;
-  const altProxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-  
-  fetch(altProxyUrl)
-  .then(response => response.json())
-  .then(data => {
-    console.log('Alternative proxy response:', data);
-    
-    let gdflixLink = '';
-    if (data.status === "success" && data.gdflix_link) {
-      gdflixLink = data.gdflix_link;
-    } else if (data.message === "File already Shared") {
-      gdflixLink = data.gdflix_link || `https://new4.gdflix.net/file/${fileId}`;
-    }
-    
-    if (gdflixLink) {
-      window.open(gdflixLink, '_blank');
-      showMessage('success', 'GDFlix link generated via alternative proxy!');
-    } else {
-      showMessage('error', 'Could not generate GDFlix link with any method.');
-    }
-  })
-  .catch(error => {
-    console.error('All proxy methods failed:', error);
-    showMessage('error', `All proxy methods failed: ${error.message}`);
-  });
-}
-
-// Enhanced message display function
-function showMessage(type, message) {
-  // Remove any existing messages
-  const existingMessages = document.querySelectorAll('.gdflix-message');
-  existingMessages.forEach(msg => msg.remove());
-  
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} gdflix-message`;
-  messageDiv.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    max-width: 400px;
-    padding: 15px;
-    border-radius: 5px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  `;
-  
-  messageDiv.innerHTML = `
-    <div class="d-flex justify-content-between align-items-center">
-      <span>${message}</span>
-      <button type="button" class="btn-close" onclick="this.parentNode.parentNode.remove()"></button>
-    </div>
-  `;
-  
-  document.body.appendChild(messageDiv);
-  
-  // Auto remove after 5 seconds
-  setTimeout(() => {
-    if (messageDiv.parentNode) {
-      messageDiv.remove();
-    }
-  }, 5000);
-}
-
-// Test function with the URL you provided
-function testWithYourURL() {
-  console.log('Testing with your working URL format...');
-  
-  const fileId = '1RWuu2ltTOOKy2IE3izLNpuqr3ESzuykX';
-  const url = `https://new4.gdflix.net/v2/share?id=${fileId}&key=fbe53ebaf6d4f67228a00b1cd031574b`;
-  const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-  
-  console.log('Direct URL (will likely fail due to CORS):', url);
-  console.log('Proxy URL (should work):', proxyUrl);
-  
-  // Test with proxy
-  fetch(proxyUrl)
-  .then(response => response.json())
-  .then(proxyData => {
-    const data = JSON.parse(proxyData.contents);
-    console.log('Success via proxy:', data);
-    if (data.gdflix_link) {
-      console.log('GDFlix Link:', data.gdflix_link);
-    }
-  })
-  .catch(error => {
-    console.log('Proxy test failed:', error.message);
+    console.error('GdFlix API Error:', error);
+    alert('Failed to generate GDFlix link: ' + error.message);
   });
 }
 
