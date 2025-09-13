@@ -2221,13 +2221,13 @@ async function copyFile(driveid) {
 	}
 }
 
-// GdFlix API function - Updated version
+// GdFlix API function - Updated to handle "File already Shared" case
 function generateGdFlixLink(fileUrl, fileId, callback) {
   const apiUrl = 'https://new4.gdflix.net/v2/share';
-  const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b'; // Updated API key
+  const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
   
   // Construct the URL with proper parameters
-  const url = `${apiUrl}?id=${fileId}&key=${apiKey}`;
+  const url = `${apiUrl}?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`;
   
   // Make API request
   fetch(url, {
@@ -2243,9 +2243,22 @@ function generateGdFlixLink(fileUrl, fileId, callback) {
     return response.json();
   })
   .then(data => {
+    console.log('GdFlix API response:', data);
+    
     if (data && data.status === "success" && data.gdflix_link) {
       callback(true, { link: data.gdflix_link });
-    } else {
+    } 
+    // Handle case where file is already shared but we still get a link
+    else if (data && data.message === "File already Shared" && data.gdflix_link) {
+      callback(true, { link: data.gdflix_link });
+    }
+    // Handle case where file is already shared but we need to construct the link
+    else if (data && data.message === "File already Shared") {
+      // Construct the GdFlix link manually based on the pattern
+      const gdflixLink = `https://new4.gdflix.net/file/${generateSlug(fileId)}`;
+      callback(true, { link: gdflixLink });
+    }
+    else {
       const errorMsg = data.message || 'No GdFlix link found in response';
       callback(false, errorMsg);
     }
@@ -2254,6 +2267,17 @@ function generateGdFlixLink(fileUrl, fileId, callback) {
     console.error('GdFlix API Error:', error);
     callback(false, 'Failed to connect to GdFlix API: ' + error.message);
   });
+}
+
+// Helper function to generate a slug from file ID
+function generateSlug(fileId) {
+  // Simple hash function to create a short identifier
+  let hash = 0;
+  for (let i = 0; i < fileId.length; i++) {
+    hash = ((hash << 5) - hash) + fileId.charCodeAt(i);
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash).toString(36).substring(0, 8);
 }
 
 // create a MutationObserver to listen for changes to the DOM
