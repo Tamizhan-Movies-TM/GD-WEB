@@ -1777,40 +1777,40 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
             </tr>
           </tbody>
         </table>
-      ${UI.disable_video_download ? `` : `
-<div class="col-md-12">
-    <div class="text-center">
-        <p class="mb-2">Download via</p>
-        <div class="btn-group text-center"> 
+       ${UI.disable_video_download ? `` : `
+      <div class="col-md-12">
+        <div class="text-center">
+          <p class="mb-2">Download via</p>
+          <div class="btn-group text-center"> 
             ${UI.display_drive_link ? ` 
-            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-                    data-file-id="${file_id}" data-file-url="${url}">
-                ${gdrive_icon}GdFlix Link
-            </button>` : ``} 
-            <a href="${url}" type="button" class="btn btn-success">
-                <i class="fas fa-bolt fa-fw"></i>Index Link
-            </a>
+             <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+             onclick="generateGDFlixLink('${file_id}')">
+            ${gdrive_icon}GdFlix Link
+         </button>` : ``} 
+         <a href="${url}" type="button" class="btn btn-success">
+          <i class="fas fa-bolt fa-fw"></i>Index Link
+           </a>
             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="sr-only"></span>
+              <span class="sr-only"></span>
             </button>
             <div class="dropdown-menu">
-                <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
-                <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
-                <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
-                <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
-                <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">${new_download_icon} 1DM (Free)</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">${new_download_icon} 1DM (Free)</a>
             </div>
-        </div>
-        ${UI.display_drive_link ? `
-        <div id="gdflix-result-${file_id}" class="alert mt-2" style="display: none;"></div>` : ''}
-    </div> 
-</div>`}
+          </div>
+        </div> 
+      </div>`}
+    </div>
+  </div>`;
   
   $("#content").html(content);
 
- // Add GdFlix button click handler
-$(document).on('click', '.gdflix-btn', function() {
+ // Add GDFlix button click handler
+  $(document).off('click', '.gdflix-btn').on('click', '.gdflix-btn', function() {
     const fileId = $(this).data('file-id');
     const fileUrl = $(this).data('file-url');
     const resultDiv = $(`#gdflix-result-${fileId}`);
@@ -1821,33 +1821,22 @@ $(document).on('click', '.gdflix-btn', function() {
     resultDiv.show().removeClass('alert-danger alert-success').addClass('alert-info').html('Generating GdFlix link...');
     
     // Call GdFlix API
-    generateGdFlixLink(fileId, function(success, data) {
-        if (success) {
-            resultDiv.removeClass('alert-info alert-danger').addClass('alert-success').html(`
-                GdFlix Link: <a href="${data.link}" target="_blank">${data.link}</a>
-                <button class="btn btn-sm btn-outline-secondary ms-2 copy-btn" data-text="${data.link}">
-                    <i class="fas fa-copy"></i>
-                </button>
-            `);
-        } else {
-            resultDiv.removeClass('alert-info alert-success').addClass('alert-danger').html(`Error: ${data}`);
-        }
-        
-        // Reset button state
-        button.prop('disabled', false).html(`${gdrive_icon}GdFlix Link`);
+    generateGdFlixLink(fileUrl, fileId, function(success, data) {
+      if (success) {
+        resultDiv.removeClass('alert-info alert-danger').addClass('alert-success').html(`
+          GdFlix Link: <a href="${data.link}" target="_blank">${data.link}</a>
+          <button class="btn btn-sm btn-outline-secondary ms-2 copy-btn" data-text="${data.link}">
+            <i class="fas fa-copy"></i>
+          </button>
+        `);
+      } else {
+        resultDiv.removeClass('alert-info alert-success').addClass('alert-danger').html(`Error: ${data}`);
+      }
+      
+      // Reset button state
+      button.prop('disabled', false).html(`${gdrive_icon}GdFlix Link`);
     });
-});
-
-// Add copy functionality for GdFlix links
-$(document).on('click', '.copy-btn', function() {
-    const text = $(this).data('text');
-    navigator.clipboard.writeText(text).then(() => {
-        $(this).html('<i class="fas fa-check"></i>');
-        setTimeout(() => {
-            $(this).html('<i class="fas fa-copy"></i>');
-        }, 2000);
-    });
-});
+  });
   
   // Load Video.js and initialize the player
   var videoJsScript = document.createElement('script');
@@ -2230,27 +2219,52 @@ async function copyFile(driveid) {
 	}
 }
 
-// GdFlix API function
-function generateGdFlixLink(fileId, callback) {
-    const apiUrl = 'https://new4.gdflix.net/v2/share';
-    const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
+// GDFlix API function - Direct link opening
+function generateGDFlixLink(fileId) {
+  const apiUrl = 'https://new4.gdflix.net/v2/share';
+  const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
+  
+  // Construct the URL with proper parameters
+  const url = `${apiUrl}?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`;
+  
+  // Make API request
+  fetch(url, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json"
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log('GDFlix API response:', data);
     
-    fetch(`${apiUrl}?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data && data.status === "success" && data.gdflix_link) {
-                callback(true, { link: data.gdflix_link });
-            } else if (data && data.message === "File already Shared") {
-                // Use direct pattern for already shared files
-                callback(true, { link: `https://new4.gdflix.net/file/${fileId.substring(0, 8)}` });
-            } else {
-                callback(false, "Failed to generate GdFlix link");
-            }
-        })
-        .catch(error => {
-            console.error('GdFlix API Error:', error);
-            callback(false, error.message);
-        });
+    let gdflixLink = '';
+    
+    if (data && data.status === "success" && data.gdflix_link) {
+      gdflixLink = data.gdflix_link;
+    } 
+    // Handle case where file is already shared
+    else if (data && data.message === "File already Shared") {
+      // Use the direct file pattern
+      gdflixLink = `https://new4.gdflix.net/file/${fileId.substring(0, 8)}`;
+    }
+    
+    if (gdflixLink) {
+      // Open the GdFlix link directly in a new tab
+      window.open(gdflixLink, '_blank');
+    } else {
+      alert('Error: Could not generate GDFlix link');
+    }
+  })
+  .catch(error => {
+    console.error('GdFlix API Error:', error);
+    alert('Failed to generate GDFlix link: ' + error.message);
+  });
 }
 
 // create a MutationObserver to listen for changes to the DOM
