@@ -1809,29 +1809,33 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
   
   $("#content").html(content);
 
- // Add GDFlix button click handler
-  $(document).off('click', '.gdflix-btn').on('click', '.gdflix-btn', function() {
-    const fileId = $(this).data('file-id');
-    const fileUrl = $(this).data('file-url');
-    const resultDiv = $(`#gdflix-result-${fileId}`);
-    const button = $(this);
+ // Update the click handler to use the correct function with callback
+$(document).off('click', '.gdflix-btn').on('click', '.gdflix-btn', function() {
+  const fileId = $(this).data('file-id');
+  const resultDiv = $(`#gdflix-result-${fileId}`);
+  const button = $(this);
+  
+  // Show loading state
+  button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+  resultDiv.show().removeClass('alert-danger alert-success').addClass('alert-info').html('Generating GdFlix link...');
+  
+  // Call GdFlix API with callback
+  generateGdFlixLink(fileId, function(success, data) {
+    if (success) {
+      resultDiv.removeClass('alert-info alert-danger').addClass('alert-success').html(`
+        GdFlix Link: <a href="${data.link}" target="_blank">${data.link}</a>
+        <button class="btn btn-sm btn-outline-secondary ms-2 copy-btn" data-text="${data.link}">
+          <i class="fas fa-copy"></i>
+        </button>
+      `);
+    } else {
+      resultDiv.removeClass('alert-info alert-success').addClass('alert-danger').html(`Error: ${data}`);
+    }
     
-    // Show loading state
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-    resultDiv.show().removeClass('alert-danger alert-success').addClass('alert-info').html('Generating GDFlix link...');
-    
-    // Call GdFlix API
-    generateGDFlixLink(fileUrl, fileId, function(success, data) {
-      if (success) {
-        resultDiv.removeClass('alert-info alert-danger').addClass('alert-success').html(`
-          GdFlix Link: <a href="${data.link}" target="_blank">${data.link}</a>
-          <button class="btn btn-sm btn-outline-secondary ms-2 copy-btn" data-text="${data.link}">
-            <i class="fas fa-copy"></i>
-          </button>
-        `);
-      } else {
-        resultDiv.removeClass('alert-info alert-success').addClass('alert-danger').html(`Error: ${data}`);
-      }
+    // Reset button state
+    button.prop('disabled', false).html(`${gdrive_icon}GdFlix Link`);
+  });
+});
       
       // Reset button state
       button.prop('disabled', false).html(`${gdrive_icon}GDFlix Link`);
@@ -2219,8 +2223,8 @@ async function copyFile(driveid) {
 	}
 }
 
-// Replace the existing generateGDFlixLink function with this corrected version
-function generateGDFlixLink(fileId) {
+// Replace the existing generateGdFlixLink function with this corrected version
+function generateGdFlixLink(fileId, callback) {
   const apiUrl = 'https://new4.gdflix.net/v2/share';
   const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
   
@@ -2241,7 +2245,7 @@ function generateGDFlixLink(fileId) {
     return response.json();
   })
   .then(data => {
-    console.log('GDFlix API response:', data);
+    console.log('GdFlix API response:', data);
     
     let gdflixLink = '';
     
@@ -2251,7 +2255,7 @@ function generateGDFlixLink(fileId) {
       gdflixLink = data.gdflix_link;
     } 
     else if (data && data.key) {
-      // Use the key field instead of id for the URL
+      // Use the key field for the URL
       gdflixLink = `https://new4.gdflix.net/file/${data.key}`;
     }
     else if (data && data.id) {
@@ -2260,7 +2264,6 @@ function generateGDFlixLink(fileId) {
     }
     else if (data && data.message === "File already Shared") {
       // For already shared files, we need to use a different endpoint to get the correct URL
-      // Make a second request to get the file details
       return fetch(`https://new4.gdflix.net/v2/file/${fileId}?key=${apiKey}`)
         .then(response => response.json())
         .then(fileData => {
@@ -2278,16 +2281,20 @@ function generateGDFlixLink(fileId) {
     return gdflixLink;
   })
   .then(gdflixLink => {
-    if (gdflixLink) {
-      // Open the GdFlix link directly in a new tab
-      window.open(gdflixLink, '_blank');
+    if (callback) {
+      callback(true, { link: gdflixLink });
     } else {
-      alert('Error: Could not generate GDFlix link');
+      // Open the GdFlix link directly in a new tab if no callback provided
+      window.open(gdflixLink, '_blank');
     }
   })
   .catch(error => {
     console.error('GdFlix API Error:', error);
-    alert('Failed to generate GDFlix link: ' + error.message);
+    if (callback) {
+      callback(false, error.message);
+    } else {
+      alert('Failed to generate GdFlix link: ' + error.message);
+    }
   });
 }
 
