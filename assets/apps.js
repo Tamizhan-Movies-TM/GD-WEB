@@ -2228,31 +2228,39 @@ async function copyFile(driveid) {
 	}
 }
 
-// GdFlix API function
+// GdFlix API function - Updated version
 function generateGdFlixLink(fileUrl, fileId, callback) {
-  const apiToken = 'fbe53ebaf6d4f67228a00b1cd031574b';
-  const apiUrl = `https://new4.gdflix.net/v2/share?id=${fileId}&key=${apiToken}`;
+  const apiUrl = 'https://new4.gdflix.net/v2/share';
+  const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b'; // Updated API key
+  
+  // Construct the URL with proper parameters
+  const url = `${apiUrl}?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`;
   
   // Make API request
-  fetch(apiUrl)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (data && data.status === "success" && data.gdflix_link) {
-        callback(true, { link: data.gdflix_link });
-      } else {
-        const errorMsg = data.message || 'No GdFlix link found in response';
-        callback(false, errorMsg);
-      }
-    })
-    .catch(error => {
-      console.error('GdFlix API Error:', error);
-      callback(false, 'Failed to connect to GdFlix API: ' + error.message);
-    });
+  fetch(url, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json"
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data && data.status === "success" && data.gdflix_link) {
+      callback(true, { link: data.gdflix_link });
+    } else {
+      const errorMsg = data.message || 'No GdFlix link found in response';
+      callback(false, errorMsg);
+    }
+  })
+  .catch(error => {
+    console.error('GdFlix API Error:', error);
+    callback(false, 'Failed to connect to GdFlix API: ' + error.message);
+  });
 }
 
 // create a MutationObserver to listen for changes to the DOM
