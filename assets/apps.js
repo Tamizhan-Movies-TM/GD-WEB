@@ -1784,7 +1784,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
           <div class="btn-group text-center"> 
             ${UI.display_drive_link ? ` 
              <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-             onclick="generateGdFlixLink('${file_id}')">
+             onclick="generateGDFlixLink('${file_id}')">
             ${gdrive_icon}GdFlix Link
          </button>` : ``} 
          <a href="${url}" type="button" class="btn btn-success">
@@ -1809,7 +1809,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
   
   $("#content").html(content);
 
- // Add GdFlix button click handler
+ // Add GDFlix button click handler
   $(document).off('click', '.gdflix-btn').on('click', '.gdflix-btn', function() {
     const fileId = $(this).data('file-id');
     const fileUrl = $(this).data('file-url');
@@ -2219,8 +2219,8 @@ async function copyFile(driveid) {
 	}
 }
 
-// GdFlix API function - Direct link opening
-function generateGdFlixLink(fileId) {
+// GDFlix API function - Direct link opening
+function generateGDFlixLink(fileId) {
   const apiUrl = 'https://new4.gdflix.net/v2/share';
   const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
   
@@ -2241,7 +2241,7 @@ function generateGdFlixLink(fileId) {
     return response.json();
   })
   .then(data => {
-    console.log('GdFlix API response:', data);
+    console.log('GDFlix API response:', data);
     
     let gdflixLink = '';
     
@@ -2258,12 +2258,12 @@ function generateGdFlixLink(fileId) {
       // Open the GdFlix link directly in a new tab
       window.open(gdflixLink, '_blank');
     } else {
-      alert('Error: Could not generate GdFlix link');
+      alert('Error: Could not generate GDFlix link');
     }
   })
   .catch(error => {
     console.error('GdFlix API Error:', error);
-    alert('Failed to generate GdFlix link: ' + error.message);
+    alert('Failed to generate GDFlix link: ' + error.message);
   });
 }
 
