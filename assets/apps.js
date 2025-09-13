@@ -2227,7 +2227,7 @@ function generateGdFlixLink(fileUrl, fileId, callback) {
   const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b'; // Updated API key
   
   // Construct the URL with proper parameters
-  const url = `${apiUrl}?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`;
+  const url = `${apiUrl}?id=${fileId}&key=${apiKey}`;
   
   // Make API request
   fetch(url, {
