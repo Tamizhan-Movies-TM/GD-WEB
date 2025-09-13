@@ -2219,22 +2219,34 @@ async function copyFile(driveid) {
 	}
 }
 
-// GDFlix API function - Direct link opening
+// Fixed GDFlix API function
 function generateGDFlixLink(fileId) {
+  // Use the correct API endpoint as specified
   const apiUrl = 'https://new4.gdflix.net/v2/share';
   const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
   
+  // Show loading state on button
+  const button = document.querySelector('.gdflix-btn');
+  if (button) {
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...';
+  }
+  
   // Construct the URL with proper parameters
   const url = `${apiUrl}?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`;
+  
+  console.log('Making request to:', url);
   
   // Make API request
   fetch(url, {
     method: "GET",
     headers: {
-      "Accept": "application/json"
+      "Accept": "application/json",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
   })
   .then(response => {
+    console.log('Response status:', response.status);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -2245,25 +2257,69 @@ function generateGDFlixLink(fileId) {
     
     let gdflixLink = '';
     
-    if (data && data.status === "success" && data.gdflix_link) {
-      gdflixLink = data.gdflix_link;
-    } 
+    // Handle successful response
+    if (data && data.status === "success") {
+      // Check if there's a direct gdflix_link in response
+      if (data.gdflix_link) {
+        gdflixLink = data.gdflix_link;
+      }
+      // Or if there's a shortened ID to construct the URL
+      else if (data.id || data.short_id) {
+        const shortId = data.id || data.short_id;
+        gdflixLink = `https://new4.gdflix.net/file/${shortId}`;
+      }
+    }
     // Handle case where file is already shared
-    else if (data && data.message === "File already Shared") {
-      // Use the direct file pattern
-      gdflixLink = `https://new4.gdflix.net/file/${fileId.substring(0, 8)}`;
+    else if (data && data.message && data.message.includes("already")) {
+      // If the API returns an existing short ID
+      if (data.id || data.short_id) {
+        const shortId = data.id || data.short_id;
+        gdflixLink = `https://new4.gdflix.net/file/${shortId}`;
+      }
+      // Fallback: try to extract from any returned link
+      else if (data.link) {
+        gdflixLink = data.link;
+      }
+    }
+    
+    // Reset button state
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = `${gdrive_icon}GdFlix Link`;
     }
     
     if (gdflixLink) {
+      console.log('Generated GdFlix link:', gdflixLink);
       // Open the GdFlix link directly in a new tab
       window.open(gdflixLink, '_blank');
+      
+      // Optional: Show success message
+      alert('GdFlix link generated successfully!');
     } else {
-      alert('Error: Could not generate GDFlix link');
+      console.error('No valid link found in response:', data);
+      alert('Error: Could not generate GDFlix link. Please check console for details.');
     }
   })
   .catch(error => {
     console.error('GdFlix API Error:', error);
-    alert('Failed to generate GDFlix link: ' + error.message);
+    
+    // Reset button state
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = `${gdrive_icon}GdFlix Link`;
+    }
+    
+    // More detailed error message
+    let errorMsg = 'Failed to generate GDFlix link: ';
+    if (error.message.includes('CORS')) {
+      errorMsg += 'CORS policy blocked the request. This may need to be called from a server.';
+    } else if (error.message.includes('Network')) {
+      errorMsg += 'Network error. Please check your internet connection.';
+    } else {
+      errorMsg += error.message;
+    }
+    
+    alert(errorMsg);
   });
 }
 
