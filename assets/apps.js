@@ -2221,7 +2221,7 @@ async function copyFile(driveid) {
 
 // GDFlix API function - Direct link opening
 function generateGDFlixLink(fileId) {
-  const apiUrl = 'https://new1.gdflix.cfd/v2/share';
+  const apiUrl = 'https://new4.gdflix.net/v2/share';
   const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
   
   // Construct the URL with proper parameters
