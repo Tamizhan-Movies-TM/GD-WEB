@@ -1684,59 +1684,59 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	}
 }
 
-// Document display video mkv|mp4|webm|avi| 
-function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-    // Define all player icons
+// Document display video  mkv|mp4|webm|avi| 
+   function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+	 // Define all player icons
     const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
     const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    
-    var url_base64 = btoa(url);
-    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-    
-    let player;
-    let player_js;
-    let player_css;
-    
-    if (!UI.disable_player) {
-        if (player_config.player == "plyr") {
-            player = `<video id="player" playsinline controls data-poster="${poster}">
-                <source src="${url}" type="video/mp4" />
-                <source src="${url}" type="video/webm" />
-            </video>`
-            player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
-            player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
-        } else if (player_config.player == "videojs") {
-            player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
-                <source src="${url}" type="video/mp4" />
-                <source src="${url}" type="video/webm" />
-                <source src="${url}" type="video/avi" />
-            </video>`
-            player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
-            player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
-        } else if (player_config.player == "dplayer") {
-            player = `<div id="player-container"></div>`
-            player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js'
-            player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css'
-        } else if (player_config.player == "jwplayer") {
-            player = `<div id="player"></div>`
-            player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
-            player_css = ''
-        }
-    }
+		 var url_base64 = btoa(url);
+	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
+	  let player
+	  if (!UI.disable_player) {
+		 if (player_config.player == "plyr") {
+			player = `<video id="player" playsinline controls data-poster="${poster}">
+      <source src="${url}" type="video/mp4" />
+      <source src="${url}" type="video/webm" />
+        </video>`
+			player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
+			player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
+		} else if (player_config.player == "videojs") {
+			player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
+      <source src="${url}" type="video/mp4" />
+      <source src="${url}" type="video/webm" />
+      <source src="${url}" type="video/avi" />
+    </video>`
+			player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
+			player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
+		} else if (player_config.player == "dplayer") {
+			player = `<div id="player-container"></div>`
+			player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js'
+			player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css'
+		} else if (player_config.player == "jwplayer") {
+			player = `<div id="player"></div>`
+			player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
+			player_css = ''
+		}
+	}
 
-    // Add the container and card elements
-    var content = `
-    <div class="card">
-        <div class="card-header ${UI.file_view_alert_class}">
-            <i class="fas fa-file-alt fa-fw"></i>File Information
-        </div>
-        <div class="card-body row g-3">
-            <div class="col-lg-4 col-md-12">
-                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-                    ${player}
+// Add the container and card elements	 
+var content = `
+<div class="card">
+    <div class="card-header text-truncate ${UI.file_view_alert_class}">
+        <i class="fas fa-file-alt fa-fw"></i> File Information 
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
+                <div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  
+                    <div style="position: relative; padding-bottom: 56.25%;"> 
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+                            ${player} 
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-lg-8 col-md-12">
@@ -1748,13 +1748,6 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
                                 <span class="tth">Name</span>
                             </th>
                             <td>${name}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-regular fa-clock fa-fw"></i>
-                                <span class="tth">Datetime</span>
-                            </th>
-                            <td>${createdTime}</td>
                         </tr>
                         <tr>
                             <th>
@@ -1770,607 +1763,200 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
                             </th>
                             <td>${size}</td>
                         </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-file-circle-check fa-fw"></i>
-                                <span class="tth">Checksum</span>
-                            </th>
-                            <td>MD5: <code>${md5Checksum}</code>
-                            </td>
-                        </tr>
                     </tbody>
                 </table>
-                ${UI.disable_video_download ? `` : `
-                <div class="input-group">
-                    <span class="input-group-text" id="">Full URL</span>
-                    <input type="text" class="form-control" id="dlurl" value="${url}" readonly> ${copyButton}
-                </div>`}
             </div>
-            ${UI.disable_video_download ? `` : `
-            <div class="col-md-12">
-                <div class="text-center">
-                    <p class="mb-2">Download via</p>
-                    <div class="btn-group text-center"> 
-                        ${UI.display_drive_link ? ` 
-                        <button class="btn btn-secondary d-flex align-items-center gap-2 gdtot-btn" 
-                                data-file-id="${file_id}" data-file-url="${url}" id="gdtot_link_${file_id}">
-                            ${gdrive_icon}GDTot Link
-                        </button>` : ``} 
-                        <a href="${url}" type="button" class="btn btn-success">
-                            <i class="fas fa-bolt fa-fw"></i>Index Link
-                        </a>
-                        <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
-                                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span class="sr-only"></span>
-                        </button>
-                        <div class="dropdown-menu">
-                            <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
-                            <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
-                            <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
-                            <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
-                            <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">${new_download_icon} 1DM (Free)</a>
-                        </div>
-                    </div>
-                    <div id="gdtot-result-${file_id}" class="mt-2 alert alert-info" style="display: none;"></div>
-                </div> ${copyFileBox}
-            </div>`}
         </div>
-    </div>`;
+        ${UI.disable_video_download ? `` : `
+            <!-- First row of buttons - fixed width -->
+            <div class="d-flex justify-content-center gap-3 mb-3">
+                <button type="button" class="glow-btn glow-warning d-flex justify-content-center align-items-center" style="width: 160px;"
+                    onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                    <span class="d-flex align-items-center">
+                        ${vlc_icon} VLC Player
+                    </span>
+                </button>
+
+                <button type="button" class="glow-btn glow-info d-flex justify-content-center align-items-center" style="width: 160px;"
+                    onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                    <span class="d-flex align-items-center gap-1">
+                        ${mxplayer_icon} MX Player
+                    </span>
+                </button> 
+            </div>
+            
+            <!-- Second row of buttons - fixed width -->
+            <div class="d-flex justify-content-center gap-3 mb-3">
+                <button type="button" class="glow-btn glow-success d-flex justify-content-center align-items-center" style="width: 160px;"
+                    onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                    <span class="d-flex align-items-center gap-1">
+                        ${xplayer_icon} XPlayer
+                    </span>
+                </button>
+
+                <button type="button" class="glow-btn glow-danger d-flex justify-content-center align-items-center" style="width: 160px;"
+                    onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
+                    <span class="d-flex align-items-center gap-1"> 
+                        ${playit_icon} PLAYit
+                    </span>
+                </button>
+            </div>
+                        
+            <!-- DOWNLOAD BUTTON -->
+                <div class="d-flex justify-content-center gap-3">
+                <button id="download-btn" class="glow-btn glow-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" 
+                    style="width: 200px; padding: 8px 35px; font-size: 1rem; position: relative;">
+                    ${new_download_icon} DOWNLOAD
+                    <div id="download-spinner" class="spinner" style="display: none;">
+                    <div class="spinner-circle"></div>
+                </div>
+              </button>
+            </div>
+          </div>
+        `}
+      </div>
+    </div>
     
-    $("#content").html(content);
-
-    // Update the click handler for the GDTot button
-    $(document).on('click', '.gdtot-btn', function() {
-        const fileId = $(this).data('file-id');
-        const fileUrl = $(this).data('file-url');
-        const resultDiv = $(`#gdtot-result-${fileId}`);
-        const button = $(this);
-        
-        // Show loading state
-        button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-        resultDiv.show().removeClass('alert-danger alert-success').addClass('alert-info').html('Generating GDTot link...');
-        
-        // Call GDTot API
-        generateGDTotLink(fileUrl, fileId, function(success, data) {
-            if (success) {
-                resultDiv.removeClass('alert-info alert-danger').addClass('alert-success').html(`
-                    GDTot Link: <a href="${data.link}" target="_blank">${data.link}</a>
-                    <button class="btn btn-sm btn-outline-secondary ms-2 copy-btn" data-text="${data.link}">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                `);
-            } else {
-                resultDiv.removeClass('alert-info alert-success').addClass('alert-danger').html(`Error: ${data}`);
-            }
-            
-            // Reset button state
-            button.prop('disabled', false).html(`${gdrive_icon}GDTot Link`);
-        });
-    });
-
-    // Enhanced player initialization with audio track support
-    var videoJsScript = document.createElement('script');
-    videoJsScript.src = player_js;
-    videoJsScript.onload = function() {
-        if (player_config.player == "plyr") {
-            const player = new Plyr('#player', {
-                controls: [
-                    'play-large',
-                    'restart', 
-                    'rewind',
-                    'play',
-                    'fast-forward',
-                    'progress',
-                    'current-time',
-                    'duration',
-                    'mute',
-                    'volume',
-                    'settings',
-                    'fullscreen'
-                ],
-                settings: ['captions', 'quality', 'speed'],
-                i18n: {
-                    menuBack: 'Go back',
-                    settings: 'Settings',
-                    captions: 'Audio Tracks',
-                    disabled: 'Disabled'
-                }
-            });
-            
-            // Add audio track switching capability
-            player.on('ready', () => {
-                const video = player.media;
-                if (video.audioTracks && video.audioTracks.length > 1) {
-                    console.log('Multiple audio tracks detected:', video.audioTracks.length);
-                    
-                    // Add custom audio track menu to Plyr settings
-                    video.audioTracks.forEach((track, index) => {
-                        console.log(`Audio Track ${index + 1}: ${track.label || track.language || 'Unknown'}`);
-                    });
-                }
-            });
-            
-        } else if (player_config.player == "videojs") {
-            const player = videojs('vplayer', {
-                fluid: true,
-                responsive: true,
-                playbackRates: [0.5, 1, 1.25, 1.5, 2],
-                plugins: {
-                    audioTrackSelector: {}
-                }
-            });
-            
-            // Enable the audio track selector plugin
-            if (typeof player.audioTrackSelector === 'function') {
-                player.audioTrackSelector();
-            }
-            
-            // Enhanced audio track handling for Video.js
-            player.ready(() => {
-                const audioTracks = player.audioTracks();
-                
-                if (audioTracks.length > 1) {
-                    console.log('Available audio tracks:', audioTracks.length);
-                    
-                    // Create custom audio track button
-                    const Button = videojs.getComponent('Button');
-                    
-                    class AudioTrackButton extends Button {
-                        constructor(player, options) {
-                            super(player, options);
-                            this.controlText('Audio Language');
-                            this.addClass('vjs-audio-track-button');
-                        }
-                        
-                        handleClick() {
-                            this.toggleTrackMenu();
-                        }
-                        
-                        toggleTrackMenu() {
-                            const existingMenu = this.el().querySelector('.vjs-audio-track-menu');
-                            if (existingMenu) {
-                                existingMenu.remove();
-                                return;
-                            }
-                            
-                            const menuEl = document.createElement('div');
-                            menuEl.className = 'vjs-audio-track-menu';
-                            
-                            audioTracks.forEach((track, index) => {
-                                const item = document.createElement('div');
-                                item.className = `vjs-menu-item ${track.enabled ? 'vjs-selected' : ''}`;
-                                item.textContent = track.label || track.language || `Track ${index + 1}`;
-                                
-                                item.addEventListener('click', () => {
-                                    this.selectAudioTrack(index);
-                                    menuEl.remove();
-                                });
-                                
-                                menuEl.appendChild(item);
-                            });
-                            
-                            this.el().appendChild(menuEl);
-                            
-                            // Close menu when clicking outside
-                            document.addEventListener('click', (e) => {
-                                if (!this.el().contains(e.target)) {
-                                    menuEl.remove();
-                                }
-                            }, { once: true });
-                        }
-                        
-                        selectAudioTrack(trackIndex) {
-                            audioTracks.forEach((track, index) => {
-                                track.enabled = index === trackIndex;
-                            });
-                            
-                            // Update button appearance
-                            const selectedTrack = audioTracks[trackIndex];
-                            console.log('Selected audio track:', selectedTrack.label || selectedTrack.language || `Track ${trackIndex + 1}`);
-                        }
-                    }
-                    
-                    // Register and add the component
-                    videojs.registerComponent('AudioTrackButton', AudioTrackButton);
-                    player.getChild('controlBar').addChild('AudioTrackButton', {}, 10);
-                }
-                
-                // Log available audio tracks for debugging
-                for (let i = 0; i < audioTracks.length; i++) {
-                    console.log(`Audio Track ${i}:`, audioTracks[i].label || audioTracks[i].language || 'Unknown');
-                }
-            });
-            
-        } else if (player_config.player == "dplayer") {
-            const dp = new DPlayer({
-                container: document.getElementById('player-container'),
-                screenshot: true,
-                video: {
-                    url: url,
-                    pic: poster,
-                    thumbnails: poster,
-                },
-                contextmenu: [
-                    {
-                        text: 'Audio Tracks',
-                        click: (player) => {
-                            showAudioTrackMenu(player);
-                        }
-                    }
-                ]
-            });
-            
-            // Add audio track detection for DPlayer
-            dp.on('loadedmetadata', () => {
-                const video = dp.video;
-                if (video.audioTracks && video.audioTracks.length > 1) {
-                    console.log('DPlayer: Multiple audio tracks detected:', video.audioTracks.length);
-                }
-            });
-            
-        } else if (player_config.player == "jwplayer") {
-            jwplayer("player").setup({
-                file: url,
-                type: mimeType,
-                autostart: false,
-                image: poster,
-                width: "100%",
-                aspectratio: "16:9",
-                title: name,
-                description: "Powered by Google Drive Index",
-                tracks: [{
-                    file: url,
-                    kind: "captions",
-                    label: "Default",
-                    "default": true,
-                }],
-                // Enable audio track switching for HLS streams
-                hlshtml5: {
-                    withCredentials: false,
-                    enableWorker: true,
-                    audioTrackSwitchingMode: 'reload'
-                }
-            });
-            
-            // Add audio track change listeners
-            jwplayer("player").on('audioTracks', function(event) {
-                console.log('JWPlayer: Audio tracks loaded:', event.audioTracks);
-                
-                if (event.audioTracks && event.audioTracks.length > 1) {
-                    // Create custom audio track menu for JWPlayer
-                    const player = jwplayer("player");
-                    
-                    // Add right-click menu item for audio tracks
-                    player.addButton(
-                        "audio-icon",
-                        "Audio Language",
-                        () => {
-                            showJWPlayerAudioMenu(player, event.audioTracks);
-                        },
-                        "audioTracks"
-                    );
-                }
-            });
-            
-            jwplayer("player").on('audioTrackChanged', function(event) {
-                console.log('JWPlayer: Audio track changed to:', event.currentTrack);
-            });
-        }
-    };
-    document.head.appendChild(videoJsScript);
-
-    // Load CSS if available
-    if (player_css) {
-        var videoJsStylesheet = document.createElement('link');
-        videoJsStylesheet.href = player_css;
-        videoJsStylesheet.rel = 'stylesheet';
-        document.head.appendChild(videoJsStylesheet);
-    }
-}
-
-// Helper function for DPlayer audio track menu
-function showAudioTrackMenu(player) {
-    const video = player.video;
-    
-    if (video.audioTracks && video.audioTracks.length > 1) {
-        const trackMenu = document.createElement('div');
-        trackMenu.className = 'dplayer-audio-track-menu';
-        trackMenu.style.cssText = `
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            z-index: 1000;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            min-width: 200px;
-        `;
-        
-        const title = document.createElement('h3');
-        title.textContent = 'Select Audio Track';
-        title.style.cssText = 'margin-bottom: 15px; color: white; text-align: center;';
-        trackMenu.appendChild(title);
-        
-        for (let i = 0; i < video.audioTracks.length; i++) {
-            const track = video.audioTracks[i];
-            const button = document.createElement('button');
-            button.textContent = track.label || track.language || `Track ${i + 1}`;
-            button.style.cssText = `
-                display: block;
-                width: 100%;
-                padding: 10px;
-                margin: 5px 0;
-                background: ${track.enabled ? '#007bff' : '#333'};
-                color: white;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            `;
-            
-            button.onmouseover = () => button.style.opacity = '0.8';
-            button.onmouseout = () => button.style.opacity = '1';
-            
-            button.onclick = () => {
-                // Disable all tracks
-                for (let j = 0; j < video.audioTracks.length; j++) {
-                    video.audioTracks[j].enabled = false;
-                }
-                // Enable selected track
-                track.enabled = true;
-                document.body.removeChild(trackMenu);
-                console.log('DPlayer: Selected audio track:', track.label || track.language || `Track ${i + 1}`);
-            };
-            
-            trackMenu.appendChild(button);
-        }
-        
-        const closeButton = document.createElement('button');
-        closeButton.textContent = 'Close';
-        closeButton.style.cssText = `
-            margin-top: 15px;
-            padding: 8px 16px;
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.3s ease;
-        `;
-        closeButton.onmouseover = () => closeButton.style.opacity = '0.8';
-        closeButton.onmouseout = () => closeButton.style.opacity = '1';
-        closeButton.onclick = () => document.body.removeChild(trackMenu);
-        trackMenu.appendChild(closeButton);
-        
-        document.body.appendChild(trackMenu);
-        
-        // Close menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!trackMenu.contains(e.target)) {
-                if (document.body.contains(trackMenu)) {
-                    document.body.removeChild(trackMenu);
-                }
-            }
-        });
-    } else {
-        alert('No additional audio tracks available');
-    }
-}
-
-// Helper function for JWPlayer audio track menu
-function showJWPlayerAudioMenu(player, audioTracks) {
-    const menuEl = document.createElement('div');
-    menuEl.style.cssText = `
+    <style>
+      /* Loading spinner styles */
+      .spinner {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background: rgba(0,0,0,0.9);
-        color: white;
-        padding: 20px;
-        border-radius: 10px;
-        z-index: 1000;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      
+      .spinner-circle {
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spinner-rotate 1s linear infinite;
+      }
+      
+      @keyframes spinner-rotate {
+        to { transform: rotate(360deg); }
+      }
+      
+      /* Center button content */
+      .d-flex.align-items-center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .gap-2 {
+        gap: 8px;
+      }
+    </style>
     `;
+    // Set the content
+    $("#content").html(content);
     
-    const title = document.createElement('h3');
-    title.textContent = 'Select Audio Language';
-    title.style.marginBottom = '15px';
-    menuEl.appendChild(title);
-    
-    audioTracks.forEach((track, index) => {
-        const button = document.createElement('button');
-        button.textContent = track.name || track.language || `Track ${index + 1}`;
-        button.style.cssText = `
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            background: #333;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        `;
-        
-        button.onclick = () => {
-            player.setCurrentAudioTrack(index);
-            document.body.removeChild(menuEl);
-        };
-        
-        menuEl.appendChild(button);
-    });
-    
-    const closeButton = document.createElement('button');
-    closeButton.textContent = 'Close';
-    closeButton.style.cssText = `
-        margin-top: 10px;
-        padding: 8px 16px;
-        background: #dc3545;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        width: 100%;
-    `;
-    closeButton.onclick = () => document.body.removeChild(menuEl);
-    menuEl.appendChild(closeButton);
-    
-    document.body.appendChild(menuEl);
-}
-
-// Enhanced Video.js plugin for better audio track handling
-if (typeof videojs !== 'undefined') {
-    videojs.registerPlugin('audioTrackSelector', function(options) {
-        const player = this;
-        
-        player.ready(() => {
-            const audioTracks = player.audioTracks();
+    // Add event listener for the download button
+    if (!UI.disable_video_download) {
+        document.getElementById('download-btn').addEventListener('click', function(e) {
+            e.preventDefault();
             
-            // Create audio track button if multiple tracks exist
-            if (audioTracks.length > 1) {
-                const ControlBar = videojs.getComponent('ControlBar');
-                const Button = videojs.getComponent('Button');
+            const button = this;
+            const spinner = button.querySelector('#download-spinner');
+            
+            // Show spinner and disable button
+            spinner.style.display = 'block';
+            button.disabled = true;
+            
+            // Change button text
+            button.innerHTML = `${new_download_icon} Downloading...`;
+            
+            // Simulate download process (1.5 seconds)
+            setTimeout(() => {
+                // Create a hidden link to trigger the actual download
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = name;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
                 
-                class AudioTrackSelectorButton extends Button {
-                    constructor(player, options) {
-                        super(player, options);
-                        this.controlText('Audio Language');
-                        this.addClass('vjs-audio-track-button');
-                    }
-                    
-                    handleClick() {
-                        this.showTrackMenu();
-                    }
-                    
-                    showTrackMenu() {
-                        // Create and show audio track selection menu
-                        const menuEl = document.createElement('div');
-                        menuEl.className = 'vjs-audio-track-menu';
-                        
-                        audioTracks.forEach((track, index) => {
-                            const item = document.createElement('div');
-                            item.className = `vjs-menu-item ${track.enabled ? 'vjs-selected' : ''}`;
-                            item.textContent = track.label || track.language || `Track ${index + 1}`;
-                            
-                            item.addEventListener('click', () => {
-                                this.selectAudioTrack(index);
-                                this.hideTrackMenu();
-                            });
-                            
-                            menuEl.appendChild(item);
-                        });
-                        
-                        this.el().appendChild(menuEl);
-                    }
-                    
-                    selectAudioTrack(trackIndex) {
-                        audioTracks.forEach((track, index) => {
-                            track.enabled = index === trackIndex;
-                        });
-                    }
-                    
-                    hideTrackMenu() {
-                        const menu = this.el().querySelector('.vjs-audio-track-menu');
-                        if (menu) {
-                            menu.remove();
-                        }
-                    }
-                }
-                
-                videojs.registerComponent('AudioTrackSelectorButton', AudioTrackSelectorButton);
-                player.getChild('controlBar').addChild('AudioTrackSelectorButton', {}, 8);
-            }
+                // Hide spinner and restore button after 0.5s
+                setTimeout(() => {
+                    spinner.style.display = 'none';
+                    button.disabled = false;
+                    button.innerHTML = `${new_download_icon} DOWNLOAD`;
+                }, 500);
+            }, 1500);
         });
-    });
-}
+		}
 
-// CSS for custom audio track menus
-const audioTrackCSS = `
-<style>
-.vjs-audio-track-button .vjs-icon-placeholder:before {
-    content: "🎵";
-    font-size: 1.5em;
-}
+  // Load Video.js and initialize the player
+	var videoJsScript = document.createElement('script');
+	videoJsScript.src = player_js;
+	videoJsScript.onload = function() {
+		// Video.js is loaded, initialize the player
+		if (player_config.player == "plyr") {
+			const player = new Plyr('#player');
+		} else if (player_config.player == "videojs") {
+			const player = new videojs('vplayer');
+		} else if (player_config.player == "dplayer") {
+			const dp = new DPlayer({
+				container: document.getElementById('player-container'),
+				screenshot: true,
+				video: {
+					url: url,
+					pic: poster,
+					thumbnails: poster,
+				},
+			});
+		} else if (player_config.player == "jwplayer") {
+			jwplayer("player").setup({
+				file: url,
+				type: mimeType,
+				autostart: false,
+				image: poster,
+				width: "100%",
+				aspectratio: "16:9",
+				title: name,
+				description: "Powered by Google Drive Index",
+				tracks: [{
+					file: url,
+					kind: "captions",
+					label: "Default",
+					"default": true,
+				}],
+				captions: {
+					color: "#f3f378",
+					fontSize: 14,
+					backgroundOpacity: 50,
+					edgeStyle: "raised",
+				},
+			});
+		}
+	};
+	document.head.appendChild(videoJsScript);
 
-.vjs-audio-track-menu {
-    position: absolute;
-    bottom: 100%;
-    right: 0;
-    background: rgba(0,0,0,0.9);
-    border-radius: 4px;
-    min-width: 150px;
-    z-index: 1000;
+	var videoJsStylesheet = document.createElement('link');
+	videoJsStylesheet.href = player_css;
+	videoJsStylesheet.rel = 'stylesheet';
+	document.head.appendChild(videoJsStylesheet);
 }
-
-.vjs-audio-track-menu .vjs-menu-item {
-    padding: 8px 12px;
-    color: white;
-    cursor: pointer;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-.vjs-audio-track-menu .vjs-menu-item:hover {
-    background: rgba(255,255,255,0.1);
-}
-
-.vjs-audio-track-menu .vjs-menu-item.vjs-selected {
-    background: #007bff;
-}
-
-.dplayer-audio-track-menu {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-.dplayer-audio-track-menu button:hover {
-    opacity: 0.8;
-}
-
-/* JWPlayer audio track button styling */
-.jwplayer .jw-button-audio-tracks {
-    background-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>');
-}
-</style>`;
-
-// Inject the CSS
-document.head.insertAdjacentHTML('beforeend', audioTrackCSS);
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-    var url_base64 = btoa(url);
-    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
+	var url_base64 = btoa(url);
+	const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
-    let player;
-    let player_js;
-    let player_css;
+	// Add the container and card elements
+	var player = `<video id="aplayer" poster="${UI.audioposter}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; object-fit: cover; min-height: 200px;">
+					<source src="${url}" type="audio/mpeg" />
+					<source src="${url}" type="audio/ogg" />
+					<source src="${url}" type="audio/wav" />
+				</video>`;
 
-    if (!UI.disable_player) {
-        if (player_config.player == "videojs") {
-            player = `<video id="aplayer" poster="${UI.audioposter}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; object-fit: cover; min-height: 200px;">
-                <source src="${url}" type="audio/mpeg" />
-                <source src="${url}" type="audio/ogg" />
-                <source src="${url}" type="audio/wav" />
-            </video>`;
-            player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
-            player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
-        } else if (player_config.player == "plyr") {
-            player = `<audio id="aplayer" controls>
-                <source src="${url}" type="audio/mpeg" />
-                <source src="${url}" type="audio/ogg" />
-                <source src="${url}" type="audio/wav" />
-            </audio>`;
-            player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
-            player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
-        }
-    }
-
-    const content = `
+	const content = `
     <div class="card">
         <div class="card-header ${UI.file_view_alert_class}">
+            ${copyFileBox}
             <i class="fas fa-file-alt fa-fw"></i>File Information
         </div>
         <div class="card-body row g-3">
@@ -2408,81 +1994,68 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                 </table>
                 
                 ${UI.disable_video_download ? '' : `
-                <div class="input-group">
-                    <span class="input-group-text" id="">Full URL</span>
-                    <input type="text" class="form-control" id="dlurl" value="${url}" readonly> ${copyButton}
-                </div>`}
-            </div>
-            ${UI.disable_video_download ? '' : `
-            <div class="col-md-12">
-                <div class="text-center">
-                    <p class="mb-2">Download via</p>
-                    <div class="btn-group text-center">
-                        ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://kaceku.onrender.com/f/${file_id}" id="file_drive_link" target="_blank">${gdrive_icon}Google Drive</a>` : ``}
-                        <a href="${url}" type="button" class="btn btn-success">
-                            <i class="fas fa-bolt fa-fw"></i>Index Link
-                        </a>
-                        <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
-                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <span class="sr-only"></span>
-                        </button>
-                        <div class="dropdown-menu">
-                            <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-                            <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
-                            <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
+                <div class="col-md-12">
+                    <div class="text-center">
+                        <p class="mb-2">Download via</p>
+                        <div class="btn-group text-center">
+                            <a href="${url}" type="button" class="btn btn-success">
+                                <i class="fas fa-bolt fa-fw"></i>Index Link
+                            </a>
+                            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="sr-only"></span>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">Playit</a>
+                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">XPlayer</a>
+                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">MX Player</a>
+                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">VLC Player</a>
+                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name_safe};end">1DM (Free)</a>
+                            </div>
                         </div>
                     </div>
-                </div> ${copyFileBox}
+                </div>
+                `}
             </div>
-            `}
         </div>
     </div>`;
 
     $("#content").html(content);
 
-    // Initialize audio player if enabled
+    // Initialize player if enabled
     if (!UI.disable_player && player_js) {
         const script = document.createElement('script');
         script.src = player_js;
         script.onload = () => {
-            if (player_config.player === "plyr") {
-                const audioPlayer = new Plyr('#aplayer', {
-                    controls: [
-                        'play',
-                        'progress',
-                        'current-time',
-                        'duration',
-                        'mute',
-                        'volume',
-                        'settings'
-                    ],
-                    settings: ['speed'],
-                    speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] }
-                });
-                
-                // Add audio track detection for Plyr
-                audioPlayer.on('ready', () => {
-                    const audio = audioPlayer.media;
-                    if (audio.audioTracks && audio.audioTracks.length > 1) {
-                        console.log('Plyr: Multiple audio tracks detected:', audio.audioTracks.length);
-                    }
-                });
-                
-            } else if (player_config.player === "videojs") {
-                const audioPlayer = videojs('aplayer', {
-                    fill: true,
-                    fluid: true,
-                    responsive: true,
-                    playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
-                });
-                
-                // Add audio track detection for Video.js audio
-                audioPlayer.ready(() => {
-                    const audioTracks = audioPlayer.audioTracks();
-                    if (audioTracks.length > 1) {
-                        console.log('VideoJS Audio: Multiple audio tracks detected:', audioTracks.length);
-                    }
-                });
+        switch(player_config.player) {
+        case "plyr":
+        new Plyr('#player');
+        break;
+        case "videojs":
+        videojs('vplayer', {fill: true});
+        break;
+        case "dplayer":
+        new DPlayer({
+        container: document.getElementById('player-container'),
+        screenshot: true,
+        video: {
+        url: url,
+        pic: poster,
+        thumbnails: poster
+                        }
+                    });
+                    break;
+                    case "jwplayer":
+                    jwplayer("player").setup({
+                        file: url,
+                        type: mimeTypeFixed,
+                        autostart: false,
+                        image: poster,
+                        width: "100%",
+                        aspectratio: "16:9",
+                        title: name
+                    });
+                    break;
             }
         };
         document.head.appendChild(script);
@@ -2495,7 +2068,6 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
         }
     }
 }
-
 // Time conversion
 function utc2jakarta(utc_datetime) {
 	// Convert UTC datetime to local Jakarta time
