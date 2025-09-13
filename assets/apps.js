@@ -1684,217 +1684,219 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	}
 }
 
-// Document display video  mkv|mp4|webm|avi| 
-   function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-	 // Define all player icons
-    const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
-    const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
-		 var url_base64 = btoa(url);
-	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-	  let player
-	  if (!UI.disable_player) {
-		 if (player_config.player == "plyr") {
-			player = `<video id="player" playsinline controls data-poster="${poster}">
-      <source src="${url}" type="video/mp4" />
-      <source src="${url}" type="video/webm" />
-        </video>`
-			player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
-			player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
-		} else if (player_config.player == "videojs") {
-			player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
-      <source src="${url}" type="video/mp4" />
-      <source src="${url}" type="video/webm" />
-      <source src="${url}" type="video/avi" />
-    </video>`
-			player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
-			player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
-		} else if (player_config.player == "dplayer") {
-			player = `<div id="player-container"></div>`
-			player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js'
-			player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css'
-		} else if (player_config.player == "jwplayer") {
-			player = `<div id="player"></div>`
-			player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
-			player_css = ''
-		}
-	}
-
-// Add the container and card elements
-	var content = `
-	<div class="card">
-		<div class="card-header ${UI.file_view_alert_class}">
-			<i class="fas fa-file-alt fa-fw"></i>File Information
-		</div>
-		<div class="card-body row g-3">
-			<div class="col-lg-4 col-md-12">
-				<div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-					${player}
-				</div>
-			</div>
-			<div class="col-lg-8 col-md-12">
-				<table class="table table-dark">
-					<tbody>
-						<tr>
-							<th>
-								<i class="fa-regular fa-folder-closed fa-fw"></i>
-								<span class="tth">Name</span>
-							</th>
-							<td>${name}</td>
-						</tr>
-						<tr>
-							<th>
-								<i class="fa-regular fa-clock fa-fw"></i>
-								<span class="tth">Datetime</span>
-							</th>
-							<td>${createdTime}</td>
-						</tr>
-						<tr>
-							<th>
-								<i class="fa-solid fa-tag fa-fw"></i>
-								<span class="tth">Type</span>
-							</th>
-							<td>${formatMimeType(mimeType)}</td>
-						</tr>
-						<tr>
-							<th>
-								<i class="fa-solid fa-box-archive fa-fw"></i>
-								<span class="tth">Size</span>
-							</th>
-							<td>${size}</td>
-						</tr>
-						<tr>
-							<th>
-								<i class="fa-solid fa-file-circle-check fa-fw"></i>
-								<span class="tth">Checksum</span>
-							</th>
-							<td>MD5: <code>${md5Checksum}</code>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				${UI.disable_video_download ? `` : `
-				<div class="input-group">
-					<span class="input-group-text" id="">Full URL</span>
-					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
-				</div>`}
-			</div>
-			${UI.disable_video_download ? `` : `
-			<div class="col-md-12">
-				<div class="text-center">
-					<p class="mb-2">Download via</p>
-					<div class="btn-group text-center"> 
-  <!-- GDTot Button (replaces Google Drive button) -->
-  ${UI.display_drive_link ? ` 
-  <button class="btn btn-secondary d-flex align-items-center gap-2 gdtot-btn" 
-          data-file-id="${file_id}" data-file-url="${url}" id="gdtot_link_${file_id}">
-    ${gdrive_icon}GDTot Link
-  </button>` : ``} 
-  <a href="${url}" type="button" class="btn btn-success">
-    <i class="fas fa-bolt fa-fw"></i>Index Link
-  </a>
-  <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
-          data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    <span class="sr-only"></span>
-  </button>
-  <div class="dropdown-menu">
-    <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
-    <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
-    <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
-    <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
-    <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">${new_download_icon} 1DM (Free)</a>
-  </div>
- </div>
-  <!-- GDTot Result Display Area -->
-   <div id="gdtot-result-${file_id}" class="mt-2 alert alert-info" style="display: none;"></div>
-			   </div> `+ copyFileBox +`
-				</div>
-			</div>`}
-		</div>
-	</div>`;
-	$("#content").html(content);
-
-// Update the click handler for the GDTot button
-$(document).on('click', '.gdtot-btn', function() {
-  const fileId = $(this).data('file-id');
-  const fileUrl = $(this).data('file-url');
-  const resultDiv = $(`#gdtot-result-${fileId}`);
-  const button = $(this);
+// File display video  mkv|mp4|webm|avi| 
+function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+  // Define all player icons
+  const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+  const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+  const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
+  const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
+  const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
   
-  // Show loading state
-  button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-  resultDiv.show().removeClass('alert-danger alert-success').addClass('alert-info').html('Generating GDTot link...');
+  var url_base64 = btoa(url);
+  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
+  let player;
   
-  // Call GDTot API
-  generateGDTotLink(fileUrl, fileId, function(success, data) {
-    if (success) {
-      resultDiv.removeClass('alert-info alert-danger').addClass('alert-success').html(`
-        GDTot Link: <a href="${data.link}" target="_blank">${data.link}</a>
-        <button class="btn btn-sm btn-outline-secondary ms-2 copy-btn" data-text="${data.link}">
-          <i class="fas fa-copy"></i>
-        </button>
-      `);
-    } else {
-      resultDiv.removeClass('alert-info alert-success').addClass('alert-danger').html(`Error: ${data}`);
+  if (!UI.disable_player) {
+    if (player_config.player == "plyr") {
+      player = `<video id="player" playsinline controls data-poster="${poster}">
+        <source src="${url}" type="video/mp4" />
+        <source src="${url}" type="video/webm" />
+      </video>`;
+      player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js';
+      player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css';
+    } else if (player_config.player == "videojs") {
+      player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
+        <source src="${url}" type="video/mp4" />
+        <source src="${url}" type="video/webm" />
+        <source src="${url}" type="video/avi" />
+      </video>`;
+      player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js';
+      player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css';
+    } else if (player_config.player == "dplayer") {
+      player = `<div id="player-container"></div>`;
+      player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js';
+      player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css';
+    } else if (player_config.player == "jwplayer") {
+      player = `<div id="player"></div>`;
+      player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js';
+      player_css = '';
     }
-    
-    // Reset button state
-    button.prop('disabled', false).html(`${gdrive_icon}GDTot Link`);
-  });
-});
-		 
-  // Load Video.js and initialize the player
-	var videoJsScript = document.createElement('script');
-	videoJsScript.src = player_js;
-	videoJsScript.onload = function() {
-		// Video.js is loaded, initialize the player
-		if (player_config.player == "plyr") {
-			const player = new Plyr('#player');
-		} else if (player_config.player == "videojs") {
-			const player = new videojs('vplayer');
-		} else if (player_config.player == "dplayer") {
-			const dp = new DPlayer({
-				container: document.getElementById('player-container'),
-				screenshot: true,
-				video: {
-					url: url,
-					pic: poster,
-					thumbnails: poster,
-				},
-			});
-		} else if (player_config.player == "jwplayer") {
-			jwplayer("player").setup({
-				file: url,
-				type: mimeType,
-				autostart: false,
-				image: poster,
-				width: "100%",
-				aspectratio: "16:9",
-				title: name,
-				description: "Powered by Google Drive Index",
-				tracks: [{
-					file: url,
-					kind: "captions",
-					label: "Default",
-					"default": true,
-				}],
-				captions: {
-					color: "#f3f378",
-					fontSize: 14,
-					backgroundOpacity: 50,
-					edgeStyle: "raised",
-				},
-			});
-		}
-	};
-	document.head.appendChild(videoJsScript);
+  }
 
-	var videoJsStylesheet = document.createElement('link');
-	videoJsStylesheet.href = player_css;
-	videoJsStylesheet.rel = 'stylesheet';
-	document.head.appendChild(videoJsStylesheet);
+  // Add the container and card elements
+  var content = `
+  <div class="card">
+    <div class="card-header ${UI.file_view_alert_class}">
+      <i class="fas fa-file-alt fa-fw"></i>File Information
+    </div>
+    <div class="card-body row g-3">
+      <div class="col-lg-4 col-md-12">
+        <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+          ${player}
+        </div>
+      </div>
+      <div class="col-lg-8 col-md-12">
+        <table class="table table-dark">
+          <tbody>
+            <tr>
+              <th>
+                <i class="fa-regular fa-folder-closed fa-fw"></i>
+                <span class="tth">Name</span>
+              </th>
+              <td>${name}</td>
+            </tr>
+            <tr>
+              <th>
+                <i class="fa-regular fa-clock fa-fw"></i>
+                <span class="tth">Datetime</span>
+              </th>
+              <td>${createdTime}</td>
+            </tr>
+            <tr>
+              <th>
+                <i class="fa-solid fa-tag fa-fw"></i>
+                <span class="tth">Type</span>
+              </th>
+              <td>${formatMimeType(mimeType)}</td>
+            </tr>
+            <tr>
+              <th>
+                <i class="fa-solid fa-box-archive fa-fw"></i>
+                <span class="tth">Size</span>
+              </th>
+              <td>${size}</td>
+            </tr>
+            <tr>
+              <th>
+                <i class="fa-solid fa-file-circle-check fa-fw"></i>
+                <span class="tth">Checksum</span>
+              </th>
+              <td>MD5: <code>${md5Checksum}</code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        ${UI.disable_video_download ? `` : `
+        <div class="input-group">
+          <span class="input-group-text" id="">Full URL</span>
+          <input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
+        </div>`}
+      </div>
+      ${UI.disable_video_download ? `` : `
+      <div class="col-md-12">
+        <div class="text-center">
+          <p class="mb-2">Download via</p>
+          <div class="btn-group text-center"> 
+            <!-- GdFlix Button -->
+            ${UI.display_drive_link ? ` 
+            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+                    data-file-id="${file_id}" data-file-url="${url}" id="gdflix_link_${file_id}">
+              ${gdrive_icon}GdFlix Link
+            </button>` : ``} 
+            <a href="${url}" type="button" class="btn btn-success">
+              <i class="fas fa-bolt fa-fw"></i>Index Link
+            </a>
+            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="sr-only"></span>
+            </button>
+            <div class="dropdown-menu">
+              <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">${new_download_icon} 1DM (Free)</a>
+            </div>
+          </div>
+          <!-- GdFlix Result Display Area -->
+          <div id="gdflix-result-${file_id}" class="mt-2 alert alert-info" style="display: none;"></div>
+        </div> `+ copyFileBox +`
+      </div>`}
+    </div>
+  </div>`;
+  
+  $("#content").html(content);
+
+  // Update the click handler for the GdFlix button
+  $(document).on('click', '.gdflix-btn', function() {
+    const fileId = $(this).data('file-id');
+    const fileUrl = $(this).data('file-url');
+    const resultDiv = $(`#gdflix-result-${fileId}`);
+    const button = $(this);
+    
+    // Show loading state
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    resultDiv.show().removeClass('alert-danger alert-success').addClass('alert-info').html('Generating GdFlix link...');
+    
+    // Call GdFlix API
+    generateGdFlixLink(fileUrl, fileId, function(success, data) {
+      if (success) {
+        resultDiv.removeClass('alert-info alert-danger').addClass('alert-success').html(`
+          GdFlix Link: <a href="${data.link}" target="_blank">${data.link}</a>
+          <button class="btn btn-sm btn-outline-secondary ms-2 copy-btn" data-text="${data.link}">
+            <i class="fas fa-copy"></i>
+          </button>
+        `);
+      } else {
+        resultDiv.removeClass('alert-info alert-success').addClass('alert-danger').html(`Error: ${data}`);
+      }
+      
+      // Reset button state
+      button.prop('disabled', false).html(`${gdrive_icon}GdFlix Link`);
+    });
+  });
+  
+  // Load Video.js and initialize the player
+  var videoJsScript = document.createElement('script');
+  videoJsScript.src = player_js;
+  videoJsScript.onload = function() {
+    // Video.js is loaded, initialize the player
+    if (player_config.player == "plyr") {
+      const player = new Plyr('#player');
+    } else if (player_config.player == "videojs") {
+      const player = new videojs('vplayer');
+    } else if (player_config.player == "dplayer") {
+      const dp = new DPlayer({
+        container: document.getElementById('player-container'),
+        screenshot: true,
+        video: {
+          url: url,
+          pic: poster,
+          thumbnails: poster,
+        },
+      });
+    } else if (player_config.player == "jwplayer") {
+      jwplayer("player").setup({
+        file: url,
+        type: mimeType,
+        autostart: false,
+        image: poster,
+        width: "100%",
+        aspectratio: "16:9",
+        title: name,
+        description: "Powered by Google Drive Index",
+        tracks: [{
+          file: url,
+          kind: "captions",
+          label: "Default",
+          "default": true,
+        }],
+        captions: {
+          color: "#f3f378",
+          fontSize: 14,
+          backgroundOpacity: 50,
+          edgeStyle: "raised",
+        },
+      });
+    }
+  };
+  document.head.appendChild(videoJsScript);
+
+  var videoJsStylesheet = document.createElement('link');
+  videoJsStylesheet.href = player_css;
+  videoJsStylesheet.rel = 'stylesheet';
+  document.head.appendChild(videoJsStylesheet);
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
@@ -2226,51 +2228,38 @@ async function copyFile(driveid) {
 	}
 }
 
-// GDTot API function (add this at the end of your app.js file)
-function generateGDTotLink(fileUrl, fileId, callback) {
-  const apiUrl = 'https://new26.gdtot.dad/ajax.php?ajax=filecreate';
+// GdFlix API function
+function generateGdFlixLink(fileUrl, fileId, callback) {
+  const apiUrl = 'https://new4.gdflix.net/api/generate';
+  const apiToken = '634a6e043d00200bf9f11794bc1d714d';
   
-  // Create form data with the correct parameters
+  // Create form data with the required parameters
   const formData = new FormData();
   formData.append("url", `https://drive.google.com/file/d/${fileId}/view`);
-  
-  // Add additional parameters based on the HTML form
-  formData.append("enable_pack_title", "on");
-  formData.append("pack-title", "Auto Generated Pack");
+  formData.append("token", apiToken);
   
   // Make API request
   fetch(apiUrl, {
     method: "POST",
-    body: formData,
-    redirect: "follow",
-    credentials: "include" // This sends cookies with the request
+    body: formData
   })
   .then(response => {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return response.text();
+    return response.json();
   })
-  .then(html => {
-    // Parse the HTML response to extract the GDTot link
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    
-    // Look for the generated link in the response
-    const links = doc.querySelectorAll('a[href*="gdtot"]');
-    if (links.length > 0) {
-      const gdtotLink = links[0].href;
-      callback(true, { link: gdtotLink });
+  .then(data => {
+    if (data && data.status === "success" && data.gdflix_link) {
+      callback(true, { link: data.gdflix_link });
     } else {
-      // Try to find error messages
-      const errorElements = doc.querySelectorAll('.alert-danger, .text-danger');
-      const errorMsg = errorElements.length > 0 ? errorElements[0].textContent : 'No GDTot link found in response';
+      const errorMsg = data.message || 'No GdFlix link found in response';
       callback(false, errorMsg);
     }
   })
   .catch(error => {
-    console.error('GDTot API Error:', error);
-    callback(false, 'Failed to connect to GDTot API: ' + error.message);
+    console.error('GdFlix API Error:', error);
+    callback(false, 'Failed to connect to GdFlix API: ' + error.message);
   });
 }
 
