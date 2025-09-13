@@ -1785,7 +1785,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
             ${UI.display_drive_link ? ` 
              <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
              onclick="generateGDFlixLink('${file_id}')">
-            ${gdrive_icon}GdFlix Link
+            ${gdrive_icon}GDFlix Link
          </button>` : ``} 
          <a href="${url}" type="button" class="btn btn-success">
           <i class="fas fa-bolt fa-fw"></i>Index Link
@@ -1818,10 +1818,10 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
     
     // Show loading state
     button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-    resultDiv.show().removeClass('alert-danger alert-success').addClass('alert-info').html('Generating GdFlix link...');
+    resultDiv.show().removeClass('alert-danger alert-success').addClass('alert-info').html('Generating GDFlix link...');
     
     // Call GdFlix API
-    generateGdFlixLink(fileUrl, fileId, function(success, data) {
+    generateGDFlixLink(fileUrl, fileId, function(success, data) {
       if (success) {
         resultDiv.removeClass('alert-info alert-danger').addClass('alert-success').html(`
           GdFlix Link: <a href="${data.link}" target="_blank">${data.link}</a>
@@ -1834,7 +1834,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
       }
       
       // Reset button state
-      button.prop('disabled', false).html(`${gdrive_icon}GdFlix Link`);
+      button.prop('disabled', false).html(`${gdrive_icon}GDFlix Link`);
     });
   });
   
@@ -2250,23 +2250,34 @@ function generateGDFlixLink(fileId) {
       // New share response
       gdflixLink = data.gdflix_link;
     } 
+    else if (data && data.key) {
+      // Use the key field instead of id for the URL
+      gdflixLink = `https://new4.gdflix.net/file/${data.key}`;
+    }
     else if (data && data.id) {
-      // Already shared response - use the id field from API response
+      // Fallback to id if key is not available
       gdflixLink = `https://new4.gdflix.net/file/${data.id}`;
     }
     else if (data && data.message === "File already Shared") {
-      // Alternative format for already shared files
-      // Try to extract ID from file field if available
-      if (data.file) {
-        gdflixLink = `https://new4.gdflix.net/file/${data.file.substring(0, 8)}`;
-      } else {
-        throw new Error('File ID not found in API response');
-      }
+      // For already shared files, we need to use a different endpoint to get the correct URL
+      // Make a second request to get the file details
+      return fetch(`https://new4.gdflix.net/v2/file/${fileId}?key=${apiKey}`)
+        .then(response => response.json())
+        .then(fileData => {
+          if (fileData && fileData.key) {
+            return `https://new4.gdflix.net/file/${fileData.key}`;
+          } else {
+            throw new Error('Could not get file key from GdFlix API');
+          }
+        });
     }
     else {
       throw new Error('Invalid response from GdFlix API');
     }
     
+    return gdflixLink;
+  })
+  .then(gdflixLink => {
     if (gdflixLink) {
       // Open the GdFlix link directly in a new tab
       window.open(gdflixLink, '_blank');
