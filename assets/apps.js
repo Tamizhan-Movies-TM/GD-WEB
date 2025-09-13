@@ -2219,8 +2219,8 @@ async function copyFile(driveid) {
 	}
 }
 
-// Replace the existing generateGdFlixLink function with this corrected version
-function generateGdFlixLink(fileId, callback) {
+// Replace the existing generateGDFlixLink function with this corrected version
+function generateGDFlixLink(fileId) {
   const apiUrl = 'https://new4.gdflix.net/v2/share';
   const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
   
@@ -2241,7 +2241,7 @@ function generateGdFlixLink(fileId, callback) {
     return response.json();
   })
   .then(data => {
-    console.log('GdFlix API response:', data);
+    console.log('GDFlix API response:', data);
     
     let gdflixLink = '';
     
@@ -2251,7 +2251,7 @@ function generateGdFlixLink(fileId, callback) {
       gdflixLink = data.gdflix_link;
     } 
     else if (data && data.key) {
-      // Use the key field for the URL
+      // Use the key field instead of id for the URL
       gdflixLink = `https://new4.gdflix.net/file/${data.key}`;
     }
     else if (data && data.id) {
@@ -2260,6 +2260,7 @@ function generateGdFlixLink(fileId, callback) {
     }
     else if (data && data.message === "File already Shared") {
       // For already shared files, we need to use a different endpoint to get the correct URL
+      // Make a second request to get the file details
       return fetch(`https://new4.gdflix.net/v2/file/${fileId}?key=${apiKey}`)
         .then(response => response.json())
         .then(fileData => {
@@ -2277,20 +2278,16 @@ function generateGdFlixLink(fileId, callback) {
     return gdflixLink;
   })
   .then(gdflixLink => {
-    if (callback) {
-      callback(true, { link: gdflixLink });
-    } else {
-      // Open the GdFlix link directly in a new tab if no callback provided
+    if (gdflixLink) {
+      // Open the GdFlix link directly in a new tab
       window.open(gdflixLink, '_blank');
+    } else {
+      alert('Error: Could not generate GDFlix link');
     }
   })
   .catch(error => {
     console.error('GdFlix API Error:', error);
-    if (callback) {
-      callback(false, error.message);
-    } else {
-      alert('Failed to generate GdFlix link: ' + error.message);
-    }
+    alert('Failed to generate GDFlix link: ' + error.message);
   });
 }
 
