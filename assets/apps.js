@@ -2219,7 +2219,7 @@ async function copyFile(driveid) {
 	}
 }
 
-// GDFlix API function - Direct link opening
+// Replace the existing generateGDFlixLink function with this corrected version
 function generateGDFlixLink(fileId) {
   const apiUrl = 'https://new4.gdflix.net/v2/share';
   const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
@@ -2249,9 +2249,9 @@ function generateGDFlixLink(fileId) {
       gdflixLink = data.gdflix_link;
     } 
     // Handle case where file is already shared
-    else if (data && data.message === "File already Shared") {
-      // Use the direct file pattern
-      gdflixLink = `https://new4.gdflix.net/file/${fileId.substring(0, 8)}`;
+    else if (data && data.message === "File already Shared" && data.id) {
+      // Use the ID returned from API instead of fileId substring
+      gdflixLink = `https://new4.gdflix.net/file/${data.id}`;
     }
     
     if (gdflixLink) {
