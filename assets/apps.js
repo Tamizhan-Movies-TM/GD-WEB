@@ -2228,25 +2228,19 @@ async function copyFile(driveid) {
 	}
 }
 
-// GdFlix API function
 function generateGdFlixLink(fileUrl, fileId, callback) {
-  const apiUrl = 'https://new.gdlink.dev/api/generate';
+  const apiUrl = 'https://new.gdflix.dev/v2/share';
   const apiToken = '634a6e043d00200bf9f11794bc1d714d';
   
-  // Create request data with required parameters
-  const requestData = {
-    url: `https://drive.google.com/file/d/${fileId}/view`,
-    token: apiToken,
-    email: 'powermango33@gmail.com' // Added email parameter as required by API
-  };
+  // Create the API URL with required parameters
+  const url = `${apiUrl}?id=${fileId}&key=${apiToken}`;
   
   // Make API request
-  fetch(apiUrl, {
-    method: "POST",
+  fetch(url, {
+    method: "GET",
     headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestData)
+      "Accept": "application/json"
+    }
   })
   .then(response => {
     if (!response.ok) {
@@ -2255,16 +2249,16 @@ function generateGdFlixLink(fileUrl, fileId, callback) {
     return response.json();
   })
   .then(data => {
-    if (data && data.status === "success" && data.gdflix_link) {
-      callback(true, { link: data.gdflix_link });
+    if (data && data.status === "success" && data.data && data.data.link) {
+      callback(true, { link: data.data.link });
     } else {
       const errorMsg = data.message || 'No GdFlix link found in response';
       callback(false, errorMsg);
     }
   })
   .catch(error => {
-    console.error('GDTot API Error:', error);
-    callback(false, 'Failed to connect to GDTot API: ' + error.message);
+    console.error('GdFlix API Error:', error);
+    callback(false, 'Failed to connect to GdFlix API: ' + error.message);
   });
 }
 
