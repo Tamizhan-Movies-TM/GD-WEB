@@ -2230,18 +2230,23 @@ async function copyFile(driveid) {
 
 // GdFlix API function
 function generateGdFlixLink(fileUrl, fileId, callback) {
-  const apiUrl = 'https://new4.gdflix.net/api/generate';
+  const apiUrl = 'https://new.gdlink.dev/api/generate';
   const apiToken = '634a6e043d00200bf9f11794bc1d714d';
   
-  // Create form data with the required parameters
-  const formData = new FormData();
-  formData.append("url", `https://drive.google.com/file/d/${fileId}/view`);
-  formData.append("token", apiToken);
+  // Create request data with required parameters
+  const requestData = {
+    url: `https://drive.google.com/file/d/${fileId}/view`,
+    token: apiToken,
+    email: 'powermango33@gmail.com' // Added email parameter as required by API
+  };
   
   // Make API request
   fetch(apiUrl, {
     method: "POST",
-    body: formData
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestData)
   })
   .then(response => {
     if (!response.ok) {
@@ -2258,8 +2263,8 @@ function generateGdFlixLink(fileUrl, fileId, callback) {
     }
   })
   .catch(error => {
-    console.error('GdFlix API Error:', error);
-    callback(false, 'Failed to connect to GdFlix API: ' + error.message);
+    console.error('GDTot API Error:', error);
+    callback(false, 'Failed to connect to GDTot API: ' + error.message);
   });
 }
 
