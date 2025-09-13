@@ -1783,13 +1783,13 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
           <p class="mb-2">Download via</p>
           <div class="btn-group text-center"> 
             ${UI.display_drive_link ? ` 
-            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-                    data-file-id="${file_id}" data-file-url="${url}">
-              ${gdrive_icon}GdFlix Link
-            </button>` : ``} 
-            <a href="${url}" type="button" class="btn btn-success">
-              <i class="fas fa-bolt fa-fw"></i>Index Link
-            </a>
+             <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+             onclick="generateGdFlixLink('${file_id}')">
+            ${gdrive_icon}GdFlix Link
+         </button>` : ``} 
+         <a href="${url}" type="button" class="btn btn-success">
+          <i class="fas fa-bolt fa-fw"></i>Index Link
+           </a>
             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -1802,9 +1802,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
               <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">${new_download_icon} 1DM (Free)</a>
             </div>
           </div>
-          <!-- GdFlix Result Display Area -->
-          <div id="gdflix-result-${file_id}" class="mt-2 alert alert-info" style="display: none;"></div>
-        </div> `+ copyFileBox +`
+        </div> 
       </div>`}
     </div>
   </div>`;
@@ -2221,13 +2219,13 @@ async function copyFile(driveid) {
 	}
 }
 
-// GdFlix API function - Updated to handle "File already Shared" case
-function generateGdFlixLink(fileUrl, fileId, callback) {
+// GdFlix API function - Direct link opening
+function generateGdFlixLink(fileId) {
   const apiUrl = 'https://new4.gdflix.net/v2/share';
   const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
   
   // Construct the URL with proper parameters
-  const url = `${apiUrl}?id=${fileId}&key=${apiKey}`;
+  const url = `${apiUrl}?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`;
   
   // Make API request
   fetch(url, {
@@ -2245,39 +2243,28 @@ function generateGdFlixLink(fileUrl, fileId, callback) {
   .then(data => {
     console.log('GdFlix API response:', data);
     
+    let gdflixLink = '';
+    
     if (data && data.status === "success" && data.gdflix_link) {
-      callback(true, { link: data.gdflix_link });
+      gdflixLink = data.gdflix_link;
     } 
-    // Handle case where file is already shared but we still get a link
-    else if (data && data.message === "File already Shared" && data.gdflix_link) {
-      callback(true, { link: data.gdflix_link });
-    }
-    // Handle case where file is already shared but we need to construct the link
+    // Handle case where file is already shared
     else if (data && data.message === "File already Shared") {
-      // Construct the GdFlix link manually based on the pattern
-      const gdflixLink = `https://new4.gdflix.net/file/${generateSlug(fileId)}`;
-      callback(true, { link: gdflixLink });
+      // Use the direct file pattern
+      gdflixLink = `https://new4.gdflix.net/file/${fileId.substring(0, 8)}`;
     }
-    else {
-      const errorMsg = data.message || 'No GdFlix link found in response';
-      callback(false, errorMsg);
+    
+    if (gdflixLink) {
+      // Open the GdFlix link directly in a new tab
+      window.open(gdflixLink, '_blank');
+    } else {
+      alert('Error: Could not generate GdFlix link');
     }
   })
   .catch(error => {
     console.error('GdFlix API Error:', error);
-    callback(false, 'Failed to connect to GdFlix API: ' + error.message);
+    alert('Failed to generate GdFlix link: ' + error.message);
   });
-}
-
-// Helper function to generate a slug from file ID
-function generateSlug(fileId) {
-  // Simple hash function to create a short identifier
-  let hash = 0;
-  for (let i = 0; i < fileId.length; i++) {
-    hash = ((hash << 5) - hash) + fileId.charCodeAt(i);
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  return Math.abs(hash).toString(36).substring(0, 8);
 }
 
 // create a MutationObserver to listen for changes to the DOM
