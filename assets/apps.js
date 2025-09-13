@@ -1777,21 +1777,14 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
             </tr>
           </tbody>
         </table>
-        ${UI.disable_video_download ? `` : `
-        <div class="input-group">
-          <span class="input-group-text" id="">Full URL</span>
-          <input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
-        </div>`}
-      </div>
-      ${UI.disable_video_download ? `` : `
+       ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
           <p class="mb-2">Download via</p>
           <div class="btn-group text-center"> 
-            <!-- GdFlix Button -->
             ${UI.display_drive_link ? ` 
             <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-                    data-file-id="${file_id}" data-file-url="${url}" id="gdflix_link_${file_id}">
+                    data-file-id="${file_id}" data-file-url="${url}">
               ${gdrive_icon}GdFlix Link
             </button>` : ``} 
             <a href="${url}" type="button" class="btn btn-success">
@@ -1818,8 +1811,8 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
   
   $("#content").html(content);
 
-  // Update the click handler for the GdFlix button
-  $(document).on('click', '.gdflix-btn', function() {
+ // Add GdFlix button click handler
+  $(document).off('click', '.gdflix-btn').on('click', '.gdflix-btn', function() {
     const fileId = $(this).data('file-id');
     const fileUrl = $(this).data('file-url');
     const resultDiv = $(`#gdflix-result-${fileId}`);
