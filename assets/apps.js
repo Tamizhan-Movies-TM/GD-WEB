@@ -2229,18 +2229,18 @@ async function copyFile(driveid) {
 }
 
 function generateGdFlixLink(fileUrl, fileId, callback) {
-  const apiUrl = 'https://new.gdflix.dev/v2/share';
-  const apiToken = '634a6e043d00200bf9f11794bc1d714d';
+  const apiUrl = 'https://new4.gdlink.net/api/generate';
+  const apiToken = 'fbe53ebaf6d4f67228a00b1cd031574b';
   
-  // Create the API URL with required parameters
-  const url = `${apiUrl}?id=${fileId}&key=${apiToken}`;
+  // Create form data with the required parameters
+  const formData = new FormData();
+  formData.append("url", `https://drive.google.com/file/d/${fileId}/view`);
+  formData.append("token", apiToken);
   
   // Make API request
-  fetch(url, {
-    method: "GET",
-    headers: {
-      "Accept": "application/json"
-    }
+  fetch(apiUrl, {
+    method: "POST",
+    body: formData
   })
   .then(response => {
     if (!response.ok) {
@@ -2249,8 +2249,8 @@ function generateGdFlixLink(fileUrl, fileId, callback) {
     return response.json();
   })
   .then(data => {
-    if (data && data.status === "success" && data.data && data.data.link) {
-      callback(true, { link: data.data.link });
+    if (data && data.status === "success" && data.gdflix_link) {
+      callback(true, { link: data.gdflix_link });
     } else {
       const errorMsg = data.message || 'No GdFlix link found in response';
       callback(false, errorMsg);
