@@ -2219,9 +2219,9 @@ async function copyFile(driveid) {
 	}
 }
 
-// GdFlix API function - Direct link opening
-function generateGdFlixLink(fileId) {
-  const apiUrl = 'https://new4.gdflix.net/v2/share';
+// GDFlix API function - Direct link opening
+function generateGDFlixLink(fileId) {
+  const apiUrl = 'https://new1.gdflix.cfd/v2/share';
   const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
   
   // Construct the URL with proper parameters
@@ -2241,16 +2241,17 @@ function generateGdFlixLink(fileId) {
     return response.json();
   })
   .then(data => {
-    console.log('GdFlix API response:', data);
+    console.log('GDFlix API response:', data);
     
     let gdflixLink = '';
     
-    if (data && data.status === "success" && data.gdflix_link) {
-      gdflixLink = data.gdflix_link;
+    if (data && data.status === 1 && data.file) {
+      // Format the GdFlix link with the first 8 characters of the file ID
+      gdflixLink = `https://new4.gdflix.net/file/${data.file.substring(0, 8)}`;
     } 
     // Handle case where file is already shared
     else if (data && data.message === "File already Shared") {
-      // Use the direct file pattern
+      // Use the direct file pattern with first 8 characters
       gdflixLink = `https://new4.gdflix.net/file/${fileId.substring(0, 8)}`;
     }
     
@@ -2258,12 +2259,12 @@ function generateGdFlixLink(fileId) {
       // Open the GdFlix link directly in a new tab
       window.open(gdflixLink, '_blank');
     } else {
-      alert('Error: Could not generate GdFlix link');
+      alert('Error: Could not generate GDFlix link');
     }
   })
   .catch(error => {
-    console.error('GdFlix API Error:', error);
-    alert('Failed to generate GdFlix link: ' + error.message);
+    console.error('GDFlix API Error:', error);
+    alert('Failed to generate GDFlix link: ' + error.message);
   });
 }
 
