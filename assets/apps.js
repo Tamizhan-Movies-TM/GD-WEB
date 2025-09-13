@@ -2245,13 +2245,26 @@ function generateGDFlixLink(fileId) {
     
     let gdflixLink = '';
     
+    // Handle different response formats
     if (data && data.status === "success" && data.gdflix_link) {
+      // New share response
       gdflixLink = data.gdflix_link;
     } 
-    // Handle case where file is already shared
-    else if (data && data.message === "File already Shared" && data.id) {
-      // Use the ID returned from API instead of fileId substring
+    else if (data && data.id) {
+      // Already shared response - use the id field from API response
       gdflixLink = `https://new4.gdflix.net/file/${data.id}`;
+    }
+    else if (data && data.message === "File already Shared") {
+      // Alternative format for already shared files
+      // Try to extract ID from file field if available
+      if (data.file) {
+        gdflixLink = `https://new4.gdflix.net/file/${data.file.substring(0, 8)}`;
+      } else {
+        throw new Error('File ID not found in API response');
+      }
+    }
+    else {
+      throw new Error('Invalid response from GdFlix API');
     }
     
     if (gdflixLink) {
