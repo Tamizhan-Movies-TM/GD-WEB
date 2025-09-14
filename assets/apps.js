@@ -1501,20 +1501,16 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 								<span class="tth">Checksum</span>
 							</th>
 							<td>MD5: <code>${md5Checksum}</code>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				<div class="input-group">
-					<span class="input-group-text" id="">Full URL</span>
-					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
-				</div>
-			</div>
-			<div class="col-md-12">
-				<div class="text-center">
-					<p class="mb-2">Download via</p>
-					<div class="btn-group text-center"> 
-						  ${UI.display_drive_link ? ` 
+              </td>
+            </tr>
+          </tbody>
+        </table>
+       ${UI.disable_video_download ? `` : `
+      <div class="col-md-12">
+        <div class="text-center">
+          <p class="mb-2">Download via</p>
+          <div class="btn-group text-center"> 
+            ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
           <a href="${url}" type="button" class="btn btn-success">
@@ -1529,7 +1525,6 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
 						</div>
 					</div> 
-					${copyFileBox}
 				</div>
 			</div>
 		</div>
@@ -1652,21 +1647,17 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 								<i class="fa-solid fa-file-circle-check fa-fw"></i>
 								<span class="tth">Checksum</span>
 							</th>
-							<td>MD5: <code>${md5Checksum}</code>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				<div class="input-group">
-					<span class="input-group-text" id="">Full URL</span>
-					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
-				</div>
-			</div>
-			<div class="col-md-12">
-				<div class="text-center">
-					<p class="mb-2">Download via</p>
-					<div class="btn-group text-center"> 
-						 ${UI.display_drive_link ? ` 
+			       <td>MD5: <code>${md5Checksum}</code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+       ${UI.disable_video_download ? `` : `
+      <div class="col-md-12">
+        <div class="text-center">
+          <p class="mb-2">Download via</p>
+          <div class="btn-group text-center"> 
+            ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
           <a href="${url}" type="button" class="btn btn-success">
@@ -1681,7 +1672,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
 						</div>
 					</div> 
-					${copyFileBox}
 				</div>
 			</div>
 		</div>
