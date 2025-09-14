@@ -1804,6 +1804,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         });
     });
 	
+	// Rest of the function remains the same...
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
 	var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
 	var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
@@ -1966,7 +1967,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       </div>`; 
     $("#content").html(content);
 
- // Add GDFlix button click handler
+// Add GDFlix button click handler
   $(document).on('click', '.gdflix-btn', function() {
     const fileId = $(this).data('file-id');
     const button = $(this);
@@ -2124,7 +2125,6 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
             </div>
         </div>
     </div>`;
-
     $("#content").html(content);
 
     // Initialize player if enabled
