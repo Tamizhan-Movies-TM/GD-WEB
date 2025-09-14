@@ -1513,8 +1513,13 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 			<div class="col-md-12">
 				<div class="text-center">
 					<p class="mb-2">Download via</p>
-					<div class="btn-group text-center"> ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://kaceku.onrender.com/f/${file_id}" id="file_drive_link" target="_blank">`+gdrive_icon+`Google Drive</a>` : ``} <a href="${url}" type="button" class="btn btn-success">
-							<i class="fas fa-bolt fa-fw"></i>Index Link</a>
+					<div class="btn-group text-center"> 
+						 ${UI.display_drive_link ? ` 
+           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+          data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
+          <a href="${url}" type="button" class="btn btn-success">
+          <i class="fas fa-bolt fa-fw"></i>Index Link
+           </a>
 						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							<span class="sr-only"></span>
 						</button>
@@ -1523,12 +1528,15 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
 						</div>
-					</div> `+ copyFileBox +`
+					</div> 
+					${copyFileBox}
 				</div>
 			</div>
 		</div>
 	</div>`;
 	$('#content').html(content);
+	
+	// Rest of the function remains the same...
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
 	var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
 	var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
@@ -1553,6 +1561,9 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 		img.src = poster;
 	}
 }
+
+// Also update the file_code function to include GDFlix button
+// Replace the download section in file_code function with this:
 
 function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
@@ -1625,8 +1636,13 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			<div class="col-md-12">
 				<div class="text-center">
 					<p class="mb-2">Download via</p>
-					<div class="btn-group text-center"> ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://kaceku.onrender.com/f/${file_id}" id="file_drive_link" target="_blank">`+gdrive_icon+`Google Drive</a>` : ``} <a href="${url}" type="button" class="btn btn-success">
-							<i class="fas fa-bolt fa-fw"></i>Index Link</a>
+					<div class="btn-group text-center"> 
+						 ${UI.display_drive_link ? ` 
+           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+          data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
+          <a href="${url}" type="button" class="btn btn-success">
+          <i class="fas fa-bolt fa-fw"></i>Index Link
+           </a>
 						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							<span class="sr-only"></span>
 						</button>
@@ -1635,12 +1651,15 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
 						</div>
-					</div> `+ copyFileBox +`
+					</div> 
+					${copyFileBox}
 				</div>
 			</div>
 		</div>
 	</div>`;
 	$("#content").html(content);
+	
+	// Rest of the function remains the same...
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
 	var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
 	var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
