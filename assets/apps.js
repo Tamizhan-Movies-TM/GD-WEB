@@ -1505,35 +1505,31 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 						</tr>
 					</tbody>
 				</table>
-				<div class="input-group">
-					<span class="input-group-text" id="">Full URL</span>
-					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
-				</div>
-			</div>
-			<div class="col-md-12">
-				<div class="text-center">
-					<p class="mb-2">Download via</p>
-					<div class="btn-group text-center"> 
-						  ${UI.display_drive_link ? ` 
+       ${UI.disable_video_download ? `` : `
+      <div class="col-md-12">
+        <div class="text-center">
+          <p class="mb-2">Download via</p>
+          <div class="btn-group text-center"> 
+            ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
           <a href="${url}" type="button" class="btn btn-success">
           <i class="fas fa-bolt fa-fw"></i>Index Link
            </a>
-						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							<span class="sr-only"></span>
-						</button>
-						<div class="dropdown-menu">
+            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="sr-only"></span>
+            </button>
+             <div class="dropdown-menu">
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
 						</div>
-					</div> 
-					${copyFileBox}
-				</div>
-			</div>
-		</div>
-	</div>`;
+          </div>
+        </div> 
+      </div>`}
+    </div>
+  </div>`;
 	$('#content').html(content);
 
 	// Add GDFlix button click handler
@@ -1655,37 +1651,32 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 							<td>MD5
 							</td>
 						</tr>
-					</tbody>
-				</table>
-				<div class="input-group">
-					<span class="input-group-text" id="">Full URL</span>
-					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
-				</div>
-			</div>
-			<div class="col-md-12">
-				<div class="text-center">
-					<p class="mb-2">Download via</p>
-					<div class="btn-group text-center"> 
-						 ${UI.display_drive_link ? ` 
+					</table>
+       ${UI.disable_video_download ? `` : `
+      <div class="col-md-12">
+        <div class="text-center">
+          <p class="mb-2">Download via</p>
+          <div class="btn-group text-center"> 
+            ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
           <a href="${url}" type="button" class="btn btn-success">
           <i class="fas fa-bolt fa-fw"></i>Index Link
            </a>
-						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							<span class="sr-only"></span>
-						</button>
-						<div class="dropdown-menu">
+            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="sr-only"></span>
+            </button>
+            <div class="dropdown-menu">
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-						</div>
-					</div> 
-					${copyFileBox}
-				</div>
-			</div>
-		</div>
-	</div>`;
+					 </div>
+          </div>
+        </div> 
+      </div>`}
+    </div>
+  </div>`;
 	$("#content").html(content);
 
 	// Add GDFlix button click handler
@@ -1880,8 +1871,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
         </div> 
       </div>`}
     </div>
-  </div>`;
-  
+  </div>`; 
   $("#content").html(content);
 
  // Add GDFlix button click handler
