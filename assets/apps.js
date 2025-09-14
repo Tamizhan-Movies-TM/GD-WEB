@@ -1500,7 +1500,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 								<i class="fa-solid fa-file-circle-check fa-fw"></i>
 								<span class="tth">Checksum</span>
 							</th>
-							<td>MD5: <code>${md5Checksum}</code>
+							<td>MD5
 							</td>
 						</tr>
 					</tbody>
@@ -1652,7 +1652,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 								<i class="fa-solid fa-file-circle-check fa-fw"></i>
 								<span class="tth">Checksum</span>
 							</th>
-							<td>MD5: <code>${md5Checksum}</code>
+							<td>MD5
 							</td>
 						</tr>
 					</tbody>
@@ -1849,7 +1849,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
                 <i class="fa-solid fa-file-circle-check fa-fw"></i>
                 <span class="tth">Checksum</span>
               </th>
-              <td>MD5: <code>${md5Checksum}</code>
+              <td>MD5
               </td>
             </tr>
           </tbody>
