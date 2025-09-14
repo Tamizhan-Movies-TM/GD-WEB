@@ -1590,11 +1590,10 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
                 <span class="tth">Size</span>
                 </th>
                 <td>${size}</td>
-                </tr>
-                </tbody>
-              </table>
-            </div>
-         </div>
+               </td>
+						</tr>
+					</tbody>
+				</table>
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
@@ -1732,11 +1731,10 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                  <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
-                    </tr>
-                  </tbody>
-                </table>
-            </div>
-        </div>
+                  </td>
+						   </tr>
+					 </tbody>
+				 </table>
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
@@ -1918,11 +1916,10 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                   <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
-                    </tr>
-                  </tbody>
-                </table
-            </div>
-        </div>
+                    </td>
+						     </tr>
+					     </tbody>
+				    </table>
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
