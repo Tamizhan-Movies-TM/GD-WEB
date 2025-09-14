@@ -1514,7 +1514,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 				<div class="text-center">
 					<p class="mb-2">Download via</p>
 					<div class="btn-group text-center"> 
-						 ${UI.display_drive_link ? ` 
+						  ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
           <a href="${url}" type="button" class="btn btn-success">
@@ -1535,6 +1535,35 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 		</div>
 	</div>`;
 	$('#content').html(content);
+
+	// Add GDFlix button click handler
+  $(document).on('click', '.gdflix-btn', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+    
+    console.log('Button clicked, fileId:', fileId); // Debug log
+    
+    if (!fileId) {
+        alert('Error: No file ID found');
+        return;
+    }
+    
+    // Show loading state
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    
+    // Call the GDFlix function with proper error handling
+    generateGDFlixLink(fileId)
+        .then(() => {
+            // Reset button on success
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            // Reset button on error
+            button.prop('disabled', false).html(originalHtml);
+            console.error('GDFlix error:', error);
+        });
+    });
 	
 	// Rest of the function remains the same...
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
@@ -1658,6 +1687,35 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		</div>
 	</div>`;
 	$("#content").html(content);
+
+	// Add GDFlix button click handler
+  $(document).on('click', '.gdflix-btn', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+    
+    console.log('Button clicked, fileId:', fileId); // Debug log
+    
+    if (!fileId) {
+        alert('Error: No file ID found');
+        return;
+    }
+    
+    // Show loading state
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    
+    // Call the GDFlix function with proper error handling
+    generateGDFlixLink(fileId)
+        .then(() => {
+            // Reset button on success
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            // Reset button on error
+            button.prop('disabled', false).html(originalHtml);
+            console.error('GDFlix error:', error);
+        });
+    });
 	
 	// Rest of the function remains the same...
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
