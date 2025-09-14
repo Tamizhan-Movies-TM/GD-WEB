@@ -3,100 +3,6 @@
 // v2.3.6
 // Initialize the page
 function init() {
-// Create and inject vapor theme button styles
-const style = document.createElement('style');
-style.textContent = `
-    /* Base Button Styles */
-    .glow-btn {
-        position: relative;
-        overflow: hidden;
-        transition: all 0.2s ease;
-        z-index: 1;
-        border: 2px solid;
-        border-radius: 8px;
-        font-weight: bold;
-        padding: 8px 16px;
-        background: transparent;
-        width: 160px;
-        color: white !important;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        outline: none;
-        /* Constant glow effect */
-        box-shadow: 0 0 10px var(--btn-color);
-    }
-
-    /* FIX FOR GAP ISSUE IN CARDS */
-    .card .glow-btn {
-        margin-bottom: 4px; 
-    }
-
-    /* Color Definitions */
-    .glow-warning {
-        border-color: #ffcc00;
-        --btn-color: #ffcc00;
-    }
-    .glow-info {
-        border-color: #00ccff;
-        --btn-color: #00ccff;
-    }
-    .glow-success {
-        border-color: #00ff99;
-        --btn-color: #00ff99;
-    }
-    .glow-danger {
-        border-color: #ff3b6c;
-        --btn-color: #ff3b6c;
-    }
-    .glow-secondary {
-        border-color: #ff00aa; 
-        --btn-color: #ff00aa;
-    }
-
-    /* Click Effect - Inner Color Fill */
-    .glow-btn:active {
-        background-color: var(--btn-color);
-        background-image: linear-gradient(
-            to bottom,
-            var(--btn-color),
-            rgba(0,0,0,0.2)
-        );
-        /* Enhanced glow on click */
-        box-shadow: 
-            0 0 15px var(--btn-color),
-            inset 0 0 10px rgba(255,255,255,0.3);
-    }
-
-    /* Hover Effect */
-    .glow-btn:hover {
-        transform: translateY(-2px);
-        /* Stronger glow on hover */
-        box-shadow: 0 0 20px var(--btn-color);
-    }
-
-    /* Internal Shine Animation */
-    .glow-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255,255,255,0.2),
-            transparent
-        );
-        transition: all 0.6s ease;
-        z-index: -1;
-    }
-    .glow-btn:hover::before {
-        left: 100%;
-    }`;
-document.head.appendChild(style);
-	
 	document.siteName = $('title').html();
 	var html = `<header>
    <div id="nav">
@@ -1690,35 +1596,68 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 								<i class="fa-solid fa-file-circle-check fa-fw"></i>
 								<span class="tth">Checksum</span>
 							</th>
-							<td>MD5: <code>${md5Checksum}</code>
+							<td>MD5
 							</td>
 						</tr>
 					</tbody>
 				</table>
-				<div class="input-group">
-					<span class="input-group-text" id="">Full URL</span>
-					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
-				</div>
-			</div>
-			<div class="col-md-12">
-				<div class="text-center">
-					<p class="mb-2">Download via</p>
-					<div class="btn-group text-center"> ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://kaceku.onrender.com/f/${file_id}" id="file_drive_link" target="_blank">`+gdrive_icon+`Google Drive</a>` : ``} <a href="${url}" type="button" class="btn btn-success">
-							<i class="fas fa-bolt fa-fw"></i>Index Link</a>
-						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							<span class="sr-only"></span>
-						</button>
-						<div class="dropdown-menu">
+       ${UI.disable_video_download ? `` : `
+      <div class="col-md-12">
+        <div class="text-center">
+          <p class="mb-2">Download via</p>
+          <div class="btn-group text-center"> 
+            ${UI.display_drive_link ? ` 
+           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+          data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
+          <a href="${url}" type="button" class="btn btn-success">
+          <i class="fas fa-bolt fa-fw"></i>Index Link
+           </a>
+            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="sr-only"></span>
+            </button>
+             <div class="dropdown-menu">
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
 						</div>
-					</div> `+ copyFileBox +`
-				</div>
-			</div>
-		</div>
-	</div>`;
+          </div>
+        </div> 
+      </div>`}
+    </div>
+  </div>`;
 	$('#content').html(content);
+
+	// Add GDFlix button click handler
+  $(document).on('click', '.gdflix-btn', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+    
+    console.log('Button clicked, fileId:', fileId); // Debug log
+    
+    if (!fileId) {
+        alert('Error: No file ID found');
+        return;
+    }
+    
+    // Show loading state
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    
+    // Call the GDFlix function with proper error handling
+    generateGDFlixLink(fileId)
+        .then(() => {
+            // Reset button on success
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            // Reset button on error
+            button.prop('disabled', false).html(originalHtml);
+            console.error('GDFlix error:', error);
+        });
+    });
+	
+	// Rest of the function remains the same...
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
 	var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
 	var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
@@ -1743,6 +1682,9 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 		img.src = poster;
 	}
 }
+
+// Also update the file_code function to include GDFlix button
+// Replace the download section in file_code function with this:
 
 function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
@@ -1802,35 +1744,66 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 								<i class="fa-solid fa-file-circle-check fa-fw"></i>
 								<span class="tth">Checksum</span>
 							</th>
-							<td>MD5: <code>${md5Checksum}</code>
+							<td>MD5
 							</td>
 						</tr>
-					</tbody>
-				</table>
-				<div class="input-group">
-					<span class="input-group-text" id="">Full URL</span>
-					<input type="text" class="form-control" id="dlurl" value="${url}" readonly> ` + copyButton + `
-				</div>
-			</div>
-			<div class="col-md-12">
-				<div class="text-center">
-					<p class="mb-2">Download via</p>
-					<div class="btn-group text-center"> ${UI.display_drive_link ? ` <a class="btn btn-secondary d-flex align-items-center gap-2" href="https://kaceku.onrender.com/f/${file_id}" id="file_drive_link" target="_blank">`+gdrive_icon+`Google Drive</a>` : ``} <a href="${url}" type="button" class="btn btn-success">
-							<i class="fas fa-bolt fa-fw"></i>Index Link</a>
-						<button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							<span class="sr-only"></span>
-						</button>
-						<div class="dropdown-menu">
+					</table>
+       ${UI.disable_video_download ? `` : `
+      <div class="col-md-12">
+        <div class="text-center">
+          <p class="mb-2">Download via</p>
+          <div class="btn-group text-center"> 
+            ${UI.display_drive_link ? ` 
+           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+          data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
+          <a href="${url}" type="button" class="btn btn-success">
+          <i class="fas fa-bolt fa-fw"></i>Index Link
+           </a>
+            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="sr-only"></span>
+            </button>
+            <div class="dropdown-menu">
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-						</div>
-					</div> `+ copyFileBox +`
-				</div>
-			</div>
-		</div>
-	</div>`;
+					 </div>
+          </div>
+        </div> 
+      </div>`}
+    </div>
+  </div>`;
 	$("#content").html(content);
+
+	// Add GDFlix button click handler
+  $(document).on('click', '.gdflix-btn', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+    
+    console.log('Button clicked, fileId:', fileId); // Debug log
+    
+    if (!fileId) {
+        alert('Error: No file ID found');
+        return;
+    }
+    
+    // Show loading state
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    
+    // Call the GDFlix function with proper error handling
+    generateGDFlixLink(fileId)
+        .then(() => {
+            // Reset button on success
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            // Reset button on error
+            button.prop('disabled', false).html(originalHtml);
+            console.error('GDFlix error:', error);
+        });
+    });
+	
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
 	var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
 	var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
@@ -1875,7 +1848,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 }
 
 
-
   // Document display video  mkv|mp4|webm|avi| 
    function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	 // Define all player icons
@@ -1914,172 +1886,114 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		}
 	}
 
-// Add the container and card elements	 
-var content = `
-<div class="card">
-    <div class="card-header text-truncate ${UI.file_view_alert_class}">
-        <i class="fas fa-file-alt fa-fw"></i> File Information 
+ // Add the container and card elements
+  var content = `
+  <div class="card">
+    <div class="card-header ${UI.file_view_alert_class}">
+      <i class="fas fa-file-alt fa-fw"></i>File Information
     </div>
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-lg-4 col-md-12 d-flex flex-column justify-content-center">  
-                <div class="border border-dark rounded mx-auto" style="--bs-border-opacity: .5; width: 100%; max-width: 640px;">  
-                    <div style="position: relative; padding-bottom: 56.25%;"> 
-                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
-                            ${player} 
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-8 col-md-12">
-                <table class="table table-dark">
-                    <tbody>
-                        <tr>
-                            <th>
-                                <i class="fa-regular fa-folder-closed fa-fw"></i>
-                                <span class="tth">Name</span>
-                            </th>
-                            <td>${name}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-tag fa-fw"></i>
-                                <span class="tth">Type</span>
-                            </th>
-                            <td>${formatMimeType(mimeType)}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-box-archive fa-fw"></i>
-                                <span class="tth">Size</span>
-                            </th>
-                            <td>${size}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+    <div class="card-body row g-3">
+      <div class="col-lg-4 col-md-12">
+        <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+          ${player}
         </div>
-        ${UI.disable_video_download ? `` : `
-            <!-- First row of buttons - fixed width -->
-            <div class="d-flex justify-content-center gap-3 mb-3">
-                <button type="button" class="glow-btn glow-warning d-flex justify-content-center align-items-center" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center">
-                        ${vlc_icon} VLC Player
-                    </span>
-                </button>
-
-                <button type="button" class="glow-btn glow-info d-flex justify-content-center align-items-center" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center gap-1">
-                        ${mxplayer_icon} MX Player
-                    </span>
-                </button> 
-            </div>
-            
-            <!-- Second row of buttons - fixed width -->
-            <div class="d-flex justify-content-center gap-3 mb-3">
-                <button type="button" class="glow-btn glow-success d-flex justify-content-center align-items-center" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center gap-1">
-                        ${xplayer_icon} XPlayer
-                    </span>
-                </button>
-
-                <button type="button" class="glow-btn glow-danger d-flex justify-content-center align-items-center" style="width: 160px;"
-                    onclick="window.location.href='intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end'">
-                    <span class="d-flex align-items-center gap-1"> 
-                        ${playit_icon} PLAYit
-                    </span>
-                </button>
-            </div>
-                        
-            <!-- DOWNLOAD BUTTON -->
-                <div class="d-flex justify-content-center gap-3">
-                <button id="download-btn" class="glow-btn glow-secondary btn-lg fw-bold d-flex align-items-center justify-content-center gap-2" 
-                    style="width: 200px; padding: 8px 35px; font-size: 1rem; position: relative;">
-                    ${new_download_icon} DOWNLOAD
-                    <div id="download-spinner" class="spinner" style="display: none;">
-                    <div class="spinner-circle"></div>
-                </div>
-              </button>
-            </div>
-          </div>
-        `}
       </div>
-    </div>
-    
-    <style>
-      /* Loading spinner styles */
-      .spinner {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
-      
-      .spinner-circle {
-        width: 24px;
-        height: 24px;
-        border: 3px solid rgba(255,255,255,0.3);
-        border-radius: 50%;
-        border-top-color: #fff;
-        animation: spinner-rotate 1s linear infinite;
-      }
-      
-      @keyframes spinner-rotate {
-        to { transform: rotate(360deg); }
-      }
-      
-      /* Center button content */
-      .d-flex.align-items-center {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      
-      .gap-2 {
-        gap: 8px;
-      }
-    </style>
-    `;
-    // Set the content
+      <div class="col-lg-8 col-md-12">
+        <table class="table table-dark">
+          <tbody>
+            <tr>
+              <th>
+                <i class="fa-regular fa-folder-closed fa-fw"></i>
+                <span class="tth">Name</span>
+              </th>
+              <td>${name}</td>
+            </tr>
+            <tr>
+              <th>
+                <i class="fa-regular fa-clock fa-fw"></i>
+                <span class="tth">Datetime</span>
+              </th>
+              <td>${createdTime}</td>
+            </tr>
+            <tr>
+              <th>
+                <i class="fa-solid fa-tag fa-fw"></i>
+                <span class="tth">Type</span>
+              </th>
+              <td>${formatMimeType(mimeType)}</td>
+            </tr>
+            <tr>
+              <th>
+                <i class="fa-solid fa-box-archive fa-fw"></i>
+                <span class="tth">Size</span>
+              </th>
+              <td>${size}</td>
+            </tr>
+            <tr>
+              <th>
+                <i class="fa-solid fa-file-circle-check fa-fw"></i>
+                <span class="tth">Checksum</span>
+              </th>
+              <td>MD5
+              </td>
+            </tr>
+          </tbody>
+        </table>
+       ${UI.disable_video_download ? `` : `
+      <div class="col-md-12">
+        <div class="text-center">
+          <p class="mb-2">Download via</p>
+          <div class="btn-group text-center"> 
+            ${UI.display_drive_link ? ` 
+           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+          data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
+          <a href="${url}" type="button" class="btn btn-success">
+          <i class="fas fa-bolt fa-fw"></i>Index Link
+           </a>
+            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="sr-only"></span>
+            </button>
+            <div class="dropdown-menu">
+              <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a> 
+             </div>
+           </div> 
+         </div>`}
+       </div>
+      </div>`; 
     $("#content").html(content);
+
+ // Add GDFlix button click handler
+  $(document).on('click', '.gdflix-btn', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
     
-    // Add event listener for the download button
-    if (!UI.disable_video_download) {
-        document.getElementById('download-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const button = this;
-            const spinner = button.querySelector('#download-spinner');
-            
-            // Show spinner and disable button
-            spinner.style.display = 'block';
-            button.disabled = true;
-            
-            // Change button text
-            button.innerHTML = `${new_download_icon} Downloading...`;
-            
-            // Simulate download process (1.5 seconds)
-            setTimeout(() => {
-                // Create a hidden link to trigger the actual download
-                const downloadLink = document.createElement('a');
-                downloadLink.href = url;
-                downloadLink.download = name;
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
-                
-                // Hide spinner and restore button after 0.5s
-                setTimeout(() => {
-                    spinner.style.display = 'none';
-                    button.disabled = false;
-                    button.innerHTML = `${new_download_icon} DOWNLOAD`;
-                }, 500);
-            }, 1500);
+    console.log('Button clicked, fileId:', fileId); // Debug log
+    
+    if (!fileId) {
+        alert('Error: No file ID found');
+        return;
+    }
+    
+    // Show loading state
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    
+    // Call the GDFlix function with proper error handling
+    generateGDFlixLink(fileId)
+        .then(() => {
+            // Reset button on success
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            // Reset button on error
+            button.prop('disabled', false).html(originalHtml);
+            console.error('GDFlix error:', error);
         });
-		}
+    });
 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
@@ -2202,7 +2116,6 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                                 <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">XPlayer</a>
                                 <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">MX Player</a>
                                 <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">VLC Player</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name_safe};end">1DM (Free)</a>
                             </div>
                         </div>
                     </div>
@@ -2463,6 +2376,104 @@ async function copyFile(driveid) {
 	}
 }
 
+// Update the generateGDFlixLink function to return a Promise
+function generateGDFlixLink(fileId) {
+    return new Promise((resolve, reject) => {
+        const apiUrl = 'https://new4.gdflix.net/v2/share';
+        const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
+        
+        // Debug logging
+        console.log('GDFlix - Received fileId:', fileId);
+        
+        // Basic validation
+        if (!fileId) {
+            console.error('GDFlix - No file ID provided');
+            reject(new Error('No file ID provided'));
+            return;
+        }
+        
+        // Convert to string if it's not already
+        fileId = String(fileId).trim();
+        
+        if (fileId === '') {
+            console.error('GDFlix - Empty file ID');
+            reject(new Error('Empty file ID'));
+            return;
+        }
+        
+        // Construct the URL with proper parameters
+        const url = `${apiUrl}?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`;
+        
+        console.log('GDFlix - Making API request to:', url);
+        
+        // Make API request
+        fetch(url, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        })
+        .then(response => {
+            console.log('GDFlix - Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('GDFlix - API response:', data);
+            
+            let gdflixLink = '';
+            
+            // Handle different response formats
+            if (data && data.status === "success" && data.gdflix_link) {
+                gdflixLink = data.gdflix_link;
+            } 
+            else if (data && data.key) {
+                gdflixLink = `https://new4.gdflix.net/file/${data.key}`;
+            }
+            else if (data && data.id) {
+                gdflixLink = `https://new4.gdflix.net/file/${data.id}`;
+            }
+            else if (data && data.message === "File already Shared") {
+                // For already shared files, make a second request
+                return fetch(`https://new4.gdflix.net/v2/file/${fileId}?key=${apiKey}`)
+                    .then(response => response.json())
+                    .then(fileData => {
+                        console.log('GDFlix - File data response:', fileData);
+                        if (fileData && fileData.key) {
+                            return `https://new4.gdflix.net/file/${fileData.key}`;
+                        } else if (fileData && fileData.id) {
+                            return `https://new4.gdflix.net/file/${fileData.id}`;
+                        } else {
+                            throw new Error('Could not get file key from GdFlix API');
+                        }
+                    });
+            }
+            else {
+                console.warn('GDFlix - Unexpected response:', data);
+                throw new Error('Invalid response from GdFlix API');
+            }
+            
+            return gdflixLink;
+        })
+        .then(gdflixLink => {
+            if (gdflixLink) {
+                console.log('GDFlix - Generated link:', gdflixLink);
+                // Open the GdFlix link directly in a new tab
+                window.open(gdflixLink, '_blank');
+                resolve(gdflixLink);
+            } else {
+                reject(new Error('Could not generate GDFlix link'));
+            }
+        })
+        .catch(error => {
+            console.error('GdFlix API Error:', error);
+            alert('Failed to generate GDFlix link: ' + error.message);
+            reject(error);
+        });
+    });
+}
 
 // create a MutationObserver to listen for changes to the DOM
 const observer = new MutationObserver(() => {
