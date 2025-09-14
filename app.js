@@ -1587,20 +1587,14 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 						<tr>
 							<th>
 								<i class="fa-solid fa-box-archive fa-fw"></i>
-								<span class="tth">Size</span>
-							</th>
-							<td>${size}</td>
-						</tr>
-						<tr>
-							<th>
-								<i class="fa-solid fa-file-circle-check fa-fw"></i>
-								<span class="tth">Checksum</span>
-							</th>
-							<td>MD5
-							</td>
-						</tr>
-					</tbody>
-				</table>
+                <span class="tth">Size</span>
+                </th>
+                <td>${size}</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+         </div>
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
@@ -1735,19 +1729,14 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 						<tr>
 							<th>
 								<i class="fa-solid fa-box-archive fa-fw"></i>
-								<span class="tth">Size</span>
-							</th>
-							<td>${size}</td>
-						</tr>
-						<tr>
-							<th>
-								<i class="fa-solid fa-file-circle-check fa-fw"></i>
-								<span class="tth">Checksum</span>
-							</th>
-							<td>MD5
-							</td>
-						</tr>
-					</table>
+                 <span class="tth">Size</span>
+                    </th>
+                    <td>${size}</td>
+                    </tr>
+                  </tbody>
+                </table>
+            </div>
+        </div>
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
@@ -1926,20 +1915,14 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             <tr>
               <th>
                 <i class="fa-solid fa-box-archive fa-fw"></i>
-                <span class="tth">Size</span>
-              </th>
-              <td>${size}</td>
-            </tr>
-            <tr>
-              <th>
-                <i class="fa-solid fa-file-circle-check fa-fw"></i>
-                <span class="tth">Checksum</span>
-              </th>
-              <td>MD5
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                  <span class="tth">Size</span>
+                    </th>
+                    <td>${size}</td>
+                    </tr>
+                  </tbody>
+                </table
+            </div>
+        </div>
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
