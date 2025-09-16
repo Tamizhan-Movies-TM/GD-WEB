@@ -1847,27 +1847,36 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
     var url_base64 = btoa(url);
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
     let player
+    
+    // Define a placeholder URL or an empty string for the video source
+    // This will prevent the player from loading actual video data.
+    const unplayableUrl = ""; // Or a very small, invalid video file if player requires something for UI to show
+
     if (!UI.disable_player) {
         if (player_config.player == "plyr") {
+            // Plyr will show a broken player or poster if src is invalid/empty
             player = `<video id="player" playsinline controls data-poster="${poster}">
-            <source src="${url}" type="video/mp4" />
-            <source src="${url}" type="video/webm" />
+            <source src="${unplayableUrl}" type="video/mp4" />
+            <source src="${unplayableUrl}" type="video/webm" />
             </video>`
             player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
             player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
         } else if (player_config.player == "videojs") {
+            // Video.js will likely show an error or just the poster if src is invalid/empty
             player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
-            <source src="${url}" type="video/mp4" />
-            <source src="${url}" type="video/webm" />
-            <source src="${url}" type="video/avi" />
+            <source src="${unplayableUrl}" type="video/mp4" />
+            <source src="${unplayableUrl}" type="video/webm" />
+            <source src="${unplayableUrl}" type="video/avi" />
             </video>`
             player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
             player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
         } else if (player_config.player == "dplayer") {
+            // DPlayer setup will use the unplayableUrl
             player = `<div id="player-container"></div>`
             player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js'
             player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css'
         } else if (player_config.player == "jwplayer") {
+            // JWPlayer will display an error message if the file is invalid
             player = `<div id="player"></div>`
             player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
             player_css = ''
@@ -1882,8 +1891,12 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
         </div>
         <div class="card-body row g-3">
             <div class="col-lg-4 col-md-12">
-                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+                <div class="h-100 border border-dark rounded position-relative" style="--bs-border-opacity: .5;">
                     ${player}
+                    <div class="position-absolute top-50 start-50 translate-middle text-white text-center p-3 rounded" 
+                         style="background-color: rgba(0,0,0,0.7); font-size: 1.2em; pointer-events: none;">
+                        Can't Play This Video
+                    </div>
                 </div>
             </div>
             <div class="col-lg-8 col-md-12">
@@ -1928,9 +1941,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
                             <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
                                 data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
                             
-                            <!-- Removed the 'Index Link' button from here -->
-
-                            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+                            <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" 
                                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="sr-only"></span>
                             </button>
@@ -1990,15 +2001,16 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
             const dp = new DPlayer({
                 container: document.getElementById('player-container'),
                 screenshot: true,
+                // Do not provide a valid video URL to DPlayer
                 video: {
-                    url: url,
+                    url: unplayableUrl, // Use the unplayableUrl here
                     pic: poster,
                     thumbnails: poster,
                 },
             });
         } else if (player_config.player == "jwplayer") {
             jwplayer("player").setup({
-                file: url,
+                file: unplayableUrl, // Use the unplayableUrl here
                 type: mimeType,
                 autostart: false,
                 image: poster,
@@ -2006,12 +2018,8 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
                 aspectratio: "16:9",
                 title: name,
                 description: "Powered by Google Drive Index",
-                tracks: [{
-                    file: url,
-                    kind: "captions",
-                    label: "Default",
-                    "default": true,
-                }],
+                // Remove or invalidate tracks if they would try to load data
+                tracks: [], // Empty the tracks array
                 captions: {
                     color: "#f3f378",
                     fontSize: 14,
