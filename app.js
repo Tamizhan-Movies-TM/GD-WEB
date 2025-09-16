@@ -1836,105 +1836,136 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 }
 
 
-  // Document display video  mkv|mp4|webm|avi|
+// Document display video  mkv|mp4|webm|avi| 
 function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     // Define all player icons
     const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
     const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const gdrive_icon = `<i class="fab fa-google-drive fa-fw"></i>`; // Assuming gdrive_icon is defined elsewhere or adding a placeholder
     var url_base64 = btoa(url);
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
+    let player
+    if (!UI.disable_player) {
+        if (player_config.player == "plyr") {
+            player = `<video id="player" playsinline controls data-poster="${poster}">
+            <source src="${url}" type="video/mp4" />
+            <source src="${url}" type="video/webm" />
+            </video>`
+            player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
+            player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
+        } else if (player_config.player == "videojs") {
+            player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
+            <source src="${url}" type="video/mp4" />
+            <source src="${url}" type="video/webm" />
+            <source src="${url}" type="video/avi" />
+            </video>`
+            player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
+            player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
+        } else if (player_config.player == "dplayer") {
+            player = `<div id="player-container"></div>`
+            player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js'
+            player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css'
+        } else if (player_config.player == "jwplayer") {
+            player = `<div id="player"></div>`
+            player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
+            player_css = ''
+        }
+    }
 
     // Add the container and card elements
     var content = `
     <div class="card">
-    <div class="card-header ${UI.file_view_alert_class}">
-      <i class="fas fa-file-alt fa-fw"></i>File Information
-    </div>
-    <div class="card-body row g-3">
-      <div class="col-lg-4 col-md-12">
-        <!-- Video player container is intentionally removed as per request -->
-      </div>
-      <div class="col-lg-8 col-md-12">
-        <table class="table table-dark">
-          <tbody>
-            <tr>
-              <th>
-                <i class="fa-regular fa-folder-closed fa-fw"></i>
-                <span class="tth">Name</span>
-              </th>
-              <td>${name}</td>
-            </tr>
-            <tr>
-              <th>
-                <i class="fa-regular fa-clock fa-fw"></i>
-                <span class="tth">Datetime</span>
-              </th>
-              <td>${createdTime}</td>
-            </tr>
-            <tr>
-              <th>
-                <i class="fa-solid fa-tag fa-fw"></i>
-                <span class="tth">Type</span>
-              </th>
-              <td>${formatMimeType(mimeType)}</td>
-            </tr>
-            <tr>
-              <th>
-                <i class="fa-solid fa-box-archive fa-fw"></i>
-                <span class="tth">Size</span>
-              </th>
-              <td>${size}</td>
-            </tr>
-          </tbody>
-        </table>
-        ${UI.disable_video_download ? `` : `
-        <div class="col-md-12">
-          <div class="text-center">
-            <p class="mb-2">🚀 Fast Download GDFlix Link & Player Options</p>
-            <div class="btn-group text-center">
-              ${UI.display_drive_link ? `
-              <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
-                data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``}
-              <button type="button" class="btn btn-success dropdown-toggle"
-                      data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-bolt fa-fw"></i> Player Options
-              </button>
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
-                <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
-                <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
-                <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
-              </div>
+        <div class="card-header ${UI.file_view_alert_class}">
+            <i class="fas fa-file-alt fa-fw"></i>File Information
+        </div>
+        <div class="card-body row g-3">
+            <div class="col-lg-4 col-md-12">
+                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+                    ${player}
+                </div>
             </div>
-          </div>
-        </div>`}
-      </div>
-    </div>
-  </div>`;
+            <div class="col-lg-8 col-md-12">
+                <table class="table table-dark">
+                    <tbody>
+                        <tr>
+                            <th>
+                                <i class="fa-regular fa-folder-closed fa-fw"></i>
+                                <span class="tth">Name</span>
+                            </th>
+                            <td>${name}</td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <i class="fa-regular fa-clock fa-fw"></i>
+                                <span class="tth">Datetime</span>
+                            </th>
+                            <td>${createdTime}</td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <i class="fa-solid fa-tag fa-fw"></i>
+                                <span class="tth">Type</span>
+                            </th>
+                            <td>${formatMimeType(mimeType)}</td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <i class="fa-solid fa-box-archive fa-fw"></i>
+                                <span class="tth">Size</span>
+                            </th>
+                            <td>${size}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                ${UI.disable_video_download ? `` : `
+                <div class="col-md-12">
+                    <div class="text-center">
+                        <p class="mb-2">Recommended 🚀 Fast Download GDFlix Link</p>
+                        <div class="btn-group text-center"> 
+                            ${UI.display_drive_link ? ` 
+                            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+                                data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
+                            
+                            <!-- Removed the 'Index Link' button from here -->
+
+                            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+                                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="sr-only"></span>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
+                                <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
+                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
+                                <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a> 
+                            </div>
+                        </div> 
+                    </div>
+                </div>`}
+            </div>
+        </div>
+    </div>`; 
     $("#content").html(content);
 
-    // Add GDFlix button click handler back
+    // Add GDFlix button click handler
     $(document).on('click', '.gdflix-btn', function() {
         const fileId = $(this).data('file-id');
         const button = $(this);
-
+        
         console.log('Button clicked, fileId:', fileId); // Debug log
-
+        
         if (!fileId) {
             alert('Error: No file ID found');
             return;
         }
-
+        
         // Show loading state
         const originalHtml = button.html();
         button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-
+        
         // Call the GDFlix function with proper error handling
-        generateGDFlixLink(fileId) // Assuming generateGDFlixLink function exists globally
+        generateGDFlixLink(fileId)
             .then(() => {
                 // Reset button on success
                 button.prop('disabled', false).html(originalHtml);
@@ -1943,9 +1974,60 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
                 // Reset button on error
                 button.prop('disabled', false).html(originalHtml);
                 console.error('GDFlix error:', error);
-                alert('Failed to generate GDFlix link.');
             });
     });
+
+    // Load Video.js and initialize the player
+    var videoJsScript = document.createElement('script');
+    videoJsScript.src = player_js;
+    videoJsScript.onload = function() {
+        // Video.js is loaded, initialize the player
+        if (player_config.player == "plyr") {
+            const player = new Plyr('#player');
+        } else if (player_config.player == "videojs") {
+            const player = new videojs('vplayer');
+        } else if (player_config.player == "dplayer") {
+            const dp = new DPlayer({
+                container: document.getElementById('player-container'),
+                screenshot: true,
+                video: {
+                    url: url,
+                    pic: poster,
+                    thumbnails: poster,
+                },
+            });
+        } else if (player_config.player == "jwplayer") {
+            jwplayer("player").setup({
+                file: url,
+                type: mimeType,
+                autostart: false,
+                image: poster,
+                width: "100%",
+                aspectratio: "16:9",
+                title: name,
+                description: "Powered by Google Drive Index",
+                tracks: [{
+                    file: url,
+                    kind: "captions",
+                    label: "Default",
+                    "default": true,
+                }],
+                captions: {
+                    color: "#f3f378",
+                    fontSize: 14,
+                    backgroundOpacity: 50,
+                    edgeStyle: "raised",
+                },
+            });
+        }
+    };
+    document.head.appendChild(videoJsScript);
+
+    var videoJsStylesheet = document.createElement('link');
+    videoJsStylesheet.href = player_css;
+    videoJsStylesheet.rel = 'stylesheet';
+    document.head.appendChild(videoJsStylesheet);
+}
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
