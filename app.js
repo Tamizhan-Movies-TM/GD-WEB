@@ -1597,7 +1597,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
-          <p class="mb-2">Recommended 🚀 Fast  Download  GDFlix Link</p>
+          <p class="mb-2">🚀 𝔽𝕒𝕤𝕥  𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕  𝔾𝔻𝔽𝕝𝕚𝕩  𝕃𝕚𝕟𝕜</p>
           <div class="btn-group text-center"> 
             ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
@@ -1935,7 +1935,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
                 ${UI.disable_video_download ? `` : `
                 <div class="col-md-12">
                     <div class="text-center">
-                        <p class="mb-2">Recommended 🚀 Fast Download GDFlix Link</p>
+                        <p class="mb-2">🚀 𝔽𝕒𝕤𝕥  𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕  𝔾𝔻𝔽𝕝𝕚𝕩  𝕃𝕚𝕟𝕜</p>
                         <div class="btn-group text-center"> 
                             ${UI.display_drive_link ? ` 
                             <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
