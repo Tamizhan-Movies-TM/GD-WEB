@@ -1923,23 +1923,20 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
-          <p class="mb-2">Recommended 🚀 Fast  Download  GDFlix Link</p>
-          <div class="btn-group text-center"> 
-            ${UI.display_drive_link ? ` 
-           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-          data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
-          <a href="${url}" type="button" class="btn btn-success">
-          <i class="fas fa-bolt fa-fw"></i>Index Link
-           </a>
-            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
-                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="sr-only"></span>
-            </button>
-            <div class="dropdown-menu">
-              <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a> 
+           <p class="mb-2">🚀 Fast Download GDFlix Link</p>
+    <div class="btn-group text-center"> 
+      ${UI.display_drive_link ? ` 
+      <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+        data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
+      <button type="button" class="btn btn-success dropdown-toggle" 
+              data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-bolt fa-fw"></i> Player Options
+      </button>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
+        <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
+        <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
+        <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a> 
              </div>
            </div> 
          </div>`}
