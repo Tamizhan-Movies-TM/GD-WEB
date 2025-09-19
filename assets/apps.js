@@ -1514,7 +1514,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
           <a href="${url}" type="button" class="btn btn-success">
-          <i class="fas fa-bolt fa-fw"></i>Index Link
+          <i class="fa-regular fa-circle-down"></i>Index Link
            </a>
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -1661,7 +1661,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
           <a href="${url}" type="button" class="btn btn-success">
-          <i class="fas fa-bolt fa-fw"></i>Index Link
+          <i class="fa-regular fa-circle-down"></i>Index Link
            </a>
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -1854,7 +1854,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
           <a href="${url}" type="button" class="btn btn-success">
-          <i class="fas fa-bolt fa-fw"></i>Index Link
+          <i class="fa-regular fa-circle-down"></i>Index Link
            </a>
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
