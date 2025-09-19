@@ -1213,7 +1213,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
     const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
     
     btn = `<div class="btn-group">
-        <a href="${fileUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index Link</a>
+        <a href="${fileUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-bolt fa-fw"></i>Instant Link</a>
         <button type="button" class="btn btn-info copy-url-btn" data-url="${fileUrl}">
             <i class="fas fa-copy fa-fw"></i> Copy URL
         </button>
@@ -1230,7 +1230,7 @@ function onSearchResultItemClick(file_id, can_preview, file) {
     const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
     
     btn = `<div class="btn-group">
-        <a href="${fileUrl}" type="button" class="btn btn-success" target="_blank"><i class="fas fa-bolt fa-fw"></i>Index Link</a>
+        <a href="${fileUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-bolt fa-fw"></i>Instant Link</a>
         <button type="button" class="btn btn-info copy-url-btn" data-url="${fileUrl}">
             <i class="fas fa-copy fa-fw"></i> Copy URL
         </button>
@@ -1853,7 +1853,7 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
             ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
-          <a href="${url}" type="button" class="btn btn-success">
+          <a href="${url}" type="button" class="btn btn-outline-success">
           <i class="fas fa-bolt fa-fw"></i>Index Link
            </a>
             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
