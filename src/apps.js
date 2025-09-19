@@ -1601,11 +1601,11 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
           <div class="btn-group text-center"> 
             ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-          data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
+          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
           <a href="${url}" type="button" class="btn btn-success">
-          <i class="fas fa-bolt fa-fw"></i>Index Link
+          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
            </a>
-            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
             </button>
@@ -1742,11 +1742,11 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
           <div class="btn-group text-center"> 
             ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-          data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
+          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
           <a href="${url}" type="button" class="btn btn-success">
-          <i class="fas fa-bolt fa-fw"></i>Index Link
+          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
            </a>
-            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
             </button>
@@ -1920,18 +1920,18 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 						     </tr>
 					     </tbody>
 				    </table>
-       ${UI.disable_video_download ? `` : `
+        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
           <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center"> 
             ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-          data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
+          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
           <a href="${url}" type="button" class="btn btn-success">
-          <i class="fas fa-bolt fa-fw"></i>Index Link
+          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
            </a>
-            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
             </button>
@@ -2086,7 +2086,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
                             <a href="${url}" type="button" class="btn btn-success">
-                                <i class="fas fa-bolt fa-fw"></i>Index Link
+                                <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
                             </a>
                             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
