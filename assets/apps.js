@@ -1516,7 +1516,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
           <a href="${url}" type="button" class="btn btn-success">
           <i class="fas fa-bolt fa-fw"></i>Index Link
            </a>
-            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
             </button>
@@ -1663,7 +1663,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
           <a href="${url}" type="button" class="btn btn-success">
           <i class="fas fa-bolt fa-fw"></i>Index Link
            </a>
-            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
             </button>
@@ -1853,10 +1853,10 @@ function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum
             ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}GDFlix Link</button>` : ``} 
-          <a href="${url}" type="button" class="btn btn-outline-success">
+          <a href="${url}" type="button" class="btn btn-success">
           <i class="fas fa-bolt fa-fw"></i>Index Link
            </a>
-            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
             </button>
