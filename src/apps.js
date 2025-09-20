@@ -23,7 +23,7 @@ function init() {
         </div>
         <div class="card-body d-flex align-items-center justify-content-center">
         <div class="donate btn p-0">
-	       <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
+	       <a class="btn" href="https://bit.ly/4mlXT6N" title="Click me!" style="background: #3B556E;" target="_blank">
         <i class="fa-solid fa-money-check-dollar"></i>Click Here To Payment </a>
         <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
         <div style="padding-bottom: 1rem;">Thank you very much ❤</div> 
@@ -39,16 +39,16 @@ function init() {
              <i class="fa-brands fa-telegram fa-fw"></i>&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
             </div>
             <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
-					<a href="https://telegram.me/+9GGQhM4m9ehlZjJk" target="_blank" title="tamizahan_Movies">
+					<a href="https://bit.ly/46rQwF0" target="_blank" title="tamizahan_Movies">
 						<img class="image" alt="tamizhan" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/tm-icon.png">
 					</a>
-					<a href="https://telegram.me/hollywood_tamizhan_movies" target="_blank" title="Hollywood_Tamizhan_Movies">
+					<a href="https://bit.ly/4217b0T" target="_blank" title="Hollywood_Tamizhan_Movies">
 						<img class="image" alt="Movies" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/htm-icon.png">
 					</a>
-		       <a href="https://telegram.me/+E7prcFHaZgQ1ODQ0" target="_blank" title="Tamizhan_Web_Series">
+		       <a href="https://bit.ly/423Ttu6" target="_blank" title="Tamizhan_Web_Series">
 						<img class="image" alt="தமிழன்" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/tws-icon.png">
 					</a>
-					<a href="https://telegram.me/+Ivkonm8ozAFiOGJk" target="_blank" title="Tamizhan_backup">
+					<a href="https://bit.ly/4pxW6hQ" target="_blank" title="Tamizhan_backup">
 						<img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/telegram.png">
 					</a>
           </div> 
