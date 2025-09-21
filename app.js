@@ -1193,23 +1193,20 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
     
     try {
-        // Make API call to get shortened URL
-        // Using the API endpoint format from adrinolinks documentation
-        const adrinolinksApiUrl = `https://adrinolinks.in/api?api=ce21c88aa48c3dbd9e0905bf5cff8513c8a48826&url=${encodeURIComponent(directUrl)}`;
+        // Make API call to get shortened URL using GPLinks API
+        const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
+        const encodedUrl = encodeURIComponent(directUrl);
+        const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&alias=CustomAlias`;
         
-        const response = await fetch(adrinolinksApiUrl);
+        const response = await fetch(gplinksApiUrl);
         const data = await response.json();
         
         // Extract the short URL from the response
-        // Based on adrinolinks API documentation, the response should contain a shortened URL
         let shortUrl;
         if (data.status === "success" && data.shortenedUrl) {
             shortUrl = data.shortenedUrl;
-        } else if (data.shorturl) {
-            shortUrl = data.shorturl;
         } else {
-            // Fallback if the API response format is unexpected
-            throw new Error("Unexpected API response format");
+            throw new Error(data.message || "Unexpected API response format");
         }
         
         // Function to check if browser is Chrome
