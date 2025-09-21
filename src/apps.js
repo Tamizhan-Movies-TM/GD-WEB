@@ -48,7 +48,7 @@ function init() {
 		       <a href="https://cutt.ly/crBTuUCp" target="_blank" title="Tamizhan_Web_Series">
 						<img class="image" alt="தமிழன்" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/tws-icon.png">
 					</a>
-					<a href="https://cutt.ly/crBTuUCp" target="_blank" title="Tamizhan_backup">
+					<a href="https://cutt.ly/lrBHSzUy" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪜⅈꫀડ">
 						<img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/telegram.png">
 					</a>
           </div> 
