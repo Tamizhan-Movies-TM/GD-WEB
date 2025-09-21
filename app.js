@@ -1189,44 +1189,46 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     };
     
     // Create the direct URL with proper encoding of the file_id
-    const encodedFileId = encodeURIComponent(file_id);
-    const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
+const encodedFileId = encodeURIComponent(file_id);
+const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
+
+try {
+    // Make API call to get shortened URL using GPLinks API
+    const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
+    const encodedUrl = encodeURIComponent(directUrl);
     
-    try {
-        // Make API call to get shortened URL
-        // Using the API endpoint format from adrinolinks documentation
-        const adrinolinksApiUrl = `https://adrinolinks.in/api?api=ce21c88aa48c3dbd9e0905bf5cff8513c8a48826&url=${encodeURIComponent(directUrl)}`;
-        
-        const response = await fetch(adrinolinksApiUrl);
-        const data = await response.json();
-        
-        // Extract the short URL from the response
-        // Based on adrinolinks API documentation, the response should contain a shortened URL
-        let shortUrl;
-        if (data.status === "success" && data.shortenedUrl) {
-            shortUrl = data.shortenedUrl;
-        } else if (data.shorturl) {
-            shortUrl = data.shorturl;
+    // Use text format and let GPLinks auto-generate a unique alias
+    const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&format=text`;
+    
+    const response = await fetch(gplinksApiUrl);
+    
+    // Check if response is OK and content type is text
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const shortUrl = await response.text();
+    
+    // Validate that we got a proper URL
+    if (!shortUrl.startsWith('http')) {
+        throw new Error("Invalid response from GPLinks API");
+    }
+    
+    // Function to check if browser is Chrome
+    function isChromeBrowser() {
+        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    }
+    
+    // Function to open in Chrome - use the shortened URL
+    function getChromeOpenUrl() {
+        if (/Android/i.test(navigator.userAgent)) {
+            // Android intent to open short URL in Chrome
+            return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
         } else {
-            // Fallback if the API response format is unexpected
-            throw new Error("Unexpected API response format");
+            // Use short URL for desktop
+            return shortUrl;
         }
-        
-        // Function to check if browser is Chrome
-        function isChromeBrowser() {
-            return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-        }
-        
-        // Function to open in Chrome - use the shortened URL
-        function getChromeOpenUrl() {
-            if (/Android/i.test(navigator.userAgent)) {
-                // Android intent to open short URL in Chrome
-                return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
-            } else {
-                // Use short URL for desktop
-                return shortUrl;
-            }
-        }
+    }
         
         content = `
         <table class="table table-dark mb-0">
