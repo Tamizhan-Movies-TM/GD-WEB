@@ -1272,7 +1272,7 @@ try {
         // Create Chrome button HTML
         const chromeButtonHtml = `
             <a href="${getChromeOpenUrl()}" 
-               class="btn btn-warning disabled d-flex align-items-center gap-2" 
+               class="btn btn-dark d-flex align-items-center gap-2" 
                target="_blank"
                title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲">
                 <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
