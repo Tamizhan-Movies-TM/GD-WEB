@@ -1189,41 +1189,41 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     };
     
     // Create the direct URL with proper encoding of the file_id
-    const encodedFileId = encodeURIComponent(file_id);
-    const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
+const encodedFileId = encodeURIComponent(file_id);
+const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
+
+try {
+    // Make API call to get shortened URL using GPLinks API
+    const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
+    const encodedUrl = encodeURIComponent(directUrl);
+    const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&alias=CustomAlias`;
     
-    try {
-        // Make API call to get shortened URL using GPLinks API
-        const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
-        const encodedUrl = encodeURIComponent(directUrl);
-        const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&alias=CustomAlias`;
-        
-        const response = await fetch(gplinksApiUrl);
-        const data = await response.json();
-        
-        // Extract the short URL from the response
-        let shortUrl;
-        if (data.status === "success" && data.shortenedUrl) {
-            shortUrl = data.shortenedUrl;
+    const response = await fetch(gplinksApiUrl);
+    const data = await response.json();
+    
+    // Extract the short URL from the response
+    let shortUrl;
+    if (data.status === "success" && data.shortenedUrl) {
+        shortUrl = data.shortenedUrl;
+    } else {
+        throw new Error(data.message || "Unexpected API response format");
+    }
+    
+    // Function to check if browser is Chrome
+    function isChromeBrowser() {
+        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    }
+    
+    // Function to open in Chrome - use the shortened URL
+    function getChromeOpenUrl() {
+        if (/Android/i.test(navigator.userAgent)) {
+            // Android intent to open short URL in Chrome
+            return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
         } else {
-            throw new Error(data.message || "Unexpected API response format");
+            // Use short URL for desktop
+            return shortUrl;
         }
-        
-        // Function to check if browser is Chrome
-        function isChromeBrowser() {
-            return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-        }
-        
-        // Function to open in Chrome - use the shortened URL
-        function getChromeOpenUrl() {
-            if (/Android/i.test(navigator.userAgent)) {
-                // Android intent to open short URL in Chrome
-                return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
-            } else {
-                // Use short URL for desktop
-                return shortUrl;
-            }
-        }
+    }
         
         content = `
         <table class="table table-dark mb-0">
