@@ -23,7 +23,7 @@ function init() {
         </div>
         <div class="card-body d-flex align-items-center justify-content-center">
         <div class="donate btn p-0">
-	       <a class="btn" href="https://cutt.ly/HrBR5OZj" title="Click me!" style="background: #3B556E;" target="_blank">
+	       <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
         <i class="fa-solid fa-money-check-dollar"></i>Click Here To Payment </a>
         <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
         <div style="padding-bottom: 1rem;">Thank you very much ❤</div> 
