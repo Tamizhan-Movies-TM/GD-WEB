@@ -1180,7 +1180,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     var title = `Loading...`;
     $('#SearchModelLabel').html(title);
     var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
-    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝐂𝐥𝐨𝐬𝐞</button>`;
+    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
     $('#modal-body-space').html(content);
     $('#modal-body-space-buttons').html(close_btn);
     var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
