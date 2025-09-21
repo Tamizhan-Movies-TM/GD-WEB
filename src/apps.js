@@ -1194,14 +1194,14 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     
     try {
         // Make API call to get shortened URL
-        // Using the API endpoint format from adrinolinks documentation
-        const adrinolinksApiUrl = `https://adrinolinks.in/api?api=ce21c88aa48c3dbd9e0905bf5cff8513c8a48826&url=${encodeURIComponent(directUrl)}`;
+        // Using the API endpoint format from gplinks documentation
+        const adrinolinksApiUrl = ` https://api.gplinks.com/api?api=6cc69a66b357fceecf9037342f4642688d617763&url=${encodeURIComponent(directUrl)&alias=CustomAlias}`;
         
-        const response = await fetch(adrinolinksApiUrl);
+        const response = await fetch(gplinksApiUrl);
         const data = await response.json();
         
         // Extract the short URL from the response
-        // Based on adrinolinks API documentation, the response should contain a shortened URL
+        // Based on gplinks API documentation, the response should contain a shortened URL
         let shortUrl;
         if (data.status === "success" && data.shortenedUrl) {
             shortUrl = data.shortenedUrl;
