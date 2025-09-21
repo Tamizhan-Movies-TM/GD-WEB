@@ -1188,47 +1188,45 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         id: file_id
     };
     
- // Create the direct URL with proper encoding of the file_id
-const encodedFileId = encodeURIComponent(file_id);
-const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
-
-try {
-    // Make API call to get shortened URL using GPLinks API
-    const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
-    const encodedUrl = encodeURIComponent(directUrl);
+    // Create the direct URL with proper encoding of the file_id
+    const encodedFileId = encodeURIComponent(file_id);
+    const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
     
-    // Use text format and let GPLinks auto-generate a unique alias
-    const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&format=text`;
-    
-    const response = await fetch(gplinksApiUrl);
-    
-    // Check if response is OK and content type is text
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const shortUrl = await response.text();
-    
-    // Validate that we got a proper URL
-    if (!shortUrl.startsWith('http')) {
-        throw new Error("Invalid response from GPLinks API");
-    }
-    
-    // Function to check if browser is Chrome
-    function isChromeBrowser() {
-        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    }
-    
-    // Function to open in Chrome - use the shortened URL
-    function getChromeOpenUrl() {
-        if (/Android/i.test(navigator.userAgent)) {
-            // Android intent to open short URL in Chrome
-            return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+    try {
+        // Make API call to get shortened URL
+        // Using the API endpoint format from adrinolinks documentation
+        const adrinolinksApiUrl = `https://adrinolinks.in/api?api=ce21c88aa48c3dbd9e0905bf5cff8513c8a48826&url=${encodeURIComponent(directUrl)}`;
+        
+        const response = await fetch(adrinolinksApiUrl);
+        const data = await response.json();
+        
+        // Extract the short URL from the response
+        // Based on adrinolinks API documentation, the response should contain a shortened URL
+        let shortUrl;
+        if (data.status === "success" && data.shortenedUrl) {
+            shortUrl = data.shortenedUrl;
+        } else if (data.shorturl) {
+            shortUrl = data.shorturl;
         } else {
-            // Use short URL for desktop
-            return shortUrl;
+            // Fallback if the API response format is unexpected
+            throw new Error("Unexpected API response format");
         }
-    }
+        
+        // Function to check if browser is Chrome
+        function isChromeBrowser() {
+            return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+        }
+        
+        // Function to open in Chrome - use the shortened URL
+        function getChromeOpenUrl() {
+            if (/Android/i.test(navigator.userAgent)) {
+                // Android intent to open short URL in Chrome
+                return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+            } else {
+                // Use short URL for desktop
+                return shortUrl;
+            }
+        }
         
         content = `
         <table class="table table-dark mb-0">
@@ -1315,28 +1313,29 @@ try {
                 $('#modal-body-space').html(content);
                 $('#modal-body-space-buttons').html(btn);
             });
-   } catch (error) {
-    console.error('Error generating short URL:', error);
-    // Fallback to the direct URL if the API call fails
-    const shortUrl = directUrl;
-    
-    // Create Chrome button HTML with fallback URL
-    const chromeButtonHtml = `
-        <a href="${directUrl}" 
-           class="btn btn-primary d-flex align-items-center gap-2" 
-           target="_blank"
-           title="Open in Chrome">
-            <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            Open in Chrome (Direct Link)
-        </a>`;
+    } catch (error) {
+        console.error('Error generating short URL:', error);
+        // Fallback to the direct URL if the API call fails
+        const shortUrl = directUrl;
         
-    // Show error message but still allow the user to proceed
-    content += `<div class="alert alert-warning mt-3">Could not generate short URL: ${error.message}. Using direct link instead.</div>`;
-    
-    $('#SearchModelLabel').html(title);
-    btn = chromeButtonHtml + close_btn;
-    $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(btn);
+        // Create Chrome button HTML with fallback URL
+        const chromeButtonHtml = `
+            <a href="${directUrl}" 
+               class="btn btn-primary d-flex align-items-center gap-2" 
+               target="_blank"
+               title="Open in Chrome">
+                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
+                Open in Chrome (Direct Link)
+            </a>`;
+            
+        // Show error message but still allow the user to proceed
+        content += `<div class="alert alert-warning mt-3">Could not generate short URL: ${error.message}. Using direct link instead.</div>`;
+        
+        $('#SearchModelLabel').html(title);
+        btn = chromeButtonHtml + close_btn;
+        $('#modal-body-space').html(content);
+        $('#modal-body-space-buttons').html(btn);
+    }
 }
 
 function get_file(path, file, callback) {
