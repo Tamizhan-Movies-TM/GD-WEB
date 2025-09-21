@@ -1180,7 +1180,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     var title = `Loading...`;
     $('#SearchModelLabel').html(title);
     var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
-    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
+    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
     $('#modal-body-space').html(content);
     $('#modal-body-space-buttons').html(close_btn);
     var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
@@ -1274,9 +1274,9 @@ try {
             <a href="${getChromeOpenUrl()}" 
                class="btn btn-info d-flex align-items-center gap-2" 
                target="_blank"
-               title="Open in Chrome">
+               title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲">
                 <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-                Open in Chrome 
+                𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 
             </a>`;
         
         // Request a path
@@ -1352,31 +1352,6 @@ function get_file(path, file, callback) {
 		});
 	}
 }
-
-// Add this clipboard function at the end of your app.js file
-$(document).on('click', '.copy-url-btn', function() {
-    const url = $(this).data('url');
-    const absoluteUrl = new URL(url, window.location.href).toString();
-    
-    navigator.clipboard.writeText(absoluteUrl)
-        .then(() => {
-            // Show success feedback
-            const $this = $(this);
-            const originalText = $this.html();
-            $this.html('<i class="fas fa-check fa-fw"></i> Copied!');
-            $this.removeClass('btn-info').addClass('btn-success');
-            
-            // Revert after 1.5 seconds
-            setTimeout(() => {
-                $this.html(originalText);
-                $this.removeClass('btn-success').addClass('btn-info');
-            }, 1500);
-        })
-        .catch(err => {
-            console.error('Failed to copy URL:', err);
-            alert('Failed to copy URL: ' + err.message);
-        });
-});
 
 async function fallback(id, type) {
 	if (type) { // is a file id
