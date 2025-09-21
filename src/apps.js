@@ -1195,7 +1195,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     try {
         // Make API call to get shortened URL
         // Using the API endpoint format from gplinks documentation
-        const adrinolinksApiUrl = ` https://api.gplinks.com/api?api=6cc69a66b357fceecf9037342f4642688d617763&url=${encodeURIComponent(directUrl)&alias=CustomAlias}`;
+        const adrinolinksApiUrl = ` https://api.gplinks.com/api?api=6cc69a66b357fceecf9037342f4642688d617763&url=${encodeURIComponent(directUrl)}`;
         
         const response = await fetch(gplinksApiUrl);
         const data = await response.json();
