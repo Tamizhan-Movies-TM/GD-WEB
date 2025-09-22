@@ -39,16 +39,16 @@ function init() {
              <i class="fa-brands fa-telegram fa-fw"></i>&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
             </div>
             <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
-					<a href="https://cutt.ly/srBTylE5" target="_blank" title="tamizahan_Movies">
+					<a href="https://cutt.ly/HrB5syqo" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪜⅈꫀડ">
 						<img class="image" alt="tamizhan" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/tm-icon.png">
 					</a>
-					<a href="https://cutt.ly/ZrBTy6LJ" target="_blank" title="Hollywood_Tamizhan_Movies">
+					<a href="https://cutt.ly/ZrBTy6LJ" target="_blank" title="Hollywood Tamizhan Movies">
 						<img class="image" alt="Movies" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/htm-icon.png">
 					</a>
-		       <a href="https://cutt.ly/crBTuUCp" target="_blank" title="Tamizhan_Web_Series">
+		       <a href="https://cutt.ly/mrB5gyhY" target="_blank" title="Tamizhan Web Series">
 						<img class="image" alt="தமிழன்" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/tws-icon.png">
 					</a>
-					<a href="https://cutt.ly/lrBHSzUy" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪜⅈꫀડ">
+					<a href="https://cutt.ly/VrB5hGGt" target="_blank" title="Tamizhan Movies Backup">
 						<img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/telegram.png">
 					</a>
           </div> 
