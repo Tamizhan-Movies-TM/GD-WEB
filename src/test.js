@@ -1183,7 +1183,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     };
     
     // Create the direct URL with proper encoding of the file_id
-    const encodedFileId = encodeURIComponent(file_id);
+    const encodedFileId = (file_id);
     const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
 
     // Use direct URL instead of GPLinks API
