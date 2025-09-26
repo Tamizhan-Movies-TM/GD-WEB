@@ -1213,13 +1213,6 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 					<span class="tth">Size</span>
 				</th>
 				<td>${file['size']}</td>
-			</tr>
-			<tr>
-				<th>
-					<i class="fa-solid fa-file-circle-check fa-fw"></i>
-					<span class="tth">Checksum</span>
-				</th>
-				<td>MD5: <code>${file['md5Checksum']}</code>
 				</td>
 			</tr>`;
 	}
