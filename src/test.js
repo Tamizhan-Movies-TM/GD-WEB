@@ -1251,9 +1251,6 @@ function onSearchResultItemClick(file_id, can_preview, file) {
     
     btn = `<div class="btn-group">
         <a href="${fileUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-bolt fa-fw"></i>Instant Link</a>
-        <button type="button" class="btn btn-info copy-url-btn" data-url="${fileUrl}">
-            <i class="fas fa-copy fa-fw"></i> Copy URL
-        </button>
         </div>` + close_btn;
     
     $('#modal-body-space').html(content);
