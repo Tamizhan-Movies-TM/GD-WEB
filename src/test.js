@@ -1169,169 +1169,111 @@ function append_search_result_to_list(files) {
  * Search result item click event
  * @param a_ele Clicked element
  */
-async function onSearchResultItemClick(file_id, can_preview, file) {
-    var cur = window.current_drive_order;
-    var title = `Loading...`;
+function onSearchResultItemClick(file_id, can_preview, file) {
+	var cur = window.current_drive_order;
+	var title = `Loading...`;
+	$('#SearchModelLabel').html(title);
+	var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
+	var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
+	$('#modal-body-space').html(content);
+	$('#modal-body-space-buttons').html(close_btn);
+	var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
+	var p = {
+		id: file_id
+	};
+	content = `
+	<table class="table table-dark mb-0">
+		<tbody>
+			<tr>
+				<th>
+					<i class="fa-regular fa-folder-closed fa-fw"></i>
+					<span class="tth">Name</span>
+				</th>
+				<td>${file['name']}</td>
+			</tr>
+			<tr>
+				<th>
+					<i class="fa-regular fa-clock fa-fw"></i>
+					<span class="tth">Datetime</span>
+				</th>
+				<td>${file['createdTime']}</td>
+			</tr>
+			<tr>
+				<th>
+					<i class="fa-solid fa-tag fa-fw"></i>
+					<span class="tth">Type</span>
+				</th>
+				<td>${file['mimeType']}</td>
+			</tr>`;
+	if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
+		content += `
+			<tr>
+				<th>
+					<i class="fa-solid fa-box-archive fa-fw"></i>
+					<span class="tth">Size</span>
+				</th>
+				<td>${file['size']}</td>
+			</tr>
+			<tr>
+				<th>
+					<i class="fa-solid fa-file-circle-check fa-fw"></i>
+					<span class="tth">Checksum</span>
+				</th>
+				<td>MD5: <code>${file['md5Checksum']}</code>
+				</td>
+			</tr>`;
+	}
+	content += `
+		</tbody>
+	</table>`;
+	// Request a path
+	fetch(`/${cur}:id2path`, {
+			method: 'POST',
+			body: JSON.stringify(p),
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			}
+		})
+		.then(function(response) {
+			if (response.ok) {
+				return response.json();
+			} else {
+				throw new Error('Request failed.');
+			}
+		})
+		.then(function(obj) {
+    var href = `${obj.path}`;
+    var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F')
     $('#SearchModelLabel').html(title);
-    var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
-    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
+    
+    // Create the URL to copy
+    const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+    
+    btn = `<div class="btn-group">
+        <a href="${fileUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-bolt fa-fw"></i>Instant Link</a>
+        <button type="button" class="btn btn-info copy-url-btn" data-url="${fileUrl}">
+            <i class="fas fa-copy fa-fw"></i> Copy URL
+        </button>
+        </div>` + close_btn;
+    
     $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(close_btn);
-    var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
-    var p = {
-        id: file_id
-    };
+    $('#modal-body-space-buttons').html(btn);
+})
+.catch(function(error) {
+    console.log(error);
+    $('#SearchModelLabel').html(title);
     
-    // Create the direct URL with proper encoding of the file_id
-const encodedFileId = encodeURIComponent(file_id);
-const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
+    // Create the URL to copy
+    const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+    
+    btn = `<div class="btn-group">
+        <a href="${fileUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-bolt fa-fw"></i>Instant Link</a>
+        </div>` + close_btn;
+    
+    $('#modal-body-space').html(content);
+    $('#modal-body-space-buttons').html(btn);
+});
 
-try {
-    // Make API call to get shortened URL using GPLinks API
-    const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
-    const encodedUrl = encodeURIComponent(directUrl);
-    
-    // Use text format and let GPLinks auto-generate a unique alias
-    const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&format=text`;
-    
-    const response = await fetch(gplinksApiUrl);
-    
-    // Check if response is OK and content type is text
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const shortUrl = await response.text();
-    
-    // Validate that we got a proper URL
-    if (!shortUrl.startsWith('http')) {
-        throw new Error("Invalid response from GPLinks API");
-    }
-    
-    // Function to check if browser is Chrome
-    function isChromeBrowser() {
-        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    }
-    
-    // Function to open in Chrome - use the shortened URL
-    function getChromeOpenUrl() {
-        if (/Android/i.test(navigator.userAgent)) {
-            // Android intent to open short URL in Chrome
-            return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
-        } else {
-            // Use short URL for desktop
-            return shortUrl;
-        }
-    }
-        
-        content = `
-        <table class="table table-dark mb-0">
-            <tbody>
-                <tr>
-                    <th>
-                        <i class="fa-regular fa-folder-closed fa-fw"></i>
-                        <span class="tth">Name</span>
-                    </th>
-                    <td>${file['name']}</td>
-                </tr>
-                <tr>
-                    <th>
-                        <i class="fa-regular fa-clock fa-fw"></i>
-                        <span class="tth">Datetime</span>
-                    </th>
-                    <td>${file['createdTime']}</td>
-                </tr>
-                <tr>
-                    <th>
-                        <i class="fa-solid fa-tag fa-fw"></i>
-                        <span class="tth">Type</span>
-                    </th>
-                    <td>${file['mimeType']}</td>
-                </tr>`;
-        if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
-            content += `
-                <tr>
-                    <th>
-                        <i class="fa-solid fa-box-archive fa-fw"></i>
-                        <span class="tth">Size</span>
-                    </th>
-                    <td>${file['size']}</td>
-                </tr>
-                </tr>`;
-        }
-        content += `
-            </tbody>
-        </table>`;
-        
-        // Create Chrome button HTML
-        const chromeButtonHtml = `
-            <a href="${getChromeOpenUrl()}" 
-               class="btn btn-primary d-flex align-items-center gap-2" 
-               target="_blank"
-               title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲">
-                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-                𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲  
-            </a>`;
-        
-        // Request a path
-        fetch(`/${cur}:id2path`, {
-                method: 'POST',
-                body: JSON.stringify(p),
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-            })
-            .then(function(response) {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Request failed.');
-                }
-            })
-            .then(function(obj) {
-                var href = `${obj.path}`;
-                var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
-                $('#SearchModelLabel').html(title);
-                
-                // Only show Chrome button (removed the green open button)
-                btn = chromeButtonHtml + close_btn;
-                
-                $('#modal-body-space').html(content);
-                $('#modal-body-space-buttons').html(btn);
-            })
-            .catch(function(error) {
-                console.log(error);
-                $('#SearchModelLabel').html(title);
-                
-                // Only show Chrome button (removed the green open button)
-                btn = chromeButtonHtml + close_btn;
-                
-                $('#modal-body-space').html(content);
-                $('#modal-body-space-buttons').html(btn);
-            });
-    } catch (error) {
-        console.error('Error generating short URL:', error);
-        // Fallback to the direct URL if the API call fails
-        const shortUrl = directUrl;
-        
-        // Create Chrome button HTML with fallback URL
-        const chromeButtonHtml = `
-            <a href="${directUrl}" 
-               class="btn btn-primary d-flex align-items-center gap-2" 
-               target="_blank"
-               title="Open in Chrome">
-                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-                Open in Chrome (Direct Link)
-            </a>`;
-            
-        // Show error message but still allow the user to proceed
-        content += `<div class="alert alert-warning mt-3">Could not generate short URL: ${error.message}. Using direct link instead.</div>`;
-        
-        $('#SearchModelLabel').html(title);
-        btn = chromeButtonHtml + close_btn;
-        $('#modal-body-space').html(content);
-        $('#modal-body-space-buttons').html(btn);
-    }
 }
 
 function get_file(path, file, callback) {
