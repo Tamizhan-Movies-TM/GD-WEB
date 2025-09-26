@@ -1170,139 +1170,137 @@ function append_search_result_to_list(files) {
  * @param a_ele Clicked element
  */
 function onSearchResultItemClick(file_id, can_preview, file) {
-    var cur = window.current_drive_order;
-    var title = `Loading...`;
-    $('#SearchModelLabel').html(title);
-    var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
-    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
-    $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(close_btn);
-    var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
-    var p = {
-        id: file_id
-    };
-    content = `
-    <table class="table table-dark mb-0">
-        <tbody>
-            <tr>
-                <th>
-                    <i class="fa-regular fa-folder-closed fa-fw"></i>
-                    <span class="tth">Name</span>
-                </th>
-                <td>${file['name']}</td>
-            </tr>
-            <tr>
-                <th>
-                    <i class="fa-regular fa-clock fa-fw"></i>
-                    <span class="tth">Datetime</span>
-                </th>
-                <td>${file['createdTime']}</td>
-            </tr>
-            <tr>
-                <th>
-                    <i class="fa-solid fa-tag fa-fw"></i>
-                    <span class="tth">Type</span>
-                </th>
-                <td>${file['mimeType']}</td>
-            </tr>`;
-    if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
-        content += `
-            <tr>
-                <th>
-                    <i class="fa-solid fa-box-archive fa-fw"></i>
-                    <span class="tth">Size</span>
-                </th>
-                <td>${file['size']}</td>
-                </td>
-            </tr>`;
-    }
-    content += `
-        </tbody>
-    </table>`;
-    
-    // Request a path
-    fetch(`/${cur}:id2path`, {
-            method: 'POST',
-            body: JSON.stringify(p),
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        })
-        .then(function(response) {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('Request failed.');
-            }
-        })
-        .then(function(obj) {
-            $('#SearchModelLabel').html(title);
-            
-            // Create the URL to copy
-            const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
-            const fullUrl = window.location.origin + fileUrl;
-            
-            // Smart browser detection for Chrome
-            const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-            
-            let buttonHtml = '';
-            
-            if (isChrome) {
-                buttonHtml = `<a href="${fileUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-bolt fa-fw"></i>Instant Link</a>`;
-            } else if (isMobile) {
-                // Mobile device but not Chrome
-                const chromeIntent = `intent://${window.location.host}${fileUrl}#Intent;package=com.android.chrome;scheme=https;end;`;
-                buttonHtml = `<a href="javascript:void(0)" type="button" class="btn btn-warning" onclick="openInChrome('${fileUrl}')"><i class="fas fa-mobile-alt fa-fw"></i>Open in Chrome</a>`;
-            } else {
-                // Desktop but not Chrome
-                buttonHtml = `<a href="${fileUrl}" type="button" class="btn btn-info" target="_blank" onclick="suggestChrome()"><i class="fas fa-desktop fa-fw"></i>Instant Link</a>`;
-            }
-            
-            btn = `<div class="btn-group">${buttonHtml}</div>` + close_btn;
-            
-            $('#modal-body-space').html(content);
-            $('#modal-body-space-buttons').html(btn);
-        })
-        .catch(function(error) {
-            console.log(error);
-            $('#SearchModelLabel').html(title);
-            
-            const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
-            btn = `<div class="btn-group">
-                <a href="${fileUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-bolt fa-fw"></i>Instant Link</a>
-                </div>` + close_btn;
-            
-            $('#modal-body-space').html(content);
-            $('#modal-body-space-buttons').html(btn);
-        });
+	var cur = window.current_drive_order;
+	var title = `Loading...`;
+	$('#SearchModelLabel').html(title);
+	var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
+	var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
+	$('#modal-body-space').html(content);
+	$('#modal-body-space-buttons').html(close_btn);
+	var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
+	var p = {
+		id: file_id
+	};
+	content = `
+	<table class="table table-dark mb-0">
+		<tbody>
+			<tr>
+				<th>
+					<i class="fa-regular fa-folder-closed fa-fw"></i>
+					<span class="tth">Name</span>
+				</th>
+				<td>${file['name']}</td>
+			</tr>
+			<tr>
+				<th>
+					<i class="fa-regular fa-clock fa-fw"></i>
+					<span class="tth">Datetime</span>
+				</th>
+				<td>${file['createdTime']}</td>
+			</tr>
+			<tr>
+				<th>
+					<i class="fa-solid fa-tag fa-fw"></i>
+					<span class="tth">Type</span>
+				</th>
+				<td>${file['mimeType']}</td>
+			</tr>`;
+	if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
+		content += `
+			<tr>
+				<th>
+					<i class="fa-solid fa-box-archive fa-fw"></i>
+					<span class="tth">Size</span>
+				</th>
+				<td>${file['size']}</td>
+				</td>
+			</tr>`;
+	}
+	content += `
+		</tbody>
+	</table>`;
+	// Request a path
+	fetch(`/${cur}:id2path`, {
+			method: 'POST',
+			body: JSON.stringify(p),
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			}
+		})
+		.then(function(response) {
+			if (response.ok) {
+				return response.json();
+			} else {
+				throw new Error('Request failed.');
+			}
+		})
+		.then(function(obj) {
+			var href = `${obj.path}`;
+			var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F')
+			$('#SearchModelLabel').html(title);
+			
+			// Create the URL to open in Chrome
+			const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+			
+			// Modified button to open in Chrome browser
+			btn = `<div class="btn-group">
+					<button type="button" class="btn btn-primary" onclick="openInChrome('${fileUrl}')"><i class="fas fa-bolt fa-fw"></i>Instant Link</button>
+					</div>` + close_btn;
+			
+			$('#modal-body-space').html(content);
+			$('#modal-body-space-buttons').html(btn);
+		})
+		.catch(function(error) {
+			console.log(error);
+			$('#SearchModelLabel').html(title);
+			
+			// Create the URL to open in Chrome
+			const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+			
+			// Modified button to open in Chrome browser
+			btn = `<div class="btn-group">
+					<button type="button" class="btn btn-primary" onclick="openInChrome('${fileUrl}')"><i class="fas fa-bolt fa-fw"></i>Instant Link</button>
+					</div>` + close_btn;
+			
+			$('#modal-body-space').html(content);
+			$('#modal-body-space-buttons').html(btn);
+		});
 }
 
-// Add these helper functions
-function suggestChrome() {
-    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    if (!isChrome) {
-        if (confirm('For optimal performance, we recommend using Google Chrome. Would you like to learn more about Chrome?')) {
-            window.open('https://www.google.com/chrome/', '_blank');
-        }
-    }
-}
-
+// New function to handle opening in Chrome browser
 function openInChrome(url) {
-    // Try Chrome intent first (for Android)
-    try {
-        const chromeIntent = `intent://${window.location.host}${url}#Intent;package=com.android.chrome;scheme=https;end;`;
-        window.location.href = chromeIntent;
-    } catch (e) {
-        console.error('Chrome intent failed:', e);
-    }
-    
-    // Fallback after a short delay
-    setTimeout(() => {
-        window.open(url, '_blank');
-    }, 500);
-    
-    return false;
+	// Try to detect if we're in a mobile app or different browser
+	if (navigator.userAgent.includes('Chrome')) {
+		// Already in Chrome, open normally
+		window.location.href = url;
+	} else {
+		// Not in Chrome, try to open with chrome intent or redirect
+		// For Android devices
+		if (navigator.userAgent.includes('Android')) {
+			window.location.href = 'intent://' + window.location.host + url + '#Intent;package=com.android.chrome;scheme=https;end';
+		} 
+		// For iOS devices
+		else if (navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')) {
+			window.location.href = 'googlechromes://' + window.location.host + url;
+		}
+		// For desktop or other browsers
+		else {
+			// Try to redirect to Chrome with custom protocol
+			var chromeUrl = 'googlechrome://' + window.location.host + url;
+			window.location.href = chromeUrl;
+			
+			// Fallback: if Chrome protocol doesn't work, open in current browser after a delay
+			setTimeout(function() {
+				window.location.href = url;
+			}, 1000);
+		}
+	}
+	
+	// Close the modal
+	var modal = bootstrap.Modal.getInstance(document.getElementById('SearchModel'));
+	if (modal) {
+		modal.hide();
+	}
 }
 
 function get_file(path, file, callback) {
