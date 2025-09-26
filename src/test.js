@@ -1213,6 +1213,13 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 					<span class="tth">Size</span>
 				</th>
 				<td>${file['size']}</td>
+			</tr>
+			<tr>
+				<th>
+					<i class="fa-solid fa-file-circle-check fa-fw"></i>
+					<span class="tth">Checksum</span>
+				</th>
+				<td>MD5: <code>${file['md5Checksum']}</code>
 				</td>
 			</tr>`;
 	}
@@ -1239,6 +1246,9 @@ function onSearchResultItemClick(file_id, can_preview, file) {
     var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F')
     $('#SearchModelLabel').html(title);
     
+    // Create the URL to copy
+    const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+    
     btn = `<div class="btn-group">
         <a href="${fileUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-bolt fa-fw"></i>Instant Link</a>
         </div>` + close_btn;
@@ -1249,6 +1259,9 @@ function onSearchResultItemClick(file_id, can_preview, file) {
 .catch(function(error) {
     console.log(error);
     $('#SearchModelLabel').html(title);
+    
+    // Create the URL to copy
+    const fileUrl = `/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
     
     btn = `<div class="btn-group">
         <a href="${fileUrl}" type="button" class="btn btn-primary" target="_blank"><i class="fas fa-bolt fa-fw"></i>Instant Link</a>
