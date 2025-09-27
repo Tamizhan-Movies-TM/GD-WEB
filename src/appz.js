@@ -1547,7 +1547,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 					</div>
 				</div>` : `
 				<div class="h-100 border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;">
-					<span><img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/zip-icon.png" alt="Zip Icon" style="max-width: 100px; height: auto; object-fit: contain;"></span>
+					<span><img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/zip-icon.png" alt="Zip Icon" style="max-width: 150px; height: auto; object-fit: contain;"></span>
 					<span><a href="https://telegram.me/tamizhan_updates/51" target="_blank" style="text-decoration: none; color: #00d4ff;">How to Extract Zip file</a></span>
 				</div>`}
 			</div>
