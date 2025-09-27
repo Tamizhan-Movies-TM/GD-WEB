@@ -1188,6 +1188,29 @@ function parseFileSize(sizeStr) {
 }
 
 // Modified onSearchResultItemClick function
+// Add this helper function to parse formatted file sizes back to bytes
+function parseFileSize(sizeStr) {
+    if (!sizeStr || sizeStr === 'â€"') return 0;
+    
+    const match = sizeStr.match(/^([\d.]+)\s*([A-Z]+)$/i);
+    if (!match) return 0;
+    
+    const value = parseFloat(match[1]);
+    const unit = match[2].toUpperCase();
+    
+    const units = {
+        'B': 1,
+        'BYTES': 1,
+        'KB': 1024,
+        'MB': 1024 * 1024,
+        'GB': 1024 * 1024 * 1024,
+        'TB': 1024 * 1024 * 1024 * 1024
+    };
+    
+    return value * (units[unit] || 0);
+}
+
+// Modified onSearchResultItemClick function
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     var title = `Loading...`;
@@ -1259,7 +1282,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     }
     
     content = `
-    <table class="table table-dark mb-0">
+    <table class="table table-dark" style="margin-bottom: 0 !important;">
         <tbody>
             <tr>
                 <th>
