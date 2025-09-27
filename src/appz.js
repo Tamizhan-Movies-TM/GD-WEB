@@ -1186,19 +1186,18 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     const encodedFileId = encodeURIComponent(file_id);
     const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
 
-    // Check file size - 1GB = 1073741824 bytes
-    const fileSize = file.size || 0;
-    const isSmallFile = fileSize <= 1073741824; // 1GB in bytes
+    // Check file size - convert to bytes (1GB = 1073741824 bytes)
+    const fileSizeInBytes = parseInt(file.size) || 0;
+    const oneGBInBytes = 1073741824;
     
-    let finalUrl = directUrl;
-    let urlGenerationMethod = "Direct Link";
-
     try {
-        if (!isSmallFile) {
-            // For files larger than 1GB, use GPLinks API
-            urlGenerationMethod = "GPLinks Shortened URL";
-            
-            // Make API call to get shortened URL using GPLinks API
+        let finalUrl = directUrl;
+        let buttonText = "Open in Chrome";
+        let buttonTitle = "Open in Chrome";
+        
+        // For files larger than 1GB, use GPLinks API
+        if (fileSizeInBytes >= oneGBInBytes) {
+            // Use GPLinks API to shorten
             const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
             const encodedUrl = encodeURIComponent(directUrl);
             
@@ -1212,12 +1211,20 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            finalUrl = await response.text();
+            const shortUrl = await response.text();
             
             // Validate that we got a proper URL
-            if (!finalUrl.startsWith('http')) {
+            if (!shortUrl.startsWith('http')) {
                 throw new Error("Invalid response from GPLinks API");
             }
+            
+            finalUrl = shortUrl;
+            buttonText = "Open in Chrome (Short Link)";
+            buttonTitle = "Open in Chrome - Shortened URL for large file";
+        } else {
+            // For files under 1GB, use direct link
+            buttonText = "Open in Chrome (Direct Link)";
+            buttonTitle = "Open in Chrome - Direct link for fast access";
         }
         
         // Function to check if browser is Chrome
@@ -1226,13 +1233,13 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         }
         
         // Function to open in Chrome - use the appropriate URL
-        function getChromeOpenUrl() {
+        function getChromeOpenUrl(url) {
             if (/Android/i.test(navigator.userAgent)) {
                 // Android intent to open URL in Chrome
-                return `intent://${finalUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+                return `intent://${url.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
             } else {
-                // Use the URL for desktop
-                return finalUrl;
+                // Use URL for desktop
+                return url;
             }
         }
             
@@ -1267,28 +1274,22 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                         <i class="fa-solid fa-box-archive fa-fw"></i>
                         <span class="tth">Size</span>
                     </th>
-                    <td>${formatFileSize(file['size'])}</td>
+                    <td>${file['size']} ${fileSizeInBytes >= oneGBInBytes ? '<span class="badge bg-warning ms-1">Large File</span>' : '<span class="badge bg-success ms-1">Fast Direct</span>'}</td>
                 </tr>
-                <tr>
-                    <th>
-                        <i class="fa-solid fa-link fa-fw"></i>
-                        <span class="tth">Link Type</span>
-                    </th>
-                    <td>${urlGenerationMethod} ${isSmallFile ? '<span class="badge bg-success">Direct</span>' : '<span class="badge bg-warning">Shortened</span>'}</td>
                 </tr>`;
         }
         content += `
             </tbody>
         </table>`;
         
-        // Create Chrome button HTML
+        // Create Chrome button HTML with appropriate text based on file size
         const chromeButtonHtml = `
-            <a href="${getChromeOpenUrl()}" 
+            <a href="${getChromeOpenUrl(finalUrl)}" 
                class="btn btn-primary d-flex align-items-center gap-2" 
                target="_blank"
-               title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (${urlGenerationMethod})">
+               title="${buttonTitle}">
                 <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-                𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲  
+                ${buttonText}  
             </a>`;
         
         // Request a path
@@ -1329,22 +1330,21 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             });
     } catch (error) {
         console.error('Error generating URL:', error);
-        // Fallback to the direct URL if there's any error
-        finalUrl = directUrl;
-        urlGenerationMethod = "Direct Link (Fallback)";
+        // Fallback to the direct URL if any error occurs
+        const finalUrl = directUrl;
         
         // Create Chrome button HTML with fallback URL
         const chromeButtonHtml = `
-            <a href="${directUrl}" 
+            <a href="${getChromeOpenUrl(finalUrl)}" 
                class="btn btn-primary d-flex align-items-center gap-2" 
                target="_blank"
-               title="Open in Chrome (Direct Link - Fallback)">
+               title="Open in Chrome - Direct link">
                 <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
                 Open in Chrome (Direct Link)
             </a>`;
             
         // Show error message but still allow the user to proceed
-        content += `<div class="alert alert-warning mt-3">Could not generate optimal URL: ${error.message}. Using direct link instead.</div>`;
+        content += `<div class="alert alert-warning mt-3">Could not generate optimized URL: ${error.message}. Using direct link instead.</div>`;
         
         $('#SearchModelLabel').html(title);
         btn = chromeButtonHtml + close_btn;
