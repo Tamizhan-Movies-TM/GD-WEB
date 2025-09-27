@@ -1186,17 +1186,22 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     const encodedFileId = encodeURIComponent(file_id);
     const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
 
-    // Check file size - convert to bytes (1GB = 1073741824 bytes)
-    const fileSizeInBytes = parseInt(file.size) || 0;
-    const oneGBInBytes = 1073741824;
-    
     try {
         let finalUrl = directUrl;
-        let buttonText = "Open in Chrome";
-        let buttonTitle = "Open in Chrome";
+        let buttonText = "Open in Chrome (Direct Link)";
+        let buttonTitle = "Open in Chrome - Direct link for fast access";
         
-        // For files larger than 1GB, use GPLinks API
+        // Extract the raw size in bytes from the file object
+        // The file object from search results should have the raw size in bytes
+        const fileSizeInBytes = parseInt(file.size) || 0;
+        const oneGBInBytes = 1073741824;
+        
+        console.log("File size in bytes:", fileSizeInBytes); // Debug log
+        
+        // For files 1GB and above, use GPLinks API
         if (fileSizeInBytes >= oneGBInBytes) {
+            console.log("File is 1GB or larger, using GPLinks API");
+            
             // Use GPLinks API to shorten
             const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
             const encodedUrl = encodeURIComponent(directUrl);
@@ -1222,9 +1227,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             buttonText = "Open in Chrome (Short Link)";
             buttonTitle = "Open in Chrome - Shortened URL for large file";
         } else {
-            // For files under 1GB, use direct link
-            buttonText = "Open in Chrome (Direct Link)";
-            buttonTitle = "Open in Chrome - Direct link for fast access";
+            console.log("File is under 1GB, using direct link");
+            // For files under 1GB, use direct link (already set as default)
         }
         
         // Function to check if browser is Chrome
