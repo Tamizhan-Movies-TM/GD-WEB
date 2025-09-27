@@ -39,16 +39,16 @@ function init() {
              <i class="fa-brands fa-telegram fa-fw"></i>&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
             </div>
             <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
-					<a href="https://cutt.ly/HrB5syqo" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪜⅈꫀડ">
+					<a href="https://cutt.ly/zrMe2JpH" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪜⅈꫀડ">
 						<img class="image" alt="tamizhan" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/tm-icon.png">
 					</a>
 					<a href="https://cutt.ly/ZrBTy6LJ" target="_blank" title="Hollywood Tamizhan Movies">
 						<img class="image" alt="Movies" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/htm-icon.png">
 					</a>
-		       <a href="https://cutt.ly/mrB5gyhY" target="_blank" title="Tamizhan Web Series">
-						<img class="image" alt="தமிழன்" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/tws-icon.png">
+		       <a href="https://cutt.ly/irMe1nkm" target="_blank" title="Tamizhan Web Series">
+						<img class="image" alt="Series" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/tws-icon.png">
 					</a>
-					<a href="https://cutt.ly/VrB5hGGt" target="_blank" title="Tamizhan Movies Backup">
+					<a href="https://cutt.ly/ZrMe1emr" target="_blank" title="Tamizhan Movies Backup">
 						<img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/telegram.png">
 					</a>
           </div> 
@@ -1193,7 +1193,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     var title = `Loading...`;
     $('#SearchModelLabel').html(title);
     var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
-    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
+    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
     $('#modal-body-space').html(content);
     $('#modal-body-space-buttons').html(close_btn);
     var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
@@ -1302,7 +1302,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         <a href="${getChromeOpenUrl()}" 
            class="btn btn-primary d-flex align-items-center gap-2" 
            target="_blank"
-           title="Open in Chrome (${linkType})">
+           title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (${linkType})">
             <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
             Open in Chrome ${fileSizeInGB > 1 ? '(GPLinks)' : '(Direct)'}
         </a>`;
