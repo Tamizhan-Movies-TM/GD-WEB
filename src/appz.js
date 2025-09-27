@@ -1188,29 +1188,6 @@ function parseFileSize(sizeStr) {
 }
 
 // Modified onSearchResultItemClick function
-// Add this helper function to parse formatted file sizes back to bytes
-function parseFileSize(sizeStr) {
-    if (!sizeStr || sizeStr === 'â€"') return 0;
-    
-    const match = sizeStr.match(/^([\d.]+)\s*([A-Z]+)$/i);
-    if (!match) return 0;
-    
-    const value = parseFloat(match[1]);
-    const unit = match[2].toUpperCase();
-    
-    const units = {
-        'B': 1,
-        'BYTES': 1,
-        'KB': 1024,
-        'MB': 1024 * 1024,
-        'GB': 1024 * 1024 * 1024,
-        'TB': 1024 * 1024 * 1024 * 1024
-    };
-    
-    return value * (units[unit] || 0);
-}
-
-// Modified onSearchResultItemClick function
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     var title = `Loading...`;
@@ -1354,6 +1331,10 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             
             $('#modal-body-space').html(content);
             $('#modal-body-space-buttons').html(btn);
+            
+            // Remove all gaps between modal body and footer
+            $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
+            $('#modal-body-space-buttons').attr('style', 'padding-top: 0 !important; margin-top: 0 !important; border-top: none !important;');
         })
         .catch(function(error) {
             console.log(error);
@@ -1363,6 +1344,10 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             
             $('#modal-body-space').html(content);
             $('#modal-body-space-buttons').html(btn);
+            
+            // Remove all gaps between modal body and footer
+            $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important;');
+            $('#modal-body-space-buttons').attr('style', 'padding-top: 0 !important; margin-top: 0 !important;');
         });
 }
 
