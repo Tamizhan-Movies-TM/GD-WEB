@@ -1165,16 +1165,35 @@ function append_search_result_to_list(files) {
 	}
 }
 
-/**
- * Search result item click event
- * @param a_ele Clicked element
- */
+// Add this helper function to parse formatted file sizes back to bytes
+function parseFileSize(sizeStr) {
+    if (!sizeStr || sizeStr === 'â€"') return 0;
+    
+    const match = sizeStr.match(/^([\d.]+)\s*([A-Z]+)$/i);
+    if (!match) return 0;
+    
+    const value = parseFloat(match[1]);
+    const unit = match[2].toUpperCase();
+    
+    const units = {
+        'B': 1,
+        'BYTES': 1,
+        'KB': 1024,
+        'MB': 1024 * 1024,
+        'GB': 1024 * 1024 * 1024,
+        'TB': 1024 * 1024 * 1024 * 1024
+    };
+    
+    return value * (units[unit] || 0);
+}
+
+// Modified onSearchResultItemClick function
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     var title = `Loading...`;
     $('#SearchModelLabel').html(title);
     var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
-    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
+    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
     $('#modal-body-space').html(content);
     $('#modal-body-space-buttons').html(close_btn);
     var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
@@ -1182,179 +1201,146 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         id: file_id
     };
     
-    // Create the direct URL with proper encoding of the file_id
+    // Create the direct URL
     const encodedFileId = encodeURIComponent(file_id);
     const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
 
-    try {
-        let finalUrl = directUrl;
-        let buttonText = "Open in Chrome (Direct Link)";
-        let buttonTitle = "Open in Chrome - Direct link for fast access";
-        
-        // Extract the raw size in bytes from the file object
-        // The file object from search results should have the raw size in bytes
-        const fileSizeInBytes = parseInt(file.size) || 0;
-        const oneGBInBytes = 1073741824;
-        
-        console.log("File size in bytes:", fileSizeInBytes); // Debug log
-        
-        // For files 1GB and above, use GPLinks API
-        if (fileSizeInBytes >= oneGBInBytes) {
-            console.log("File is 1GB or larger, using GPLinks API");
-            
-            // Use GPLinks API to shorten
+    // Parse file size to determine if we should use GPLinks
+    const fileSizeInBytes = parseFileSize(file['size']);
+    const fileSizeInGB = fileSizeInBytes / (1024 * 1024 * 1024);
+    
+    let shortUrl;
+    let useGPLinks = fileSizeInGB > 1; // Use GPLinks only for files ABOVE 1GB
+    
+    if (useGPLinks) {
+        try {
+            // Use GPLinks API for files 1GB and above
             const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
             const encodedUrl = encodeURIComponent(directUrl);
-            
-            // Use text format and let GPLinks auto-generate a unique alias
             const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&format=text`;
             
             const response = await fetch(gplinksApiUrl);
             
-            // Check if response is OK and content type is text
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            const shortUrl = await response.text();
+            shortUrl = await response.text();
             
             // Validate that we got a proper URL
             if (!shortUrl.startsWith('http')) {
                 throw new Error("Invalid response from GPLinks API");
             }
-            
-            finalUrl = shortUrl;
-            buttonText = "Open in Chrome (Short Link)";
-            buttonTitle = "Open in Chrome - Shortened URL for large file";
-        } else {
-            console.log("File is under 1GB, using direct link");
-            // For files under 1GB, use direct link (already set as default)
+        } catch (error) {
+            console.error('Error generating short URL:', error);
+            // Fallback to direct URL if GPLinks fails
+            shortUrl = directUrl;
+            useGPLinks = false;
         }
-        
-        // Function to check if browser is Chrome
-        function isChromeBrowser() {
-            return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-        }
-        
-        // Function to open in Chrome - use the appropriate URL
-        function getChromeOpenUrl(url) {
-            if (/Android/i.test(navigator.userAgent)) {
-                // Android intent to open URL in Chrome
-                return `intent://${url.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
-            } else {
-                // Use URL for desktop
-                return url;
-            }
-        }
-            
-        content = `
-        <table class="table table-dark mb-0">
-            <tbody>
-                <tr>
-                    <th>
-                        <i class="fa-regular fa-folder-closed fa-fw"></i>
-                        <span class="tth">Name</span>
-                    </th>
-                    <td>${file['name']}</td>
-                </tr>
-                <tr>
-                    <th>
-                        <i class="fa-regular fa-clock fa-fw"></i>
-                        <span class="tth">Datetime</span>
-                    </th>
-                    <td>${file['createdTime']}</td>
-                </tr>
-                <tr>
-                    <th>
-                        <i class="fa-solid fa-tag fa-fw"></i>
-                        <span class="tth">Type</span>
-                    </th>
-                    <td>${file['mimeType']}</td>
-                </tr>`;
-        if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
-            content += `
-                <tr>
-                    <th>
-                        <i class="fa-solid fa-box-archive fa-fw"></i>
-                        <span class="tth">Size</span>
-                    </th>
-                    <td>${file['size']} ${fileSizeInBytes >= oneGBInBytes ? '<span class="badge bg-warning ms-1">Large File</span>' : '<span class="badge bg-success ms-1">Fast Direct</span>'}</td>
-                </tr>
-                </tr>`;
-        }
-        content += `
-            </tbody>
-        </table>`;
-        
-        // Create Chrome button HTML with appropriate text based on file size
-        const chromeButtonHtml = `
-            <a href="${getChromeOpenUrl(finalUrl)}" 
-               class="btn btn-primary d-flex align-items-center gap-2" 
-               target="_blank"
-               title="${buttonTitle}">
-                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-                ${buttonText}  
-            </a>`;
-        
-        // Request a path
-        fetch(`/${cur}:id2path`, {
-                method: 'POST',
-                body: JSON.stringify(p),
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-            })
-            .then(function(response) {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Request failed.');
-                }
-            })
-            .then(function(obj) {
-                var href = `${obj.path}`;
-                var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
-                $('#SearchModelLabel').html(title);
-                
-                // Only show Chrome button (removed the green open button)
-                btn = chromeButtonHtml + close_btn;
-                
-                $('#modal-body-space').html(content);
-                $('#modal-body-space-buttons').html(btn);
-            })
-            .catch(function(error) {
-                console.log(error);
-                $('#SearchModelLabel').html(title);
-                
-                // Only show Chrome button (removed the green open button)
-                btn = chromeButtonHtml + close_btn;
-                
-                $('#modal-body-space').html(content);
-                $('#modal-body-space-buttons').html(btn);
-            });
-    } catch (error) {
-        console.error('Error generating URL:', error);
-        // Fallback to the direct URL if any error occurs
-        const finalUrl = directUrl;
-        
-        // Create Chrome button HTML with fallback URL
-        const chromeButtonHtml = `
-            <a href="${getChromeOpenUrl(finalUrl)}" 
-               class="btn btn-primary d-flex align-items-center gap-2" 
-               target="_blank"
-               title="Open in Chrome - Direct link">
-                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-                Open in Chrome (Direct Link)
-            </a>`;
-            
-        // Show error message but still allow the user to proceed
-        content += `<div class="alert alert-warning mt-3">Could not generate optimized URL: ${error.message}. Using direct link instead.</div>`;
-        
-        $('#SearchModelLabel').html(title);
-        btn = chromeButtonHtml + close_btn;
-        $('#modal-body-space').html(content);
-        $('#modal-body-space-buttons').html(btn);
+    } else {
+        // Use direct URL for files below 1GB
+        shortUrl = directUrl;
     }
+    
+    // Function to check if browser is Chrome
+    function isChromeBrowser() {
+        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    }
+    
+    // Function to open in Chrome - use the appropriate URL
+    function getChromeOpenUrl() {
+        if (/Android/i.test(navigator.userAgent)) {
+            // Android intent
+            return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+        } else {
+            // Desktop
+            return shortUrl;
+        }
+    }
+    
+    content = `
+    <table class="table table-dark mb-0">
+        <tbody>
+            <tr>
+                <th>
+                    <i class="fa-regular fa-folder-closed fa-fw"></i>
+                    <span class="tth">Name</span>
+                </th>
+                <td>${file['name']}</td>
+            </tr>
+            <tr>
+                <th>
+                    <i class="fa-regular fa-clock fa-fw"></i>
+                    <span class="tth">Datetime</span>
+                </th>
+                <td>${file['createdTime']}</td>
+            </tr>
+            <tr>
+                <th>
+                    <i class="fa-solid fa-tag fa-fw"></i>
+                    <span class="tth">Type</span>
+                </th>
+                <td>${file['mimeType']}</td>
+            </tr>`;
+    if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
+        content += `
+            <tr>
+                <th>
+                    <i class="fa-solid fa-box-archive fa-fw"></i>
+                    <span class="tth">Size</span>
+                </th>
+                <td>${file['size']}</td>
+            </tr>`;
+    }
+    content += `
+        </tbody>
+    </table>`;
+    
+    // Create Chrome button HTML with appropriate link text
+    const linkType = useGPLinks ? 'GPLinks' : 'Direct';
+    const chromeButtonHtml = `
+        <a href="${getChromeOpenUrl()}" 
+           class="btn btn-primary d-flex align-items-center gap-2" 
+           target="_blank"
+           title="Open in Chrome (${linkType})">
+            <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
+            Open in Chrome ${fileSizeInGB > 1 ? '(GPLinks)' : '(Direct)'}
+        </a>`;
+    
+    // Request a path
+    fetch(`/${cur}:id2path`, {
+            method: 'POST',
+            body: JSON.stringify(p),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+        .then(function(response) {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Request failed.');
+            }
+        })
+        .then(function(obj) {
+            var href = `${obj.path}`;
+            var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+            $('#SearchModelLabel').html(title);
+            
+            btn = chromeButtonHtml + close_btn;
+            
+            $('#modal-body-space').html(content);
+            $('#modal-body-space-buttons').html(btn);
+        })
+        .catch(function(error) {
+            console.log(error);
+            $('#SearchModelLabel').html(title);
+            
+            btn = chromeButtonHtml + close_btn;
+            
+            $('#modal-body-space').html(content);
+            $('#modal-body-space-buttons').html(btn);
+        });
 }
 
 function get_file(path, file, callback) {
