@@ -1334,7 +1334,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             
             // Remove all gaps between modal body and footer
             $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
-            $('#modal-body-space-buttons').attr('style', 'padding-top: 0 !important; margin-top: 0 !important; border-top: none !important;');
+            $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
         })
         .catch(function(error) {
             console.log(error);
