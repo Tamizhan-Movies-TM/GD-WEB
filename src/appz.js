@@ -36,7 +36,7 @@ function init() {
            <div class="col-lg-6 col-md-12">
           	<div class="card text-white mb-3 h-100">
              <div class="card-header">
-             <i class="fa-brands fa-telegram fa-fw"></i>&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
+             <i class="fa fa-telegram"></i>&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
             </div>
             <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
 					<a href="https://cutt.ly/zrMe2JpH" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪜⅈꫀડ">
@@ -1304,7 +1304,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
            target="_blank"
            title="Open in Chrome (${linkType})">
             <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 ${fileSizeInGB > 1 ? '(𝗚𝗣𝗟𝗶𝗻𝗸𝘀)' : '(𝗗𝗶𝗿𝗲𝗰𝘁)'}
+            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 ${fileSizeInGB > 1 ? '(GPLinks)' : '(Direct)'}
         </a>`;
     
     // Request a path
