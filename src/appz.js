@@ -1302,9 +1302,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         <a href="${getChromeOpenUrl()}" 
            class="btn btn-primary d-flex align-items-center gap-2" 
            target="_blank"
-           title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (${linkType})">
+           title="Open in Chrome (${linkType})">
             <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            Open in Chrome ${fileSizeInGB > 1 ? '(GPLinks)' : '(Direct)'}
+            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 ${fileSizeInGB > 1 ? '(𝗚𝗣𝗟𝗶𝗻𝗸𝘀)' : '(𝗗𝗶𝗿𝗲𝗰𝘁)'}
         </a>`;
     
     // Request a path
