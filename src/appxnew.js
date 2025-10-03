@@ -1210,8 +1210,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
 
     // Use direct URL instead of GPLinks API
     const shortUrl = directUrl;
-    const useGPLinks = false; // Since we're using direct URLs only
-    const linkType = useGPLinks ? 'GPLinks' : 'Direct';
 
     // Function to check if browser is Chrome
     function isChromeBrowser() {
@@ -1272,9 +1270,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         <a href="${getChromeOpenUrl()}" 
            class="btn btn-primary d-flex align-items-center gap-2" 
            target="_blank"
-           title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (${linkType})">
+           title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲">
             <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (${linkType})
+            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲  
         </a>`;
     
     // Request a path
