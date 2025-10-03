@@ -1205,10 +1205,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         id: file_id
     };
     
-    // If file_id is already encoded, decode it first
-    const decodedFileId = decodeURIComponent(file_id);
-    const encodedFileId = encodeURIComponent(decodedFileId);
-    const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
+    // Create the direct URL - use file_id directly
+    const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
 
     // Parse file size to determine if we should use GPLinks
     const fileSizeInBytes = parseFileSize(file['size']);
