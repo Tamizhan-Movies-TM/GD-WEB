@@ -1168,29 +1168,6 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Add this helper function to parse formatted file sizes back to bytes
-function parseFileSize(sizeStr) {
-    if (!sizeStr || sizeStr === 'â€"') return 0;
-    
-    const match = sizeStr.match(/^([\d.]+)\s*([A-Z]+)$/i);
-    if (!match) return 0;
-    
-    const value = parseFloat(match[1]);
-    const unit = match[2].toUpperCase();
-    
-    const units = {
-        'B': 1,
-        'BYTES': 1,
-        'KB': 1024,
-        'MB': 1024 * 1024,
-        'GB': 1024 * 1024 * 1024,
-        'TB': 1024 * 1024 * 1024 * 1024
-    };
-    
-    return value * (units[unit] || 0);
-}
-
-// Modified onSearchResultItemClick function
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     var title = `Loading...`;
@@ -1208,42 +1185,33 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     const encodedFileId = encodeURIComponent(file_id);
     const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
 
-    // Parse file size to determine if we should use GPLinks
-    const fileSizeInBytes = parseFileSize(file['size']);
-    const fileSizeInGB = fileSizeInBytes / (1024 * 1024 * 1024);
-    
-    // Always use GPLinks for all files
+    // REMOVED: File size condition - Now use GPLinks for ALL files
     let shortUrl;
-    let useGPLinks = true;
+    let useGPLinks = true; // Always use GPLinks for all files
     
-    if (useGPLinks) {
-        try {
-            // Use GPLinks API for files 1GB and above
-            const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
-            const encodedUrl = encodeURIComponent(directUrl);
-            const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&format=text`;
-            
-            const response = await fetch(gplinksApiUrl);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            shortUrl = await response.text();
-            
-            // Validate that we got a proper URL
-            if (!shortUrl.startsWith('http')) {
-                throw new Error("Invalid response from GPLinks API");
-            }
-        } catch (error) {
-            console.error('Error generating short URL:', error);
-            // Fallback to direct URL if GPLinks fails
-            shortUrl = directUrl;
-            useGPLinks = false;
+    try {
+        // Use GPLinks API for ALL files (removed size restriction)
+        const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
+        const encodedUrl = encodeURIComponent(directUrl);
+        const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&format=text`;
+        
+        const response = await fetch(gplinksApiUrl);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    } else {
-        // Use direct URL for files below 1GB
+        
+        shortUrl = await response.text();
+        
+        // Validate that we got a proper URL
+        if (!shortUrl.startsWith('http')) {
+            throw new Error("Invalid response from GPLinks API");
+        }
+    } catch (error) {
+        console.error('Error generating short URL:', error);
+        // Fallback to direct URL if GPLinks fails
         shortUrl = directUrl;
+        useGPLinks = false;
     }
     
     // Function to check if browser is Chrome
@@ -1308,7 +1276,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
            target="_blank"
            title="Open in Chrome (${linkType})">
             <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 ${fileSizeInGB > 1 ? '(GPLinks)' : '(Direct)'}
+            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (${linkType})
         </a>`;
     
     // Request a path
