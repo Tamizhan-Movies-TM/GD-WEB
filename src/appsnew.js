@@ -1269,14 +1269,13 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     </table>`;
     
     // Create Chrome button HTML with appropriate link text
-    const linkType = useGPLinks ? 'GPLinks' : 'Direct';
     const chromeButtonHtml = `
         <a href="${getChromeOpenUrl()}" 
            class="btn btn-primary d-flex align-items-center gap-2" 
            target="_blank"
-           title="Open in Chrome (${linkType})">
+           title="Open in Chrome">
             <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (${linkType})
+            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (GPLinks)
         </a>`;
     
     // Request a path
