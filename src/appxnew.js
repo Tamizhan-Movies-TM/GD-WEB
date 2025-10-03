@@ -1168,34 +1168,12 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Add this helper function to parse formatted file sizes back to bytes
-function parseFileSize(sizeStr) {
-    if (!sizeStr || sizeStr === 'â€"') return 0;
-    
-    const match = sizeStr.match(/^([\d.]+)\s*([A-Z]+)$/i);
-    if (!match) return 0;
-    
-    const value = parseFloat(match[1]);
-    const unit = match[2].toUpperCase();
-    
-    const units = {
-        'B': 1,
-        'BYTES': 1,
-        'KB': 1024,
-        'MB': 1024 * 1024,
-        'GB': 1024 * 1024 * 1024,
-        'TB': 1024 * 1024 * 1024 * 1024
-    };
-    
-    return value * (units[unit] || 0);
-}
-
 // Modified onSearchResultItemClick function
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     var title = `Loading...`;
     $('#SearchModelLabel').html(title);
-    var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`;
+    var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
     var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
     $('#modal-body-space').html(content);
     $('#modal-body-space-buttons').html(close_btn);
@@ -1205,7 +1183,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     };
     
     // Create the direct URL with proper encoding of the file_id
-    const encodedFileId = encodeURIComponent(file_id);
+    const encodedFileId = (file_id);
     const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
 
     // Use direct URL instead of GPLinks API
@@ -1227,8 +1205,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         }
     }
         
-    content = `
-    <table class="table table-dark mb-0">
+   content = `
+    <table class="table table-dark" style="margin-bottom: 0 !important;">
         <tbody>
             <tr>
                 <th>
@@ -1264,7 +1242,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     content += `
         </tbody>
     </table>`;
-    
+	
     // Create Chrome button HTML with direct URL
     const chromeButtonHtml = `
         <a href="${getChromeOpenUrl()}" 
@@ -1272,7 +1250,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
            target="_blank"
            title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲">
             <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲  
+            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)  
         </a>`;
     
     // Request a path
@@ -1295,7 +1273,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
             $('#SearchModelLabel').html(title);
             
-            // Only show Chrome button (removed the green open button)
             btn = chromeButtonHtml + close_btn;
             
             $('#modal-body-space').html(content);
@@ -1309,7 +1286,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             console.log(error);
             $('#SearchModelLabel').html(title);
             
-            // Only show Chrome button (removed the green open button)
             btn = chromeButtonHtml + close_btn;
             
             $('#modal-body-space').html(content);
