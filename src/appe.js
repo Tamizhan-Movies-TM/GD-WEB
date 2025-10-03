@@ -1213,11 +1213,10 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     const fileSizeInGB = fileSizeInBytes / (1024 * 1024 * 1024);
     
     let shortUrl;
-    let useGPLinks = fileSizeInGB > 1; // Use GPLinks only for files ABOVE 1GB
+    let useGPLinks = fileSizeInGB > 1;
     
     if (useGPLinks) {
         try {
-            // Use GPLinks API for files 1GB and above
             const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
             const encodedUrl = encodeURIComponent(directUrl);
             const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&format=text`;
@@ -1230,33 +1229,26 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             
             shortUrl = await response.text();
             
-            // Validate that we got a proper URL
             if (!shortUrl.startsWith('http')) {
                 throw new Error("Invalid response from GPLinks API");
             }
         } catch (error) {
             console.error('Error generating short URL:', error);
-            // Fallback to direct URL if GPLinks fails
             shortUrl = directUrl;
             useGPLinks = false;
         }
     } else {
-        // Use direct URL for files below 1GB
         shortUrl = directUrl;
     }
     
-    // Function to check if browser is Chrome
-    function isChromeBrowser() {
-        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    }
-    
-    // Function to open in Chrome - use the appropriate URL
+    // Function to open in Chrome - FIXED VERSION
     function getChromeOpenUrl() {
         if (/Android/i.test(navigator.userAgent)) {
-            // Android intent
-            return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+            // For Android, properly encode the entire URL
+            const urlWithoutProtocol = shortUrl.replace(/https?:\/\//, '');
+            // Use S.browser_fallback_url to encode the full URL properly
+            return `intent://${urlWithoutProtocol}#Intent;scheme=https;S.browser_fallback_url=${encodeURIComponent(shortUrl)};package=com.android.chrome;end`;
         } else {
-            // Desktop
             return shortUrl;
         }
     }
@@ -1299,7 +1291,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         </tbody>
     </table>`;
     
-    // Create Chrome button HTML with appropriate link text
     const linkType = useGPLinks ? 'GPLinks' : 'Direct';
     const chromeButtonHtml = `
         <a href="${getChromeOpenUrl()}" 
@@ -1310,7 +1301,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 ${fileSizeInGB > 1 ? '(GPLinks)' : '(Direct)'}
         </a>`;
     
-    // Request a path
     fetch(`/${cur}:id2path`, {
             method: 'POST',
             body: JSON.stringify(p),
@@ -1326,29 +1316,19 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             }
         })
         .then(function(obj) {
-            var href = `${obj.path}`;
-            var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
             $('#SearchModelLabel').html(title);
-            
             btn = chromeButtonHtml + close_btn;
-            
             $('#modal-body-space').html(content);
             $('#modal-body-space-buttons').html(btn);
-            
-            // Remove all gaps between modal body and footer
             $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
             $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
         })
         .catch(function(error) {
             console.log(error);
             $('#SearchModelLabel').html(title);
-            
             btn = chromeButtonHtml + close_btn;
-            
             $('#modal-body-space').html(content);
             $('#modal-body-space-buttons').html(btn);
-            
-            // Remove all gaps between modal body and footer
             $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important;');
             $('#modal-body-space-buttons').attr('style', 'padding-top: 0 !important; margin-top: 0 !important;');
         });
