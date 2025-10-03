@@ -1219,7 +1219,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         try {
             // Use GPLinks API for files 1GB and above
             const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
-            const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${directUrl}&format=text`;
+            // Ensure &a=view is included for GPLinks
+            const urlForShortening = directUrl.includes('&a=view') ? directUrl : `${directUrl}&a=view`;
+            const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${urlForShortening}&format=text`;
             
             const response = await fetch(gplinksApiUrl);
             
