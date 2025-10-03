@@ -1205,7 +1205,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     };
     
     // Create the direct URL (without encoding)
-    const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+    const previewParam = can_preview ? '&a=view' : '';
+    const directUrl = `${window.location.origin}/fallback?id=${file_id}${previewParam}`;
 
     // Parse file size to determine if we should use GPLinks
     const fileSizeInBytes = parseFileSize(file['size']);
@@ -1218,7 +1219,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         try {
             // Use GPLinks API for files 1GB and above
             const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
-            const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${directUrl}&format=text`;
+            // Encode only for API call, then decode the response
+            const encodedForApi = encodeURIComponent(directUrl);
+            const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedForApi}&format=text`;
             
             const response = await fetch(gplinksApiUrl);
             
@@ -1226,7 +1229,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            shortUrl = await response.text();
+            // Decode the response to get clean URL
+            shortUrl = decodeURIComponent(await response.text());
             
             // Validate that we got a proper URL
             if (!shortUrl.startsWith('http')) {
@@ -1351,7 +1355,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             $('#modal-body-space-buttons').attr('style', 'padding-top: 0 !important; margin-top: 0 !important;');
         });
 }
-
 function get_file(path, file, callback) {
 	var key = "file_path_" + path + file['createdTime'];
 	var data = localStorage.getItem(key);
