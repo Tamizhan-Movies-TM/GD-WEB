@@ -1218,7 +1218,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         try {
             // Use GPLinks API for files 1GB and above
             const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
-            const encodedUrl = encodeURIComponent(directUrl);
+            const encodedUrl = directUrl;
             const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&format=text`;
             
             const response = await fetch(gplinksApiUrl);
@@ -1352,6 +1352,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             $('#modal-body-space-buttons').attr('style', 'padding-top: 0 !important; margin-top: 0 !important;');
         });
 }
+
 function get_file(path, file, callback) {
 	var key = "file_path_" + path + file['createdTime'];
 	var data = localStorage.getItem(key);
