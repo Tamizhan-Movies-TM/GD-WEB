@@ -1193,42 +1193,33 @@ function parseFileSize(sizeStr) {
 // Modified onSearchResultItemClick function
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
-    
-    // Clean the file ID - remove any whitespace
-    file_id = String(file_id).trim().replace(/\s+/g, '');
-    
-    console.log('Cleaned file_id:', file_id);
-    
     var title = `Loading...`;
     $('#SearchModelLabel').html(title);
     var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
     var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
     $('#modal-body-space').html(content);
     $('#modal-body-space-buttons').html(close_btn);
-    
+    var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
     var p = {
         id: file_id
     };
     
-    // Create the direct URL without any encoding
-    const directUrl = `${window.location.origin}/fallback?id=${file_id}&a=view`;
-    
-    console.log('Direct URL:', directUrl);
+    // Create the direct URL (without encoding)
+    const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
 
-    // Parse file size
+    // Parse file size to determine if we should use GPLinks
     const fileSizeInBytes = parseFileSize(file['size']);
     const fileSizeInGB = fileSizeInBytes / (1024 * 1024 * 1024);
     
     let shortUrl;
-    let useGPLinks = fileSizeInGB > 1;
+    let useGPLinks = fileSizeInGB > 1; // Use GPLinks only for files ABOVE 1GB
     
     if (useGPLinks) {
         try {
+            // Use GPLinks API for files 1GB and above
             const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
-            // No encoding for GPLinks API
-            const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${directUrl}&format=text`;
-            
-            console.log('GPLinks API URL:', gplinksApiUrl);
+            const encodedUrl = encodeURIComponent(directUrl);
+            const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&format=text`;
             
             const response = await fetch(gplinksApiUrl);
             
@@ -1237,24 +1228,34 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             }
             
             shortUrl = await response.text();
-            console.log('GPLinks response:', shortUrl);
             
+            // Validate that we got a proper URL
             if (!shortUrl.startsWith('http')) {
                 throw new Error("Invalid response from GPLinks API");
             }
         } catch (error) {
             console.error('Error generating short URL:', error);
+            // Fallback to direct URL if GPLinks fails
             shortUrl = directUrl;
             useGPLinks = false;
         }
     } else {
+        // Use direct URL for files below 1GB
         shortUrl = directUrl;
     }
     
+    // Function to check if browser is Chrome
+    function isChromeBrowser() {
+        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    }
+    
+    // Function to open in Chrome - use the appropriate URL
     function getChromeOpenUrl() {
         if (/Android/i.test(navigator.userAgent)) {
+            // Android intent
             return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
         } else {
+            // Desktop
             return shortUrl;
         }
     }
@@ -1263,28 +1264,41 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     <table class="table table-dark" style="margin-bottom: 0 !important;">
         <tbody>
             <tr>
-                <th><i class="fa-regular fa-folder-closed fa-fw"></i><span class="tth">Name</span></th>
+                <th>
+                    <i class="fa-regular fa-folder-closed fa-fw"></i>
+                    <span class="tth">Name</span>
+                </th>
                 <td>${file['name']}</td>
             </tr>
             <tr>
-                <th><i class="fa-regular fa-clock fa-fw"></i><span class="tth">Datetime</span></th>
+                <th>
+                    <i class="fa-regular fa-clock fa-fw"></i>
+                    <span class="tth">Datetime</span>
+                </th>
                 <td>${file['createdTime']}</td>
             </tr>
             <tr>
-                <th><i class="fa-solid fa-tag fa-fw"></i><span class="tth">Type</span></th>
+                <th>
+                    <i class="fa-solid fa-tag fa-fw"></i>
+                    <span class="tth">Type</span>
+                </th>
                 <td>${file['mimeType']}</td>
             </tr>`;
-    
     if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
         content += `
             <tr>
-                <th><i class="fa-solid fa-box-archive fa-fw"></i><span class="tth">Size</span></th>
+                <th>
+                    <i class="fa-solid fa-box-archive fa-fw"></i>
+                    <span class="tth">Size</span>
+                </th>
                 <td>${file['size']}</td>
             </tr>`;
     }
+    content += `
+        </tbody>
+    </table>`;
     
-    content += `</tbody></table>`;
-    
+    // Create Chrome button HTML with appropriate link text
     const linkType = useGPLinks ? 'GPLinks' : 'Direct';
     const chromeButtonHtml = `
         <a href="${getChromeOpenUrl()}" 
@@ -1295,35 +1309,49 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 ${fileSizeInGB > 1 ? '(GPLinks)' : '(Direct)'}
         </a>`;
     
+    // Request a path
     fetch(`/${cur}:id2path`, {
-        method: 'POST',
-        body: JSON.stringify(p),
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
-    })
-    .then(function(response) {
-        if (response.ok) {
-            return response.json();
-        } else {
-            throw new Error('Request failed.');
-        }
-    })
-    .then(function(obj) {
-        $('#SearchModelLabel').html('<i class="fas fa-file-alt fa-fw"></i> File Information');
-        $('#modal-body-space').html(content);
-        $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
-        $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
-        $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
-    })
-    .catch(function(error) {
-        console.error('id2path error:', error);
-        $('#SearchModelLabel').html('<i class="fas fa-file-alt fa-fw"></i> File Information');
-        $('#modal-body-space').html(content);
-        $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
-    });
+            method: 'POST',
+            body: JSON.stringify(p),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+        .then(function(response) {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Request failed.');
+            }
+        })
+        .then(function(obj) {
+            var href = `${obj.path}`;
+            var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+            $('#SearchModelLabel').html(title);
+            
+            btn = chromeButtonHtml + close_btn;
+            
+            $('#modal-body-space').html(content);
+            $('#modal-body-space-buttons').html(btn);
+            
+            // Remove all gaps between modal body and footer
+            $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
+            $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
+        })
+        .catch(function(error) {
+            console.log(error);
+            $('#SearchModelLabel').html(title);
+            
+            btn = chromeButtonHtml + close_btn;
+            
+            $('#modal-body-space').html(content);
+            $('#modal-body-space-buttons').html(btn);
+            
+            // Remove all gaps between modal body and footer
+            $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important;');
+            $('#modal-body-space-buttons').attr('style', 'padding-top: 0 !important; margin-top: 0 !important;');
+        });
 }
-
 function get_file(path, file, callback) {
 	var key = "file_path_" + path + file['createdTime'];
 	var data = localStorage.getItem(key);
