@@ -1066,100 +1066,99 @@ function render_search_result_list() {
 }
 
 /**
- * Append a new page of search results - OPTIMIZED VERSION
+ * Append a new page of search results
  * @param files
  */
 function append_search_result_to_list(files) {
 	try {
-		const $list = $('#list');
-		const is_lastpage_loaded = null === $list.data('nextPageToken');
-		
+		var cur = window.current_drive_order || 0;
+		var $list = $('#list');
+		// Is it the last page of data?
+		var is_lastpage_loaded = null === $list.data('nextPageToken');
+		// var is_firstpage = '0' == $list.data('curPageIndex');
+
 		// Sort files by size in descending order (largest first)
-		files.sort((a, b) => (parseInt(b.size || 0)) - (parseInt(a.size || 0)));
+		files.sort((a, b) => {
+			const sizeA = parseInt(a.size || 0);
+			const sizeB = parseInt(b.size || 0);
+			return sizeB - sizeA;
+		});
 
-		// Use array to collect HTML chunks, then join once (MUCH FASTER)
-		const htmlChunks = [];
-		let totalsize = 0;
-		let is_file = false;
-		
-		// Helper function to get icon (avoid repeated conditionals)
-		const getIcon = (ext, mimeType, iconLink) => {
-			if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".includes(`|${ext}|`)) return video_icon;
-			if ("|html|php|css|go|java|js|json|txt|sh|".includes(`|${ext}|`)) return code_icon;
-			if ("|zip|rar|tar|.7z|.gz|".includes(`|${ext}|`)) return zip_icon;
-			if ("|bmp|jpg|jpeg|png|gif|".includes(`|${ext}|`)) return image_icon;
-			if ("|m4a|mp3|flac|wav|ogg|".includes(`|${ext}|`)) return audio_icon;
-			if ("|md|".includes(`|${ext}|`)) return markdown_icon;
-			if ("|pdf|".includes(`|${ext}|`)) return pdf_icon;
-			if (mimeType?.startsWith('application/vnd.google-apps.')) return `<img src="${iconLink}" class="d-flex" style="width: 1.24rem; margin-left: 0.12rem; margin-right: 0.12rem;">`;
-			return file_icon;
-		};
-
-		for (let i = 0; i < files.length; i++) {
-			const item = files[i];
+		html = "";
+		var totalsize = 0;
+		var is_file = false;
+		for (i in files) {
+			var item = files[i];
 			
 			// Skip folders in search results
-			if (item.mimeType === 'application/vnd.google-apps.folder') continue;
+			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
+				continue; // This will skip the rest of the loop for this item
+			}
 			
-			is_file = true;
-			totalsize += Number(item.size || 0);
+			if (item['size'] == undefined) {
+				item['size'] = "";
+			}
+			item['createdTime'] = utc2jakarta(item['createdTime']);
 			
-			// IMPORTANT: Create a copy for onclick to preserve original data
-			const itemForClick = {...item};
-			
-			// Format display values (don't modify original item)
-			const createdTime = utc2jakarta(item.createdTime || '');
-			const displaySize = formatFileSize(item.size) || '—';
-			const ext = item.fileExtension;
-			const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
-			
-			// Escape JSON with original unmodified data
-			const itemJson = JSON.stringify(itemForClick).replace(/"/g, '&quot;');
-			const icon = getIcon(ext, item.mimeType, item.iconLink);
-			
-			// Build HTML in one go (faster than multiple concatenations)
-			htmlChunks.push(
-				`<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item.mimeType}">`,
-				UI.allow_selecting_files ? `<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="${link}" id="flexCheckDefault">` : '',
-				`<a href="#" onclick="onSearchResultItemClick('${item.id}', true, ${itemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`,
-				icon,
-				`</span>${item.name}</a>`,
-				UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${createdTime}</span>` : '',
-				UI.display_size ? `<span class="badge bg-primary my-1 ${displaySize === '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">${displaySize}</span>` : '',
-				`<span class="d-flex gap-2">`,
-				UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : '',
-				`</span></div>`
-			);
+			// Only process files (folders are skipped above)
+			var is_file = true;
+			var totalsize = totalsize + Number(item.size || 0);
+			item['size'] = formatFileSize(item['size']) || '—';
+			item['md5Checksum'] = item['md5Checksum'] || '—';
+			var ext = item.fileExtension;
+			var link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="$item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
+
+			if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
+				html += video_icon
+			} else if ("|html|php|css|go|java|js|json|txt|sh|".indexOf(`|${ext}|`) >= 0) {
+				html += code_icon
+			} else if ("|zip|rar|tar|.7z|.gz|".indexOf(`|${ext}|`) >= 0) {
+				html += zip_icon
+			} else if ("|bmp|jpg|jpeg|png|gif|".indexOf(`|${ext}|`) >= 0) {
+				html += image_icon
+			} else if ("|m4a|mp3|flac|wav|ogg|".indexOf(`|${ext}|`) >= 0) {
+				html += audio_icon
+			} else if ("|md|".indexOf(`|${ext}|`) >= 0) {
+				html += markdown_icon
+			} else if ("|pdf|".indexOf(`|${ext}|`) >= 0) {
+				html += pdf_icon
+			} else if (item.mimeType.startsWith('application/vnd.google-apps.')) {
+				html += `<img src="${item.iconLink}" class="d-flex" style="width: 1.24rem; margin-left: 0.12rem; margin-right: 0.12rem;">`
+			} else {
+				html += file_icon
+			}
+
+			html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
+			${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
 		}
-		
 		if (is_file && UI.allow_selecting_files) {
 			document.getElementById('select_items').style.display = 'block';
 		}
-		
-		// Join array once (MUCH faster than += in loop)
-		const html = htmlChunks.join('');
-		
-		// Append efficiently
-		if ($list.data('curPageIndex') == '0') {
-			$list.html(html);
-		} else {
-			$list.append(html);
-		}
-		
-		// When it is the last page, count and display the total
+		// When it is page 1, remove the horizontal loading bar
+		$list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
+		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
-			const total_size = formatFileSize(totalsize) || '0 Bytes';
-			const total_items = $list.find('.countitems').length;
-			const total_files = $list.find('.size_items').length;
-			
-			const itemText = total_items === 0 ? "0 item" : total_items === 1 ? "1 item" : `${total_items} items`;
-			const fileText = total_files === 0 ? "0 file" : total_files === 1 ? `1 file, total: ${total_size}` : `${total_files} files, total: ${total_size}`;
-			
-			$('#count').removeClass('d-none').find('.number').text(itemText);
-			$('#count').find('.totalsize').text(fileText);
+			total_size = formatFileSize(totalsize) || '0 Bytes';
+			total_items = $list.find('.countitems').length;
+			total_files = $list.find('.size_items').length;
+			if (total_items == 0) {
+				$('#count').removeClass('d-none').find('.number').text("0 item");
+			} else if (total_items == 1) {
+				$('#count').removeClass('d-none').find('.number').text(total_items + " item");
+			} else {
+				$('#count').removeClass('d-none').find('.number').text(total_items + " items");
+			}
+			if (total_files == 0) {
+				$('#count').removeClass('d-none').find('.totalsize').text("0 file");
+			} else if (total_files == 1) {
+				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
+			} else {
+				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
+			}
 		}
 	} catch (e) {
-		console.error('Error in append_search_result_to_list:', e);
+		console.log(e);
 	}
 }
 
