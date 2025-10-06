@@ -944,255 +944,219 @@ function render_search_result_list() {
 			${searchBar}
 		</div>
 		<div id="list" class="list-group list-group-flush text-break">
+			<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>
 		</div>
 		<div class="card-footer text-muted d-flex align-items-center gap-2" id="count"><span class="number badge text-bg-dark">0 item</span><span class="totalsize badge text-bg-dark"></span></div>
 	</div>
 	<div id="readme_md" style="display:none; padding: 20px 20px;"></div>`;
+	
 	$('#content').html(content);
+	$('#readme_md').hide();
+	$('#head_md').hide();
 
-	$('#list').html(`<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`);
-	$('#readme_md').hide().html('');
-	$('#head_md').hide().html('');
-
-	// Throttle function to limit scroll event firing
-	function throttle(func, delay) {
-		let timeoutId;
-		let lastRan;
-		return function() {
-			const context = this;
-			const args = arguments;
-			if (!lastRan) {
-				func.apply(context, args);
-				lastRan = Date.now();
-			} else {
-				clearTimeout(timeoutId);
-				timeoutId = setTimeout(function() {
-					if ((Date.now() - lastRan) >= delay) {
-						func.apply(context, args);
-						lastRan = Date.now();
+	// Fast scroll handler with passive event listener
+	let ticking = false;
+	function onScroll() {
+		if (!ticking) {
+			requestAnimationFrame(() => {
+				const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+				const scrollHeight = document.documentElement.scrollHeight;
+				const windowHeight = window.innerHeight;
+				
+				// Preload at 400px from bottom
+				if (scrollTop + windowHeight > scrollHeight - 400) {
+					if (window.scroll_status.loading_lock) return;
+					
+					window.scroll_status.loading_lock = true;
+					const $list = $('#list');
+					const nextToken = $list.data('nextPageToken');
+					const curIndex = $list.data('curPageIndex');
+					
+					if (nextToken) {
+						$(`<div id="spinner" class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status"><span class="sr-only"></span></div></div>`)
+							.insertBefore('#readme_md');
+						
+						requestSearch({
+							q: window.MODEL.q,
+							page_token: nextToken,
+							page_index: curIndex + 1
+						}, searchSuccessCallback);
 					}
-				}, delay - (Date.now() - lastRan));
-			}
-		};
+				}
+				ticking = false;
+			});
+			ticking = true;
+		}
 	}
 
 	/**
-	 * Callback after successful search request returns data
-	 * The result returned by @param res (object)
-	 * @param path the requested path
-	 * @param prevReqParams parameters used in request
+	 * Fast callback for search results
 	 */
 	function searchSuccessCallback(res, prevReqParams) {
+		const $list = $('#list');
+		
+		// Store pagination data
+		$list.data('nextPageToken', res['nextPageToken'])
+			 .data('curPageIndex', res['curPageIndex']);
 
-		// Temporarily store nextPageToken and currentPageIndex in the list element
-		$('#list')
-			.data('nextPageToken', res['nextPageToken'])
-			.data('curPageIndex', res['curPageIndex']);
-
-		// Remove loading spinner
+		// Remove spinner instantly
 		$('#spinner').remove();
 
-		// Append data immediately
-		append_search_result_to_list(res['data']['files']);
+		// Fast render with requestAnimationFrame
+		requestAnimationFrame(() => {
+			append_search_result_to_list(res['data']['files']);
+		});
 
-		if (res['nextPageToken'] === null) {
-			// If it is the last page, unbind the scroll event
-			$(window).off('scroll');
+		// Setup scroll only once
+		if (!window.scroll_status.event_bound && res['nextPageToken']) {
+			window.addEventListener('scroll', onScroll, { passive: true });
+			window.scroll_status.event_bound = true;
+		} else if (!res['nextPageToken']) {
+			window.removeEventListener('scroll', onScroll);
 			window.scroll_status.event_bound = false;
-			window.scroll_status.loading_lock = false;
-		} else {
-			// If it is not the last page, bind scroll event with throttling
-			if (window.scroll_status.event_bound !== true) {
-				// Use throttled scroll handler (fires max once every 200ms)
-				const throttledScrollHandler = throttle(function() {
-					var scrollTop = $(this).scrollTop();
-					var scrollHeight = getDocumentHeight();
-					var windowHeight = $(this).height();
-					
-					// Trigger earlier - at 300px from bottom instead of 80px
-					// This preloads content before user reaches the end
-					if (scrollTop + windowHeight > scrollHeight - 300) {
-						if (window.scroll_status.loading_lock === true) {
-							return;
-						}
-						window.scroll_status.loading_lock = true;
-
-						// Show a loading spinner
-						$(`<div id="spinner" class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`)
-							.insertBefore('#readme_md');
-
-						let $list = $('#list');
-						requestSearch({
-								q: window.MODEL.q,
-								page_token: $list.data('nextPageToken'),
-								page_index: $list.data('curPageIndex') + 1
-							},
-							searchSuccessCallback
-						);
-					}
-				}, 200);
-
-				$(window).on('scroll', throttledScrollHandler);
-				window.scroll_status.event_bound = true;
-			}
 		}
 
-		// Release the loading lock
-		if (window.scroll_status.loading_lock === true) {
-			window.scroll_status.loading_lock = false;
-		}
+		window.scroll_status.loading_lock = false;
 	}
 
-	// Start requesting data from page 1
-	requestSearch({
-		q: window.MODEL.q
-	}, searchSuccessCallback);
+	// Initialize scroll status
+	window.scroll_status = window.scroll_status || { 
+		event_bound: false, 
+		loading_lock: false 
+	};
 
-	const copyBtn = document.getElementById("handle-multiple-items-copy");
+	// Start first request immediately
+	requestSearch({ q: window.MODEL.q }, searchSuccessCallback);
 
-	// Add a click event listener to the copy button
-	copyBtn.addEventListener("click", () => {
-		// Get all the checked checkboxes
-		const checkedItems = document.querySelectorAll('input[type="checkbox"]:checked');
-
-		// Create an array to store the selected items' data
-		const selectedItemsData = [];
+	// Fast copy handler with modern API
+	document.getElementById("handle-multiple-items-copy").addEventListener("click", () => {
+		const checked = document.querySelectorAll('input[type="checkbox"]:checked');
 		
-		if (checkedItems.length === 0) {
+		if (checked.length === 0) {
 			alert("No items selected!");
 			return;
 		}
-		
-		// Loop through each checked checkbox
-		checkedItems.forEach((item) => {
-			const itemData = item.value;
-			selectedItemsData.push(itemData);
-		});
 
-		// Join the selected items' data with a newline character
-		const dataToCopy = selectedItemsData.join("\n");
+		const data = Array.from(checked).map(cb => cb.value).join("\n");
 
-		// Use modern Clipboard API (faster and more reliable)
-		if (navigator.clipboard && navigator.clipboard.writeText) {
-			navigator.clipboard.writeText(dataToCopy).then(() => {
+		if (navigator.clipboard?.writeText) {
+			navigator.clipboard.writeText(data).then(() => {
 				alert("Selected items copied to clipboard!");
 			}).catch(() => {
-				// Fallback to old method if modern API fails
-				fallbackCopy(dataToCopy);
+				const el = document.createElement("textarea");
+				el.value = data;
+				el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+				document.body.appendChild(el);
+				el.select();
+				document.execCommand("copy");
+				document.body.removeChild(el);
+				alert("Selected items copied to clipboard!");
 			});
 		} else {
-			// Fallback for older browsers
-			fallbackCopy(dataToCopy);
+			const el = document.createElement("textarea");
+			el.value = data;
+			el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+			document.body.appendChild(el);
+			el.select();
+			document.execCommand("copy");
+			document.body.removeChild(el);
+			alert("Selected items copied to clipboard!");
 		}
-	});
-
-	function fallbackCopy(text) {
-		const tempInput = document.createElement("textarea");
-		tempInput.value = text;
-		tempInput.style.position = 'fixed';
-		tempInput.style.opacity = '0';
-		document.body.appendChild(tempInput);
-		tempInput.select();
-		document.execCommand("copy");
-		document.body.removeChild(tempInput);
-		alert("Selected items copied to clipboard!");
-	}
+	}, { passive: true });
 }
 
 /**
- * Append a new page of search results
+ * Append a new page of search results - OPTIMIZED VERSION
  * @param files
  */
 function append_search_result_to_list(files) {
 	try {
-		var cur = window.current_drive_order || 0;
-		var $list = $('#list');
-		// Is it the last page of data?
-		var is_lastpage_loaded = null === $list.data('nextPageToken');
-		// var is_firstpage = '0' == $list.data('curPageIndex');
-
+		const $list = $('#list');
+		const is_lastpage_loaded = null === $list.data('nextPageToken');
+		
 		// Sort files by size in descending order (largest first)
-		files.sort((a, b) => {
-			const sizeA = parseInt(a.size || 0);
-			const sizeB = parseInt(b.size || 0);
-			return sizeB - sizeA;
-		});
+		files.sort((a, b) => (parseInt(b.size || 0)) - (parseInt(a.size || 0)));
 
-		html = "";
-		var totalsize = 0;
-		var is_file = false;
-		for (i in files) {
-			var item = files[i];
+		// Use array to collect HTML chunks, then join once (MUCH FASTER)
+		const htmlChunks = [];
+		let totalsize = 0;
+		let is_file = false;
+		
+		// Helper function to get icon (avoid repeated conditionals)
+		const getIcon = (ext, mimeType, iconLink) => {
+			if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".includes(`|${ext}|`)) return video_icon;
+			if ("|html|php|css|go|java|js|json|txt|sh|".includes(`|${ext}|`)) return code_icon;
+			if ("|zip|rar|tar|.7z|.gz|".includes(`|${ext}|`)) return zip_icon;
+			if ("|bmp|jpg|jpeg|png|gif|".includes(`|${ext}|`)) return image_icon;
+			if ("|m4a|mp3|flac|wav|ogg|".includes(`|${ext}|`)) return audio_icon;
+			if ("|md|".includes(`|${ext}|`)) return markdown_icon;
+			if ("|pdf|".includes(`|${ext}|`)) return pdf_icon;
+			if (mimeType?.startsWith('application/vnd.google-apps.')) return `<img src="${iconLink}" class="d-flex" style="width: 1.24rem; margin-left: 0.12rem; margin-right: 0.12rem;">`;
+			return file_icon;
+		};
+
+		for (let i = 0; i < files.length; i++) {
+			const item = files[i];
 			
 			// Skip folders in search results
-			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-				continue; // This will skip the rest of the loop for this item
-			}
+			if (item.mimeType === 'application/vnd.google-apps.folder') continue;
 			
-			if (item['size'] == undefined) {
-				item['size'] = "";
-			}
-			item['createdTime'] = utc2jakarta(item['createdTime']);
+			is_file = true;
+			totalsize += Number(item.size || 0);
 			
-			// Only process files (folders are skipped above)
-			var is_file = true;
-			var totalsize = totalsize + Number(item.size || 0);
-			item['size'] = formatFileSize(item['size']) || '—';
-			item['md5Checksum'] = item['md5Checksum'] || '—';
-			var ext = item.fileExtension;
-			var link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
-			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="$item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
-
-			if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
-				html += video_icon
-			} else if ("|html|php|css|go|java|js|json|txt|sh|".indexOf(`|${ext}|`) >= 0) {
-				html += code_icon
-			} else if ("|zip|rar|tar|.7z|.gz|".indexOf(`|${ext}|`) >= 0) {
-				html += zip_icon
-			} else if ("|bmp|jpg|jpeg|png|gif|".indexOf(`|${ext}|`) >= 0) {
-				html += image_icon
-			} else if ("|m4a|mp3|flac|wav|ogg|".indexOf(`|${ext}|`) >= 0) {
-				html += audio_icon
-			} else if ("|md|".indexOf(`|${ext}|`) >= 0) {
-				html += markdown_icon
-			} else if ("|pdf|".indexOf(`|${ext}|`) >= 0) {
-				html += pdf_icon
-			} else if (item.mimeType.startsWith('application/vnd.google-apps.')) {
-				html += `<img src="${item.iconLink}" class="d-flex" style="width: 1.24rem; margin-left: 0.12rem; margin-right: 0.12rem;">`
-			} else {
-				html += file_icon
-			}
-
-			html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
-			${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
+			const createdTime = utc2jakarta(item.createdTime || '');
+			const size = formatFileSize(item.size) || '—';
+			const md5 = item.md5Checksum || '—';
+			const ext = item.fileExtension;
+			const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+			
+			// Escape JSON more efficiently
+			const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
+			const icon = getIcon(ext, item.mimeType, item.iconLink);
+			
+			// Build HTML in one go (faster than multiple concatenations)
+			htmlChunks.push(
+				`<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item.mimeType}">`,
+				UI.allow_selecting_files ? `<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="${link}" id="flexCheckDefault">` : '',
+				`<a href="#" onclick="onSearchResultItemClick('${item.id}', true, ${itemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`,
+				icon,
+				`</span>${item.name}</a>`,
+				UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${createdTime}</span>` : '',
+				UI.display_size ? `<span class="badge bg-primary my-1 ${size === '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">${size}</span>` : '',
+				`<span class="d-flex gap-2">`,
+				UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : '',
+				`</span></div>`
+			);
 		}
+		
 		if (is_file && UI.allow_selecting_files) {
 			document.getElementById('select_items').style.display = 'block';
 		}
-		// When it is page 1, remove the horizontal loading bar
-		$list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
-		// When it is the last page, count and display the total number of items
+		
+		// Join array once (MUCH faster than += in loop)
+		const html = htmlChunks.join('');
+		
+		// Append efficiently
+		if ($list.data('curPageIndex') == '0') {
+			$list.html(html);
+		} else {
+			$list.append(html);
+		}
+		
+		// When it is the last page, count and display the total
 		if (is_lastpage_loaded) {
-			total_size = formatFileSize(totalsize) || '0 Bytes';
-			total_items = $list.find('.countitems').length;
-			total_files = $list.find('.size_items').length;
-			if (total_items == 0) {
-				$('#count').removeClass('d-none').find('.number').text("0 item");
-			} else if (total_items == 1) {
-				$('#count').removeClass('d-none').find('.number').text(total_items + " item");
-			} else {
-				$('#count').removeClass('d-none').find('.number').text(total_items + " items");
-			}
-			if (total_files == 0) {
-				$('#count').removeClass('d-none').find('.totalsize').text("0 file");
-			} else if (total_files == 1) {
-				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
-			} else {
-				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
-			}
+			const total_size = formatFileSize(totalsize) || '0 Bytes';
+			const total_items = $list.find('.countitems').length;
+			const total_files = $list.find('.size_items').length;
+			
+			const itemText = total_items === 0 ? "0 item" : total_items === 1 ? "1 item" : `${total_items} items`;
+			const fileText = total_files === 0 ? "0 file" : total_files === 1 ? `1 file, total: ${total_size}` : `${total_files} files, total: ${total_size}`;
+			
+			$('#count').removeClass('d-none').find('.number').text(itemText);
+			$('#count').find('.totalsize').text(fileText);
 		}
 	} catch (e) {
-		console.log(e);
+		console.error('Error in append_search_result_to_list:', e);
 	}
 }
 
