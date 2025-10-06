@@ -2286,27 +2286,41 @@ async function copyFile(driveid) {
 }
 
 // Update the generateGDFlixLink function to return a Promise
-async function generateGDFlixLink(encryptedFileId) {
+async function generateGDFlixLink(file) {
     try {
+        console.log('GDFlix - File object:', file);
+        
+        // Use the original file ID (fid) which should be the unencrypted Google Drive file ID
+        const fileId = file.fid || file.id;
+        
+        if (!fileId) {
+            throw new Error('No file ID found in file object');
+        }
+        
+        console.log('GDFlix - Sending fileId to server:', fileId);
+        
         const response = await fetch('/gdflix-generate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ fileId: encryptedFileId })
+            body: JSON.stringify({ fileId: fileId })
         });
         
         const data = await response.json();
         
         if (data.success) {
+            console.log('GDFlix - Generated link:', data.link);
             // Open the GDFlix link in a new tab
             window.open(data.link, '_blank');
+            return data.link;
         } else {
-            alert('Failed to generate GDFlix link: ' + data.error);
+            throw new Error(data.error || 'Unknown error');
         }
     } catch (error) {
         console.error('Error generating GDFlix link:', error);
         alert('Failed to generate GDFlix link: ' + error.message);
+        throw error;
     }
 }
 
