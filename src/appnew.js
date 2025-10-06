@@ -1164,7 +1164,7 @@ function append_search_result_to_list(files) {
 
 // Add this helper function to parse formatted file sizes back to bytes
 function parseFileSize(sizeStr) {
-    if (!sizeStr || sizeStr === 'â€"') return 0;
+    if (!sizeStr || sizeStr === '—' || sizeStr === 'â€"') return 0;
     
     const match = sizeStr.match(/^([\d.]+)\s*([A-Z]+)$/i);
     if (!match) return 0;
@@ -1184,7 +1184,7 @@ function parseFileSize(sizeStr) {
     return value * (units[unit] || 0);
 }
 
-// Optimized onSearchResultItemClick function
+// Modified onSearchResultItemClick function
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
@@ -1195,7 +1195,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     // Create the direct URL
     const encodedFileId = encodeURIComponent(file_id);
     const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
-
+    
     // Parse file size to determine if we should use GPLinks
     const fileSizeInBytes = parseFileSize(file['size']);
     const fileSizeInGB = fileSizeInBytes / (1024 * 1024 * 1024);
@@ -1254,7 +1254,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     
     // Show content with loading button immediately
     const loadingButton = `
-        <button class="btn btn-primary d-flex align-items-center gap-2" disabled>
+        <button class="btn btn-info d-flex align-items-center gap-2" disabled>
             <div class="spinner-border spinner-border-sm" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
@@ -1268,51 +1268,63 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
     $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
     
-    // Generate GPLinks with timeout fallback
+    // Generate URL based on file size
     let finalUrl = directUrl;
-    let buttonLabel = '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲';
+    let useGPLinks = false;
     
-    try {
-        console.log('GPLinks - Requesting short URL from worker...');
-        
-        // Race between GPLinks fetch and 3-second timeout
-        const fetchPromise = fetch('/generate-gplinks', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ url: directUrl })
-        });
-        
-        const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 3000)
-        );
-        
-        const response = await Promise.race([fetchPromise, timeoutPromise]);
-        
-        if (response.ok) {
-            const data = await response.json();
+    if (shouldUseGPLinks) {
+        try {
+            console.log(`GPLinks - Requesting short URL for large file (${fileSizeInGB.toFixed(2)} GB)...`);
             
-            if (data.success && data.short_url) {
-                finalUrl = data.short_url;
-                buttonLabel = '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (GPLinks)';
-                console.log('GPLinks - Generated short URL:', finalUrl);
+            // Call worker endpoint with timeout (only for files > 1GB)
+            const fetchPromise = fetch('/generate-gplinks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: directUrl })
+            });
+            
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout')), 5000)
+            );
+            
+            const response = await Promise.race([fetchPromise, timeoutPromise]);
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                if (data.success && data.short_url) {
+                    finalUrl = data.short_url;
+                    useGPLinks = true;
+                    console.log('GPLinks - Generated short URL:', data.short_url);
+                } else {
+                    throw new Error(data.error || 'Failed to generate short URL');
+                }
             }
+        } catch (error) {
+            console.error('GPLinks error or timeout:', error);
+            // Fallback to direct URL if GPLinks fails
         }
-    } catch (error) {
-        console.error('GPLinks error or timeout:', error);
-        // Will use direct URL as fallback
+    } else {
+        console.log(`Direct URL - File is small (${fileSizeInGB.toFixed(2)} GB), using direct link`);
     }
     
-    // Create final button with the URL
-    const linkType = useGPLinks ? '(GPLinks)' : shouldUseGPLinks ? '(Direct - Fallback)' : '(Direct)';
+    // Create final button with appropriate label
+    let buttonLabel;
+    if (shouldUseGPLinks) {
+        buttonLabel = useGPLinks ? '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (GPLinks)' : '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)';
+    } else {
+        buttonLabel = '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)';
+    }
+    
     const chromeButtonHtml = `
         <a href="${getChromeOpenUrl(finalUrl)}" 
            class="btn btn-info d-flex align-items-center gap-2" 
            target="_blank"
-           title="Open in Chrome ${linkType}">
+           title="Open in Chrome">
             <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 ${linkType}
+            ${buttonLabel}
         </a>`;
     
     // Update button with final URL
@@ -1325,18 +1337,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
-    }).then(function(response) {
-        if (response.ok) {
-            return response.json();
-        }
-    }).then(function(obj) {
-        if (obj && obj.path) {
-            console.log('Path retrieved:', obj.path);
-            // Use path if needed for something
-        }
-    }).catch(function(error) {
-        console.log('Path fetch error:', error);
-    });
+    }).catch(error => console.log('Path fetch error:', error));
 }
 
 function get_file(path, file, callback) {
