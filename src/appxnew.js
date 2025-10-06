@@ -1168,7 +1168,7 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Fast Direct URL version - optimized for instant opening
+// Fast Direct URL version - shows instantly, then updates with correct URL
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
@@ -1176,23 +1176,23 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
     $('#SearchModelLabel').html(title);
     
-    // Create the direct URL with proper encoding
+    // Create temporary direct URL (for instant display)
     const encodedFileId = encodeURIComponent(file_id);
-    const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
+    const tempDirectUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
 
     // Function to check if browser is Chrome
     function isChromeBrowser() {
         return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
     }
     
-    // Function to open in Chrome - use the direct URL
-    function getChromeOpenUrl() {
+    // Function to open in Chrome
+    function getChromeOpenUrl(url) {
         if (/Android/i.test(navigator.userAgent)) {
             // Android intent to open direct URL in Chrome
-            return `intent://${directUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+            return `intent://${url.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
         } else {
             // Use direct URL for desktop
-            return directUrl;
+            return url;
         }
     }
     
@@ -1236,14 +1236,15 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         </tbody>
     </table>`;
     
-    // Create Chrome button HTML with direct URL
-    const chromeButtonHtml = `
-        <a href="${getChromeOpenUrl()}" 
+    // Create temporary Chrome button with temp URL
+    let chromeButtonHtml = `
+        <a href="${getChromeOpenUrl(tempDirectUrl)}" 
+           id="chrome-btn-link"
            class="btn btn-primary d-flex align-items-center gap-2" 
            target="_blank"
            title="Open in Chrome">
             <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)
+            <span id="chrome-btn-text">𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)</span>
         </a>`;
     
     const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
@@ -1256,7 +1257,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
     $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
     
-    // Fetch path in background (non-blocking, optional)
+    // Fetch the correct path from server and update button URL
     var p = { id: file_id };
     fetch(`/${cur}:id2path`, {
         method: 'POST',
@@ -1273,14 +1274,20 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         }
     })
     .then(function(obj) {
+        // Get the correct URL from server response
         var href = `${obj.path}`;
         var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
-        console.log('Path retrieved:', encodedUrl);
-        // Path is available if needed for future use
+        
+        // Build the final direct URL with proper path
+        const finalDirectUrl = `${window.location.origin}${encodedUrl}${can_preview ? '&a=view' : ''}`;
+        
+        // Update the button with the correct URL
+        $('#chrome-btn-link').attr('href', getChromeOpenUrl(finalDirectUrl));
+        console.log('Updated with correct URL:', finalDirectUrl);
     })
     .catch(function(error) {
         console.log('Path fetch error:', error);
-        // Modal already displayed, so error doesn't affect user experience
+        // Button still works with temp URL if path fetch fails
     });
 }
 
