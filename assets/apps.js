@@ -2288,7 +2288,7 @@ async function copyFile(driveid) {
 // Update the generateGDFlixLink function to return a Promise
 function generateGDFlixLink(fileId) {
     return new Promise((resolve, reject) => {
-        const apiUrl = 'https://new.gdflix.net/v2/share';
+        const apiUrl = 'https://new5.gdflix.net/v2/share';
         const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
         
         // Debug logging
