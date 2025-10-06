@@ -1175,14 +1175,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
     $('#SearchModelLabel').html(title);
     
-    // Create the direct URL immediately
+    // Create the direct URL
     const encodedFileId = encodeURIComponent(file_id);
     const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
-    
-    // Function to check if browser is Chrome
-    function isChromeBrowser() {
-        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    }
     
     // Function to get Chrome open URL
     function getChromeOpenUrl(url) {
@@ -1193,7 +1188,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         }
     }
     
-    // Generate file info content immediately
+    // Generate file info content
     let content = `
     <table class="table table-dark" style="margin-bottom: 0 !important;">
         <tbody>
@@ -1233,86 +1228,81 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         </tbody>
     </table>`;
     
-    // Create initial button with direct URL (instant display)
-    let chromeButtonHtml = `
-        <a href="${getChromeOpenUrl(directUrl)}" 
-           id="chrome-open-btn"
-           class="btn btn-info d-flex align-items-center gap-2" 
-           target="_blank"
-           title="Open in Chrome">
-            <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            <span id="chrome-btn-text">𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲</span>
-        </a>`;
-    
     const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
     
-    // Show modal content immediately
+    // Show content with loading button immediately
+    const loadingButton = `
+        <button class="btn btn-info d-flex align-items-center gap-2" disabled>
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            𝗚𝗲𝗻𝗲𝗿𝗮𝘁𝗶𝗻𝗴 𝗹𝗶𝗻𝗸...
+        </button>`;
+    
     $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
+    $('#modal-body-space-buttons').html(loadingButton + close_btn);
     
     // Style adjustments
     $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
     $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
     
-    // Now generate GPLinks URL in the background (non-blocking)
-    generateGPLinksAsync(directUrl);
+    // Generate GPLinks with timeout fallback
+    let finalUrl = directUrl;
+    let buttonLabel = '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲';
     
-    // Async function to generate GPLinks without blocking UI
-    async function generateGPLinksAsync(url) {
-        try {
-            console.log('GPLinks - Requesting short URL from worker...');
-            
-            const response = await fetch('/generate-gplinks', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ url: url })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
+    try {
+        console.log('GPLinks - Requesting short URL from worker...');
+        
+        // Race between GPLinks fetch and 3-second timeout
+        const fetchPromise = fetch('/generate-gplinks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ url: directUrl })
+        });
+        
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 3000)
+        );
+        
+        const response = await Promise.race([fetchPromise, timeoutPromise]);
+        
+        if (response.ok) {
             const data = await response.json();
             
             if (data.success && data.short_url) {
-                console.log('GPLinks - Generated short URL:', data.short_url);
-                
-                // Update button with short URL
-                const newUrl = getChromeOpenUrl(data.short_url);
-                $('#chrome-open-btn').attr('href', newUrl);
-                $('#chrome-btn-text').text('𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (GPLinks)');
+                finalUrl = data.short_url;
+                buttonLabel = '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (GPLinks)';
+                console.log('GPLinks - Generated short URL:', finalUrl);
             }
-        } catch (error) {
-            console.error('GPLinks error:', error);
-            // Keep using direct URL - already set
         }
+    } catch (error) {
+        console.error('GPLinks error or timeout:', error);
+        // Will use direct URL as fallback
     }
     
-    // Optional: If you still need the path for something, fetch it in background
-    // This runs in parallel with GPLinks and doesn't block the UI
-    fetchPathAsync();
+    // Create final button with the URL (GPLinks or direct as fallback)
+    const chromeButtonHtml = `
+        <a href="${getChromeOpenUrl(finalUrl)}" 
+           class="btn btn-info d-flex align-items-center gap-2" 
+           target="_blank"
+           title="Open in Chrome">
+            <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
+            ${buttonLabel}
+        </a>`;
     
-    async function fetchPathAsync() {
-        try {
-            const response = await fetch(`/${cur}:id2path`, {
-                method: 'POST',
-                body: JSON.stringify({ id: file_id }),
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-            });
-            
-            if (response.ok) {
-                const obj = await response.json();
-                console.log('Path fetched:', obj.path);
-                // Use the path if needed for something else
-            }
-        } catch (error) {
-            console.log('Path fetch error:', error);
+    // Update button with final URL
+    $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
+    
+    // Optional: Fetch path in background if needed
+    fetch(`/${cur}:id2path`, {
+        method: 'POST',
+        body: JSON.stringify({ id: file_id }),
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
         }
-    }
+    }).catch(error => console.log('Path fetch error:', error));
 }
 
 function get_file(path, file, callback) {
