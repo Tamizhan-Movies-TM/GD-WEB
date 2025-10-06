@@ -2315,12 +2315,9 @@ async function copyFile(driveid) {
 	}
 }
 
-// Update the generateGDFlixLink function to return a Promise
+// Update the generateGDFlixLink function to call the worker endpoint
 function generateGDFlixLink(fileId) {
     return new Promise((resolve, reject) => {
-        const apiUrl = 'https://new5.gdflix.net/v2/share';
-        const apiKey = '2f11d55bfc0f0e0d073be265099782f0';
-        
         // Debug logging
         console.log('GDFlix - Received fileId:', fileId);
         
@@ -2340,17 +2337,17 @@ function generateGDFlixLink(fileId) {
             return;
         }
         
-        // Construct the URL with proper parameters
-        const url = `${apiUrl}?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`;
+        console.log('GDFlix - Requesting link generation from worker...');
         
-        console.log('GDFlix - Making API request to:', url);
-        
-        // Make API request
-        fetch(url, {
-            method: "GET",
+        // Make request to worker endpoint
+        fetch('/generate-gdflix', {
+            method: 'POST',
             headers: {
-                "Accept": "application/json"
-            }
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                file_id: fileId
+            })
         })
         .then(response => {
             console.log('GDFlix - Response status:', response.status);
@@ -2360,59 +2357,25 @@ function generateGDFlixLink(fileId) {
             return response.json();
         })
         .then(data => {
-            console.log('GDFlix - API response:', data);
+            console.log('GDFlix - Worker response:', data);
             
-            let gdflixLink = '';
-            
-            // Handle different response formats
-            if (data && data.status === "success" && data.gdflix_link) {
-                gdflixLink = data.gdflix_link;
-            } 
-            else if (data && data.key) {
-                gdflixLink = `https://new5.gdflix.net/file/${data.key}`;
-            }
-            else if (data && data.id) {
-                gdflixLink = `https://new5.gdflix.net/file/${data.id}`;
-            }
-            else if (data && data.message === "File already Shared") {
-                // For already shared files, make a second request
-                return fetch(`https://new5.gdflix.net/v2/file/${fileId}?key=${apiKey}`)
-                    .then(response => response.json())
-                    .then(fileData => {
-                        console.log('GDFlix - File data response:', fileData);
-                        if (fileData && fileData.key) {
-                            return `https://new5.gdflix.net/file/${fileData.key}`;
-                        } else if (fileData && fileData.id) {
-                            return `https://new5.gdflix.net/file/${fileData.id}`;
-                        } else {
-                            throw new Error('Could not get file key from GdFlix API');
-                        }
-                    });
-            }
-            else {
-                console.warn('GDFlix - Unexpected response:', data);
-                throw new Error('Invalid response from GdFlix API');
-            }
-            
-            return gdflixLink;
-        })
-        .then(gdflixLink => {
-            if (gdflixLink) {
-                console.log('GDFlix - Generated link:', gdflixLink);
-                // Open the GdFlix link directly in a new tab
-                window.open(gdflixLink, '_blank');
-                resolve(gdflixLink);
+            if (data.success && data.gdflix_link) {
+                console.log('GDFlix - Generated link:', data.gdflix_link);
+                // Open the GDFlix link directly in a new tab
+                window.open(data.gdflix_link, '_blank');
+                resolve(data.gdflix_link);
             } else {
-                reject(new Error('Could not generate GDFlix link'));
+                reject(new Error(data.error || 'Failed to generate GDFlix link'));
             }
         })
         .catch(error => {
-            console.error('GdFlix API Error:', error);
+            console.error('GDFlix Error:', error);
             alert('Failed to generate GDFlix link: ' + error.message);
             reject(error);
         });
     });
 }
+
 
 // create a MutationObserver to listen for changes to the DOM
 const observer = new MutationObserver(() => {
