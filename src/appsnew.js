@@ -1185,33 +1185,40 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     const encodedFileId = encodeURIComponent(file_id);
     const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
 
-    // REMOVED: File size condition - Now use GPLinks for ALL files
-    let shortUrl;
-    let useGPLinks = true; // Always use GPLinks for all files
+    // Generate short URL using worker endpoint
+    let shortUrl = directUrl; // Fallback to direct URL
+    let useGPLinks = false;
     
     try {
-        // Use GPLinks API for ALL files (removed size restriction)
-        const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
-        const encodedUrl = encodeURIComponent(directUrl);
-        const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&format=text`;
+        console.log('GPLinks - Requesting short URL from worker...');
         
-        const response = await fetch(gplinksApiUrl);
+        // Call worker endpoint
+        const response = await fetch('/generate-gplinks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                url: directUrl
+            })
+        });
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        shortUrl = await response.text();
+        const data = await response.json();
         
-        // Validate that we got a proper URL
-        if (!shortUrl.startsWith('http')) {
-            throw new Error("Invalid response from GPLinks API");
+        if (data.success && data.short_url) {
+            shortUrl = data.short_url;
+            useGPLinks = true;
+            console.log('GPLinks - Generated short URL:', shortUrl);
+        } else {
+            throw new Error(data.error || 'Failed to generate short URL');
         }
     } catch (error) {
-        console.error('Error generating short URL:', error);
-        // Fallback to direct URL if GPLinks fails
-        shortUrl = directUrl;
-        useGPLinks = false;
+        console.error('GPLinks error:', error);
+        // Continue with direct URL as fallback
     }
     
     // Function to check if browser is Chrome
