@@ -954,6 +954,28 @@ function render_search_result_list() {
 	$('#readme_md').hide().html('');
 	$('#head_md').hide().html('');
 
+	// Throttle function to limit scroll event firing
+	function throttle(func, delay) {
+		let timeoutId;
+		let lastRan;
+		return function() {
+			const context = this;
+			const args = arguments;
+			if (!lastRan) {
+				func.apply(context, args);
+				lastRan = Date.now();
+			} else {
+				clearTimeout(timeoutId);
+				timeoutId = setTimeout(function() {
+					if ((Date.now() - lastRan) >= delay) {
+						func.apply(context, args);
+						lastRan = Date.now();
+					}
+				}, delay - (Date.now() - lastRan));
+			}
+		};
+	}
+
 	/**
 	 * Callback after successful search request returns data
 	 * The result returned by @param res (object)
@@ -970,27 +992,26 @@ function render_search_result_list() {
 		// Remove loading spinner
 		$('#spinner').remove();
 
+		// Append data immediately
+		append_search_result_to_list(res['data']['files']);
+
 		if (res['nextPageToken'] === null) {
-			// If it is the last page, unbind the scroll event, reset scroll_status, and append the data
+			// If it is the last page, unbind the scroll event
 			$(window).off('scroll');
 			window.scroll_status.event_bound = false;
 			window.scroll_status.loading_lock = false;
-			append_search_result_to_list(res['data']['files']);
 		} else {
-			// If it is not the last page, append data and bind the scroll event (if not already bound), update scroll_status
-			append_search_result_to_list(res['data']['files']);
+			// If it is not the last page, bind scroll event with throttling
 			if (window.scroll_status.event_bound !== true) {
-				// Bind event, if not yet bound
-				$(window).on('scroll', function() {
+				// Use throttled scroll handler (fires max once every 200ms)
+				const throttledScrollHandler = throttle(function() {
 					var scrollTop = $(this).scrollTop();
 					var scrollHeight = getDocumentHeight();
 					var windowHeight = $(this).height();
-					// Roll to the bottom
-					if (scrollTop + windowHeight > scrollHeight - (Os.isMobile ? 130 : 80)) {
-						/*
-     When the event of scrolling to the bottom is triggered, if it is already loading at this time, the event is ignored;
-                 Otherwise, go to loading and occupy the loading lock, indicating that loading is in progress
-             */
+					
+					// Trigger earlier - at 300px from bottom instead of 80px
+					// This preloads content before user reaches the end
+					if (scrollTop + windowHeight > scrollHeight - 300) {
 						if (window.scroll_status.loading_lock === true) {
 							return;
 						}
@@ -1004,20 +1025,21 @@ function render_search_result_list() {
 						requestSearch({
 								q: window.MODEL.q,
 								page_token: $list.data('nextPageToken'),
-								// Request next page
 								page_index: $list.data('curPageIndex') + 1
 							},
 							searchSuccessCallback
-						)
+						);
 					}
-				});
-				window.scroll_status.event_bound = true
+				}, 200);
+
+				$(window).on('scroll', throttledScrollHandler);
+				window.scroll_status.event_bound = true;
 			}
 		}
 
-		// After loading successfully and rendering new data successfully, release the loading lock so that you can continue to process the "scroll to bottom" event
+		// Release the loading lock
 		if (window.scroll_status.loading_lock === true) {
-			window.scroll_status.loading_lock = false
+			window.scroll_status.loading_lock = false;
 		}
 	}
 
@@ -1035,40 +1057,46 @@ function render_search_result_list() {
 
 		// Create an array to store the selected items' data
 		const selectedItemsData = [];
-    if (checkedItems.length === 0) {
-      alert("No items selected!");
-      return;
-    }
+		
+		if (checkedItems.length === 0) {
+			alert("No items selected!");
+			return;
+		}
+		
 		// Loop through each checked checkbox
 		checkedItems.forEach((item) => {
-			// Get the value of the checkbox (in this case, the URL)
 			const itemData = item.value;
-			// Push the value to the array
 			selectedItemsData.push(itemData);
 		});
 
 		// Join the selected items' data with a newline character
 		const dataToCopy = selectedItemsData.join("\n");
 
-		// Create a temporary input element
-		const tempInput = document.createElement("textarea");
-		tempInput.value = dataToCopy;
-
-		// Add the temporary input element to the document
-		document.body.appendChild(tempInput);
-
-		// Select the text inside the temporary input element
-		tempInput.select();
-
-		// Copy the selected text to the clipboard
-		document.execCommand("copy");
-
-		// Remove the temporary input element from the document
-		document.body.removeChild(tempInput);
-
-		// Alert the user that the data has been copied
-		alert("Selected items copied to clipboard!");
+		// Use modern Clipboard API (faster and more reliable)
+		if (navigator.clipboard && navigator.clipboard.writeText) {
+			navigator.clipboard.writeText(dataToCopy).then(() => {
+				alert("Selected items copied to clipboard!");
+			}).catch(() => {
+				// Fallback to old method if modern API fails
+				fallbackCopy(dataToCopy);
+			});
+		} else {
+			// Fallback for older browsers
+			fallbackCopy(dataToCopy);
+		}
 	});
+
+	function fallbackCopy(text) {
+		const tempInput = document.createElement("textarea");
+		tempInput.value = text;
+		tempInput.style.position = 'fixed';
+		tempInput.style.opacity = '0';
+		document.body.appendChild(tempInput);
+		tempInput.select();
+		document.execCommand("copy");
+		document.body.removeChild(tempInput);
+		alert("Selected items copied to clipboard!");
+	}
 }
 
 /**
