@@ -2350,8 +2350,8 @@ async function copyFile(driveid) {
 // Update the generateGDFlixLink function to return a Promise
 function generateGDFlixLink(fileId) {
     return new Promise((resolve, reject) => {
-        const apiUrl = 'https://new.gdflix.net/v2/share';
-        const apiKey = 'fbe53ebaf6d4f67228a00b1cd031574b';
+        const apiUrl = 'https://new5.gdflix.net/v2/share';
+        const apiKey = '2f11d55bfc0f0e0d073be265099782f0';
         
         // Debug logging
         console.log('GDFlix - Received fileId:', fileId);
@@ -2401,21 +2401,21 @@ function generateGDFlixLink(fileId) {
                 gdflixLink = data.gdflix_link;
             } 
             else if (data && data.key) {
-                gdflixLink = `https://new.gdflix.net/file/${data.key}`;
+                gdflixLink = `https://new5.gdflix.net/file/${data.key}`;
             }
             else if (data && data.id) {
-                gdflixLink = `https://new.gdflix.net/file/${data.id}`;
+                gdflixLink = `https://new5.gdflix.net/file/${data.id}`;
             }
             else if (data && data.message === "File already Shared") {
                 // For already shared files, make a second request
-                return fetch(`https://new.gdflix.net/v2/file/${fileId}?key=${apiKey}`)
+                return fetch(`https://new5.gdflix.net/v2/file/${fileId}?key=${apiKey}`)
                     .then(response => response.json())
                     .then(fileData => {
                         console.log('GDFlix - File data response:', fileData);
                         if (fileData && fileData.key) {
-                            return `https://new.gdflix.net/file/${fileData.key}`;
+                            return `https://new5.gdflix.net/file/${fileData.key}`;
                         } else if (fileData && fileData.id) {
-                            return `https://new.gdflix.net/file/${fileData.id}`;
+                            return `https://new5.gdflix.net/file/${fileData.id}`;
                         } else {
                             throw new Error('Could not get file key from GdFlix API');
                         }
