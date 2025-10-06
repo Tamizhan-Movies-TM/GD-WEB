@@ -1268,49 +1268,47 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
     $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
     
-    // Generate URL based on file size
+    // Generate GPLinks with timeout fallback
     let finalUrl = directUrl;
-    let useGPLinks = false;
+    let buttonLabel = '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲';
     
-    if (shouldUseGPLinks) {
-        try {
-            console.log('Generating GPLinks URL for large file...');
+    try {
+        console.log('GPLinks - Requesting short URL from worker...');
+        
+        // Race between GPLinks fetch and 3-second timeout
+        const fetchPromise = fetch('/generate-gplinks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ url: directUrl })
+        });
+        
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 3000)
+        );
+        
+        const response = await Promise.race([fetchPromise, timeoutPromise]);
+        
+        if (response.ok) {
+            const data = await response.json();
             
-            // Use GPLinks API for files 1GB and above with timeout
-            const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
-            const encodedUrl = encodeURIComponent(directUrl);
-            const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&format=text`;
-            
-            const fetchPromise = fetch(gplinksApiUrl);
-            const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout')), 5000)
-            );
-            
-            const response = await Promise.race([fetchPromise, timeoutPromise]);
-            
-            if (response.ok) {
-                const shortUrl = await response.text();
-                
-                // Validate that we got a proper URL
-                if (shortUrl.startsWith('http')) {
-                    finalUrl = shortUrl;
-                    useGPLinks = true;
-                    console.log('GPLinks URL generated successfully');
-                } else {
-                    throw new Error("Invalid response from GPLinks API");
-                }
+            if (data.success && data.short_url) {
+                finalUrl = data.short_url;
+                buttonLabel = '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (GPLinks)';
+                console.log('GPLinks - Generated short URL:', finalUrl);
             }
-        } catch (error) {
-            console.error('Error generating GPLinks URL:', error);
-            // Fallback to direct URL if GPLinks fails
         }
+    } catch (error) {
+        console.error('GPLinks error or timeout:', error);
+        // Will use direct URL as fallback
     }
     
     // Create final button with the URL
     const linkType = useGPLinks ? '(GPLinks)' : shouldUseGPLinks ? '(Direct - Fallback)' : '(Direct)';
     const chromeButtonHtml = `
         <a href="${getChromeOpenUrl(finalUrl)}" 
-           class="btn btn-primary d-flex align-items-center gap-2" 
+           class="btn btn-info d-flex align-items-center gap-2" 
            target="_blank"
            title="Open in Chrome ${linkType}">
             <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
