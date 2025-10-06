@@ -1162,6 +1162,7 @@ function append_search_result_to_list(files) {
 	}
 }
 
+// Modified onSearchResultItemClick function
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
