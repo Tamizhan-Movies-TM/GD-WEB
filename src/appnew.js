@@ -1184,7 +1184,7 @@ function parseFileSize(sizeStr) {
     return value * (units[unit] || 0);
 }
 
-// Optimized - Same working URL, instant display
+// Modified onSearchResultItemClick function
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
@@ -1192,31 +1192,25 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
     $('#SearchModelLabel').html(title);
     
-    var p = {
-        id: file_id
-    };
-    
-    // Create the direct URL (this is what actually works!)
-    const encodedFileId = file_id;
+    // Create the direct URL
+    const encodedFileId = encodeURIComponent(file_id);
     const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
-
-    // Function to check if browser is Chrome
-    function isChromeBrowser() {
-        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    }
     
-    // Function to open in Chrome - use the direct URL
-    function getChromeOpenUrl() {
+    // Parse file size to determine if we should use GPLinks
+    const fileSizeInBytes = parseFileSize(file['size']);
+    const fileSizeInGB = fileSizeInBytes / (1024 * 1024 * 1024);
+    const shouldUseGPLinks = fileSizeInGB > 1; // Use GPLinks only for files ABOVE 1GB
+    
+    // Function to get Chrome open URL
+    function getChromeOpenUrl(url) {
         if (/Android/i.test(navigator.userAgent)) {
-            // Android intent to open direct URL in Chrome
-            return `intent://${directUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+            return `intent://${url.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
         } else {
-            // Use direct URL for desktop
-            return directUrl;
+            return url;
         }
     }
     
-    // Generate content immediately
+    // Generate file info content
     let content = `
     <table class="table table-dark" style="margin-bottom: 0 !important;">
         <tbody>
@@ -1256,52 +1250,96 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         </tbody>
     </table>`;
     
-    // Create Chrome button HTML with direct URL (exact same as working version)
-    const chromeButtonHtml = `
-        <a href="${getChromeOpenUrl()}" 
-           class="btn btn-primary d-flex align-items-center gap-2" 
-           target="_blank"
-           title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲">
-            <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)  
-        </a>`;
+    const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
     
-    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
+    // Show content with loading button immediately
+    const loadingButton = `
+        <button class="btn btn-info d-flex align-items-center gap-2" disabled>
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            ${shouldUseGPLinks ? '𝗚𝗲𝗻𝗲𝗿𝗮𝘁𝗶𝗻𝗴 𝗚𝗣𝗟𝗶𝗻𝗸𝘀...' : '𝗣𝗿𝗲𝗽𝗮𝗿𝗶𝗻𝗴 𝗹𝗶𝗻𝗸...'}
+        </button>`;
     
-    // Display everything immediately - no waiting!
     $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
+    $('#modal-body-space-buttons').html(loadingButton + close_btn);
     
-    // Apply styles immediately
+    // Style adjustments
     $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
     $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
     
-    // Optional: Request path in background (not needed for the button, but kept if you use it elsewhere)
+    // Generate URL based on file size
+    let finalUrl = directUrl;
+    let useGPLinks = false;
+    
+    if (shouldUseGPLinks) {
+        try {
+            console.log(`GPLinks - Requesting short URL for large file (${fileSizeInGB.toFixed(2)} GB)...`);
+            
+            // Call worker endpoint with timeout (only for files > 1GB)
+            const fetchPromise = fetch('/generate-gplinks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: directUrl })
+            });
+            
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout')), 5000)
+            );
+            
+            const response = await Promise.race([fetchPromise, timeoutPromise]);
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                if (data.success && data.short_url) {
+                    finalUrl = data.short_url;
+                    useGPLinks = true;
+                    console.log('GPLinks - Generated short URL:', data.short_url);
+                } else {
+                    throw new Error(data.error || 'Failed to generate short URL');
+                }
+            }
+        } catch (error) {
+            console.error('GPLinks error or timeout:', error);
+            // Fallback to direct URL if GPLinks fails
+        }
+    } else {
+        console.log(`Direct URL - File is small (${fileSizeInGB.toFixed(2)} GB), using direct link`);
+    }
+    
+    // Create final button with appropriate label
+    let buttonLabel;
+    if (shouldUseGPLinks) {
+        buttonLabel = useGPLinks ? '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (GPLinks)' : '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)';
+    } else {
+        buttonLabel = '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)';
+    }
+    
+    const chromeButtonHtml = `
+        <a href="${getChromeOpenUrl(finalUrl)}" 
+           class="btn btn-info d-flex align-items-center gap-2" 
+           target="_blank"
+           title="Open in Chrome">
+            <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
+            ${buttonLabel}
+        </a>`;
+    
+    // Update button with final URL
+    $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
+    
+    // Optional: Fetch path in background if needed
     fetch(`/${cur}:id2path`, {
         method: 'POST',
-        body: JSON.stringify(p),
+        body: JSON.stringify({ id: file_id }),
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
-    })
-    .then(function(response) {
-        if (response.ok) {
-            return response.json();
-        } else {
-            throw new Error('Request failed.');
-        }
-    })
-    .then(function(obj) {
-        var href = `${obj.path}`;
-        var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
-        console.log('Path retrieved:', encodedUrl);
-        // Path available if needed for other purposes
-    })
-    .catch(function(error) {
-        console.log('Path fetch error:', error);
-        // Modal already displayed, so error doesn't affect user
-    });
+    }).catch(error => console.log('Path fetch error:', error));
 }
+
 function get_file(path, file, callback) {
 	var key = "file_path_" + path + file['createdTime'];
 	var data = localStorage.getItem(key);
