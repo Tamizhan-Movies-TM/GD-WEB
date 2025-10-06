@@ -1168,35 +1168,33 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Fast Direct URL version - shows instantly, then updates with correct URL
+// Optimized version - same working URLs, instant opening
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
-    // Set title immediately
+    // Set title immediately (no "Loading...")
     var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
     $('#SearchModelLabel').html(title);
     
-    // Create temporary direct URL (for instant display)
-    const encodedFileId = encodeURIComponent(file_id);
-    const tempDirectUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
-
+    var p = {
+        id: file_id
+    };
+    
     // Function to check if browser is Chrome
     function isChromeBrowser() {
         return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
     }
     
-    // Function to open in Chrome
-    function getChromeOpenUrl(url) {
+    // Function to open in Chrome with the final URL
+    function getChromeOpenUrl(finalUrl) {
         if (/Android/i.test(navigator.userAgent)) {
-            // Android intent to open direct URL in Chrome
-            return `intent://${url.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+            return `intent://${finalUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
         } else {
-            // Use direct URL for desktop
-            return url;
+            return finalUrl;
         }
     }
     
-    // Generate file info content
+    // Generate file info content immediately
     let content = `
     <table class="table table-dark" style="margin-bottom: 0 !important;">
         <tbody>
@@ -1236,29 +1234,26 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         </tbody>
     </table>`;
     
-    // Create temporary Chrome button with temp URL
-    let chromeButtonHtml = `
-        <a href="${getChromeOpenUrl(tempDirectUrl)}" 
-           id="chrome-btn-link"
-           class="btn btn-primary d-flex align-items-center gap-2" 
-           target="_blank"
-           title="Open in Chrome">
-            <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            <span id="chrome-btn-text">𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)</span>
-        </a>`;
+    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
     
-    const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
+    // Show loading button while fetching the correct URL
+    const loadingButton = `
+        <button class="btn btn-primary d-flex align-items-center gap-2" disabled id="chrome-loading-btn">
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            𝗟𝗼𝗮𝗱𝗶𝗻𝗴...
+        </button>`;
     
-    // Show content immediately - no waiting!
+    // Display content immediately
     $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
+    $('#modal-body-space-buttons').html(loadingButton + close_btn);
     
     // Apply styles immediately
     $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
     $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
     
-    // Fetch the correct path from server and update button URL
-    var p = { id: file_id };
+    // Request the correct path from server
     fetch(`/${cur}:id2path`, {
         method: 'POST',
         body: JSON.stringify(p),
@@ -1274,23 +1269,41 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         }
     })
     .then(function(obj) {
-        // Get the correct URL from server response
+        // Get the correct path from server (exactly like original code)
         var href = `${obj.path}`;
         var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
         
-        // Build the final direct URL with proper path
-        const finalDirectUrl = `${window.location.origin}${encodedUrl}${can_preview ? '&a=view' : ''}`;
+        // Build the final working URL
+        const finalUrl = `${window.location.origin}${encodedUrl}`;
         
-        // Update the button with the correct URL
-        $('#chrome-btn-link').attr('href', getChromeOpenUrl(finalDirectUrl));
-        console.log('Updated with correct URL:', finalDirectUrl);
+        // Create Chrome button with the correct working URL
+        const chromeButtonHtml = `
+            <a href="${getChromeOpenUrl(finalUrl)}" 
+               class="btn btn-primary d-flex align-items-center gap-2" 
+               target="_blank"
+               title="Open in Chrome">
+                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
+                𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)
+            </a>`;
+        
+        // Update button with the working URL
+        $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
+        
+        console.log('Working URL ready:', finalUrl);
     })
     .catch(function(error) {
-        console.log('Path fetch error:', error);
-        // Button still works with temp URL if path fetch fails
+        console.log(error);
+        
+        // Show error state button
+        const errorButton = `
+            <button class="btn btn-secondary d-flex align-items-center gap-2" disabled>
+                <i class="fa-solid fa-exclamation-triangle"></i>
+                𝗘𝗿𝗿𝗼𝗿 𝗹𝗼𝗮𝗱𝗶𝗻𝗴 𝗹𝗶𝗻𝗸
+            </button>`;
+        
+        $('#modal-body-space-buttons').html(errorButton + close_btn);
     });
 }
-
 function get_file(path, file, callback) {
 	var key = "file_path_" + path + file['createdTime'];
 	var data = localStorage.getItem(key);
