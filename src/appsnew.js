@@ -1278,7 +1278,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     // Create Chrome button HTML with appropriate link text
     const chromeButtonHtml = `
         <a href="${getChromeOpenUrl()}" 
-           class="btn btn-primary d-flex align-items-center gap-2" 
+           class="btn btn-info d-flex align-items-center gap-2" 
            target="_blank"
            title="Open in Chrome">
             <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
