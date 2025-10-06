@@ -1104,14 +1104,17 @@ function append_search_result_to_list(files) {
 			is_file = true;
 			totalsize += Number(item.size || 0);
 			
+			// IMPORTANT: Create a copy for onclick to preserve original data
+			const itemForClick = {...item};
+			
+			// Format display values (don't modify original item)
 			const createdTime = utc2jakarta(item.createdTime || '');
-			const size = formatFileSize(item.size) || '—';
-			const md5 = item.md5Checksum || '—';
+			const displaySize = formatFileSize(item.size) || '—';
 			const ext = item.fileExtension;
 			const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
 			
-			// Escape JSON more efficiently
-			const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
+			// Escape JSON with original unmodified data
+			const itemJson = JSON.stringify(itemForClick).replace(/"/g, '&quot;');
 			const icon = getIcon(ext, item.mimeType, item.iconLink);
 			
 			// Build HTML in one go (faster than multiple concatenations)
@@ -1122,7 +1125,7 @@ function append_search_result_to_list(files) {
 				icon,
 				`</span>${item.name}</a>`,
 				UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${createdTime}</span>` : '',
-				UI.display_size ? `<span class="badge bg-primary my-1 ${size === '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">${size}</span>` : '',
+				UI.display_size ? `<span class="badge bg-primary my-1 ${displaySize === '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">${displaySize}</span>` : '',
 				`<span class="d-flex gap-2">`,
 				UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : '',
 				`</span></div>`
