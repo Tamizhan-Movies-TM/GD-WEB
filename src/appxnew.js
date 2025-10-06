@@ -1168,26 +1168,17 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Modified onSearchResultItemClick function
+// Fast Direct URL version - optimized for instant opening
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
-    var title = `Loading...`;
-    $('#SearchModelLabel').html(title);
-    var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
-    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
-    $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(close_btn);
-    var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
-    var p = {
-        id: file_id
-    };
     
-    // Create the direct URL with proper encoding of the file_id
-    const encodedFileId = (file_id);
+    // Set title immediately
+    var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
+    $('#SearchModelLabel').html(title);
+    
+    // Create the direct URL with proper encoding
+    const encodedFileId = encodeURIComponent(file_id);
     const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
-
-    // Use direct URL instead of GPLinks API
-    const shortUrl = directUrl;
 
     // Function to check if browser is Chrome
     function isChromeBrowser() {
@@ -1204,8 +1195,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             return directUrl;
         }
     }
-        
-   content = `
+    
+    // Generate file info content
+    let content = `
     <table class="table table-dark" style="margin-bottom: 0 !important;">
         <tbody>
             <tr>
@@ -1229,6 +1221,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 </th>
                 <td>${file['mimeType']}</td>
             </tr>`;
+    
     if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
         content += `
             <tr>
@@ -1242,59 +1235,53 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     content += `
         </tbody>
     </table>`;
-	
+    
     // Create Chrome button HTML with direct URL
     const chromeButtonHtml = `
         <a href="${getChromeOpenUrl()}" 
            class="btn btn-primary d-flex align-items-center gap-2" 
            target="_blank"
-           title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲">
+           title="Open in Chrome">
             <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)  
+            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)
         </a>`;
     
-    // Request a path
+    const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
+    
+    // Show content immediately - no waiting!
+    $('#modal-body-space').html(content);
+    $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
+    
+    // Apply styles immediately
+    $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
+    $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
+    
+    // Fetch path in background (non-blocking, optional)
+    var p = { id: file_id };
     fetch(`/${cur}:id2path`, {
-            method: 'POST',
-            body: JSON.stringify(p),
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        })
-        .then(function(response) {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('Request failed.');
-            }
-        })
-        .then(function(obj) {
-            var href = `${obj.path}`;
-            var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
-            $('#SearchModelLabel').html(title);
-            
-            btn = chromeButtonHtml + close_btn;
-            
-            $('#modal-body-space').html(content);
-            $('#modal-body-space-buttons').html(btn);
-            
-            // Remove all gaps between modal body and footer
-            $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
-            $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
-        })
-        .catch(function(error) {
-            console.log(error);
-            $('#SearchModelLabel').html(title);
-            
-            btn = chromeButtonHtml + close_btn;
-            
-            $('#modal-body-space').html(content);
-            $('#modal-body-space-buttons').html(btn);
-            
-            // Remove all gaps between modal body and footer
-            $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important;');
-            $('#modal-body-space-buttons').attr('style', 'padding-top: 0 !important; margin-top: 0 !important;');
-        });
+        method: 'POST',
+        body: JSON.stringify(p),
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    })
+    .then(function(response) {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Request failed.');
+        }
+    })
+    .then(function(obj) {
+        var href = `${obj.path}`;
+        var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+        console.log('Path retrieved:', encodedUrl);
+        // Path is available if needed for future use
+    })
+    .catch(function(error) {
+        console.log('Path fetch error:', error);
+        // Modal already displayed, so error doesn't affect user experience
+    });
 }
 
 function get_file(path, file, callback) {
