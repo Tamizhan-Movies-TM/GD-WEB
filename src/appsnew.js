@@ -1170,74 +1170,31 @@ function append_search_result_to_list(files) {
 
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
-    var title = `Loading...`;
-    $('#SearchModelLabel').html(title);
-    var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
-    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
-    $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(close_btn);
-    var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
-    var p = {
-        id: file_id
-    };
     
-    // Create the direct URL
+    // Set title immediately
+    var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
+    $('#SearchModelLabel').html(title);
+    
+    // Create the direct URL immediately
     const encodedFileId = encodeURIComponent(file_id);
     const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
-
-    // Generate short URL using worker endpoint
-    let shortUrl = directUrl; // Fallback to direct URL
-    let useGPLinks = false;
-    
-    try {
-        console.log('GPLinks - Requesting short URL from worker...');
-        
-        // Call worker endpoint
-        const response = await fetch('/generate-gplinks', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                url: directUrl
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.success && data.short_url) {
-            shortUrl = data.short_url;
-            useGPLinks = true;
-            console.log('GPLinks - Generated short URL:', shortUrl);
-        } else {
-            throw new Error(data.error || 'Failed to generate short URL');
-        }
-    } catch (error) {
-        console.error('GPLinks error:', error);
-        // Continue with direct URL as fallback
-    }
     
     // Function to check if browser is Chrome
     function isChromeBrowser() {
         return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
     }
     
-    // Function to open in Chrome - use the appropriate URL
-    function getChromeOpenUrl() {
+    // Function to get Chrome open URL
+    function getChromeOpenUrl(url) {
         if (/Android/i.test(navigator.userAgent)) {
-            // Android intent
-            return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+            return `intent://${url.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
         } else {
-            // Desktop
-            return shortUrl;
+            return url;
         }
     }
     
-    content = `
+    // Generate file info content immediately
+    let content = `
     <table class="table table-dark" style="margin-bottom: 0 !important;">
         <tbody>
             <tr>
@@ -1261,6 +1218,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 </th>
                 <td>${file['mimeType']}</td>
             </tr>`;
+    
     if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
         content += `
             <tr>
@@ -1275,58 +1233,86 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         </tbody>
     </table>`;
     
-    // Create Chrome button HTML with appropriate link text
-    const chromeButtonHtml = `
-        <a href="${getChromeOpenUrl()}" 
+    // Create initial button with direct URL (instant display)
+    let chromeButtonHtml = `
+        <a href="${getChromeOpenUrl(directUrl)}" 
+           id="chrome-open-btn"
            class="btn btn-info d-flex align-items-center gap-2" 
            target="_blank"
            title="Open in Chrome">
             <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (GPLinks)
+            <span id="chrome-btn-text">𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲</span>
         </a>`;
     
-    // Request a path
-    fetch(`/${cur}:id2path`, {
-            method: 'POST',
-            body: JSON.stringify(p),
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
+    const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
+    
+    // Show modal content immediately
+    $('#modal-body-space').html(content);
+    $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
+    
+    // Style adjustments
+    $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
+    $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
+    
+    // Now generate GPLinks URL in the background (non-blocking)
+    generateGPLinksAsync(directUrl);
+    
+    // Async function to generate GPLinks without blocking UI
+    async function generateGPLinksAsync(url) {
+        try {
+            console.log('GPLinks - Requesting short URL from worker...');
+            
+            const response = await fetch('/generate-gplinks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: url })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        })
-        .then(function(response) {
+            
+            const data = await response.json();
+            
+            if (data.success && data.short_url) {
+                console.log('GPLinks - Generated short URL:', data.short_url);
+                
+                // Update button with short URL
+                const newUrl = getChromeOpenUrl(data.short_url);
+                $('#chrome-open-btn').attr('href', newUrl);
+                $('#chrome-btn-text').text('𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (GPLinks)');
+            }
+        } catch (error) {
+            console.error('GPLinks error:', error);
+            // Keep using direct URL - already set
+        }
+    }
+    
+    // Optional: If you still need the path for something, fetch it in background
+    // This runs in parallel with GPLinks and doesn't block the UI
+    fetchPathAsync();
+    
+    async function fetchPathAsync() {
+        try {
+            const response = await fetch(`/${cur}:id2path`, {
+                method: 'POST',
+                body: JSON.stringify({ id: file_id }),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+            
             if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('Request failed.');
+                const obj = await response.json();
+                console.log('Path fetched:', obj.path);
+                // Use the path if needed for something else
             }
-        })
-        .then(function(obj) {
-            var href = `${obj.path}`;
-            var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
-            $('#SearchModelLabel').html(title);
-            
-            btn = chromeButtonHtml + close_btn;
-            
-            $('#modal-body-space').html(content);
-            $('#modal-body-space-buttons').html(btn);
-            
-            // Remove all gaps between modal body and footer
-            $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
-            $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
-        })
-        .catch(function(error) {
-            console.log(error);
-            $('#SearchModelLabel').html(title);
-            
-            btn = chromeButtonHtml + close_btn;
-            
-            $('#modal-body-space').html(content);
-            $('#modal-body-space-buttons').html(btn);
-            
-            // Remove all gaps between modal body and footer
-            $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important;');
-            $('#modal-body-space-buttons').attr('style', 'padding-top: 0 !important; margin-top: 0 !important;');
-        });
+        } catch (error) {
+            console.log('Path fetch error:', error);
+        }
+    }
 }
 
 function get_file(path, file, callback) {
