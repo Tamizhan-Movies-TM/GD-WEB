@@ -1302,7 +1302,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // Modal already displayed, so error doesn't affect user
     });
 }
-
 function get_file(path, file, callback) {
 	var key = "file_path_" + path + file['createdTime'];
 	var data = localStorage.getItem(key);
