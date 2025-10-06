@@ -944,131 +944,125 @@ function render_search_result_list() {
 			${searchBar}
 		</div>
 		<div id="list" class="list-group list-group-flush text-break">
+			<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>
 		</div>
 		<div class="card-footer text-muted d-flex align-items-center gap-2" id="count"><span class="number badge text-bg-dark">0 item</span><span class="totalsize badge text-bg-dark"></span></div>
 	</div>
 	<div id="readme_md" style="display:none; padding: 20px 20px;"></div>`;
+	
 	$('#content').html(content);
+	$('#readme_md').hide();
+	$('#head_md').hide();
 
-	$('#list').html(`<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`);
-	$('#readme_md').hide().html('');
-	$('#head_md').hide().html('');
-
-	/**
-	 * Callback after successful search request returns data
-	 * The result returned by @param res (object)
-	 * @param path the requested path
-	 * @param prevReqParams parameters used in request
-	 */
-	function searchSuccessCallback(res, prevReqParams) {
-
-		// Temporarily store nextPageToken and currentPageIndex in the list element
-		$('#list')
-			.data('nextPageToken', res['nextPageToken'])
-			.data('curPageIndex', res['curPageIndex']);
-
-		// Remove loading spinner
-		$('#spinner').remove();
-
-		if (res['nextPageToken'] === null) {
-			// If it is the last page, unbind the scroll event, reset scroll_status, and append the data
-			$(window).off('scroll');
-			window.scroll_status.event_bound = false;
-			window.scroll_status.loading_lock = false;
-			append_search_result_to_list(res['data']['files']);
-		} else {
-			// If it is not the last page, append data and bind the scroll event (if not already bound), update scroll_status
-			append_search_result_to_list(res['data']['files']);
-			if (window.scroll_status.event_bound !== true) {
-				// Bind event, if not yet bound
-				$(window).on('scroll', function() {
-					var scrollTop = $(this).scrollTop();
-					var scrollHeight = getDocumentHeight();
-					var windowHeight = $(this).height();
-					// Roll to the bottom
-					if (scrollTop + windowHeight > scrollHeight - (Os.isMobile ? 130 : 80)) {
-						/*
-     When the event of scrolling to the bottom is triggered, if it is already loading at this time, the event is ignored;
-                 Otherwise, go to loading and occupy the loading lock, indicating that loading is in progress
-             */
-						if (window.scroll_status.loading_lock === true) {
-							return;
-						}
-						window.scroll_status.loading_lock = true;
-
-						// Show a loading spinner
-						$(`<div id="spinner" class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`)
+	// Fast scroll handler with passive event listener
+	let ticking = false;
+	function onScroll() {
+		if (!ticking) {
+			requestAnimationFrame(() => {
+				const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+				const scrollHeight = document.documentElement.scrollHeight;
+				const windowHeight = window.innerHeight;
+				
+				// Preload at 400px from bottom
+				if (scrollTop + windowHeight > scrollHeight - 400) {
+					if (window.scroll_status.loading_lock) return;
+					
+					window.scroll_status.loading_lock = true;
+					const $list = $('#list');
+					const nextToken = $list.data('nextPageToken');
+					const curIndex = $list.data('curPageIndex');
+					
+					if (nextToken) {
+						$(`<div id="spinner" class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status"><span class="sr-only"></span></div></div>`)
 							.insertBefore('#readme_md');
-
-						let $list = $('#list');
+						
 						requestSearch({
-								q: window.MODEL.q,
-								page_token: $list.data('nextPageToken'),
-								// Request next page
-								page_index: $list.data('curPageIndex') + 1
-							},
-							searchSuccessCallback
-						)
+							q: window.MODEL.q,
+							page_token: nextToken,
+							page_index: curIndex + 1
+						}, searchSuccessCallback);
 					}
-				});
-				window.scroll_status.event_bound = true
-			}
-		}
-
-		// After loading successfully and rendering new data successfully, release the loading lock so that you can continue to process the "scroll to bottom" event
-		if (window.scroll_status.loading_lock === true) {
-			window.scroll_status.loading_lock = false
+				}
+				ticking = false;
+			});
+			ticking = true;
 		}
 	}
 
-	// Start requesting data from page 1
-	requestSearch({
-		q: window.MODEL.q
-	}, searchSuccessCallback);
+	/**
+	 * Fast callback for search results
+	 */
+	function searchSuccessCallback(res, prevReqParams) {
+		const $list = $('#list');
+		
+		// Store pagination data
+		$list.data('nextPageToken', res['nextPageToken'])
+			 .data('curPageIndex', res['curPageIndex']);
 
-	const copyBtn = document.getElementById("handle-multiple-items-copy");
+		// Remove spinner instantly
+		$('#spinner').remove();
 
-	// Add a click event listener to the copy button
-	copyBtn.addEventListener("click", () => {
-		// Get all the checked checkboxes
-		const checkedItems = document.querySelectorAll('input[type="checkbox"]:checked');
-
-		// Create an array to store the selected items' data
-		const selectedItemsData = [];
-    if (checkedItems.length === 0) {
-      alert("No items selected!");
-      return;
-    }
-		// Loop through each checked checkbox
-		checkedItems.forEach((item) => {
-			// Get the value of the checkbox (in this case, the URL)
-			const itemData = item.value;
-			// Push the value to the array
-			selectedItemsData.push(itemData);
+		// Fast render with requestAnimationFrame
+		requestAnimationFrame(() => {
+			append_search_result_to_list(res['data']['files']);
 		});
 
-		// Join the selected items' data with a newline character
-		const dataToCopy = selectedItemsData.join("\n");
+		// Setup scroll only once
+		if (!window.scroll_status.event_bound && res['nextPageToken']) {
+			window.addEventListener('scroll', onScroll, { passive: true });
+			window.scroll_status.event_bound = true;
+		} else if (!res['nextPageToken']) {
+			window.removeEventListener('scroll', onScroll);
+			window.scroll_status.event_bound = false;
+		}
 
-		// Create a temporary input element
-		const tempInput = document.createElement("textarea");
-		tempInput.value = dataToCopy;
+		window.scroll_status.loading_lock = false;
+	}
 
-		// Add the temporary input element to the document
-		document.body.appendChild(tempInput);
+	// Initialize scroll status
+	window.scroll_status = window.scroll_status || { 
+		event_bound: false, 
+		loading_lock: false 
+	};
 
-		// Select the text inside the temporary input element
-		tempInput.select();
+	// Start first request immediately
+	requestSearch({ q: window.MODEL.q }, searchSuccessCallback);
 
-		// Copy the selected text to the clipboard
-		document.execCommand("copy");
+	// Fast copy handler with modern API
+	document.getElementById("handle-multiple-items-copy").addEventListener("click", () => {
+		const checked = document.querySelectorAll('input[type="checkbox"]:checked');
+		
+		if (checked.length === 0) {
+			alert("No items selected!");
+			return;
+		}
 
-		// Remove the temporary input element from the document
-		document.body.removeChild(tempInput);
+		const data = Array.from(checked).map(cb => cb.value).join("\n");
 
-		// Alert the user that the data has been copied
-		alert("Selected items copied to clipboard!");
-	});
+		if (navigator.clipboard?.writeText) {
+			navigator.clipboard.writeText(data).then(() => {
+				alert("Selected items copied to clipboard!");
+			}).catch(() => {
+				const el = document.createElement("textarea");
+				el.value = data;
+				el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+				document.body.appendChild(el);
+				el.select();
+				document.execCommand("copy");
+				document.body.removeChild(el);
+				alert("Selected items copied to clipboard!");
+			});
+		} else {
+			const el = document.createElement("textarea");
+			el.value = data;
+			el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+			document.body.appendChild(el);
+			el.select();
+			document.execCommand("copy");
+			document.body.removeChild(el);
+			alert("Selected items copied to clipboard!");
+		}
+	}, { passive: true });
 }
 
 /**
@@ -1190,19 +1184,13 @@ function parseFileSize(sizeStr) {
     return value * (units[unit] || 0);
 }
 
-// Modified onSearchResultItemClick function
+// Optimized onSearchResultItemClick function
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
-    var title = `Loading...`;
-    $('#SearchModelLabel').html(title);
-    var content = `<div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div>`;
-    var close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
-    $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(close_btn);
+    
+    // Set title immediately
     var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
-    var p = {
-        id: file_id
-    };
+    $('#SearchModelLabel').html(title);
     
     // Create the direct URL
     const encodedFileId = encodeURIComponent(file_id);
@@ -1211,57 +1199,19 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     // Parse file size to determine if we should use GPLinks
     const fileSizeInBytes = parseFileSize(file['size']);
     const fileSizeInGB = fileSizeInBytes / (1024 * 1024 * 1024);
+    const shouldUseGPLinks = fileSizeInGB > 1; // Use GPLinks only for files ABOVE 1GB
     
-    let shortUrl;
-    let useGPLinks = fileSizeInGB > 1; // Use GPLinks only for files ABOVE 1GB
-    
-    if (useGPLinks) {
-        try {
-            // Use GPLinks API for files 1GB and above
-            const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
-            const encodedUrl = encodeURIComponent(directUrl);
-            const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&format=text`;
-            
-            const response = await fetch(gplinksApiUrl);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            shortUrl = await response.text();
-            
-            // Validate that we got a proper URL
-            if (!shortUrl.startsWith('http')) {
-                throw new Error("Invalid response from GPLinks API");
-            }
-        } catch (error) {
-            console.error('Error generating short URL:', error);
-            // Fallback to direct URL if GPLinks fails
-            shortUrl = directUrl;
-            useGPLinks = false;
-        }
-    } else {
-        // Use direct URL for files below 1GB
-        shortUrl = directUrl;
-    }
-    
-    // Function to check if browser is Chrome
-    function isChromeBrowser() {
-        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    }
-    
-    // Function to open in Chrome - use the appropriate URL
-    function getChromeOpenUrl() {
+    // Function to get Chrome open URL
+    function getChromeOpenUrl(url) {
         if (/Android/i.test(navigator.userAgent)) {
-            // Android intent
-            return `intent://${shortUrl.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+            return `intent://${url.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
         } else {
-            // Desktop
-            return shortUrl;
+            return url;
         }
     }
     
-    content = `
+    // Generate file info content
+    let content = `
     <table class="table table-dark" style="margin-bottom: 0 !important;">
         <tbody>
             <tr>
@@ -1285,6 +1235,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 </th>
                 <td>${file['mimeType']}</td>
             </tr>`;
+    
     if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
         content += `
             <tr>
@@ -1299,59 +1250,95 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         </tbody>
     </table>`;
     
-    // Create Chrome button HTML with appropriate link text
-    const linkType = useGPLinks ? 'GPLinks' : 'Direct';
+    const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
+    
+    // Show content with loading button immediately
+    const loadingButton = `
+        <button class="btn btn-primary d-flex align-items-center gap-2" disabled>
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            ${shouldUseGPLinks ? '𝗚𝗲𝗻𝗲𝗿𝗮𝘁𝗶𝗻𝗴 𝗚𝗣𝗟𝗶𝗻𝗸𝘀...' : '𝗣𝗿𝗲𝗽𝗮𝗿𝗶𝗻𝗴 𝗹𝗶𝗻𝗸...'}
+        </button>`;
+    
+    $('#modal-body-space').html(content);
+    $('#modal-body-space-buttons').html(loadingButton + close_btn);
+    
+    // Style adjustments
+    $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
+    $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
+    
+    // Generate URL based on file size
+    let finalUrl = directUrl;
+    let useGPLinks = false;
+    
+    if (shouldUseGPLinks) {
+        try {
+            console.log('Generating GPLinks URL for large file...');
+            
+            // Use GPLinks API for files 1GB and above with timeout
+            const apiToken = '6cc69a66b357fceecf9037342f4642688d617763';
+            const encodedUrl = encodeURIComponent(directUrl);
+            const gplinksApiUrl = `https://api.gplinks.com/api?api=${apiToken}&url=${encodedUrl}&format=text`;
+            
+            const fetchPromise = fetch(gplinksApiUrl);
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout')), 5000)
+            );
+            
+            const response = await Promise.race([fetchPromise, timeoutPromise]);
+            
+            if (response.ok) {
+                const shortUrl = await response.text();
+                
+                // Validate that we got a proper URL
+                if (shortUrl.startsWith('http')) {
+                    finalUrl = shortUrl;
+                    useGPLinks = true;
+                    console.log('GPLinks URL generated successfully');
+                } else {
+                    throw new Error("Invalid response from GPLinks API");
+                }
+            }
+        } catch (error) {
+            console.error('Error generating GPLinks URL:', error);
+            // Fallback to direct URL if GPLinks fails
+        }
+    }
+    
+    // Create final button with the URL
+    const linkType = useGPLinks ? '(GPLinks)' : shouldUseGPLinks ? '(Direct - Fallback)' : '(Direct)';
     const chromeButtonHtml = `
-        <a href="${getChromeOpenUrl()}" 
+        <a href="${getChromeOpenUrl(finalUrl)}" 
            class="btn btn-primary d-flex align-items-center gap-2" 
            target="_blank"
-           title="Open in Chrome (${linkType})">
+           title="Open in Chrome ${linkType}">
             <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 ${fileSizeInGB > 1 ? '(GPLinks)' : '(Direct)'}
+            𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 ${linkType}
         </a>`;
     
-    // Request a path
+    // Update button with final URL
+    $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
+    
+    // Optional: Fetch path in background if needed
     fetch(`/${cur}:id2path`, {
-            method: 'POST',
-            body: JSON.stringify(p),
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        })
-        .then(function(response) {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('Request failed.');
-            }
-        })
-        .then(function(obj) {
-            var href = `${obj.path}`;
-            var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
-            $('#SearchModelLabel').html(title);
-            
-            btn = chromeButtonHtml + close_btn;
-            
-            $('#modal-body-space').html(content);
-            $('#modal-body-space-buttons').html(btn);
-            
-            // Remove all gaps between modal body and footer
-            $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
-            $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
-        })
-        .catch(function(error) {
-            console.log(error);
-            $('#SearchModelLabel').html(title);
-            
-            btn = chromeButtonHtml + close_btn;
-            
-            $('#modal-body-space').html(content);
-            $('#modal-body-space-buttons').html(btn);
-            
-            // Remove all gaps between modal body and footer
-            $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important;');
-            $('#modal-body-space-buttons').attr('style', 'padding-top: 0 !important; margin-top: 0 !important;');
-        });
+        method: 'POST',
+        body: JSON.stringify({ id: file_id }),
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    }).then(function(response) {
+        if (response.ok) {
+            return response.json();
+        }
+    }).then(function(obj) {
+        if (obj && obj.path) {
+            console.log('Path retrieved:', obj.path);
+            // Use path if needed for something
+        }
+    }).catch(function(error) {
+        console.log('Path fetch error:', error);
+    });
 }
 
 function get_file(path, file, callback) {
