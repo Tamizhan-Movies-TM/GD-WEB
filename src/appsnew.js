@@ -420,7 +420,7 @@ function list(path, id = '', fallback = false) {
 	var folder_name = !fallback ? decodeURIComponent(path.split('/').filter(Boolean).pop()) : 'Files';
 	var folder_ico = folder_icon;
 	if (folder_name === cur + ':') {
-		folder_ico = folder_icon';
+		folder_ico = '<i class="fa-solid fa-folder-user"></i>';
 		folder_name = drive_name;
 	}
 	var containerContent = `
