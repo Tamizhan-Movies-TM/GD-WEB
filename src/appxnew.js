@@ -27,7 +27,7 @@ function init() {
         <i class="fa-solid fa-money-check-dollar"></i>Click Here To Payment </a>
         <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
         <div style="padding-bottom: 1rem;">Thank you very much ❤</div> 
-        <img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
+        <img alt="Love" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/love.png">
 	       </div>
 					</div>
           </div>
@@ -40,16 +40,16 @@ function init() {
             </div>
             <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
 					<a href="https://cutt.ly/zrMe2JpH" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪜⅈꫀડ">
-						<img class="image" alt="tamizhan" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/tm-icon.png">
+						<img class="image" alt="tamizhan" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tm-icon.png">
 					</a>
 					<a href="https://cutt.ly/ZrBTy6LJ" target="_blank" title="Hollywood Tamizhan Movies">
-						<img class="image" alt="Movies" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/htm-icon.png">
+						<img class="image" alt="Movies" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/htm-icon.png">
 					</a>
 		       <a href="https://cutt.ly/irMe1nkm" target="_blank" title="Tamizhan Web Series">
-						<img class="image" alt="Series" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/tws-icon.png">
+						<img class="image" alt="Series" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tws-icon.png">
 					</a>
 					<a href="https://cutt.ly/ZrMe1emr" target="_blank" title="Tamizhan Movies Backup">
-						<img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/telegram.png">
+						<img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/telegram.png">
 					</a>
           </div> 
           	</div>
@@ -80,7 +80,7 @@ function init() {
       <i class="fa-brands fa-pied-piper-alt"></i> ${new Date().getFullYear()} - <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
 	    </div>
       <div class="col-lg-4 col-md-12">
-      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> 
+      <a href="https://cutt.ly/cr9jPsvc" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> 
       ${UI.credit ? '<span>© All Copy Rights Reserved ®™</span>' : ''}
       </div>
        <div class="col-lg-4 col-md-12 text-lg-end">
@@ -1480,7 +1480,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 					</div>
 				</div>` : `
 				<div class="h-100 border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;">
-					<span><img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/zip-icon.png" alt="Zip Icon" style="max-width: 200px; height: auto; object-fit: contain;"></span>
+					<span><img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/zip-icon.png" alt="Zip Icon" style="max-width: 200px; height: auto; object-fit: contain;"></span>
 					<span><a href="https://telegram.me/tamizhan_updates/51" target="_blank" style="text-decoration: none; color: #00d4ff;">👉🏻 How to Extract Zip file ✅</a></span>
 				</div>`}
 			</div>
@@ -1763,11 +1763,11 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   // Document display video  mkv|mp4|webm|avi| 
    function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	 // Define all player icons
-    const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
-    const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
+    const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
 		 var url_base64 = btoa(url);
 	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 	  let player
