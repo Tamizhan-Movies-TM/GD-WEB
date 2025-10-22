@@ -208,7 +208,7 @@ strong {
         <div class="donate btn p-0">
 	       <a class="btn" href="https://t.me/tamizhan_updates/266" title="Watch Video Clearly" target="_blank">
          <strong>
-             <i class="fa-solid fa-eye"></i> WATCH VIDEO
+             <i class="fa-solid fa-eye"></i>WATCH VIDEO
          </strong>
          <div id="container-stars">
              <div id="stars"></div>
