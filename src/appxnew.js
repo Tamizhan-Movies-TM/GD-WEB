@@ -23,7 +23,7 @@ function init() {
         </div>
         <div class="card-body d-flex align-items-center justify-content-center">
         <div class="donate btn p-0">
-	       <a class="btn" href="https://t.me/tamizhan_updates/266" title="Watch Video Clearly" style="background: #FF00FF;" target="_blank">
+	       <a class="btn" href="https://t.me/tamizhan_updates/266" title="Watch Video Clearly" style="background: #32CD32;" target="_blank">
          <i class="fa-brands fa-telegram"></i>&nbsp; Click Here To Watch Video </a>
          <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
          <div style="padding-bottom: 1rem;">3 Step-by-step guide 🎬</div> 
