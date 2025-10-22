@@ -19,15 +19,15 @@ function init() {
      <div class="col-lg-6 col-md-12">
         <div class="card text-white mb-3 h-100">
 	      <div class="card-header">
-        <i class="fa-solid fa-hand-holding-dollar"></i>Donate:&nbsp;&nbsp;₹&nbsp;5
+        <i class="fa-solid fa-circle-question"></i> How to Download Movies?
         </div>
         <div class="card-body d-flex align-items-center justify-content-center">
         <div class="donate btn p-0">
-	       <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
-        <i class="fa-solid fa-money-check-dollar"></i>Click Here To Payment </a>
+	       <a class="btn" href="https://t.me/tamizhan_updates/266" title="Watch Tutorial!" style="background: #3B556E;" target="_blank">
+        <i class="fa-brands fa-telegram"></i> Watch Video Tutorial </a>
         <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
-        <div style="padding-bottom: 1rem;">Thank you very much ❤</div> 
-        <img alt="Love" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/love.png">
+        <div style="padding-bottom: 1rem;">Step-by-step guide 🎬</div> 
+        <img alt="Tutorial" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/love.png">
 	       </div>
 					</div>
           </div>
