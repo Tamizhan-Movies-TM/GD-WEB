@@ -8,6 +8,189 @@ function init() {
    <div id="nav">
    </div>
 </header>
+<style>
+.donate .btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 13rem;
+    overflow: hidden;
+    height: 3rem;
+    background-size: 300% 300%;
+    cursor: pointer;
+    backdrop-filter: blur(1rem);
+    border-radius: 5rem;
+    transition: 0.5s;
+    animation: gradient_301 5s ease infinite;
+    border: double 4px transparent;
+    background-image: linear-gradient(#212121, #212121),
+        linear-gradient(
+            137.48deg,
+            #ffdb3b 10%,
+            #fe53bb 45%,
+            #8f51ea 67%,
+            #0044ff 87%
+        );
+    background-origin: border-box;
+    background-clip: content-box, border-box;
+    text-decoration: none;
+    position: relative;
+}
+
+#container-stars {
+    position: absolute;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    transition: 0.5s;
+    backdrop-filter: blur(1rem);
+    border-radius: 5rem;
+}
+
+strong {
+    z-index: 2;
+    font-family: "Avalors Personal Use", sans-serif;
+    font-size: 12px;
+    letter-spacing: 5px;
+    color: #ffffff;
+    text-shadow: 0 0 4px white;
+}
+
+#glow {
+    position: absolute;
+    display: flex;
+    width: 12rem;
+}
+
+.circle {
+    width: 100%;
+    height: 30px;
+    filter: blur(2rem);
+    animation: pulse_3011 4s infinite;
+    z-index: -1;
+}
+
+.circle:nth-of-type(1) {
+    background: rgba(254, 83, 186, 0.636);
+}
+
+.circle:nth-of-type(2) {
+    background: rgba(142, 81, 234, 0.704);
+}
+
+.donate .btn:hover #container-stars {
+    z-index: 1;
+    background-color: #212121;
+}
+
+.donate .btn:hover {
+    transform: scale(1.1);
+}
+
+.donate .btn:active {
+    border: double 4px #fe53bb;
+    background-origin: border-box;
+    background-clip: content-box, border-box;
+    animation: none;
+}
+
+.donate .btn:active .circle {
+    background: #fe53bb;
+}
+
+#stars {
+    position: relative;
+    background: transparent;
+    width: 200rem;
+    height: 200rem;
+}
+
+#stars::after {
+    content: "";
+    position: absolute;
+    top: -10rem;
+    left: -100rem;
+    width: 100%;
+    height: 100%;
+    animation: animStarRotate 90s linear infinite;
+}
+
+#stars::after {
+    background-image: radial-gradient(#ffffff 1px, transparent 1%);
+    background-size: 50px 50px;
+}
+
+#stars::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -50%;
+    width: 170%;
+    height: 500%;
+    animation: animStar 60s linear infinite;
+}
+
+#stars::before {
+    background-image: radial-gradient(#ffffff 1px, transparent 1%);
+    background-size: 50px 50px;
+    opacity: 0.5;
+}
+
+@keyframes animStar {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-135rem);
+    }
+}
+
+@keyframes animStarRotate {
+    from {
+        transform: rotate(360deg);
+    }
+    to {
+        transform: rotate(0);
+    }
+}
+
+@keyframes gradient_301 {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes pulse_3011 {
+    0% {
+        transform: scale(0.75);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+    }
+    100% {
+        transform: scale(0.75);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+}
+
+.donate:hover .qrcode {
+    display: block;
+}
+
+.qrcode {
+    display: none;
+    margin-top: 1rem;
+}
+</style>
 <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
 <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
 	<div class="row align-items-start g-3">
@@ -19,42 +202,51 @@ function init() {
      <div class="col-lg-6 col-md-12">
         <div class="card text-white mb-3 h-100">
 	      <div class="card-header">
-        <i class="fa-solid fa-hand-holding-dollar"></i>Donate:&nbsp;&nbsp;₹&nbsp;5
+        <i class="fa-solid fa-circle-question"></i> How&nbsp; To&nbsp; Download&nbsp; Movies&nbsp; 🤔 
         </div>
         <div class="card-body d-flex align-items-center justify-content-center">
         <div class="donate btn p-0">
-	       <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
-        <i class="fa-solid fa-money-check-dollar"></i>Click Here To Payment </a>
-        <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
-        <div style="padding-bottom: 1rem;">Thank you very much ❤</div> 
-        <img alt="Love" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/love.png">
-	       </div>
-					</div>
-          </div>
-        	</div>
-           </div>
-           <div class="col-lg-6 col-md-12">
-          	<div class="card text-white mb-3 h-100">
-             <div class="card-header">
-             ${telegram_icon}&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
-            </div>
-            <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
-					<a href="https://cutt.ly/zrMe2JpH" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪜⅈꫀડ">
-						<img class="image" alt="tamizhan" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tm-icon.png">
-					</a>
-					<a href="https://cutt.ly/ZrBTy6LJ" target="_blank" title="Hollywood Tamizhan Movies">
-						<img class="image" alt="Movies" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/htm-icon.png">
-					</a>
-		       <a href="https://cutt.ly/irMe1nkm" target="_blank" title="Tamizhan Web Series">
-						<img class="image" alt="Series" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tws-icon.png">
-					</a>
-					<a href="https://cutt.ly/ZrMe1emr" target="_blank" title="Tamizhan Movies Backup">
-						<img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/telegram.png">
-					</a>
-          </div> 
-          	</div>
-        </div>
-    </div>	
+	       <a class="btn" href="https://t.me/tamizhan_updates/266" title="Watch Video Clearly" target="_blank">
+         <strong>
+             <i class="fa-solid fa-eye"></i>WATCH VIDEO
+         </strong>
+         <div id="container-stars">
+             <div id="stars"></div>
+         </div>
+         <div id="glow">
+             <div class="circle"></div>
+             <div class="circle"></div>
+         </div>
+       </a>
+       <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
+         <div style="padding-bottom: 1rem;">3 Step-by-step guide 🎬</div> 
+	     </div>
+		</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6 col-md-12">
+    <div class="card text-white mb-3 h-100">
+      <div class="card-header">
+        ${telegram_icon}&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
+      </div>
+      <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
+		<a href="https://cutt.ly/zrMe2JpH" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪜⅈꫀડ">
+			<img class="image" alt="tamizhan" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tm-icon.png">
+		</a>
+		<a href="https://cutt.ly/ZrBTy6LJ" target="_blank" title="Hollywood Tamizhan Movies">
+			<img class="image" alt="Movies" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/htm-icon.png">
+		</a>
+		<a href="https://cutt.ly/irMe1nkm" target="_blank" title="Tamizhan Web Series">
+			<img class="image" alt="Series" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tws-icon.png">
+		</a>
+		<a href="https://cutt.ly/ZrMe1emr" target="_blank" title="Tamizhan Movies Backup">
+			<img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/telegram.png">
+		</a>
+      </div> 
+    </div>
+  </div>
+</div>	
 </div>
 <div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
