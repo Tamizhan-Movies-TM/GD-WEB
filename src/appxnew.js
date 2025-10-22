@@ -202,7 +202,7 @@ strong {
      <div class="col-lg-6 col-md-12">
         <div class="card text-white mb-3 h-100">
 	      <div class="card-header">
-        <i class="fa-solid fa-circle-question"></i> How&nbsp; to&nbsp; Download&nbsp; Movies&nbsp; 🤔 
+        <i class="fa-solid fa-circle-question"></i> How&nbsp; To&nbsp; Download&nbsp; Movies&nbsp; 🤔 
         </div>
         <div class="card-body d-flex align-items-center justify-content-center">
         <div class="donate btn p-0">
