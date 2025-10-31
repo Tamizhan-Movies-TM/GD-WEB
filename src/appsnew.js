@@ -1354,7 +1354,7 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Modified onSearchResultItemClick function
+// Modified onSearchResultItemClick function - Always generates GPLinks
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
@@ -1415,7 +1415,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         </tbody>
     </table>`;
     
-    const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
+    const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
     
     // Show content with loading button immediately
     const loadingButton = `
@@ -1423,7 +1423,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             <div class="spinner-border spinner-border-sm" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            𝗚𝗲𝗻𝗲𝗿𝗮𝘁𝗶𝗻𝗴 𝗹𝗶𝗻𝗸...
+            Generating link...
         </button>`;
     
     $('#modal-body-space').html(content);
@@ -1433,43 +1433,57 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
     $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
     
-    // Generate GPLinks with timeout fallback
-    let finalUrl = directUrl;
-    let buttonLabel = '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲';
+    // Always generate GPLinks - no timeout, no fallback
+    let finalUrl = null;
+    let retries = 3;
+    let buttonLabel = 'Open in Chrome (GPLinks)';
     
-    try {
-        console.log('GPLinks - Requesting short URL from worker...');
-        
-        // Race between GPLinks fetch and 3-second timeout
-        const fetchPromise = fetch('/generate-gplinks', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ url: directUrl })
-        });
-        
-        const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 3000)
-        );
-        
-        const response = await Promise.race([fetchPromise, timeoutPromise]);
-        
-        if (response.ok) {
-            const data = await response.json();
+    while (retries > 0 && !finalUrl) {
+        try {
+            console.log(`GPLinks - Attempt ${4 - retries}/3 - Requesting short URL from worker...`);
             
-            if (data.success && data.short_url) {
-                finalUrl = data.short_url;
-                buttonLabel = '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (GPLinks)';
-                console.log('GPLinks - Generated short URL:', finalUrl);
+            const response = await fetch('/generate-gplinks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: directUrl })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                if (data.success && data.short_url) {
+                    finalUrl = data.short_url;
+                    console.log('GPLinks - Generated short URL:', finalUrl);
+                    break;
+                }
+            }
+            
+            retries--;
+            if (retries > 0) {
+                console.log(`GPLinks - Retry ${4 - retries}/3 in 2 seconds...`);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+        } catch (error) {
+            console.error('GPLinks attempt error:', error);
+            retries--;
+            if (retries > 0) {
+                console.log(`GPLinks - Retry ${4 - retries}/3 in 2 seconds...`);
+                await new Promise(resolve => setTimeout(resolve, 2000));
             }
         }
-    } catch (error) {
-        console.error('GPLinks error or timeout:', error);
-        // Will use direct URL as fallback
     }
     
-    // Create final button with the URL (GPLinks or direct as fallback)
+    // If we still don't have a link, show error
+    if (!finalUrl) {
+        console.error('GPLinks - Failed after 3 attempts');
+        const errorButton = `<button class="btn btn-danger" disabled>Failed to generate GPLinks link</button>`;
+        $('#modal-body-space-buttons').html(errorButton + close_btn);
+        return;
+    }
+    
+    // Create final button with the GPLinks URL
     const chromeButtonHtml = `
         <a href="${getChromeOpenUrl(finalUrl)}" 
            class="btn btn-info d-flex align-items-center gap-2" 
