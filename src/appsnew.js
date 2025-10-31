@@ -1,4 +1,5 @@
 
+
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
 // v2.3.6
 // Initialize the page
@@ -1415,7 +1416,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         </tbody>
     </table>`;
     
-    const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
+    const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
     
     // Show content with loading button immediately
     const loadingButton = `
@@ -1436,7 +1437,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     // Always generate GPLinks - no timeout, no fallback
     let finalUrl = null;
     let retries = 3;
-    let buttonLabel = 'Open in Chrome (GPLinks)';
+    let buttonLabel = '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (GPLinks)';
     
     while (retries > 0 && !finalUrl) {
         try {
