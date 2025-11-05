@@ -145,6 +145,16 @@ function init() {
     display: none;
 }
 
+.success-message {
+    background: rgba(40, 167, 69, 0.1);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 20px;
+    color: #28a745;
+    display: none;
+}
+
 .donate .btn {
     display: flex;
     justify-content: center;
@@ -336,11 +346,12 @@ strong {
         </button>
         
         <div class="form-header">
-            <h2 class="modal-title">Welcome Back</h2>
-            <p class="modal-subtitle">Sign in to access premium content</p>
+            <h2 class="modal-title" id="modalTitle">Welcome Back</h2>
+            <p class="modal-subtitle" id="modalSubtitle">Sign in to access premium content</p>
         </div>
         
         <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
         
         <form id="loginForm">
             <div class="form-group">
@@ -373,6 +384,12 @@ strong {
                 <i class="fas fa-sign-in-alt"></i> Sign In
             </button>
         </form>
+        
+        <div id="logoutSection" style="display: none; text-align: center; margin-top: 20px;">
+            <button class="submit-btn" id="logoutBtn" style="background: #dc3545;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
     </div>
 </div>
 
@@ -498,10 +515,85 @@ function initializeLoginModal() {
     const closeModalBtn = document.getElementById('closeModal');
     const loginForm = document.getElementById('loginForm');
     const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
     const submitBtn = document.getElementById('submitBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutSection = document.getElementById('logoutSection');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSubtitle = document.getElementById('modalSubtitle');
+
+    // Check if user is already logged in
+    function checkLoginStatus() {
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const username = localStorage.getItem('username');
+        
+        if (isLoggedIn && username) {
+            updateUIForLoggedInUser(username);
+        } else {
+            updateUIForLoggedOutUser();
+        }
+    }
+
+    // Update UI when user is logged in
+    function updateUIForLoggedInUser(username) {
+        // Update navbar login button to show username and logout option
+        const loginNavItem = document.querySelector('a[href="#"].nav-link');
+        if (loginNavItem) {
+            loginNavItem.innerHTML = `<i class="fa-solid fa-user fa-fw"></i> ${username}`;
+            loginNavItem.style.cursor = 'default';
+            loginNavItem.removeAttribute('id');
+            
+            // Add logout option to navbar
+            if (!document.getElementById('logoutNavItem')) {
+                const logoutNavItem = document.createElement('li');
+                logoutNavItem.className = 'nav-item';
+                logoutNavItem.id = 'logoutNavItem';
+                logoutNavItem.innerHTML = `
+                    <a class="nav-link" href="#" id="logoutNavLink" style="cursor: pointer;">
+                        <i class="fas fa-sign-out-alt fa-fw"></i> Logout
+                    </a>
+                `;
+                loginNavItem.parentNode.parentNode.appendChild(logoutNavItem);
+                
+                // Add logout event listener
+                document.getElementById('logoutNavLink').addEventListener('click', handleLogout);
+            }
+        }
+        
+        // Update modal for logged in state
+        modalTitle.textContent = `Welcome, ${username}!`;
+        modalSubtitle.textContent = 'You are successfully logged in';
+        loginForm.style.display = 'none';
+        logoutSection.style.display = 'block';
+    }
+
+    // Update UI when user is logged out
+    function updateUIForLoggedOutUser() {
+        // Update navbar login button
+        const loginNavItem = document.querySelector('a.nav-link[style*="cursor: pointer"]');
+        if (loginNavItem) {
+            loginNavItem.innerHTML = `<i class="fa-solid fa-user fa-fw"></i> Login`;
+            loginNavItem.id = 'openLoginModal';
+            loginNavItem.style.cursor = 'pointer';
+        }
+        
+        // Remove logout option from navbar
+        const logoutNavItem = document.getElementById('logoutNavItem');
+        if (logoutNavItem) {
+            logoutNavItem.remove();
+        }
+        
+        // Update modal for logged out state
+        modalTitle.textContent = 'Welcome Back';
+        modalSubtitle.textContent = 'Sign in to access premium content';
+        loginForm.style.display = 'block';
+        logoutSection.style.display = 'none';
+        loginForm.reset();
+    }
 
     // Function to open modal
     function openLoginModal() {
+        checkLoginStatus();
         loginModal.classList.add('active');
         document.body.style.overflow = 'hidden';
     }
@@ -543,11 +635,15 @@ function initializeLoginModal() {
         const password = document.getElementById('password').value;
 
         if (!username || !password) {
-            showError('Please fill in all fields');
+            showMessage('Please fill in all fields', 'error');
             return;
         }
 
         try {
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+
             const formData = new URLSearchParams();
             formData.append('username', username);
             formData.append('password', password);
@@ -563,37 +659,67 @@ function initializeLoginModal() {
             const data = await response.json();
 
             if (data.ok) {
-                // Success - redirect to home or reload page
-                showError('Login successful! Redirecting...', 'success');
+                // Store login state in localStorage
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('username', username);
+                
+                showMessage('Login successful!', 'success');
+                updateUIForLoggedInUser(username);
+                
                 setTimeout(() => {
-                    window.location.href = '/';
-                }, 1000);
+                    closeLoginModal();
+                    // Optional: Reload the page or update content based on login status
+                    // window.location.reload();
+                }, 1500);
             } else {
-                showError('Invalid username or password');
+                showMessage('Invalid username or password', 'error');
             }
         } catch (error) {
-            showError('Network error. Please try again.');
+            showMessage('Network error. Please try again.', 'error');
             console.error('Login error:', error);
+        } finally {
+            // Re-enable submit button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
         }
     });
 
-    // Show error message function
-    function showError(message, type = 'error') {
-        errorMessage.textContent = message;
-        errorMessage.style.display = 'block';
+    // Handle logout
+    function handleLogout(e) {
+        if (e) e.preventDefault();
         
+        // Clear login state
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('username');
+        
+        showMessage('Logged out successfully!', 'success');
+        updateUIForLoggedOutUser();
+        
+        setTimeout(() => {
+            closeLoginModal();
+            // Optional: Reload the page or update content
+            // window.location.reload();
+        }, 1000);
+    }
+
+    // Add logout button event listener
+    logoutBtn.addEventListener('click', handleLogout);
+
+    // Show message function
+    function showMessage(message, type = 'error') {
         if (type === 'success') {
-            errorMessage.style.background = 'rgba(40, 167, 69, 0.1)';
-            errorMessage.style.borderColor = 'rgba(40, 167, 69, 0.3)';
-            errorMessage.style.color = '#28a745';
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
         } else {
-            errorMessage.style.background = 'rgba(220, 53, 69, 0.1)';
-            errorMessage.style.borderColor = 'rgba(220, 53, 69, 0.3)';
-            errorMessage.style.color = '#dc3545';
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
         }
         
         setTimeout(() => {
             errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
         }, 5000);
     }
 
@@ -602,8 +728,11 @@ function initializeLoginModal() {
     const error = urlParams.get('error');
     if (error) {
         openLoginModal();
-        showError(decodeURIComponent(error));
+        showMessage(decodeURIComponent(error), 'error');
     }
+
+    // Check login status on page load
+    checkLoginStatus();
 }
 
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
@@ -700,7 +829,6 @@ function render(path) {
 	}
 }
 
-
 // Render title
 function title(path) {
 	path = decodeURIComponent(path);
@@ -774,6 +902,7 @@ function sleep(milliseconds) {
 		currentDate = Date.now();
 	} while (currentDate - date < milliseconds);
 }
+
 /**
  * Initiate POST request for listing
  * @param path Path
