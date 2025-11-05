@@ -1,5 +1,3 @@
-
-
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
 // v2.3.6
 // Initialize the page
@@ -191,7 +189,195 @@ strong {
     display: none;
     margin-top: 1rem;
 }
+
+/* Login Modal Styles */
+.login-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-modal.active {
+    display: flex;
+}
+
+.login-card {
+    background: rgba(30, 30, 46, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 400px;
+    width: 90%;
+    backdrop-filter: blur(20px);
+    position: relative;
+}
+
+.close-modal {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close-modal:hover {
+    color: #ffffff;
+}
+
+.modal-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-align: center;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.modal-subtitle {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 30px;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+}
+
+.form-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #ffffff;
+    padding: 12px 16px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.submit-btn {
+    width: 100%;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-top: 10px;
+}
+
+.submit-btn:hover {
+    background: #0056b3;
+}
+
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.error-message {
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 20px;
+    color: #dc3545;
+    display: none;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
 </style>
+
+<!-- Login Modal HTML -->
+<div class="login-modal" id="loginModal">
+    <div class="login-card">
+        <span class="close-modal" id="closeModal">
+            <i class="fas fa-times"></i>
+        </span>
+        
+        <div class="form-header">
+            <h2 class="modal-title">Welcome Back</h2>
+            <p class="modal-subtitle">Sign in to access premium content</p>
+        </div>
+        
+        <div class="error-message" id="errorMessage"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label" for="username">
+                    <i class="fas fa-user"></i> Username
+                </label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    class="form-input" 
+                    placeholder="Enter your username"
+                    required
+                >
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="password">
+                    <i class="fas fa-lock"></i> Password
+                </label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    class="form-input" 
+                    placeholder="Enter your password"
+                    required
+                >
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </button>
+        </form>
+    </div>
+</div>
+
 <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
 <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
 	<div class="row align-items-start g-3">
@@ -305,301 +491,123 @@ strong {
 $('body').html(html);
 }
 
-// Add this function after the init() function in appsnew.js
+// Initialize login modal functionality
 function initLoginModal() {
-  // Add modal HTML to the page
-  const modalHTML = `
-  <div class="login-modal" id="loginModal">
-    <div class="login-card">
-      <span class="close-modal" id="closeModal">
-        <i class="fas fa-times"></i>
-      </span>
-      
-      <div class="form-header">
-        <h2 class="modal-title">Welcome Back</h2>
-        <p class="modal-subtitle">Sign in to access premium content</p>
-      </div>
-      
-      <div class="error-message" id="errorMessage"></div>
-      
-      <form id="loginForm">
-        <div class="form-group">
-          <label class="form-label" for="username">
-            <i class="fas fa-user"></i> Username
-          </label>
-          <input 
-            type="text" 
-            id="username" 
-            class="form-input" 
-            placeholder="Enter your username"
-            required
-          >
-        </div>
+    // Get DOM elements
+    const loginModal = document.getElementById('loginModal');
+    const closeModalBtn = document.getElementById('closeModal');
+    const loginForm = document.getElementById('loginForm');
+    const errorMessage = document.getElementById('errorMessage');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    if (!loginModal || !closeModalBtn || !loginForm) {
+        console.error('Login modal elements not found');
+        return;
+    }
+    
+    // Modal functions
+    function openLoginModal() {
+        loginModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeLoginModal() {
+        loginModal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        // Clear form
+        loginForm.reset();
+        errorMessage.style.display = 'none';
+    }
+    
+    // Show error message
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+    }
+    
+    // Hide error message
+    function hideError() {
+        errorMessage.style.display = 'none';
+    }
+    
+    // Event listeners
+    closeModalBtn.addEventListener('click', closeLoginModal);
+    
+    loginModal.addEventListener('click', (e) => {
+        if (e.target === loginModal) {
+            closeLoginModal();
+        }
+    });
+    
+    // Handle login form submission
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         
-        <div class="form-group">
-          <label class="form-label" for="password">
-            <i class="fas fa-lock"></i> Password
-          </label>
-          <input 
-            type="password" 
-            id="password" 
-            class="form-input" 
-            placeholder="Enter your password"
-            required
-          >
-        </div>
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
         
-        <button type="submit" class="submit-btn" id="submitBtn">
-          <i class="fas fa-sign-in-alt"></i> Sign In
-        </button>
-      </form>
-    </div>
-  </div>
-  
-  <style>
-    .login-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(5px);
-      z-index: 2000;
-      align-items: center;
-      justify-content: center;
-    }
+        if (!username || !password) {
+            showError('Please fill in all fields');
+            return;
+        }
+        
+        hideError();
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="loading-spinner"></span> Signing in...';
+        
+        try {
+            const formData = new URLSearchParams();
+            formData.append('username', username);
+            formData.append('password', password);
+            
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData.toString()
+            });
+            
+            const data = await response.json();
+            
+            if (data.ok) {
+                // Success - redirect to home
+                window.location.href = '/';
+            } else {
+                showError('Invalid username or password');
+            }
+        } catch (error) {
+            showError('Network error. Please try again.');
+            console.error('Login error:', error);
+        } finally {
+            // Reset button state
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    });
     
-    .login-modal.active {
-      display: flex;
-    }
+    // Escape key to close modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && loginModal.classList.contains('active')) {
+            closeLoginModal();
+        }
+    });
     
-    .login-card {
-      background: rgba(30, 30, 46, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      padding: 40px;
-      max-width: 400px;
-      width: 90%;
-      backdrop-filter: blur(20px);
-      position: relative;
-    }
+    // Make openLoginModal function available globally
+    window.openLoginModal = openLoginModal;
     
-    .close-modal {
-      position: absolute;
-      right: 20px;
-      top: 20px;
-      font-size: 24px;
-      color: rgba(255, 255, 255, 0.5);
-      cursor: pointer;
-      transition: color 0.3s ease;
+    // Check for URL error parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    if (error) {
+        setTimeout(() => {
+            openLoginModal();
+            showError(decodeURIComponent(error));
+        }, 500);
     }
-    
-    .close-modal:hover {
-      color: #ffffff;
-    }
-    
-    .modal-title {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 10px;
-      text-align: center;
-      background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .modal-subtitle {
-      text-align: center;
-      color: rgba(255, 255, 255, 0.8);
-      margin-bottom: 30px;
-      font-size: 16px;
-      line-height: 1.5;
-    }
-    
-    .form-group {
-      margin-bottom: 20px;
-    }
-    
-    .form-label {
-      display: block;
-      margin-bottom: 8px;
-      color: rgba(255, 255, 255, 0.8);
-      font-weight: 500;
-    }
-    
-    .form-input {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 8px;
-      color: #ffffff;
-      padding: 12px 16px;
-      font-size: 16px;
-      transition: border-color 0.3s ease;
-      box-sizing: border-box;
-    }
-    
-    .form-input:focus {
-      outline: none;
-      border-color: #007bff;
-    }
-    
-    .submit-btn {
-      width: 100%;
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 14px;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s ease;
-      margin-top: 10px;
-    }
-    
-    .submit-btn:hover {
-      background: #0056b3;
-    }
-    
-    .submit-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    
-    .error-message {
-      background: rgba(220, 53, 69, 0.1);
-      border: 1px solid rgba(220, 53, 69, 0.3);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 20px;
-      color: #dc3545;
-      display: none;
-    }
-    
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 2px solid transparent;
-      border-top: 2px solid currentColor;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-right: 8px;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-  </style>`;
-  
-  // Insert modal HTML into the page
-  $('body').append(modalHTML);
-  
-  // Get DOM elements
-  const loginModal = document.getElementById('loginModal');
-  const closeModalBtn = document.getElementById('closeModal');
-  const loginForm = document.getElementById('loginForm');
-  const errorMessage = document.getElementById('errorMessage');
-  const submitBtn = document.getElementById('submitBtn');
-  
-  // Modal functions
-  function openLoginModal() {
-    loginModal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-  
-  function closeLoginModal() {
-    loginModal.classList.remove('active');
-    document.body.style.overflow = 'auto';
-  }
-  
-  // Show error message
-  function showError(message) {
-    errorMessage.textContent = message;
-    errorMessage.style.display = 'block';
-    setTimeout(() => {
-      errorMessage.style.display = 'none';
-    }, 5000);
-  }
-  
-  // Event listeners
-  closeModalBtn.addEventListener('click', closeLoginModal);
-  
-  loginModal.addEventListener('click', (e) => {
-    if (e.target === loginModal) {
-      closeLoginModal();
-    }
-  });
-  
-  // Handle login form submission
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    
-    if (!username || !password) {
-      showError('Please fill in all fields');
-      return;
-    }
-    
-    // Show loading state
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="loading"></span> Signing in...';
-    
-    try {
-      const formData = new URLSearchParams();
-      formData.append('username', username);
-      formData.append('password', password);
-      
-      const response = await fetch('/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: formData.toString()
-      });
-      
-      const data = await response.json();
-      
-      if (data.ok) {
-        // Success - redirect to home
-        window.location.href = '/';
-      } else {
-        showError('Invalid username or password');
-      }
-    } catch (error) {
-      showError('Network error. Please try again.');
-    } finally {
-      // Reset button state
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
-    }
-  });
-  
-  // Escape key to close modal
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && loginModal.classList.contains('active')) {
-      closeLoginModal();
-    }
-  });
-  
-  // Make openLoginModal function available globally
-  window.openLoginModal = openLoginModal;
-  
-  // Check for URL error parameters
-  const urlParams = new URLSearchParams(window.location.search);
-  const error = urlParams.get('error');
-  if (error) {
-    setTimeout(() => {
-      openLoginModal();
-      showError(decodeURIComponent(error));
-    }, 500);
-  }
 }
 
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
@@ -761,18 +769,20 @@ function nav(path) {
 
 	$('#nav').html(html);
   
-  // Add click handler for login button
-  setTimeout(() => {
-    const loginBtn = document.getElementById('openLoginBtn');
-    if (loginBtn) {
-      loginBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (window.openLoginModal) {
-          window.openLoginModal();
+    // Add click handler for login button
+    setTimeout(() => {
+        const loginBtn = document.getElementById('openLoginBtn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (window.openLoginModal) {
+                    window.openLoginModal();
+                } else {
+                    console.error('openLoginModal function not found');
+                }
+            });
         }
-      });
-    }
-  }, 100);
+    }, 100);
 }
 
 // Sleep Function to Retry API Calls
