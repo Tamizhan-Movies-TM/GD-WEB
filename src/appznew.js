@@ -512,49 +512,10 @@ function initializeLoginModal() {
         document.body.style.overflow = 'auto';
     }
 
-    // Check if user is logged in
-    function checkLoginStatus() {
-        return localStorage.getItem('isLoggedIn') === 'true';
-    }
-
-    // Update navigation based on login status
-    function updateNavigation() {
-        const isLoggedIn = checkLoginStatus();
-        const loginLink = document.querySelector('#openLoginModal');
-        
-        if (loginLink) {
-            if (isLoggedIn) {
-                loginLink.innerHTML = '<i class="fa-solid fa-user fa-fw"></i>Logout';
-                loginLink.href = '#';
-                loginLink.onclick = handleLogout;
-            } else {
-                loginLink.innerHTML = '<i class="fa-solid fa-user fa-fw"></i>Login';
-                loginLink.href = '#';
-                loginLink.onclick = openLoginModal;
-            }
-        }
-    }
-
-    // Handle logout
-    function handleLogout(e) {
-        e.preventDefault();
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('username');
-        updateNavigation();
-        showError('Logged out successfully!', 'success');
-        
-        // Optional: Redirect to home page
-        setTimeout(() => {
-            window.location.href = '/';
-        }, 1000);
-    }
-
     // Event delegation for the login button (since it's dynamically created)
     $(document).on('click', '#openLoginModal', function(e) {
-        if (!checkLoginStatus()) {
-            e.preventDefault();
-            openLoginModal();
-        }
+        e.preventDefault();
+        openLoginModal();
     });
 
     // Close button click
@@ -602,18 +563,8 @@ function initializeLoginModal() {
             const data = await response.json();
 
             if (data.ok) {
-                // Store login status
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('username', username);
-                
-                // Update navigation
-                updateNavigation();
-                
-                // Close modal and show success
-                closeLoginModal();
-                showError('Login successful!', 'success');
-                
-                // Optional: Redirect to home page
+                // Success - redirect to home or reload page
+                showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
                     window.location.href = '/';
                 }, 1000);
@@ -653,9 +604,6 @@ function initializeLoginModal() {
         openLoginModal();
         showError(decodeURIComponent(error));
     }
-
-    // Initialize navigation on page load
-    updateNavigation();
 }
 
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
@@ -816,13 +764,6 @@ function nav(path) {
 	}
 
 	$('#nav').html(html);
-    
-    // Initialize navigation state after nav is rendered
-    setTimeout(() => {
-        if (typeof updateNavigation === 'function') {
-            updateNavigation();
-        }
-    }, 100);
 }
 
 // Sleep Function to Retry API Calls
@@ -833,7 +774,6 @@ function sleep(milliseconds) {
 		currentDate = Date.now();
 	} while (currentDate - date < milliseconds);
 }
-
 /**
  * Initiate POST request for listing
  * @param path Path
