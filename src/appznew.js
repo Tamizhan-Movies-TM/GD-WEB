@@ -326,6 +326,9 @@ strong {
     display: none;
     margin-top: 1rem;
 }
+#SearchModel .modal-header {
+    display: none !important;
+}
 </style>
 
 <!-- Login Modal -->
@@ -853,8 +856,6 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 	console.log("Performing Request again")
 	performRequest();
 }
-
-
 
 
 /**
