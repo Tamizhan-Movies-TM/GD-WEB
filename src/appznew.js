@@ -66,6 +66,16 @@ function init() {
     color: #ffffff;
 }
 
+.login-modal .modal-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-align: center;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
 
 .modal-subtitle {
     text-align: center;
