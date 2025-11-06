@@ -66,7 +66,7 @@ function init() {
     color: #ffffff;
 }
 
-.modal-title {
+.login-modal .modal-title {
     font-size: 28px;
     font-weight: 700;
     margin-bottom: 10px;
