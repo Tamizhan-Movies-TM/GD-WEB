@@ -1832,14 +1832,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                target="_blank"
                title="Open via GPLinks">
                 <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-                𝗚𝗣𝗟𝗶𝗻𝗸𝘀
+                𝗢𝗽𝗲𝗻 (𝗚𝗣𝗟𝗶𝗻𝗸𝘀)
             </a>`;
     } else {
         buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
     }
-    
-    // Add "or" text between buttons
-    buttonsHtml += `<span style="display: flex; align-items: center; color: #fff; font-weight: 600; padding: 0 10px;">or</span>`;
     
     if (shortxUrl) {
         buttonsHtml += `
@@ -1848,7 +1845,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                target="_blank"
                title="Open via ShortXLinks">
                 <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-                𝗦𝗵𝗼𝗿𝘁𝗫
+                𝗢𝗽𝗲𝗻 (𝗦𝗵𝗼𝗿𝘁𝗫)
             </a>`;
     } else {
         buttonsHtml += `<button class="btn btn-secondary" disabled>ShortX Failed</button>`;
