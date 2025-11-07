@@ -1845,7 +1845,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                target="_blank"
                title="Open via ShortXLinks">
                 <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-                𝗦𝗵𝗼𝗿𝘁𝗫
+                𝗦𝗵𝗼𝗿𝘁𝗫𝗹𝗶𝗻𝗸𝘀
             </a>`;
     } else {
         buttonsHtml += `<button class="btn btn-secondary" disabled>ShortX Failed</button>`;
