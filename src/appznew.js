@@ -1729,13 +1729,13 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             <div class="spinner-border spinner-border-sm" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            Generating GPLinks...
+            Loading..
         </button>
         <button class="btn btn-success d-flex align-items-center gap-2" id="shortx-loading" disabled>
             <div class="spinner-border spinner-border-sm" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            Generating ShortX...
+            Loading..
         </button>`;
     
     $('#modal-body-space').html(content);
