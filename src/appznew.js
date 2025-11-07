@@ -1844,7 +1844,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                class="btn btn-success d-flex align-items-center gap-2" 
                target="_blank"
                title="Open via ShortXLinks">
-                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
                 𝗦𝗵𝗼𝗿𝘁𝗫𝗹𝗶𝗻𝗸𝘀
             </a>`;
     } else {
