@@ -1721,7 +1721,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         </tbody>
     </table>`;
     
-    const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">ð—–ð—¹ð—¼ð˜€ð—²</button>`;
+    const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗰𝗹𝗼𝘀𝗲</button>`;
     
     // Show content with loading buttons immediately
     const loadingButtons = `
@@ -1833,7 +1833,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                target="_blank"
                title="Open via GPLinks">
                 <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-                ð—šð—£ð—Ÿð—¶ð—»ð—¸ð˜€
+                𝗚𝗣𝗟𝗶𝗻𝗸𝘀
             </a>`;
     } else {
         buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
@@ -1845,7 +1845,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                class="btn btn-success d-flex align-items-center gap-2" 
                target="_blank"
                title="Open via XTGLinks">
-                ð—«ð—§ð—šð—Ÿð—¶ð—»ð—¸ð˜€
+                𝗫𝗧𝗚𝗟𝗶𝗻𝗸𝘀
             </a>`;
     } else {
         buttonsHtml += `<button class="btn btn-secondary" disabled>XTGLinks Failed</button>`;
