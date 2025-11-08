@@ -1660,7 +1660,7 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Modified onSearchResultItemClick function - Generates XTGLinks → ShortXLinks → Direct URL chain
+// Modified onSearchResultItemClick function - Generates both GPLinks and XTGLinks
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
@@ -1721,7 +1721,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         </tbody>
     </table>`;
     
-    const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
+    const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">ð—–ð—¹ð—¼ð˜€ð—²</button>`;
     
     // Show content with loading buttons immediately
     const loadingButtons = `
@@ -1731,7 +1731,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             </div>
             Loading..
         </button>
-        <button class="btn btn-primary d-flex align-items-center gap-2" id="xtglinks-loading" disabled>
+        <button class="btn btn-success d-flex align-items-center gap-2" id="xtg-loading" disabled>
             <div class="spinner-border spinner-border-sm" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
@@ -1745,43 +1745,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
     $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
     
-    // Step 1: Generate ShortXLinks (which will wrap the direct URL)
-    const generateShortXLinks = async () => {
-        let finalUrl = null;
-        let retries = 3;
-        
-        while (retries > 0 && !finalUrl) {
-            try {
-                console.log(`ShortXLinks - Attempt ${4 - retries}/3`);
-                
-                const response = await fetch('/generate-shortxlinks', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: directUrl })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.short_url) {
-                        finalUrl = data.short_url;
-                        console.log('ShortXLinks - Generated:', finalUrl);
-                        break;
-                    }
-                }
-                
-                retries--;
-                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-            } catch (error) {
-                console.error('ShortXLinks error:', error);
-                retries--;
-                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-        }
-        
-        return finalUrl;
-    };
-    
-    // Generate GPLinks (wraps direct URL)
+    // Generate GPLinks
     const generateGPLinks = async () => {
         let finalUrl = null;
         let retries = 3;
@@ -1817,44 +1781,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         return finalUrl;
     };
     
-    // Step 1: Generate ShortXLinks (wraps direct URL)
-    const generateShortXLinks = async () => {
-        let finalUrl = null;
-        let retries = 3;
-        
-        while (retries > 0 && !finalUrl) {
-            try {
-                console.log(`ShortXLinks - Attempt ${4 - retries}/3`);
-                
-                const response = await fetch('/generate-shortxlinks', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: directUrl })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.short_url) {
-                        finalUrl = data.short_url;
-                        console.log('ShortXLinks - Generated:', finalUrl);
-                        break;
-                    }
-                }
-                
-                retries--;
-                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-            } catch (error) {
-                console.error('ShortXLinks error:', error);
-                retries--;
-                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-        }
-        
-        return finalUrl;
-    };
-    
-    // Step 2: Generate XTGLinks (which will wrap ShortXLinks)
-    const generateXTGLinks = async (shortxUrl) => {
+    // Generate XTGLinks (chained through ShortXLinks)
+    const generateXTGLinks = async () => {
         let finalUrl = null;
         let retries = 3;
         
@@ -1865,7 +1793,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 const response = await fetch('/generate-xtglinks', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: shortxUrl })
+                    body: JSON.stringify({ url: directUrl })
                 });
                 
                 if (response.ok) {
@@ -1889,73 +1817,42 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         return finalUrl;
     };
     
-    // Generate all links
-    try {
-        // Generate GPLinks (independent - wraps direct URL)
-        const gplinksPromise = generateGPLinks();
-        
-        // Generate ShortXLinks wrapping direct URL
-        const shortxUrl = await generateShortXLinks();
-        
-        // Generate XTGLinks wrapping ShortXLinks
-        let xtglinksUrl = null;
-        if (shortxUrl) {
-            xtglinksUrl = await generateXTGLinks(shortxUrl);
-        }
-        
-        // Wait for GPLinks to complete
-        const gplinksUrl = await gplinksPromise;
-        
-        // Build buttons HTML - GPLinks, XTGLinks, ShortX, then Close
-        let buttonsHtml = '';
-        
-        if (gplinksUrl) {
-            buttonsHtml += `
-                <a href="${getChromeOpenUrl(gplinksUrl)}" 
-                   class="btn btn-info d-flex align-items-center gap-2" 
-                   target="_blank"
-                   title="Open via GPLinks">
-                    <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-                    𝗚𝗣𝗟𝗶𝗻𝗸𝘀
-                </a>`;
-        } else {
-            buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
-        }
-        
-        if (xtglinksUrl) {
-            buttonsHtml += `
-                <a href="${getChromeOpenUrl(xtglinksUrl)}" 
-                   class="btn btn-primary d-flex align-items-center gap-2" 
-                   target="_blank"
-                   title="Open via XTGLinks">
-                    𝗫𝗧𝗚𝗹𝗶𝗻𝗸𝘀
-                </a>`;
-        } else {
-            buttonsHtml += `<button class="btn btn-secondary" disabled>XTG Failed</button>`;
-        }
-        
-        if (shortxUrl) {
-            buttonsHtml += `
-                <a href="${getChromeOpenUrl(shortxUrl)}" 
-                   class="btn btn-success d-flex align-items-center gap-2" 
-                   target="_blank"
-                   title="Open via ShortXLinks">
-                    𝗦𝗵𝗼𝗿𝘁𝗫𝗹𝗶𝗻𝗸𝘀
-                </a>`;
-        } else {
-            buttonsHtml += `<button class="btn btn-secondary" disabled>ShortX Failed</button>`;
-        }
-        
-        // Update buttons
-        $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
-        
-    } catch (error) {
-        console.error('Error generating link chain:', error);
-        $('#modal-body-space-buttons').html(`
-            <button class="btn btn-secondary" disabled>Generation Failed</button>
-            ${close_btn}
-        `);
+    // Generate both links in parallel
+    const [gplinksUrl, xtgUrl] = await Promise.all([
+        generateGPLinks(),
+        generateXTGLinks()
+    ]);
+    
+    // Build buttons HTML
+    let buttonsHtml = '';
+    
+    if (gplinksUrl) {
+        buttonsHtml += `
+            <a href="${getChromeOpenUrl(gplinksUrl)}" 
+               class="btn btn-info d-flex align-items-center gap-2" 
+               target="_blank"
+               title="Open via GPLinks">
+                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
+                ð—šð—£ð—Ÿð—¶ð—»ð—¸ð˜€
+            </a>`;
+    } else {
+        buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
     }
+    
+    if (xtgUrl) {
+        buttonsHtml += `
+            <a href="${getChromeOpenUrl(xtgUrl)}" 
+               class="btn btn-success d-flex align-items-center gap-2" 
+               target="_blank"
+               title="Open via XTGLinks">
+                ð—«ð—§ð—šð—Ÿð—¶ð—»ð—¸ð˜€
+            </a>`;
+    } else {
+        buttonsHtml += `<button class="btn btn-secondary" disabled>XTGLinks Failed</button>`;
+    }
+    
+    // Update buttons
+    $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
     
     // Optional: Fetch path in background
     fetch(`/${cur}:id2path`, {
