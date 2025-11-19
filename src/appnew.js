@@ -2490,7 +2490,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         data-file-id="${file_id}" type="button">${neodrive_icon}𝗡𝗲𝗼𝗱𝗿𝗶𝘃𝗲</button>
       
       <a href="${url}" type="button" class="btn btn-success">
-        <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+        <i class="fa-solid fa-circle-down"></i>𝗗𝗟
       </a>
       
       <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
