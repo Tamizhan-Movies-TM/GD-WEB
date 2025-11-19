@@ -2494,7 +2494,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       </button>` : ``}
       
       <!-- NeoDrive Button (2nd) -->
-      <button class="btn btn-info d-flex align-items-center gap-2 neodrive-btn" 
+      <button class="btn btn-primary d-flex align-items-center gap-1 neodrive-btn" 
               data-file-id="${file_id}" 
               type="button">
         ${neodrive_icon}𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲 𝗟𝗶𝗻𝗸
@@ -2509,7 +2509,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         </a>
         
         <button type="button" 
-                class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+                class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                 data-bs-toggle="dropdown" 
                 aria-haspopup="true" 
                 aria-expanded="false">
