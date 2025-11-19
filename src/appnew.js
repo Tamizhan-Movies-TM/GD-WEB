@@ -2487,21 +2487,21 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       
       <!-- GDFlix Button (1st) -->
       ${UI.display_drive_link ? `
-      <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn w-48 w-md-auto" 
+      <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn w-50 w-md-auto" 
               data-file-id="${file_id}" 
               type="button">
         ${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸
       </button>` : ``}
       
       <!-- NeoDrive Button (2nd) -->
-      <button class="btn btn-primary d-flex align-items-center gap-1 neodrive-btn w-36 w-md-auto" 
+      <button class="btn btn-primary d-flex align-items-center gap-1 neodrive-btn w-50 w-md-auto" 
               data-file-id="${file_id}" 
               type="button">
         ${neodrive_icon}𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲 𝗟𝗶𝗻𝗸
       </button>
       
       <!-- Download Button with Dropdown (3rd) -->
-      <div class="btn-group">
+      <div class="btn-group w-50 w-md-auto">
         <a href="${url}" 
            type="button" 
            class="btn btn-success d-flex align-items-center justify-content-center">
