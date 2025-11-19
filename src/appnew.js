@@ -2488,13 +2488,13 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         ${UI.disable_video_download ? `` : `
     <div class="col-md-12">
   <div class="text-center">
-    <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+    <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp; &&nbsp; ℕ𝕖𝕠𝔻𝕣𝕚𝕧𝕖&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
     <div class="btn-group text-center"> 
       ${UI.display_drive_link ? ` 
         <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅</button>` : ``} 
       
-      <button class="btn btn-primary d-flex align-items-center gap-2 neodrive-btn" 
+      <button class="btn btn-primary d-flex align-items-center gap-1 neodrive-btn" 
         data-file-id="${file_id}" type="button">${neodrive_icon}𝗡𝗲𝗼𝗱𝗿𝗶𝘃𝗲</button>
       
       <a href="${url}" type="button" class="btn btn-success">
