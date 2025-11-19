@@ -2482,32 +2482,32 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   <div class="text-center">
     <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝕃𝕚𝕟𝕜𝕤&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
     
-    <!-- Separate buttons with equal sizing -->
-    <div class="d-flex flex-column gap-2 align-items-center">
+    <!-- Responsive button container: row on desktop, column on mobile -->
+    <div class="d-flex flex-column flex-md-row gap-2 justify-content-center align-items-stretch">
       
       <!-- GDFlix Button (1st) -->
       ${UI.display_drive_link ? `
-      <button class="btn btn-secondary d-flex align-items-center justify-content-center gap-2 gdflix-btn" 
+      <button class="btn btn-secondary d-flex align-items-center justify-content-center gap-2 gdflix-btn flex-fill" 
               data-file-id="${file_id}" 
               type="button"
-              style="width: 250px; min-height: 45px;">
-        ${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅
+              style="min-width: 200px; min-height: 45px; max-width: 100%;">
+        ${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸
       </button>` : ``}
       
       <!-- NeoDrive Button (2nd) -->
-      <button class="btn btn-primary d-flex align-items-center justify-content-center gap-2 neodrive-btn" 
+      <button class="btn btn-info d-flex align-items-center justify-content-center gap-2 neodrive-btn flex-fill" 
               data-file-id="${file_id}" 
               type="button"
-              style="width: 250px; min-height: 45px;">
-        ${neodrive_icon}𝗡𝗲𝗼𝗱𝗿𝗶𝘃𝗲
+              style="min-width: 200px; min-height: 45px; max-width: 100%;">
+        ${neodrive_icon}𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲 𝗟𝗶𝗻𝗸
       </button>
       
       <!-- Download Button with Dropdown (3rd) -->
-      <div class="btn-group" style="width: 250px;">
+      <div class="btn-group flex-fill" style="min-width: 200px; max-width: 100%;">
         <a href="${url}" 
            type="button" 
            class="btn btn-success d-flex align-items-center justify-content-center gap-2"
-           style="min-height: 45px; flex: 1;">
+           style="min-height: 45px;">
           <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
         </a>
         
@@ -2516,7 +2516,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                 data-bs-toggle="dropdown" 
                 aria-haspopup="true" 
                 aria-expanded="false"
-                style="min-height: 45px;">
+                style="min-height: 30px;">
           <span class="sr-only"></span>
         </button>
         
