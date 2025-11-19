@@ -2482,45 +2482,38 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   <div class="text-center">
     <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝕃𝕚𝕟𝕜𝕤&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
     
-    <!-- Enhanced responsive container -->
-    <div class="d-flex flex-column flex-md-row flex-wrap gap-2 justify-content-center align-items-stretch align-items-md-center">
+    <!-- Responsive button container: row on desktop, column on mobile -->
+    <div class="d-flex flex-column flex-md-row gap-2 justify-content-center align-items-center">
       
-      <!-- GDFlix Button -->
+      <!-- GDFlix Button (1st) -->
       ${UI.display_drive_link ? `
-      <button class="btn btn-secondary btn-sm d-flex align-items-center gap-1 gdflix-btn" 
+      <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
               data-file-id="${file_id}" 
               type="button">
-        ${gdrive_icon}
-        <span class="d-none d-sm-inline">𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</span>
-        <span class="d-inline d-sm-none">𝗚𝗗𝗙𝗹𝗶𝘅</span>
+        ${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸
       </button>` : ``}
       
-      <!-- NeoDrive Button -->
-      <button class="btn btn-primary btn-sm d-flex align-items-center gap-1 neodrive-btn" 
+      <!-- NeoDrive Button (2nd) -->
+      <button class="btn btn-primary d-flex align-items-center gap-1 neodrive-btn" 
               data-file-id="${file_id}" 
               type="button">
-        ${neodrive_icon}
-        <span class="d-none d-sm-inline">𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲 𝗟𝗶𝗻𝗸</span>
-        <span class="d-inline d-sm-none">𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲</span>
+        ${neodrive_icon}𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲 𝗟𝗶𝗻𝗸
       </button>
       
-      <!-- Download Button with Dropdown -->
-      <div class="btn-group" role="group">
+      <!-- Download Button with Dropdown (3rd) -->
+      <div class="btn-group">
         <a href="${url}" 
            type="button" 
-           class="btn btn-success btn-sm d-flex align-items-center"
-           aria-label="Download video">
-          <i class="fa-solid fa-circle-down"></i>
-          <span class="ms-1 d-none d-sm-inline">𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱</span>
+           class="btn btn-success d-flex align-items-center">
+          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
         </a>
         
         <button type="button" 
-                class="btn btn-outline-success btn-sm dropdown-toggle dropdown-toggle-split" 
+                class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                 data-bs-toggle="dropdown" 
                 aria-haspopup="true" 
-                aria-expanded="false"
-                aria-label="Additional download options">
-          <span class="visually-hidden">Toggle Dropdown</span>
+                aria-expanded="false">
+          <span class="sr-only"></span>
         </button>
         
         <div class="dropdown-menu">
