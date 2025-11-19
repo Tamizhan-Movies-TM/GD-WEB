@@ -2494,7 +2494,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅</button>` : ``} 
       
-      <button class="btn btn-primary d-flex align-items-center gap-0 neodrive-btn" 
+      <button class="btn btn-primary d-flex align-items-center gap-2 neodrive-btn" 
         data-file-id="${file_id}" type="button">${neodrive_icon}𝗡𝗲𝗼𝗱𝗿𝗶𝘃𝗲</button>
       
       <a href="${url}" type="button" class="btn btn-success">
