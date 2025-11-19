@@ -2487,7 +2487,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       
       <!-- GDFlix Button (1st) -->
       ${UI.display_drive_link ? `
-      <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn w-45 w-md-auto" 
+      <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn w-48 w-md-auto" 
               data-file-id="${file_id}" 
               type="button">
         ${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸
