@@ -2501,11 +2501,11 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       </button>
       
       <!-- Download Button with Dropdown (3rd) -->
-      <div class="btn-group w-50 w-md-auto">
+      <div class="btn-group">
         <a href="${url}" 
            type="button" 
-           class="btn btn-success d-flex align-items-center justify-content-center w-50">
-          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 𝗟𝗶𝗻𝗸
+           class="btn btn-success d-flex align-items-center justify-content-center">
+          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
         </a>
         
         <button type="button" 
