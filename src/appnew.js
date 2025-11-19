@@ -2156,15 +2156,15 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
             console.error('GDFlix error:', error);
         });
     });
-  // Add NeoDrive button click handler
-	$(document).on('click', '.neodrive-btn', function() {
+  // Add Neodrive button click handler
+		 $(document).on('click', '.neodrive-btn', function() {
     const fileId = $(this).data('file-id');
     const button = $(this);
     
     console.log('Neodrive button clicked, fileId:', fileId);
     
     if (!fileId) {
-        alert('Error: No file ID found');
+        alert('Error: No file ID found on button');
         return;
     }
     
@@ -2177,7 +2177,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
         })
         .catch((error) => {
             button.prop('disabled', false).html(originalHtml);
-            console.error('Neodrive error:', error);
+            console.error('Neodrive button error:', error);
         });
 });
 	
@@ -2330,7 +2330,32 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             console.error('GDFlix error:', error);
         });
     });
-	
+
+	// Add Neodrive button click handler
+		 $(document).on('click', '.neodrive-btn', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+    
+    console.log('Neodrive button clicked, fileId:', fileId);
+    
+    if (!fileId) {
+        alert('Error: No file ID found on button');
+        return;
+    }
+    
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    
+    generateNeodriveLink(fileId)
+        .then(() => {
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            button.prop('disabled', false).html(originalHtml);
+            console.error('Neodrive button error:', error);
+        });
+});
+
 	// Rest of the function remains the same...
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
 	var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
@@ -2520,6 +2545,30 @@ $("#content").html(content);
             console.error('GDFlix error:', error);
         });
     });
+    // Add Neodrive button click handler
+		 $(document).on('click', '.neodrive-btn', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+    
+    console.log('Neodrive button clicked, fileId:', fileId);
+    
+    if (!fileId) {
+        alert('Error: No file ID found on button');
+        return;
+    }
+    
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    
+    generateNeodriveLink(fileId)
+        .then(() => {
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            button.prop('disabled', false).html(originalHtml);
+            console.error('Neodrive button error:', error);
+        });
+});
 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
@@ -2961,13 +3010,16 @@ function generateGDFlixLink(fileId) {
         });
     });
 }
+
 // Update the NeodriveLink function to call the worker endpoint
 function generateNeodriveLink(fileId) {
     return new Promise((resolve, reject) => {
-        console.log('Neodrive - Received fileId:', fileId);
+        console.log('Neodrive - Starting link generation for fileId:', fileId);
         
+        // Validate fileId
         if (!fileId) {
             console.error('Neodrive - No file ID provided');
+            alert('Error: No file ID provided');
             reject(new Error('No file ID provided'));
             return;
         }
@@ -2975,13 +3027,15 @@ function generateNeodriveLink(fileId) {
         fileId = String(fileId).trim();
         
         if (fileId === '') {
-            console.error('Neodrive - Empty file ID');
+            console.error('Neodrive - Empty file ID after trim');
+            alert('Error: Empty file ID');
             reject(new Error('Empty file ID'));
             return;
         }
         
-        console.log('Neodrive - Requesting link generation from worker...');
+        console.log('Neodrive - Sending request to worker endpoint...');
         
+        // Make request to worker endpoint
         fetch('/generate-neodrive', {
             method: 'POST',
             headers: {
@@ -2992,26 +3046,55 @@ function generateNeodriveLink(fileId) {
             })
         })
         .then(response => {
-            console.log('Neodrive - Response status:', response.status);
+            console.log('Neodrive - Worker response status:', response.status);
+            
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                return response.text().then(text => {
+                    console.error('Neodrive - Error response body:', text);
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                });
             }
+            
             return response.json();
         })
         .then(data => {
-            console.log('Neodrive - Worker response:', data);
+            console.log('Neodrive - Worker response data:', data);
             
             if (data.success && data.neodrive_link) {
-                console.log('Neodrive - Generated link:', data.neodrive_link);
-                window.open(data.neodrive_link, '_blank');
+                console.log('Neodrive - Successfully generated link:', data.neodrive_link);
+                
+                // Open the Neodrive link in a new tab
+                const newWindow = window.open(data.neodrive_link, '_blank');
+                
+                if (!newWindow) {
+                    // If popup was blocked, show alert with link
+                    alert('Neodrive link generated! Please allow popups or click OK to copy the link.\n\nLink: ' + data.neodrive_link);
+                    
+                    // Try to copy to clipboard
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(data.neodrive_link)
+                            .then(() => {
+                                console.log('Neodrive - Link copied to clipboard');
+                            })
+                            .catch(err => {
+                                console.error('Neodrive - Failed to copy to clipboard:', err);
+                            });
+                    }
+                } else {
+                    console.log('Neodrive - Link opened in new tab successfully');
+                }
+                
                 resolve(data.neodrive_link);
             } else {
-                reject(new Error(data.error || 'Failed to generate Neodrive link'));
+                const errorMsg = data.error || 'Unknown error - No link received from server';
+                console.error('Neodrive - Error in response:', errorMsg);
+                alert('Failed to generate Neodrive link: ' + errorMsg);
+                reject(new Error(errorMsg));
             }
         })
         .catch(error => {
-            console.error('Neodrive Error:', error);
-            alert('Failed to generate Neodrive link: ' + error.message);
+            console.error('Neodrive - Fetch error:', error);
+            alert('Failed to generate Neodrive link: ' + error.message + '\n\nPlease try again or contact support if the issue persists.');
             reject(error);
         });
     });
