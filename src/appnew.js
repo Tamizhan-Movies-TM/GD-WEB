@@ -1,4 +1,3 @@
-
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
 // v2.3.6
 // Initialize the page
@@ -8,6 +7,375 @@ function init() {
    <div id="nav">
    </div>
 </header>
+<style>
+/* Login Modal Styles */
+.login-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-modal.active {
+    display: flex;
+}
+
+.login-card {
+    background: rgba(30, 30, 46, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 400px;
+    width: 90%;
+    backdrop-filter: blur(20px);
+    position: relative;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.close-modal {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: color 0.3s ease;
+    background: none;
+    border: none;
+}
+
+.close-modal:hover {
+    color: #ffffff;
+}
+
+.login-modal .modal-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-align: center;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.modal-subtitle {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 30px;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+}
+
+.form-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #ffffff;
+    padding: 12px 16px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.submit-btn {
+    width: 100%;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-top: 10px;
+}
+
+.submit-btn:hover {
+    background: #0056b3;
+}
+
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.error-message {
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 20px;
+    color: #dc3545;
+    display: none;
+}
+
+.donate .btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 13rem;
+    overflow: hidden;
+    height: 3rem;
+    background-size: 300% 300%;
+    cursor: pointer;
+    backdrop-filter: blur(1rem);
+    border-radius: 5rem;
+    transition: 0.5s;
+    animation: gradient_301 5s ease infinite;
+    border: double 4px transparent;
+    background-image: linear-gradient(#212121, #212121),
+        linear-gradient(
+            137.48deg,
+            #ffdb3b 10%,
+            #fe53bb 45%,
+            #8f51ea 67%,
+            #0044ff 87%
+        );
+    background-origin: border-box;
+    background-clip: content-box, border-box;
+    text-decoration: none;
+    position: relative;
+}
+
+#container-stars {
+    position: absolute;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    transition: 0.5s;
+    backdrop-filter: blur(1rem);
+    border-radius: 5rem;
+}
+
+strong {
+    z-index: 2;
+    font-family: "Avalors Personal Use", sans-serif;
+    font-size: 12px;
+    letter-spacing: 5px;
+    color: #ffffff;
+    text-shadow: 0 0 4px white;
+}
+
+#glow {
+    position: absolute;
+    display: flex;
+    width: 12rem;
+}
+
+.circle {
+    width: 100%;
+    height: 30px;
+    filter: blur(2rem);
+    animation: pulse_3011 4s infinite;
+    z-index: -1;
+}
+
+.circle:nth-of-type(1) {
+    background: rgba(254, 83, 186, 0.636);
+}
+
+.circle:nth-of-type(2) {
+    background: rgba(142, 81, 234, 0.704);
+}
+
+.donate .btn:hover #container-stars {
+    z-index: 1;
+    background-color: #212121;
+}
+
+.donate .btn:hover {
+    transform: scale(1.1);
+}
+
+.donate .btn:active {
+    border: double 4px #fe53bb;
+    background-origin: border-box;
+    background-clip: content-box, border-box;
+    animation: none;
+}
+
+.donate .btn:active .circle {
+    background: #fe53bb;
+}
+
+#stars {
+    position: relative;
+    background: transparent;
+    width: 200rem;
+    height: 200rem;
+}
+
+#stars::after {
+    content: "";
+    position: absolute;
+    top: -10rem;
+    left: -100rem;
+    width: 100%;
+    height: 100%;
+    animation: animStarRotate 90s linear infinite;
+}
+
+#stars::after {
+    background-image: radial-gradient(#ffffff 1px, transparent 1%);
+    background-size: 50px 50px;
+}
+
+#stars::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -50%;
+    width: 170%;
+    height: 500%;
+    animation: animStar 60s linear infinite;
+}
+
+#stars::before {
+    background-image: radial-gradient(#ffffff 1px, transparent 1%);
+    background-size: 50px 50px;
+    opacity: 0.5;
+}
+
+@keyframes animStar {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-135rem);
+    }
+}
+
+@keyframes animStarRotate {
+    from {
+        transform: rotate(360deg);
+    }
+    to {
+        transform: rotate(0);
+    }
+}
+
+@keyframes gradient_301 {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes pulse_3011 {
+    0% {
+        transform: scale(0.75);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+    }
+    100% {
+        transform: scale(0.75);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+}
+
+.donate:hover .qrcode {
+    display: block;
+}
+
+.qrcode {
+    display: none;
+    margin-top: 1rem;
+}
+</style>
+
+<!-- Login Modal -->
+<div class="login-modal" id="loginModal">
+    <div class="login-card">
+        <button class="close-modal" id="closeModal">
+            <i class="fas fa-times"></i>
+        </button>
+        
+        <div class="form-header">
+            <h2 class="modal-title">Welcome Back</h2>
+            <p class="modal-subtitle">Sign in to access premium content</p>
+        </div>
+        
+        <div class="error-message" id="errorMessage"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label" for="username">
+                    <i class="fas fa-user"></i> Username
+                </label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    class="form-input" 
+                    placeholder="Enter your username"
+                    required
+                >
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="password">
+                    <i class="fas fa-lock"></i> Password
+                </label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    class="form-input" 
+                    placeholder="Enter your password"
+                    required
+                >
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </button>
+        </form>
+    </div>
+</div>
+
 <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
 <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
 	<div class="row align-items-start g-3">
@@ -19,42 +387,51 @@ function init() {
      <div class="col-lg-6 col-md-12">
         <div class="card text-white mb-3 h-100">
 	      <div class="card-header">
-        <i class="fa-solid fa-hand-holding-dollar"></i>Donate:&nbsp;&nbsp;₹&nbsp;5
+        <i class="fa-solid fa-circle-question"></i> How&nbsp; To&nbsp; Download&nbsp; Movies&nbsp; 🤔 
         </div>
         <div class="card-body d-flex align-items-center justify-content-center">
         <div class="donate btn p-0">
-	       <a class="btn" href="https://tamizhan-movies.unaux.com" title="Click me!" style="background: #3B556E;" target="_blank">
-        <i class="fa-solid fa-money-check-dollar"></i>Click Here To Payment </a>
-        <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
-        <div style="padding-bottom: 1rem;">Thank you very much ❤</div> 
-        <img alt="Love" src="https://kaceku.onrender.com/static/img/love.png">
-	       </div>
-					</div>
-          </div>
-        	</div>
-           </div>
-           <div class="col-lg-6 col-md-12">
-          	<div class="card text-white mb-3 h-100">
-             <div class="card-header">
-             ${telegram_icon}&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
-            </div>
-            <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
-					<a href="https://cutt.ly/zrMe2JpH" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪜⅈꫀડ">
-						<img class="image" alt="tamizhan" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/tm-icon.png">
-					</a>
-					<a href="https://cutt.ly/ZrBTy6LJ" target="_blank" title="Hollywood Tamizhan Movies">
-						<img class="image" alt="Movies" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/htm-icon.png">
-					</a>
-		       <a href="https://cutt.ly/irMe1nkm" target="_blank" title="Tamizhan Web Series">
-						<img class="image" alt="Series" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/tws-icon.png">
-					</a>
-					<a href="https://cutt.ly/ZrMe1emr" target="_blank" title="Tamizhan Movies Backup">
-						<img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/telegram.png">
-					</a>
-          </div> 
-          	</div>
-        </div>
-    </div>	
+	       <a class="btn" href="https://t.me/tamizhan_updates/266" title="Watch Video Clearly" target="_blank">
+         <strong>
+             <i class="fa-solid fa-eye"></i>WATCH VIDEO
+         </strong>
+         <div id="container-stars">
+             <div id="stars"></div>
+         </div>
+         <div id="glow">
+             <div class="circle"></div>
+             <div class="circle"></div>
+         </div>
+       </a>
+       <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
+         <div style="padding-bottom: 1rem;">3 Step-by-step guide 🎬</div> 
+	     </div>
+		</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6 col-md-12">
+    <div class="card text-white mb-3 h-100">
+      <div class="card-header">
+        ${telegram_icon}&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
+      </div>
+      <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
+		<a href="https://cutt.ly/zrMe2JpH" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪑⅈꫀડ">
+			<img class="image" alt="tamizhan" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tm-icon.png">
+		</a>
+		<a href="https://cutt.ly/ZrBTy6LJ" target="_blank" title="Hollywood Tamizhan Movies">
+			<img class="image" alt="Movies" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/htm-icon.png">
+		</a>
+		<a href="https://cutt.ly/irMe1nkm" target="_blank" title="Tamizhan Web Series">
+			<img class="image" alt="Series" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tws-icon.png">
+		</a>
+		<a href="https://cutt.ly/ZrMe1emr" target="_blank" title="Tamizhan Movies Backup">
+			<img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/telegram.png">
+		</a>
+      </div> 
+    </div>
+  </div>
+</div>	
 </div>
 <div class="modal fade" id="SearchModel" data-bs-keyboard="true" tabindex="-1" aria-labelledby="SearchModelLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
@@ -80,7 +457,7 @@ function init() {
       <i class="fa-brands fa-pied-piper-alt"></i> ${new Date().getFullYear()} - <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
 	    </div>
       <div class="col-lg-4 col-md-12">
-      <a href="${UI.contact_link}" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> 
+      <a href="https://cutt.ly/cr9jPsvc" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a> 
       ${UI.credit ? '<span>© All Copy Rights Reserved ®™</span>' : ''}
       </div>
        <div class="col-lg-4 col-md-12 text-lg-end">
@@ -110,7 +487,125 @@ function init() {
 	</div>
 </footer>`;
 $('body').html(html);
+
+// Initialize login modal functionality
+initializeLoginModal();
 }
+
+// Initialize login modal functionality
+function initializeLoginModal() {
+    const loginModal = document.getElementById('loginModal');
+    const closeModalBtn = document.getElementById('closeModal');
+    const loginForm = document.getElementById('loginForm');
+    const errorMessage = document.getElementById('errorMessage');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Function to open modal
+    function openLoginModal() {
+        loginModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Function to close modal
+    function closeLoginModal() {
+        loginModal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    // Event delegation for the login button (since it's dynamically created)
+    $(document).on('click', '#openLoginModal', function(e) {
+        e.preventDefault();
+        openLoginModal();
+    });
+
+    // Close button click
+    closeModalBtn.addEventListener('click', closeLoginModal);
+
+    // Close on backdrop click
+    loginModal.addEventListener('click', (e) => {
+        if (e.target === loginModal) {
+            closeLoginModal();
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && loginModal.classList.contains('active')) {
+            closeLoginModal();
+        }
+    });
+
+    // Handle login form submission
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+
+        if (!username || !password) {
+            showError('Please fill in all fields');
+            return;
+        }
+
+        try {
+            const formData = new URLSearchParams();
+            formData.append('username', username);
+            formData.append('password', password);
+
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData.toString()
+            });
+
+            const data = await response.json();
+
+            if (data.ok) {
+                // Success - redirect to home or reload page
+                showError('Login successful! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
+            } else {
+                showError('Invalid username or password');
+            }
+        } catch (error) {
+            showError('Network error. Please try again.');
+            console.error('Login error:', error);
+        }
+    });
+
+    // Show error message function
+    function showError(message, type = 'error') {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+        
+        if (type === 'success') {
+            errorMessage.style.background = 'rgba(40, 167, 69, 0.1)';
+            errorMessage.style.borderColor = 'rgba(40, 167, 69, 0.3)';
+            errorMessage.style.color = '#28a745';
+        } else {
+            errorMessage.style.background = 'rgba(220, 53, 69, 0.1)';
+            errorMessage.style.borderColor = 'rgba(220, 53, 69, 0.3)';
+            errorMessage.style.color = '#dc3545';
+        }
+        
+        setTimeout(() => {
+            errorMessage.style.display = 'none';
+        }, 5000);
+    }
+
+    // Check for URL error parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    if (error) {
+        openLoginModal();
+        showError(decodeURIComponent(error));
+    }
+}
+
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
                     <image xlink:href="data:image/png;base64,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" x="0" y="0" width="20" height="20"/>
                   </svg>`
@@ -241,7 +736,12 @@ function nav(path) {
 
 	html += `<li class="nav-item">
     <a class="nav-link" href="${UI.contact_link}" target="_blank"><i class="fas fa-paper-plane fa-fw"></i>${UI.nav_link_4}</a>
-    <li class="nav-item"><a class="nav-link" href="/login"><i class="fa-solid fa-user fa-fw"></i>Login</a></li>`;
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="#" id="openLoginModal" style="cursor: pointer;">
+            <i class="fa-solid fa-user fa-fw"></i>Login
+        </a>
+    </li>`;
 
 	var search_text = model.is_search_page ? (model.q || '') : '';
 	var search_bar = `
@@ -274,7 +774,7 @@ function sleep(milliseconds) {
 		currentDate = Date.now();
 	} while (currentDate - date < milliseconds);
 }
-
+                                     
 /**
  * Initiate POST request for listing
  * @param path Path
@@ -353,8 +853,6 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 	console.log("Performing Request again")
 	performRequest();
 }
-
-
 
 
 /**
@@ -1162,29 +1660,7 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Add this helper function to parse formatted file sizes back to bytes
-function parseFileSize(sizeStr) {
-    if (!sizeStr || sizeStr === '—' || sizeStr === 'â€"') return 0;
-    
-    const match = sizeStr.match(/^([\d.]+)\s*([A-Z]+)$/i);
-    if (!match) return 0;
-    
-    const value = parseFloat(match[1]);
-    const unit = match[2].toUpperCase();
-    
-    const units = {
-        'B': 1,
-        'BYTES': 1,
-        'KB': 1024,
-        'MB': 1024 * 1024,
-        'GB': 1024 * 1024 * 1024,
-        'TB': 1024 * 1024 * 1024 * 1024
-    };
-    
-    return value * (units[unit] || 0);
-}
-
-// Modified onSearchResultItemClick function
+// Modified onSearchResultItemClick function - Generates both GPLinks and ShortXLinks
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
@@ -1195,11 +1671,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     // Create the direct URL
     const encodedFileId = encodeURIComponent(file_id);
     const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
-    
-    // Parse file size to determine if we should use GPLinks
-    const fileSizeInBytes = parseFileSize(file['size']);
-    const fileSizeInGB = fileSizeInBytes / (1024 * 1024 * 1024);
-    const shouldUseGPLinks = fileSizeInGB > 1; // Use GPLinks only for files ABOVE 1GB
     
     // Function to get Chrome open URL
     function getChromeOpenUrl(url) {
@@ -1252,91 +1723,141 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     
     const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
     
-    // Show content with loading button immediately
-    const loadingButton = `
-        <button class="btn btn-info d-flex align-items-center gap-2" disabled>
+    // Show content with loading buttons immediately
+    const loadingButtons = `
+        <button class="btn btn-info d-flex align-items-center gap-2" id="gplinks-loading" disabled>
             <div class="spinner-border spinner-border-sm" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            ${shouldUseGPLinks ? '𝗚𝗲𝗻𝗲𝗿𝗮𝘁𝗶𝗻𝗴 𝗚𝗣𝗟𝗶𝗻𝗸𝘀...' : '𝗣𝗿𝗲𝗽𝗮𝗿𝗶𝗻𝗴 𝗹𝗶𝗻𝗸...'}
+            Loading..
+        </button>
+        <button class="btn btn-success d-flex align-items-center gap-2" id="shortx-loading" disabled>
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            Loading..
         </button>`;
     
     $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(loadingButton + close_btn);
+    $('#modal-body-space-buttons').html(loadingButtons + close_btn);
     
     // Style adjustments
     $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
-    $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important;');
+    $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
     
-    // Generate URL based on file size
-    let finalUrl = directUrl;
-    let useGPLinks = false;
-    
-    if (shouldUseGPLinks) {
-        try {
-            console.log(`GPLinks - Requesting short URL for large file (${fileSizeInGB.toFixed(2)} GB)...`);
-            
-            // Call worker endpoint with timeout (only for files > 1GB)
-            const fetchPromise = fetch('/generate-gplinks', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ url: directUrl })
-            });
-            
-            const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout')), 5000)
-            );
-            
-            const response = await Promise.race([fetchPromise, timeoutPromise]);
-            
-            if (response.ok) {
-                const data = await response.json();
+    // Generate both links simultaneously
+    const generateGPLinks = async () => {
+        let finalUrl = null;
+        let retries = 3;
+        
+        while (retries > 0 && !finalUrl) {
+            try {
+                console.log(`GPLinks - Attempt ${4 - retries}/3`);
                 
-                if (data.success && data.short_url) {
-                    finalUrl = data.short_url;
-                    useGPLinks = true;
-                    console.log('GPLinks - Generated short URL:', data.short_url);
-                } else {
-                    throw new Error(data.error || 'Failed to generate short URL');
+                const response = await fetch('/generate-gplinks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: directUrl })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.short_url) {
+                        finalUrl = data.short_url;
+                        console.log('GPLinks - Generated:', finalUrl);
+                        break;
+                    }
                 }
+                
+                retries--;
+                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+            } catch (error) {
+                console.error('GPLinks error:', error);
+                retries--;
+                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
             }
-        } catch (error) {
-            console.error('GPLinks error or timeout:', error);
-            // Fallback to direct URL if GPLinks fails
         }
+        
+        return finalUrl;
+    };
+    
+    const generateShortXLinks = async () => {
+        let finalUrl = null;
+        let retries = 3;
+        
+        while (retries > 0 && !finalUrl) {
+            try {
+                console.log(`ShortXLinks - Attempt ${4 - retries}/3`);
+                
+                const response = await fetch('/generate-shortxlinks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: directUrl })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.short_url) {
+                        finalUrl = data.short_url;
+                        console.log('ShortXLinks - Generated:', finalUrl);
+                        break;
+                    }
+                }
+                
+                retries--;
+                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+            } catch (error) {
+                console.error('ShortXLinks error:', error);
+                retries--;
+                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+        }
+        
+        return finalUrl;
+    };
+    
+    // Generate both links in parallel
+    const [gplinksUrl, shortxUrl] = await Promise.all([
+        generateGPLinks(),
+        generateShortXLinks()
+    ]);
+    
+    // Build buttons HTML
+    let buttonsHtml = '';
+    
+    if (gplinksUrl) {
+        buttonsHtml += `
+            <a href="${getChromeOpenUrl(gplinksUrl)}" 
+               class="btn btn-info d-flex align-items-center gap-2" 
+               target="_blank"
+               title="Open via GPLinks">
+                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
+                𝗚𝗣𝗟𝗶𝗻𝗸𝘀
+            </a>`;
     } else {
-        console.log(`Direct URL - File is small (${fileSizeInGB.toFixed(2)} GB), using direct link`);
+        buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
     }
     
-    // Create final button with appropriate label
-    let buttonLabel;
-    if (shouldUseGPLinks) {
-        buttonLabel = useGPLinks ? '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (GPLinks)' : '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)';
+    if (shortxUrl) {
+        buttonsHtml += `
+            <a href="${getChromeOpenUrl(shortxUrl)}" 
+               class="btn btn-success d-flex align-items-center gap-2" 
+               target="_blank"
+               title="Open via ShortXLinks">
+                𝗦𝗵𝗼𝗿𝘁𝗫𝗹𝗶𝗻𝗸𝘀
+            </a>`;
     } else {
-        buttonLabel = '𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)';
+        buttonsHtml += `<button class="btn btn-secondary" disabled>ShortX Failed</button>`;
     }
     
-    const chromeButtonHtml = `
-        <a href="${getChromeOpenUrl(finalUrl)}" 
-           class="btn btn-info d-flex align-items-center gap-2" 
-           target="_blank"
-           title="Open in Chrome">
-            <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-            ${buttonLabel}
-        </a>`;
+    // Update buttons
+    $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
     
-    // Update button with final URL
-    $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
-    
-    // Optional: Fetch path in background if needed
+    // Optional: Fetch path in background
     fetch(`/${cur}:id2path`, {
         method: 'POST',
         body: JSON.stringify({ id: file_id }),
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).catch(error => console.log('Path fetch error:', error));
 }
 
@@ -1533,7 +2054,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 					</div>
 				</div>` : `
 				<div class="h-100 border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;">
-					<span><img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/zip-icon.png" alt="Zip Icon" style="max-width: 200px; height: auto; object-fit: contain;"></span>
+					<span><img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/zip-icon.png" alt="Zip Icon" style="max-width: 200px; height: auto; object-fit: contain;"></span>
 					<span><a href="https://telegram.me/tamizhan_updates/51" target="_blank" style="text-decoration: none; color: #00d4ff;">👉🏻 How to Extract Zip file ✅</a></span>
 				</div>`}
 			</div>
@@ -1572,21 +2093,30 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 					</tbody>
 				</table>
        ${UI.disable_video_download ? `` : `
-      <div class="col-md-12">
-        <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-          <div class="btn-group text-center"> 
-            ${UI.display_drive_link ? ` 
-           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          <a href="${url}" type="button" class="btn btn-success">
-          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-           </a>
-            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
-                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="sr-only"></span>
-            </button>
-             <div class="dropdown-menu">
+    <div class="col-md-12">
+  <div class="text-center">
+    <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+    <div class="btn-group text-center" style="flex-wrap: wrap; gap: 5px;"> 
+      ${UI.display_drive_link ? `
+        <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+                data-file-id="${file_id}" 
+                type="button">
+          ${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅
+        </button>
+        <button class="btn btn-info d-flex align-items-center gap-2 neodrive-btn" 
+                data-file-id="${file_id}" 
+                type="button">
+          <i class="fa-solid fa-cloud"></i>𝗡𝗲𝗼𝗱𝗿𝗶𝘃𝗲
+        </button>
+      ` : ``}
+      <a href="${url}" type="button" class="btn btn-success">
+        <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+      </a>
+      <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
+       data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+         <span class="sr-only"></span>
+         </button>
+           <div class="dropdown-menu">
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
@@ -1626,6 +2156,30 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
             console.error('GDFlix error:', error);
         });
     });
+  // Add NeoDrive button click handler
+	$(document).on('click', '.neodrive-btn', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+    
+    console.log('Neodrive button clicked, fileId:', fileId);
+    
+    if (!fileId) {
+        alert('Error: No file ID found');
+        return;
+    }
+    
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    
+    generateNeodriveLink(fileId)
+        .then(() => {
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            button.prop('disabled', false).html(originalHtml);
+            console.error('Neodrive error:', error);
+        });
+});
 	
 	// Rest of the function remains the same...
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
@@ -1713,21 +2267,30 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 					 </tbody>
 				 </table>
        ${UI.disable_video_download ? `` : `
-      <div class="col-md-12">
-        <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-          <div class="btn-group text-center"> 
-            ${UI.display_drive_link ? ` 
-           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          <a href="${url}" type="button" class="btn btn-success">
-          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-           </a>
-            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
-                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="sr-only"></span>
-            </button>
-            <div class="dropdown-menu">
+   <div class="col-md-12">
+  <div class="text-center">
+    <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+    <div class="btn-group text-center" style="flex-wrap: wrap; gap: 5px;"> 
+      ${UI.display_drive_link ? `
+        <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+                data-file-id="${file_id}" 
+                type="button">
+          ${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅
+        </button>
+        <button class="btn btn-info d-flex align-items-center gap-2 neodrive-btn" 
+                data-file-id="${file_id}" 
+                type="button">
+          <i class="fa-solid fa-cloud"></i>𝗡𝗲𝗼𝗱𝗿𝗶𝘃𝗲
+        </button>
+      ` : ``}
+      <a href="${url}" type="button" class="btn btn-success">
+        <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+      </a>
+      <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
+       data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <span class="sr-only"></span>
+        </button>
+          <div class="dropdown-menu">
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
@@ -1816,11 +2379,11 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   // Document display video  mkv|mp4|webm|avi| 
    function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	 // Define all player icons
-    const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
-    const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Karthick36/Google-Drive-Index@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
+    const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
 		 var url_base64 = btoa(url);
 	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 	  let player
@@ -1898,19 +2461,28 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 					     </tbody>
 				    </table>
         ${UI.disable_video_download ? `` : `
-      <div class="col-md-12">
-        <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-          <div class="btn-group text-center"> 
-            ${UI.display_drive_link ? ` 
-           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          <a href="${url}" type="button" class="btn btn-success">
-          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-           </a>
-            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
-                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="sr-only"></span>
+<div class="col-md-12">
+  <div class="text-center">
+    <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+    <div class="btn-group text-center" style="flex-wrap: wrap; gap: 5px;"> 
+      ${UI.display_drive_link ? `
+        <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+                data-file-id="${file_id}" 
+                type="button">
+          ${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅
+        </button>
+        <button class="btn btn-info d-flex align-items-center gap-2 neodrive-btn" 
+                data-file-id="${file_id}" 
+                type="button">
+          <i class="fa-solid fa-cloud"></i>𝗡𝗲𝗼𝗱𝗿𝗶𝘃𝗲
+        </button>
+      ` : ``}
+      <a href="${url}" type="button" class="btn btn-success">
+        <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+      </a>
+      <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
+          data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="sr-only"></span>
             </button>
             <div class="dropdown-menu">
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
@@ -2389,6 +2961,61 @@ function generateGDFlixLink(fileId) {
         .catch(error => {
             console.error('GDFlix Error:', error);
             alert('Failed to generate GDFlix link: ' + error.message);
+            reject(error);
+        });
+    });
+}
+// Update the NeodriveLink function to call the worker endpoint
+function generateNeodriveLink(fileId) {
+    return new Promise((resolve, reject) => {
+        console.log('Neodrive - Received fileId:', fileId);
+        
+        if (!fileId) {
+            console.error('Neodrive - No file ID provided');
+            reject(new Error('No file ID provided'));
+            return;
+        }
+        
+        fileId = String(fileId).trim();
+        
+        if (fileId === '') {
+            console.error('Neodrive - Empty file ID');
+            reject(new Error('Empty file ID'));
+            return;
+        }
+        
+        console.log('Neodrive - Requesting link generation from worker...');
+        
+        fetch('/generate-neodrive', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                file_id: fileId
+            })
+        })
+        .then(response => {
+            console.log('Neodrive - Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Neodrive - Worker response:', data);
+            
+            if (data.success && data.neodrive_link) {
+                console.log('Neodrive - Generated link:', data.neodrive_link);
+                window.open(data.neodrive_link, '_blank');
+                resolve(data.neodrive_link);
+            } else {
+                reject(new Error(data.error || 'Failed to generate Neodrive link'));
+            }
+        })
+        .catch(error => {
+            console.error('Neodrive Error:', error);
+            alert('Failed to generate Neodrive link: ' + error.message);
             reject(error);
         });
     });
