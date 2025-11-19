@@ -2497,14 +2497,14 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       <button class="btn btn-primary d-flex align-items-center gap-1 neodrive-btn" 
               data-file-id="${file_id}" 
               type="button">
-        ${neodrive_icon}𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲 𝗟𝗶𝗻𝗸
+        ${neodrive_icon}𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲
       </button>
       
       <!-- Download Button with Dropdown (3rd) -->
       <div class="btn-group">
         <a href="${url}" 
            type="button" 
-           class="btn btn-success d-flex align-items-center gap-0">
+           class="btn btn-success d-flex align-items-center">
           <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
         </a>
         
