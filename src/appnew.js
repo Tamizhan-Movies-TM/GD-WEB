@@ -2408,7 +2408,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
-    const neodrive_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/neodrives_icon.png" style="height: 24px; width: 24px; margin-right: 5px;">`;
+    const neodrive_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/neodrives_icon.png" style="height: 22px; width: 22px; margin-right: 5px;">`;
 		 var url_base64 = btoa(url);
 	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 	  let player
@@ -2494,7 +2494,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅</button>` : ``} 
       
-      <button class="btn btn-primary d-flex align-items-center gap-1 neodrive-btn" 
+      <button class="btn btn-primary d-flex align-items-center gap-0 neodrive-btn" 
         data-file-id="${file_id}" type="button">${neodrive_icon}𝗡𝗲𝗼𝗱𝗿𝗶𝘃𝗲</button>
       
       <a href="${url}" type="button" class="btn btn-success">
