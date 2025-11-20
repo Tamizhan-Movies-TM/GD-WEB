@@ -2483,39 +2483,43 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝕃𝕚𝕟𝕜𝕤&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
     
     <!-- Responsive button container: row on desktop, column on mobile -->
-    <div class="d-flex flex-column flex-md-row gap-2 justify-content-center align-items-stretch">
+    <div class="d-flex flex-column flex-md-row gap-2 justify-content-center align-items-stretch" style="max-width: 600px; margin: 0 auto;">
       
       <!-- GDFlix Button (1st) -->
       ${UI.display_drive_link ? `
-      <button class="btn btn-secondary d-flex align-items-center justify-content-center gap-2 gdflix-btn flex-fill" 
+      <button class="btn btn-secondary d-flex align-items-center justify-content-center gap-1 gdflix-btn" 
               data-file-id="${file_id}" 
               type="button"
-              style="min-width: 150px; white-space: nowrap;">
-        ${gdrive_icon}<span>𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</span>
+              style="flex: 1; min-width: 0; padding: 0.5rem 0.75rem; font-size: 0.9rem;">
+        <span style="font-size: 1rem;">${gdrive_icon}</span>
+        <span style="white-space: nowrap;">𝗚𝗗𝗙𝗹𝗶𝘅</span>
       </button>` : ``}
       
       <!-- NeoDrive Button (2nd) -->
-      <button class="btn btn-primary d-flex align-items-center justify-content-center gap-2 neodrive-btn flex-fill" 
+      <button class="btn btn-primary d-flex align-items-center justify-content-center gap-1 neodrive-btn" 
               data-file-id="${file_id}" 
               type="button"
-              style="min-width: 150px; white-space: nowrap;">
-        ${neodrive_icon}<span>𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲 𝗗𝗟</span>
+              style="flex: 1; min-width: 0; padding: 0.5rem 0.75rem; font-size: 0.9rem;">
+        <span style="font-size: 1rem;">${neodrive_icon}</span>
+        <span style="white-space: nowrap;">𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲</span>
       </button>
       
       <!-- Download Button with Dropdown (3rd) -->
-      <div class="btn-group flex-fill" style="min-width: 150px;">
+      <div class="btn-group" style="flex: 1; min-width: 0;">
         <a href="${url}" 
            type="button" 
-           class="btn btn-success d-flex align-items-center justify-content-center gap-2"
-           style="white-space: nowrap;">
-          <i class="fa-solid fa-circle-down"></i><span>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱</span>
+           class="btn btn-success d-flex align-items-center justify-content-center gap-1"
+           style="padding: 0.5rem 0.75rem; font-size: 0.9rem;">
+          <i class="fa-solid fa-circle-down" style="font-size: 1rem;"></i>
+          <span style="white-space: nowrap;">𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱</span>
         </a>
         
         <button type="button" 
                 class="btn btn-success dropdown-toggle dropdown-toggle-split" 
                 data-bs-toggle="dropdown" 
                 aria-haspopup="true" 
-                aria-expanded="false">
+                aria-expanded="false"
+                style="padding: 0.5rem 0.5rem;">
           <span class="sr-only"></span>
         </button>
         
