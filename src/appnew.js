@@ -2490,7 +2490,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       <button class="btn btn-secondary d-flex align-items-center justify-content-center gap-1 gdflix-btn" 
               data-file-id="${file_id}" 
               type="button"
-              style="flex: 1; min-width: 0; padding: 0.5rem 0.75rem; font-size: 0.875rem;">
+              style="flex: 1; min-width: 0; padding: 0.3rem 0.50rem; font-size: 0.575rem;">
         <span style="font-size: 1.1rem;">${gdrive_icon}</span>
         <span style="white-space: nowrap;">𝗚𝗗𝗙𝗹𝗶𝘅</span>
       </button>` : ``}
@@ -2499,7 +2499,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       <button class="btn btn-primary d-flex align-items-center justify-content-center gap-1 neodrive-btn" 
               data-file-id="${file_id}" 
               type="button"
-              style="flex: 1; min-width: 0; padding: 0.5rem 0.75rem; font-size: 0.875rem;">
+              style="flex: 1; min-width: 0; padding: 0.3rem 0.50rem; font-size: 0.575rem;">
         <span style="font-size: 1.1rem;">${neodrive_icon}</span>
         <span style="white-space: nowrap;">𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲</span>
       </button>
@@ -2509,7 +2509,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         <a href="${url}" 
            type="button" 
            class="btn btn-success d-flex align-items-center justify-content-center gap-1"
-           style="padding: 0.5rem 0.75rem; font-size: 0.875rem;">
+           style="padding: 0.3rem 0.50rem; font-size: 0.575rem;">
           <i class="fa-solid fa-circle-down" style="font-size: 1.1rem;"></i>
           <span style="white-space: nowrap;">𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱</span>
         </a>
