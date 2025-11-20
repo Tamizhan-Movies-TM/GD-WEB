@@ -1711,31 +1711,36 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 					</tbody>
 				</table>
        ${UI.disable_video_download ? `` : `
-      <div class="col-md-12">
-        <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-          <div class="btn-group text-center"> 
-            ${UI.display_drive_link ? ` 
-           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          <a href="${url}" type="button" class="btn btn-success">
-          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-           </a>
-            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
-                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="sr-only"></span>
-            </button>
-             <div class="dropdown-menu">
+    <div class="col-md-12">
+  <div class="text-center">
+    <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp; &&nbsp; ℕ𝕖𝕠𝔻𝕣𝕚𝕧𝕖&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+    <div class="btn-group text-center"> 
+      ${UI.display_drive_link ? ` 
+        <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅</button>` : ``} 
+      
+      <button class="btn btn-primary d-flex align-items-center gap-1 neodrive-btn" 
+        data-file-id="${file_id}" type="button">${neodrive_icon}𝗡𝗲𝗼𝗱𝗿𝗶𝘃𝗲</button>
+      
+      <a href="${url}" type="button" class="btn btn-success">
+        <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+      </a>
+      
+      <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
+         data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+         <span class="sr-only"></span>
+        </button>
+        <div class="dropdown-menu">
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-						</div>
+					 </div>
           </div>
         </div> 
       </div>`}
     </div>
   </div>`;
-	$('#content').html(content);
+	$("#content").html(content);
 
 	// Add GDFlix button click handler
   $(document).on('click', '.gdflix-btn', function() {
@@ -1765,6 +1770,30 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
             console.error('GDFlix error:', error);
         });
     });
+  // Add Neodrive button click handler
+		 $(document).on('click', '.neodrive-btn', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+    
+    console.log('Neodrive button clicked, fileId:', fileId);
+    
+    if (!fileId) {
+        alert('Error: No file ID found on button');
+        return;
+    }
+    
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    
+    generateNeodriveLink(fileId)
+        .then(() => {
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            button.prop('disabled', false).html(originalHtml);
+            console.error('Neodrive button error:', error);
+        });
+});
 	
 	// Rest of the function remains the same...
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
@@ -1852,21 +1881,26 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 					 </tbody>
 				 </table>
        ${UI.disable_video_download ? `` : `
-      <div class="col-md-12">
-        <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-          <div class="btn-group text-center"> 
-            ${UI.display_drive_link ? ` 
-           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          <a href="${url}" type="button" class="btn btn-success">
-          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-           </a>
-            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
-                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="sr-only"></span>
-            </button>
-            <div class="dropdown-menu">
+    <div class="col-md-12">
+  <div class="text-center">
+    <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp; &&nbsp; ℕ𝕖𝕠𝔻𝕣𝕚𝕧𝕖&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+    <div class="btn-group text-center"> 
+      ${UI.display_drive_link ? ` 
+        <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅</button>` : ``} 
+      
+      <button class="btn btn-primary d-flex align-items-center gap-1 neodrive-btn" 
+        data-file-id="${file_id}" type="button">${neodrive_icon}𝗡𝗲𝗼𝗱𝗿𝗶𝘃𝗲</button>
+      
+      <a href="${url}" type="button" class="btn btn-success">
+        <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+      </a>
+      
+      <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
+        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+         <span class="sr-only"></span>
+        </button>
+         <div class="dropdown-menu">
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
@@ -1906,6 +1940,31 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             console.error('GDFlix error:', error);
         });
     });
+
+	// Add Neodrive button click handler
+		 $(document).on('click', '.neodrive-btn', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+    
+    console.log('Neodrive button clicked, fileId:', fileId);
+    
+    if (!fileId) {
+        alert('Error: No file ID found on button');
+        return;
+    }
+    
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    
+    generateNeodriveLink(fileId)
+        .then(() => {
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            button.prop('disabled', false).html(originalHtml);
+            console.error('Neodrive button error:', error);
+        });
+});
 	
 	// Rest of the function remains the same...
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
@@ -2037,31 +2096,55 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 					     </tbody>
 				    </table>
         ${UI.disable_video_download ? `` : `
-      <div class="col-md-12">
-        <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-          <div class="btn-group text-center"> 
-            ${UI.display_drive_link ? ` 
-           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          <a href="${url}" type="button" class="btn btn-success">
-          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-           </a>
-            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
-                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="sr-only"></span>
-            </button>
-            <div class="dropdown-menu">
-              <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a> 
-             </div>
-           </div> 
-         </div>`}
-       </div>
-      </div>`; 
-    $("#content").html(content);
+  <div class="col-md-12">
+  <div class="text-center">
+    <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝕃𝕚𝕟𝕜𝕤&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+    
+    <!-- Responsive button container: row on desktop, column on mobile -->
+    <div class="d-flex flex-column flex-md-row gap-2 justify-content-center align-items-center">
+      
+      <!-- GDFlix Button (1st) -->
+      ${UI.display_drive_link ? `
+      <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn w-45 w-md-auto" 
+              data-file-id="${file_id}" 
+              type="button">
+        ${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 &nbsp;𝗟𝗶𝗻𝗸&nbsp;&nbsp;&nbsp;
+      </button>` : ``}
+      
+      <!-- NeoDrive Button (2nd) -->
+      <button class="btn btn-primary d-flex align-items-center gap-1 neodrive-btn w-45 w-md-auto" 
+              data-file-id="${file_id}" 
+              type="button">
+        ${neodrive_icon}𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲 &nbsp;𝗗𝗟
+      </button>
+      
+      <!-- Download Button with Dropdown (3rd) -->
+      <div class="btn-group">
+        <a href="${url}" 
+           type="button" 
+           class="btn btn-success d-flex align-items-center justify-content-center">
+          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+        </a>
+        
+        <button type="button" 
+                class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
+                data-bs-toggle="dropdown" 
+                aria-haspopup="true" 
+                aria-expanded="false">
+          <span class="sr-only"></span>
+        </button>
+        
+        <div class="dropdown-menu">
+        <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
+        <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
+        <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
+        <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a> 
+      </div>
+    </div> 
+  </div>
+</div>`}
+</div>`;
+$("#content").html(content);
 
 // Add GDFlix button click handler
   $(document).on('click', '.gdflix-btn', function() {
@@ -2091,6 +2174,30 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             console.error('GDFlix error:', error);
         });
     });
+    // Add Neodrive button click handler
+		 $(document).on('click', '.neodrive-btn', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+    
+    console.log('Neodrive button clicked, fileId:', fileId);
+    
+    if (!fileId) {
+        alert('Error: No file ID found on button');
+        return;
+    }
+    
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    
+    generateNeodriveLink(fileId)
+        .then(() => {
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            button.prop('disabled', false).html(originalHtml);
+            console.error('Neodrive button error:', error);
+        });
+});
 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
@@ -2528,6 +2635,95 @@ function generateGDFlixLink(fileId) {
         .catch(error => {
             console.error('GDFlix Error:', error);
             alert('Failed to generate GDFlix link: ' + error.message);
+            reject(error);
+        });
+    });
+}
+
+// Update the NeodriveLink function to call the worker endpoint
+function generateNeodriveLink(fileId) {
+    return new Promise((resolve, reject) => {
+        console.log('Neodrive - Starting link generation for fileId:', fileId);
+        
+        // Validate fileId
+        if (!fileId) {
+            console.error('Neodrive - No file ID provided');
+            alert('Error: No file ID provided');
+            reject(new Error('No file ID provided'));
+            return;
+        }
+        
+        fileId = String(fileId).trim();
+        
+        if (fileId === '') {
+            console.error('Neodrive - Empty file ID after trim');
+            alert('Error: Empty file ID');
+            reject(new Error('Empty file ID'));
+            return;
+        }
+        
+        console.log('Neodrive - Sending request to worker endpoint...');
+        
+        // Make request to worker endpoint
+        fetch('/generate-neodrive', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                file_id: fileId
+            })
+        })
+        .then(response => {
+            console.log('Neodrive - Worker response status:', response.status);
+            
+            if (!response.ok) {
+                return response.text().then(text => {
+                    console.error('Neodrive - Error response body:', text);
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                });
+            }
+            
+            return response.json();
+        })
+        .then(data => {
+            console.log('Neodrive - Worker response data:', data);
+            
+            if (data.success && data.neodrive_link) {
+                console.log('Neodrive - Successfully generated link:', data.neodrive_link);
+                
+                // Open the Neodrive link in a new tab
+                const newWindow = window.open(data.neodrive_link, '_blank');
+                
+                if (!newWindow) {
+                    // If popup was blocked, show alert with link
+                    alert('Neodrive link generated! Please allow popups or click OK to copy the link.\n\nLink: ' + data.neodrive_link);
+                    
+                    // Try to copy to clipboard
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(data.neodrive_link)
+                            .then(() => {
+                                console.log('Neodrive - Link copied to clipboard');
+                            })
+                            .catch(err => {
+                                console.error('Neodrive - Failed to copy to clipboard:', err);
+                            });
+                    }
+                } else {
+                    console.log('Neodrive - Link opened in new tab successfully');
+                }
+                
+                resolve(data.neodrive_link);
+            } else {
+                const errorMsg = data.error || 'Unknown error - No link received from server';
+                console.error('Neodrive - Error in response:', errorMsg);
+                alert('Failed to generate Neodrive link: ' + errorMsg);
+                reject(new Error(errorMsg));
+            }
+        })
+        .catch(error => {
+            console.error('Neodrive - Fetch error:', error);
+            alert('Failed to generate Neodrive link: ' + error.message + '\n\nPlease try again or contact support if the issue persists.');
             reject(error);
         });
     });
