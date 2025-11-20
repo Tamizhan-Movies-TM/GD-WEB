@@ -1753,13 +1753,13 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-						</div>
+					 </div>
           </div>
         </div> 
       </div>`}
     </div>
   </div>`;
-	$('#content').html(content);
+	$("#content").html(content);
 
 	// Add GDFlix button click handler
   $(document).on('click', '.gdflix-btn', function() {
@@ -1800,6 +1800,19 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
         alert('Error: No file ID found on button');
         return;
     }
+    
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    
+    generateNeodriveLink(fileId)
+        .then(() => {
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            button.prop('disabled', false).html(originalHtml);
+            console.error('Neodrive button error:', error);
+        });
+});
 	
 	// Rest of the function remains the same...
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
@@ -1887,6 +1900,11 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 					 </tbody>
 				 </table>
        ${UI.disable_video_download ? `` : `
+    <div class="col-md-12">
+  <div class="text-center">
+    <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp; &&nbsp; ℕ𝕖𝕠𝔻𝕣𝕚𝕧𝕖&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+    <div class="btn-group text-center"> 
+      ${UI.disable_video_download ? `` : `
   <div class="col-md-12">
   <div class="text-center">
     <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝕃𝕚𝕟𝕜𝕤&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
@@ -1965,6 +1983,31 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             console.error('GDFlix error:', error);
         });
     });
+
+	// Add Neodrive button click handler
+		 $(document).on('click', '.neodrive-btn', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+    
+    console.log('Neodrive button clicked, fileId:', fileId);
+    
+    if (!fileId) {
+        alert('Error: No file ID found on button');
+        return;
+    }
+    
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    
+    generateNeodriveLink(fileId)
+        .then(() => {
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            button.prop('disabled', false).html(originalHtml);
+            console.error('Neodrive button error:', error);
+        });
+});
 	
 	// Rest of the function remains the same...
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
@@ -2095,7 +2138,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 						     </tr>
 					     </tbody>
 				    </table>
-         ${UI.disable_video_download ? `` : `
+        ${UI.disable_video_download ? `` : `
   <div class="col-md-12">
   <div class="text-center">
     <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝕃𝕚𝕟𝕜𝕤&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
@@ -2198,6 +2241,7 @@ $("#content").html(content);
             console.error('Neodrive button error:', error);
         });
 });
+
 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
