@@ -2097,45 +2097,21 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
   <div class="text-center">
     <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp; &&nbsp; ℕ𝕖𝕠𝔻𝕣𝕚𝕧𝕖&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
     <div class="btn-group text-center"> 
-      ${UI.disable_video_download ? `` : `
-  <div class="col-md-12">
-  <div class="text-center">
-    <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝕃𝕚𝕟𝕜𝕤&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-    
-    <!-- Responsive button container: row on desktop, column on mobile -->
-    <div class="d-flex flex-column flex-md-row gap-2 justify-content-center align-items-center">
+      ${UI.display_drive_link ? ` 
+        <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅</button>` : ``} 
       
-      <!-- GDFlix Button (1st) -->
-      ${UI.display_drive_link ? `
-      <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn w-45 w-md-auto" 
-              data-file-id="${file_id}" 
-              type="button">
-        ${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 &nbsp;𝗟𝗶𝗻𝗸&nbsp;&nbsp;&nbsp;
-      </button>` : ``}
+      <button class="btn btn-primary d-flex align-items-center gap-1 neodrive-btn" 
+        data-file-id="${file_id}" type="button">${neodrive_icon}𝗡𝗲𝗼𝗱𝗿𝗶𝘃𝗲</button>
       
-      <!-- NeoDrive Button (2nd) -->
-      <button class="btn btn-primary d-flex align-items-center gap-1 neodrive-btn w-45 w-md-auto" 
-              data-file-id="${file_id}" 
-              type="button">
-        ${neodrive_icon}𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲 &nbsp;𝗗𝗟
-      </button>
+      <a href="${url}" type="button" class="btn btn-success">
+        <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+      </a>
       
-      <!-- Download Button with Dropdown (3rd) -->
-      <div class="btn-group">
-        <a href="${url}" 
-           type="button" 
-           class="btn btn-success d-flex align-items-center justify-content-center">
-          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-        </a>
-        
-        <button type="button" 
-                class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
-                data-bs-toggle="dropdown" 
-                aria-haspopup="true" 
-                aria-expanded="false">
-          <span class="sr-only"></span>
+      <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
+         data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+         <span class="sr-only"></span>
         </button>
-        
         <div class="dropdown-menu">
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
@@ -2291,46 +2267,22 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   <div class="text-center">
     <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp; &&nbsp; ℕ𝕖𝕠𝔻𝕣𝕚𝕧𝕖&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
     <div class="btn-group text-center"> 
-      ${UI.disable_video_download ? `` : `
-  <div class="col-md-12">
-  <div class="text-center">
-    <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝕃𝕚𝕟𝕜𝕤&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-    
-    <!-- Responsive button container: row on desktop, column on mobile -->
-    <div class="d-flex flex-column flex-md-row gap-2 justify-content-center align-items-center">
+      ${UI.display_drive_link ? ` 
+        <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅</button>` : ``} 
       
-      <!-- GDFlix Button (1st) -->
-      ${UI.display_drive_link ? `
-      <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn w-45 w-md-auto" 
-              data-file-id="${file_id}" 
-              type="button">
-        ${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 &nbsp;𝗟𝗶𝗻𝗸&nbsp;&nbsp;&nbsp;
-      </button>` : ``}
+      <button class="btn btn-primary d-flex align-items-center gap-1 neodrive-btn" 
+        data-file-id="${file_id}" type="button">${neodrive_icon}𝗡𝗲𝗼𝗱𝗿𝗶𝘃𝗲</button>
       
-      <!-- NeoDrive Button (2nd) -->
-      <button class="btn btn-primary d-flex align-items-center gap-1 neodrive-btn w-45 w-md-auto" 
-              data-file-id="${file_id}" 
-              type="button">
-        ${neodrive_icon}𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲 &nbsp;𝗗𝗟
-      </button>
+      <a href="${url}" type="button" class="btn btn-success">
+        <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+      </a>
       
-      <!-- Download Button with Dropdown (3rd) -->
-      <div class="btn-group">
-        <a href="${url}" 
-           type="button" 
-           class="btn btn-success d-flex align-items-center justify-content-center">
-          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-        </a>
-        
-        <button type="button" 
-                class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
-                data-bs-toggle="dropdown" 
-                aria-haspopup="true" 
-                aria-expanded="false">
-          <span class="sr-only"></span>
+      <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
+        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+         <span class="sr-only"></span>
         </button>
-        
-        <div class="dropdown-menu">
+         <div class="dropdown-menu">
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
 							<a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
