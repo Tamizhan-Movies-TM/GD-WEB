@@ -2490,7 +2490,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn w-45 w-md-auto" 
               data-file-id="${file_id}" 
               type="button">
-        ${gdrive_icon}&nbsp;𝗚𝗗𝗙𝗹𝗶𝘅 &nbsp;𝗟𝗶𝗻𝗸&nbsp;
+        ${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 &nbsp;𝗟𝗶𝗻𝗸&nbsp;&nbsp;&nbsp;
       </button>` : ``}
       
       <!-- NeoDrive Button (2nd) -->
