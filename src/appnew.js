@@ -2483,33 +2483,36 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝕃𝕚𝕟𝕜𝕤&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
     
     <!-- Responsive button container: row on desktop, column on mobile -->
-    <div class="d-flex flex-column flex-md-row gap-2 justify-content-center align-items-center">
+    <div class="d-flex flex-column flex-md-row gap-2 justify-content-center align-items-stretch">
       
       <!-- GDFlix Button (1st) -->
       ${UI.display_drive_link ? `
-      <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn w-45 w-md-auto" 
+      <button class="btn btn-secondary d-flex align-items-center justify-content-center gap-2 gdflix-btn flex-fill" 
               data-file-id="${file_id}" 
-              type="button">
-        ${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸
+              type="button"
+              style="min-width: 150px; white-space: nowrap;">
+        ${gdrive_icon}<span>𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</span>
       </button>` : ``}
       
       <!-- NeoDrive Button (2nd) -->
-      <button class="btn btn-primary d-flex align-items-center gap-1 neodrive-btn w-45 w-md-auto" 
+      <button class="btn btn-primary d-flex align-items-center justify-content-center gap-2 neodrive-btn flex-fill" 
               data-file-id="${file_id}" 
-              type="button">
-        ${neodrive_icon}𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲 𝗗𝗟
+              type="button"
+              style="min-width: 150px; white-space: nowrap;">
+        ${neodrive_icon}<span>𝗡𝗲𝗼𝗗𝗿𝗶𝘃𝗲 𝗗𝗟</span>
       </button>
       
       <!-- Download Button with Dropdown (3rd) -->
-      <div class="btn-group">
+      <div class="btn-group flex-fill" style="min-width: 150px;">
         <a href="${url}" 
            type="button" 
-           class="btn btn-success d-flex align-items-center justify-content-center">
-          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+           class="btn btn-success d-flex align-items-center justify-content-center gap-2"
+           style="white-space: nowrap;">
+          <i class="fa-solid fa-circle-down"></i><span>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱</span>
         </a>
         
         <button type="button" 
-                class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
+                class="btn btn-success dropdown-toggle dropdown-toggle-split" 
                 data-bs-toggle="dropdown" 
                 aria-haspopup="true" 
                 aria-expanded="false">
