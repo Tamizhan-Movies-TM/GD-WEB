@@ -1835,7 +1835,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 𝗔𝗿𝗼𝗟𝗶𝗻𝗸𝘀
             </a>`;
     } else {
-        buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
+        buttonsHtml += `<button class="btn btn-secondary" disabled>AroLinks Failed</button>`;
     }
     
     if (shortxUrl) {
