@@ -1721,7 +1721,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         </tbody>
     </table>`;
     
-    const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">ð—–ð—¹ð—¼ð˜€ð—²</button>`;
+    const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗰𝗹𝗼𝘀𝗲</button>`;
     
     // Show content with loading buttons immediately
     const loadingButtons = `
