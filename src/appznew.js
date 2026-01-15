@@ -1831,7 +1831,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                class="btn btn-info d-flex align-items-center gap-2" 
                target="_blank"
                title="Open via GPLinks">
-                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
                 𝗚𝗣𝗟𝗶𝗻𝗸𝘀
             </a>`;
     } else {
