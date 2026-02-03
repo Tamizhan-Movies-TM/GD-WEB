@@ -1660,7 +1660,7 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Modified onSearchResultItemClick function - Generates both GPLinks and nowshort
+// Modified onSearchResultItemClick function - Generates both GPLinks and Nowshort
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
@@ -1781,13 +1781,13 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         return finalUrl;
     };
     
-    const generatenowshort = async () => {
+    const generateNowshort = async () => {
         let finalUrl = null;
         let retries = 3;
         
         while (retries > 0 && !finalUrl) {
             try {
-                console.log(`nowshort - Attempt ${4 - retries}/3`);
+                console.log(`Nowshort - Attempt ${4 - retries}/3`);
                 
                 const response = await fetch('/generate-nowshort', {
                     method: 'POST',
@@ -1799,7 +1799,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     const data = await response.json();
                     if (data.success && data.short_url) {
                         finalUrl = data.short_url;
-                        console.log('nowshort - Generated:', finalUrl);
+                        console.log('Nowshort - Generated:', finalUrl);
                         break;
                     }
                 }
@@ -1807,7 +1807,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 retries--;
                 if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
             } catch (error) {
-                console.error('nowshort error:', error);
+                console.error('Nowshort error:', error);
                 retries--;
                 if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
             }
@@ -1819,7 +1819,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     // Generate both links in parallel
     const [gplinksUrl, nowshortUrl] = await Promise.all([
         generateGPLinks(),
-        generatenowshort()
+        generateNowshort()
     ]);
     
     // Build buttons HTML
@@ -1842,11 +1842,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             <a href="${getChromeOpenUrl(nowshortUrl)}" 
                class="btn btn-success d-flex align-items-center gap-2" 
                target="_blank"
-               title="Open via nowshortLinks">
-               𝐍𝐨𝐰𝐬𝐡𝐨𝐫𝐭
+               title="Open via Nowshort">
+                𝗡𝗼𝘄𝘀𝗵𝗼𝗿𝘁
             </a>`;
     } else {
-        buttonsHtml += `<button class="btn btn-secondary" disabled>nowshort Failed</button>`;
+        buttonsHtml += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
     }
     
     // Update buttons
