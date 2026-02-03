@@ -1831,7 +1831,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                class="btn btn-info d-flex align-items-center gap-2" 
                target="_blank"
                title="Open via ShortX">
-                𝗦𝗵𝗼𝗿𝘁𝗫
+                𝗦𝗵𝗼𝗿𝘁𝗫𝗹𝗶𝗻𝗸𝘀
             </a>`;
     } else {
         buttonsHtml += `<button class="btn btn-secondary" disabled>ShortX Failed</button>`;
