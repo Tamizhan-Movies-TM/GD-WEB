@@ -1660,7 +1660,7 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Modified onSearchResultItemClick function - Generates both GPLinks and ShortXLinks
+// Modified onSearchResultItemClick function - Generates both GPLinks and nowshort
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
@@ -1731,7 +1731,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             </div>
             Loading..
         </button>
-        <button class="btn btn-success d-flex align-items-center gap-2" id="shortx-loading" disabled>
+        <button class="btn btn-success d-flex align-items-center gap-2" id="nowshort-loading" disabled>
             <div class="spinner-border spinner-border-sm" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
@@ -1781,15 +1781,15 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         return finalUrl;
     };
     
-    const generateShortXLinks = async () => {
+    const generatenowshort = async () => {
         let finalUrl = null;
         let retries = 3;
         
         while (retries > 0 && !finalUrl) {
             try {
-                console.log(`ShortXLinks - Attempt ${4 - retries}/3`);
+                console.log(`nowshort - Attempt ${4 - retries}/3`);
                 
-                const response = await fetch('/generate-shortxlinks', {
+                const response = await fetch('/generate-nowshort', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url: directUrl })
@@ -1799,7 +1799,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     const data = await response.json();
                     if (data.success && data.short_url) {
                         finalUrl = data.short_url;
-                        console.log('ShortXLinks - Generated:', finalUrl);
+                        console.log('nowshort - Generated:', finalUrl);
                         break;
                     }
                 }
@@ -1807,7 +1807,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 retries--;
                 if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
             } catch (error) {
-                console.error('ShortXLinks error:', error);
+                console.error('nowshort error:', error);
                 retries--;
                 if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
             }
@@ -1817,9 +1817,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     };
     
     // Generate both links in parallel
-    const [gplinksUrl, shortxUrl] = await Promise.all([
+    const [gplinksUrl, nowshortUrl] = await Promise.all([
         generateGPLinks(),
-        generateShortXLinks()
+        generatenowshort()
     ]);
     
     // Build buttons HTML
@@ -1837,16 +1837,16 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
     }
     
-    if (shortxUrl) {
+    if (nowshortUrl) {
         buttonsHtml += `
-            <a href="${getChromeOpenUrl(shortxUrl)}" 
+            <a href="${getChromeOpenUrl(nowshortUrl)}" 
                class="btn btn-success d-flex align-items-center gap-2" 
                target="_blank"
-               title="Open via ShortXLinks">
-                𝗦𝗵𝗼𝗿𝘁𝗫𝗹𝗶𝗻𝗸𝘀
+               title="Open via nowshortLinks">
+               𝐍𝐨𝐰𝐬𝐡𝐨𝐫𝐭
             </a>`;
     } else {
-        buttonsHtml += `<button class="btn btn-secondary" disabled>ShortX Failed</button>`;
+        buttonsHtml += `<button class="btn btn-secondary" disabled>nowshort Failed</button>`;
     }
     
     // Update buttons
