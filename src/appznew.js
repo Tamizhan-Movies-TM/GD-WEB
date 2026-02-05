@@ -2853,66 +2853,171 @@ async function copyFile(driveid) {
 	}
 }
 
-// Update the generateGDFlixLink function to call the worker endpoint
-function generateGDFlixLink(fileId) {
+// Update the generateGKYFILEHOSTLink function to call the worker endpoint
+function generateGKYFILEHOSTLink(fileId, fileName) {
     return new Promise((resolve, reject) => {
-        // Debug logging
-        console.log('GDFlix - Received fileId:', fileId);
+        console.log('GKYFILEHOST - Received fileId:', fileId);
+        console.log('GKYFILEHOST - Received fileName:', fileName);
         
-        // Basic validation
         if (!fileId) {
-            console.error('GDFlix - No file ID provided');
+            console.error('GKYFILEHOST - No file ID provided');
+            alert('Error: No file ID provided');
             reject(new Error('No file ID provided'));
             return;
         }
         
-        // Convert to string if it's not already
         fileId = String(fileId).trim();
         
         if (fileId === '') {
-            console.error('GDFlix - Empty file ID');
+            console.error('GKYFILEHOST - Empty file ID');
+            alert('Error: Empty file ID');
             reject(new Error('Empty file ID'));
             return;
         }
         
-        console.log('GDFlix - Requesting link generation from worker...');
+        // Try to get filename from page if not provided
+        if (!fileName) {
+            try {
+                // Try to find the filename from the page title or heading
+                const titleElement = document.querySelector('h5.card-title');
+                if (titleElement) {
+                    fileName = titleElement.textContent.trim();
+                }
+            } catch (e) {
+                console.log('GKYFILEHOST - Could not extract filename from page');
+            }
+        }
         
-        // Make request to worker endpoint
-        fetch('/generate-gdflix', {
+        console.log('GKYFILEHOST - Final fileName:', fileName || 'download');
+        console.log('GKYFILEHOST - Requesting link generation from worker...');
+        console.log('GKYFILEHOST - File ID being sent:', fileId);
+        
+        // Show a loading indicator (you can customize this)
+        const loadingMsg = 'Generating GKYFILEHOST link... Please wait...';
+        console.log(loadingMsg);
+        
+        // Make request to worker endpoint (FIXED: Changed from /generate-gkyfilehost to /gkyfilehost)
+        fetch('/gkyfilehost', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                file_id: fileId
+                file_id: fileId,
+                file_name: fileName || 'download'
             })
         })
         .then(response => {
-            console.log('GDFlix - Response status:', response.status);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('GDFlix - Worker response:', data);
+            console.log('GKYFILEHOST - Response status:', response.status);
+            console.log('GKYFILEHOST - Response OK:', response.ok);
             
-            if (data.success && data.gdflix_link) {
-                console.log('GDFlix - Generated link:', data.gdflix_link);
-                // Open the GDFlix link directly in a new tab
-                window.open(data.gdflix_link, '_blank');
-                resolve(data.gdflix_link);
+            // Try to get the response body even if status is not OK
+            return response.json().then(data => {
+                return { status: response.status, ok: response.ok, data: data };
+            }).catch(() => {
+                // If JSON parsing fails, try to get text
+                return response.text().then(text => {
+                    return { status: response.status, ok: response.ok, data: { error: text } };
+                });
+            });
+        })
+        .then(result => {
+            console.log('GKYFILEHOST - Full response:', result);
+            
+            if (!result.ok) {
+                // Show specific error from server
+                const errorMsg = result.data.error || result.data.details || `HTTP error! status: ${result.status}`;
+                console.error('GKYFILEHOST - Server error:', errorMsg);
+                throw new Error(errorMsg);
+            }
+            
+            const data = result.data;
+            console.log('GKYFILEHOST - Worker response data:', data);
+            
+            if (data.success && (data.link || data.gkyfilehost_link)) {
+                const gkyLink = data.link || data.gkyfilehost_link;
+                console.log('GKYFILEHOST - Generated link:', gkyLink);
+                
+                // Validate the link format
+                if (!gkyLink.includes('gkyfilehost')) {
+                    console.warn('GKYFILEHOST - Warning: Link does not contain gkyfilehost domain');
+                }
+                
+                // Open the GKYFILEHOST link directly in a new tab
+                window.open(gkyLink, '_blank');
+                
+                // Show success message
+                console.log('✅ GKYFILEHOST link generated successfully!');
+                
+                resolve(gkyLink);
             } else {
-                reject(new Error(data.error || 'Failed to generate GDFlix link'));
+                const errorMsg = data.error || 'Failed to generate GKYFILEHOST link - no link in response';
+                console.error('GKYFILEHOST - Error from server:', errorMsg);
+                throw new Error(errorMsg);
             }
         })
         .catch(error => {
-            console.error('GDFlix Error:', error);
-            alert('Failed to generate GDFlix link: ' + error.message);
+            console.error('GKYFILEHOST Error:', error);
+            console.error('GKYFILEHOST Error stack:', error.stack);
+            
+            // Show user-friendly error message
+            let userMessage = 'Failed to generate GKYFILEHOST link';
+            
+            if (error.message.includes('Failed to login')) {
+                userMessage += '\n\n⚠️ Login to GKYFILEHOST failed.\n\nPossible solutions:\n' +
+                             '1. Check your GKYFILEHOST account credentials\n' +
+                             '2. Make sure your account is active\n' +
+                             '3. Check Cloudflare Worker logs for details';
+            } else if (error.message.includes('HTTP error! status: 500')) {
+                userMessage += '\n\nServer error (500).\n\nPlease check:\n' +
+                             '1. Cloudflare Worker logs for details\n' +
+                             '2. GKYFILEHOST credentials are correct\n' +
+                             '3. The file ID is valid';
+            } else if (error.message.includes('HTTP error! status: 400')) {
+                userMessage += '\n\nBad request (400). The file ID might be invalid.';
+            } else if (error.message.includes('Failed to fetch')) {
+                userMessage += '\n\nNetwork error. Check your internet connection.';
+            } else {
+                userMessage += ':\n\n' + error.message;
+            }
+            
+            alert(userMessage);
             reject(error);
         });
     });
 }
+
+// Handler for Download button to open GKYFILEHOST link
+$(document).on('click', '.download-via-gkyfilehost', function(e) {
+    e.preventDefault();
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+    
+    console.log('Download button clicked, fileId:', fileId);
+    
+    if (!fileId) {
+        alert('Error: No file ID found');
+        return;
+    }
+    
+    // Show loading state
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+    
+    // Call GKYFILEHOST function
+    generateGKYFILEHOSTLink(fileId)
+        .then((link) => {
+            button.prop('disabled', false).html(originalHtml);
+            console.log('Successfully opened GKYFILEHOST link:', link);
+        })
+        .catch((error) => {
+            button.html('<i class="fas fa-times fa-fw"></i> Failed');
+            setTimeout(() => {
+                button.prop('disabled', false).html(originalHtml);
+            }, 2000);
+            console.error('Download error:', error);
+        });
+});
 
 
 // create a MutationObserver to listen for changes to the DOM
