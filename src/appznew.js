@@ -2853,6 +2853,67 @@ async function copyFile(driveid) {
 	}
 }
 
+// GDFlix Link Generation Function
+function generateGDFlixLink(fileId) {
+    return new Promise((resolve, reject) => {
+        // Debug logging
+        console.log('GDFlix - Received fileId:', fileId);
+        
+        // Basic validation
+        if (!fileId) {
+            console.error('GDFlix - No file ID provided');
+            reject(new Error('No file ID provided'));
+            return;
+        }
+        
+        // Convert to string if it's not already
+        fileId = String(fileId).trim();
+        
+        if (fileId === '') {
+            console.error('GDFlix - Empty file ID');
+            reject(new Error('Empty file ID'));
+            return;
+        }
+        
+        console.log('GDFlix - Requesting link generation from worker...');
+        
+        // Make request to worker endpoint
+        fetch('/generate-gdflix', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                file_id: fileId
+            })
+        })
+        .then(response => {
+            console.log('GDFlix - Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('GDFlix - Worker response:', data);
+            
+            if (data.success && data.gdflix_link) {
+                console.log('GDFlix - Generated link:', data.gdflix_link);
+                // Open the GDFlix link directly in a new tab
+                window.open(data.gdflix_link, '_blank');
+                resolve(data.gdflix_link);
+            } else {
+                reject(new Error(data.error || 'Failed to generate GDFlix link'));
+            }
+        })
+        .catch(error => {
+            console.error('GDFlix Error:', error);
+            alert('Failed to generate GDFlix link: ' + error.message);
+            reject(error);
+        });
+    });
+}
+
 // Update the generateGKYFILEHOSTLink function to call the worker endpoint
 function generateGKYFILEHOSTLink(fileId, fileName) {
     return new Promise((resolve, reject) => {
