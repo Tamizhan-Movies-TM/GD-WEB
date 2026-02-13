@@ -1725,7 +1725,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     
     // Show content with loading buttons immediately
     const loadingButtons = `
-        <button class="btn btn-info d-flex align-items-center gap-2" id="indshortner-loading" disabled>
+        <button class="btn btn-info d-flex align-items-center gap-2" id="indianshortner-loading" disabled>
             <div class="spinner-border spinner-border-sm" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
@@ -1831,7 +1831,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                class="btn btn-info d-flex align-items-center gap-2" 
                target="_blank"
                title="Open via IndianShortner">
-                𝗜𝗻𝗱𝗶𝗮𝗻𝗦𝗵𝗼𝗿𝘁
+                𝗜𝗻𝗱𝗶𝗮𝗻𝗦𝗵𝗼𝗿𝘁𝗻𝗲𝗿
             </a>`;
     } else {
         buttonsHtml += `<button class="btn btn-secondary" disabled>IndianShortner Failed</button>`;
