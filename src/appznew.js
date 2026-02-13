@@ -1660,7 +1660,7 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Modified onSearchResultItemClick function - Generates both GPLinks and Nowshort
+// Modified onSearchResultItemClick function - Generates both Get2Short and Nowshort
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
@@ -1725,7 +1725,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     
     // Show content with loading buttons immediately
     const loadingButtons = `
-        <button class="btn btn-info d-flex align-items-center gap-2" id="gplinks-loading" disabled>
+        <button class="btn btn-info d-flex align-items-center gap-2" id="get2short-loading" disabled>
             <div class="spinner-border spinner-border-sm" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
@@ -1746,15 +1746,15 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
     
     // Generate both links simultaneously
-    const generateGPLinks = async () => {
+    const generateGet2Short = async () => {
         let finalUrl = null;
         let retries = 3;
         
         while (retries > 0 && !finalUrl) {
             try {
-                console.log(`GPLinks - Attempt ${4 - retries}/3`);
+                console.log(`Get2Short - Attempt ${4 - retries}/3`);
                 
-                const response = await fetch('/generate-gplinks', {
+                const response = await fetch('/generate-get2short', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url: directUrl })
@@ -1764,7 +1764,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     const data = await response.json();
                     if (data.success && data.short_url) {
                         finalUrl = data.short_url;
-                        console.log('GPLinks - Generated:', finalUrl);
+                        console.log('Get2Short - Generated:', finalUrl);
                         break;
                     }
                 }
@@ -1772,7 +1772,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 retries--;
                 if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
             } catch (error) {
-                console.error('GPLinks error:', error);
+                console.error('Get2Short error:', error);
                 retries--;
                 if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
             }
@@ -1817,24 +1817,24 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     };
     
     // Generate both links in parallel
-    const [gplinksUrl, nowshortUrl] = await Promise.all([
-        generateGPLinks(),
+    const [get2shortUrl, nowshortUrl] = await Promise.all([
+        generateGet2Short(),
         generateNowshort()
     ]);
     
     // Build buttons HTML
     let buttonsHtml = '';
     
-    if (gplinksUrl) {
+    if (get2shortUrl) {
         buttonsHtml += `
-            <a href="${getChromeOpenUrl(gplinksUrl)}" 
+            <a href="${getChromeOpenUrl(get2shortUrl)}" 
                class="btn btn-info d-flex align-items-center gap-2" 
                target="_blank"
-               title="Open via GPLinks">
-                𝗚𝗣𝗟𝗶𝗻𝗸𝘀
+               title="Open via Get2Short">
+                𝗚𝗲𝘁𝟮𝗦𝗵𝗼𝗿𝘁
             </a>`;
     } else {
-        buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
+        buttonsHtml += `<button class="btn btn-secondary" disabled>Get2Short Failed</button>`;
     }
     
     if (nowshortUrl) {
