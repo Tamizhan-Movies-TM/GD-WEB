@@ -2468,7 +2468,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
               <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
-              <a class="dropdown-item" href="${url}" target="_blank">${wmp_icon} Play in Browser</a>
+              <a class="dropdown-item" href="#" onclick="openBrowserPlayer('${url.replace(/'/g, "\\'")}', '${encoded_name.replace(/'/g, "\\'")}'); return false;">${wmp_icon} Play in Browser</a>
               <a class="dropdown-item" href="infuse://x-callback-url/play?url=${encodeURIComponent(url)}">${infuse_icon} Infuse</a>
              </div>
            </div> 
@@ -3202,6 +3202,169 @@ function tryOpenInPlayer(url, playerType) {
     } catch (e) {
         console.log('window.location failed');
     }
+}
+
+// Function to open video in a proper browser player page
+function openBrowserPlayer(videoUrl, videoName) {
+    // Create a new window with a proper video player
+    const playerWindow = window.open('', '_blank', 'width=1280,height=720');
+    
+    if (!playerWindow) {
+        alert('Please allow pop-ups to play video in browser player!');
+        return;
+    }
+    
+    // Write a complete HTML page with video player
+    playerWindow.document.write(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${videoName || 'Video Player'}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        
+        .player-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .player-header {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 20px;
+            width: 100%;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .player-header h1 {
+            font-size: 18px;
+            font-weight: normal;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        video {
+            width: 100%;
+            height: 100%;
+            max-width: 100vw;
+            max-height: 100vh;
+            object-fit: contain;
+        }
+        
+        .error-message {
+            color: white;
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        
+        .controls {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            width: 100%;
+            position: fixed;
+            bottom: 0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <div class="player-header">
+            <h1>${videoName || 'Video Player'}</h1>
+        </div>
+        
+        <video id="videoPlayer" controls autoplay>
+            <source src="${videoUrl}" type="video/mp4">
+            <source src="${videoUrl}" type="video/webm">
+            <source src="${videoUrl}" type="video/mkv">
+            Your browser does not support the video tag.
+        </video>
+        
+        <div class="error-message" id="errorMessage">
+            ⚠️ Unable to load video. Please try downloading instead.
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="window.close()">Close</button>
+            <a class="btn" href="${videoUrl}" download="${videoName}">Download</a>
+        </div>
+    </div>
+    
+    <script>
+        const video = document.getElementById('videoPlayer');
+        const errorMsg = document.getElementById('errorMessage');
+        
+        video.addEventListener('error', function() {
+            errorMsg.style.display = 'block';
+            video.style.display = 'none';
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            switch(e.key) {
+                case ' ':
+                    e.preventDefault();
+                    if (video.paused) video.play();
+                    else video.pause();
+                    break;
+                case 'ArrowLeft':
+                    video.currentTime -= 10;
+                    break;
+                case 'ArrowRight':
+                    video.currentTime += 10;
+                    break;
+                case 'f':
+                case 'F':
+                    if (video.requestFullscreen) video.requestFullscreen();
+                    break;
+                case 'Escape':
+                    window.close();
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>
+    `);
+    
+    playerWindow.document.close();
 }
 
 
