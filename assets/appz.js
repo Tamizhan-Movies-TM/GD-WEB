@@ -2464,33 +2464,12 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
               <span class="sr-only"></span>
             </button>
             <div class="dropdown-menu">
-              <!-- Android Video Players -->
-              <h6 class="dropdown-header">📱 Android Video</h6>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
               <a class="dropdown-item" href="wmplayer://${url}">${wmp_icon} Windows Media Player</a>
               <a class="dropdown-item" href="infuse://x-callback-url/play?url=${encodeURIComponent(url)}">${infuse_icon} Infuse</a>
-              
-              <!-- PC Video Players -->
-              <div class="dropdown-divider"></div>
-              <h6 class="dropdown-header" style="color: #5A67D8; font-weight: bold;">💻 PC Video</h6>
-              <a class="dropdown-item" href="${url}" target="_blank">${pc_download_icon} Play in Browser</a>
-              <a class="dropdown-item" href="${url}" download="${encoded_name}">${pc_download_icon} Download for PC</a>
-              <a class="dropdown-item" href="#" onclick="tryOpenInPlayer('${url.replace(/'/g, "\\'")}', 'vlc'); return false;">${vlc_icon} Try VLC Player</a>
-              <a class="dropdown-item" href="#" onclick="tryOpenInPlayer('${url.replace(/'/g, "\\'")}', 'potplayer'); return false;">${pot_icon} Try PotPlayer</a>
-              <a class="dropdown-item" href="#" onclick="tryOpenInPlayer('${url.replace(/'/g, "\\'")}', 'mpc'); return false;">${mpv_icon} Try MPC-HC</a>
-              <a class="dropdown-item" href="#" onclick="navigator.clipboard.writeText('${url}'); alert('✅ Video URL copied to clipboard!\\n\\nTo play in your video player:\\n1. Open VLC/PotPlayer/any player\\n2. Press Ctrl+N (Open Network Stream)\\n3. Paste URL (Ctrl+V)\\n4. Click Play'); return false;">${vlc_icon} Copy URL & Instructions</a>
-              
-              <!-- iPhone/iOS Video Players -->
-              <div class="dropdown-divider"></div>
-              <h6 class="dropdown-header" style="color: #3B82F6; font-weight: bold;">📱 iPhone Video</h6>
-              <a class="dropdown-item" href="vlc-x-callback://x-callback-url/stream?url=${encodeURIComponent(url)}">${vlc_icon} VLC (iOS)</a>
-              <a class="dropdown-item" href="infuse://x-callback-url/play?url=${encodeURIComponent(url)}">${infuse_icon} Infuse</a>
-              <a class="dropdown-item" href="nplayer-${url}">${nplayer_icon} nPlayer</a>
-              <a class="dropdown-item" href="oplayer-x-callback://x-callback-url/play?url=${encodeURIComponent(url)}">${oplayer_icon} OPlayer</a>
-              <a class="dropdown-item" href="avplayerref://${url}">${avplayer_icon} AVPlayer</a>
              </div>
            </div> 
          </div>`}
@@ -2666,31 +2645,10 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                             <span class="sr-only"></span>
                             </button>
                             <div class="dropdown-menu">
-                                <!-- Android Audio Players -->
-                                <h6 class="dropdown-header" style="color: #FFA500; font-weight: bold;">📱 Android Audio</h6>
                                 <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=audio/*;S.title=${encoded_name};end">${vlc_icon} VLC Audio</a>
                                 <a class="dropdown-item" href="intent:${url}#Intent;package=com.maxmpz.audioplayer;category=android.intent.category.DEFAULT;type=audio/*;S.title=${encoded_name};end">${poweramp_icon} Poweramp</a>
                                 <a class="dropdown-item" href="intent:${url}#Intent;package=com.aspiro.tidal;category=android.intent.category.DEFAULT;type=audio/*;S.title=${encoded_name};end">${tidal_icon} Tidal</a>
                                 <a class="dropdown-item" href="intent:${url}#Intent;package=deezer.android.app;category=android.intent.category.DEFAULT;type=audio/*;S.title=${encoded_name};end">${deezer_icon} Deezer</a>
-                                
-                                <!-- PC Audio Players -->
-                                <div class="dropdown-divider"></div>
-                                <h6 class="dropdown-header" style="color: #F97316; font-weight: bold;">💻 PC Audio</h6>
-                                <a class="dropdown-item" href="${url}" target="_blank">${pc_download_icon} Play in Browser</a>
-                                <a class="dropdown-item" href="${url}" download="${encoded_name}">${pc_download_icon} Download Audio</a>
-                                <a class="dropdown-item" href="#" onclick="tryOpenInPlayer('${url.replace(/'/g, "\\'")}', 'vlc'); return false;">${vlc_icon} Try VLC Audio</a>
-                                <a class="dropdown-item" href="#" onclick="tryOpenInPlayer('${url.replace(/'/g, "\\'")}', 'foobar'); return false;">${foobar_icon} Try Foobar2000</a>
-                                <a class="dropdown-item" href="#" onclick="tryOpenInPlayer('${url.replace(/'/g, "\\'")}', 'aimp'); return false;">${aimp_icon} Try AIMP</a>
-                                <a class="dropdown-item" href="#" onclick="navigator.clipboard.writeText('${url}'); alert('✅ Audio URL copied to clipboard!\\n\\nTo play in your music player:\\n1. Open VLC/Foobar2000/any player\\n2. Press Ctrl+U (Open URL)\\n3. Paste URL (Ctrl+V)\\n4. Click Play'); return false;">${foobar_icon} Copy URL & Instructions</a>
-                                
-                                <!-- iPhone/iOS Audio Players -->
-                                <div class="dropdown-divider"></div>
-                                <h6 class="dropdown-header" style="color: #1DB954; font-weight: bold;">📱 iPhone Audio</h6>
-                                <a class="dropdown-item" href="vlc-x-callback://x-callback-url/stream?url=${encodeURIComponent(url)}">${vlc_icon} VLC Audio (iOS)</a>
-                                <a class="dropdown-item" href="spotify://${url}">${spotify_icon} Spotify</a>
-                                <a class="dropdown-item" href="music://${url}">${apple_music_icon} Apple Music</a>
-                                <a class="dropdown-item" href="tidal://${url}">${tidal_icon} Tidal (iOS)</a>
-                                <a class="dropdown-item" href="deezer://${url}">${deezer_icon} Deezer (iOS)</a>
                             </div>
                         </div>
                     </div>
