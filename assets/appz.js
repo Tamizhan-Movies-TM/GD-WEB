@@ -2482,24 +2482,16 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
               <!-- PC Video Players -->
               <div class="dropdown-divider"></div>
               <h6 class="dropdown-header" style="color: #5A67D8; font-weight: bold;">💻 PC Video</h6>
-              <a class="dropdown-item" href="${url}" download="${encoded_name}" target="_blank">${pc_download_icon} Download for PC</a>
-              <a class="dropdown-item" href="vlc://${url}">${vlc_icon} VLC (PC)</a>
-              <a class="dropdown-item" href="potplayer://${url}">${pot_icon} PotPlayer</a>
-              <a class="dropdown-item" href="wmplayer://${url}">${wmp_icon} Windows Media Player</a>
-              <a class="dropdown-item" href="mpv://${url}">${mpv_icon} MPV Player</a>
-              <a class="dropdown-item" href="123videoplayer://${url}">${player123_icon} 123 Video Player</a>
-              <a class="dropdown-item" href="kmplayer://${url}">${kmp_icon} KMPlayer</a>
-              <a class="dropdown-item" href="gomplayer://${url}">${gom_icon} GOM Player</a>
+              <a class="dropdown-item" href="${url}" target="_blank">${pc_download_icon} Play in Browser</a>
+              <a class="dropdown-item" href="${url}" download="${encoded_name}">${pc_download_icon} Download for PC</a>
+              <a class="dropdown-item" href="#" onclick="navigator.clipboard.writeText('${url}'); alert('Video URL copied! Open your video player and paste this URL (Ctrl+V or File > Open URL)'); return false;">${vlc_icon} Copy URL (for VLC/Players)</a>
               
               <!-- PC Audio Players -->
               <div class="dropdown-divider"></div>
               <h6 class="dropdown-header" style="color: #F97316; font-weight: bold;">💻 PC Audio</h6>
-              <a class="dropdown-item" href="${url}" download="${encoded_name}" target="_blank">${pc_download_icon} Download Audio</a>
-              <a class="dropdown-item" href="vlc://${url}">${vlc_icon} VLC Audio (PC)</a>
-              <a class="dropdown-item" href="foobar2000://${url}">${foobar_icon} Foobar2000</a>
-              <a class="dropdown-item" href="aimp://${url}">${aimp_icon} AIMP</a>
-              <a class="dropdown-item" href="winamp://${url}">${winamp_icon} Winamp</a>
-              <a class="dropdown-item" href="musicbee://${url}">${musicbee_icon} MusicBee</a>
+              <a class="dropdown-item" href="${url}" target="_blank">${pc_download_icon} Play in Browser</a>
+              <a class="dropdown-item" href="${url}" download="${encoded_name}">${pc_download_icon} Download Audio</a>
+              <a class="dropdown-item" href="#" onclick="navigator.clipboard.writeText('${url}'); alert('Audio URL copied! Open your music player and paste this URL (Ctrl+V or File > Open URL)'); return false;">${foobar_icon} Copy URL (for Players)</a>
               
               <!-- iPhone/iOS Video Players -->
               <div class="dropdown-divider"></div>
@@ -2711,12 +2703,9 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                                 <!-- PC Audio Players -->
                                 <div class="dropdown-divider"></div>
                                 <h6 class="dropdown-header" style="color: #F97316; font-weight: bold;">💻 PC Audio</h6>
-                                <a class="dropdown-item" href="${url}" download="${encoded_name}" target="_blank">${pc_download_icon} Download Audio</a>
-                                <a class="dropdown-item" href="vlc://${url}">${vlc_icon} VLC Audio (PC)</a>
-                                <a class="dropdown-item" href="foobar2000://${url}">${foobar_icon} Foobar2000</a>
-                                <a class="dropdown-item" href="aimp://${url}">${aimp_icon} AIMP</a>
-                                <a class="dropdown-item" href="winamp://${url}">${winamp_icon} Winamp</a>
-                                <a class="dropdown-item" href="musicbee://${url}">${musicbee_icon} MusicBee</a>
+                                <a class="dropdown-item" href="${url}" target="_blank">${pc_download_icon} Play in Browser</a>
+                                <a class="dropdown-item" href="${url}" download="${encoded_name}">${pc_download_icon} Download Audio</a>
+                                <a class="dropdown-item" href="#" onclick="navigator.clipboard.writeText('${url}'); alert('Audio URL copied! Open your music player and paste this URL (Ctrl+V or File > Open URL)'); return false;">${foobar_icon} Copy URL (for Players)</a>
                                 
                                 <!-- iPhone/iOS Audio Players -->
                                 <div class="dropdown-divider"></div>
