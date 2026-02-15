@@ -1,5 +1,5 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
-// v2.3.6
+// v2.3.6 - UNIFIED VERSION (appx.js + appz.js combined)
 
 // ============================================
 // OPTIMIZATION: Conditional Logging
@@ -9,43 +9,37 @@ const log = (...args) => DEBUG && console.log(...args);
 const logError = (...args) => DEBUG && console.error(...args);
 
 // ============================================
-// USER SESSION MANAGEMENT
+// LOGIN STATUS DETECTION (Injected by Worker)
 // ============================================
-let userSession = {
-    isLoggedIn: false,
-    username: null,
-    checkSession: async function() {
-        try {
-            const response = await fetch('/check-session', {
-                method: 'GET',
-                credentials: 'include'
-            });
-            const data = await response.json();
-            this.isLoggedIn = data.loggedIn || false;
-            this.username = data.username || null;
-            log('Session checked:', this.isLoggedIn ? 'Logged In' : 'Guest');
-            return this.isLoggedIn;
-        } catch (error) {
-            logError('Session check error:', error);
-            this.isLoggedIn = false;
-            this.username = null;
-            return false;
-        }
-    },
-    logout: async function() {
-        try {
-            await fetch('/logout', {
-                method: 'POST',
-                credentials: 'include'
-            });
-            this.isLoggedIn = false;
-            this.username = null;
-            window.location.reload();
-        } catch (error) {
-            logError('Logout error:', error);
-        }
-    }
+// This line will be replaced by the worker with actual login status
+const IS_LOGGED_IN = typeof window !== 'undefined' && document.cookie.includes('session=') && document.cookie.split('session=')[1]?.split(';')[0] !== 'null';
+
+log('🔐 User Login Status:', IS_LOGGED_IN ? 'LOGGED IN ✅' : 'GUEST ❌');
+
+// ============================================
+// FEATURE FLAGS - AUTO-CONFIGURED BY LOGIN STATUS
+// ============================================
+const FEATURES = {
+	// UI Features
+	showLoginModal: !IS_LOGGED_IN,           // Show login option for guests
+	showUserMenu: IS_LOGGED_IN,              // Show user menu for logged-in users
+	
+	// Download Features  
+	enableGDFlix: true,                       // GDFlix streaming (both)
+	enableGKYFILEHOST: !IS_LOGGED_IN,        // GKYFILEHOST (guests only)
+	enableDirectDownload: true,               // Direct download (both)
+	
+	// Drive Features
+	enableCopyToDrive: IS_LOGGED_IN,         // Copy to Drive (logged-in only)
+	enableBatchDownload: IS_LOGGED_IN,       // Batch operations (logged-in only)
+	
+	// Other Features
+	enableSearch: true,                       // Search (both)
+	showTelegramLinks: true,                  // Telegram (both)
+	showTutorials: true,                      // Tutorials (both)
 };
+
+log('⚙️ Active Features:', Object.keys(FEATURES).filter(k => FEATURES[k]).join(', '));
 
 // Initialize the page
 function init() {
@@ -373,52 +367,7 @@ strong {
     display: none;
     margin-top: 1rem;
 }
-
-/* User Status Badge */
-.user-status-badge {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    z-index: 1000;
-    background: rgba(0, 123, 255, 0.9);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.user-status-badge.guest {
-    background: rgba(108, 117, 125, 0.9);
-}
-
-.user-status-badge .logout-btn {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    padding: 4px 12px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background 0.3s;
-}
-
-.user-status-badge .logout-btn:hover {
-    background: rgba(255, 255, 255, 0.4);
-}
-
 </style>
-
-<!-- User Status Badge -->
-<div class="user-status-badge guest" id="userStatusBadge">
-    <i class="fas fa-user"></i>
-    <span id="usernameDisplay">Guest</span>
-    <button class="logout-btn" id="logoutBtn" style="display:none;">Logout</button>
-</div>
 
 <!-- Login Modal -->
 <div class="login-modal" id="loginModal">
@@ -580,9 +529,8 @@ strong {
 </footer>`;
 $('body').html(html);
 
-// Initialize login modal functionality and check session
+// Initialize login modal functionality
 initializeLoginModal();
-initializeUserSession();
 }
 
 // Initialize login modal functionality
@@ -650,8 +598,7 @@ function initializeLoginModal() {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: formData.toString(),
-                credentials: 'include'
+                body: formData.toString()
             });
 
             const data = await response.json();
@@ -697,39 +644,6 @@ function initializeLoginModal() {
     if (error) {
         openLoginModal();
         showError(decodeURIComponent(error));
-    }
-}
-
-
-// Initialize user session on page load
-async function initializeUserSession() {
-    await userSession.checkSession();
-    updateUserStatusBadge();
-    
-    // Logout button handler
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-        userSession.logout();
-    });
-}
-
-// Update user status badge
-function updateUserStatusBadge() {
-    const badge = document.getElementById('userStatusBadge');
-    const usernameDisplay = document.getElementById('usernameDisplay');
-    const logoutBtn = document.getElementById('logoutBtn');
-    
-    if (userSession.isLoggedIn) {
-        badge.classList.remove('guest');
-        badge.classList.add('logged-in');
-        badge.style.background = 'rgba(40, 167, 69, 0.9)';
-        usernameDisplay.textContent = userSession.username || 'User';
-        logoutBtn.style.display = 'inline-block';
-    } else {
-        badge.classList.remove('logged-in');
-        badge.classList.add('guest');
-        badge.style.background = 'rgba(108, 117, 125, 0.9)';
-        usernameDisplay.textContent = 'Guest';
-        logoutBtn.style.display = 'none';
     }
 }
 
@@ -863,12 +777,24 @@ function nav(path) {
 
 	html += `<li class="nav-item">
     <a class="nav-link" href="${UI.contact_link}" target="_blank"><i class="fas fa-paper-plane fa-fw"></i>${UI.nav_link_4}</a>
-    </li>
-    <li class="nav-item">
+    </li>`;
+    
+	// Conditional login/logout button based on login status
+	if (FEATURES.showLoginModal) {
+		// Show login for guests
+		html += `<li class="nav-item">
         <a class="nav-link" href="#" id="openLoginModal" style="cursor: pointer;">
             <i class="fa-solid fa-user fa-fw"></i>Login
         </a>
     </li>`;
+	} else if (FEATURES.showUserMenu) {
+		// Show logout for logged-in users
+		html += `<li class="nav-item">
+        <a class="nav-link" href="/logout" style="cursor: pointer;">
+            <i class="fa-solid fa-sign-out-alt fa-fw"></i>Logout
+        </a>
+    </li>`;
+	}
 
 	var search_text = model.is_search_page ? (model.q || '') : '';
 	var search_bar = `
@@ -1787,12 +1713,9 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Modified onSearchResultItemClick function - Different behavior for Guest vs Logged-In
+// Modified onSearchResultItemClick function - Generates both Get2Short and Nowshort
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
-    
-    // Check if user is logged in
-    const isLoggedIn = userSession.isLoggedIn;
     
     // Set title immediately
     var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
@@ -1811,7 +1734,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         }
     }
     
-    // Generate file info content (SAME FOR BOTH)
+    // Generate file info content
     let content = `
     <table class="table table-dark" style="margin-bottom: 0 !important;">
         <tbody>
@@ -1853,45 +1776,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     
     const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
     
-    // ============================================
-    // LOGGED-IN USER PATH
-    // Show "Open in Chrome (Direct)" button only
-    // ============================================
-    if (isLoggedIn) {
-        log('Logged-in user - showing direct Chrome button');
-        
-        // Show content immediately
-        $('#modal-body-space').html(content);
-        
-        // Style adjustments
-        $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
-        $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
-        
-        // Build Chrome direct URL
-        const chromeDirectUrl = getChromeOpenUrl(directUrl);
-        
-        // Show only "Open in Chrome (Direct)" button
-        let finalButtons = `
-            <a href="${chromeDirectUrl}" 
-               class="btn btn-info d-flex align-items-center gap-2"
-               target="_blank"
-               title="Open directly in Chrome">
-                <i class="fab fa-chrome"></i> Open in Chrome (Direct)
-            </a>`;
-        
-        // Show button with close
-        $('#modal-body-space-buttons').html(finalButtons + close_btn);
-        
-        return; // Exit function - logged-in users done
-    }
-    
-    // ============================================
-    // GUEST USER PATH
-    // Show short links first
-    // ============================================
-    log('Guest user - showing short links first');
-    
-    // Show content with loading buttons for short links
+    // Show content with loading buttons immediately
     const loadingButtons = `
         <button class="btn btn-info d-flex align-items-center gap-2" id="get2short-loading" disabled>
             <div class="spinner-border spinner-border-sm" role="status">
@@ -1913,7 +1798,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
     $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
     
-    // Generate short links
+    // Generate both links simultaneously
     const generateGet2Short = async () => {
         let finalUrl = null;
         let retries = 3;
@@ -1984,17 +1869,17 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         return finalUrl;
     };
     
-    // Generate both short links in parallel
+    // Generate both links in parallel
     const [get2shortUrl, nowshortUrl] = await Promise.all([
         generateGet2Short(),
         generateNowshort()
     ]);
     
-    // Build short link buttons HTML
-    let shortLinkButtons = '';
+    // Build buttons HTML
+    let buttonsHtml = '';
     
     if (get2shortUrl) {
-        shortLinkButtons += `
+        buttonsHtml += `
             <a href="${getChromeOpenUrl(get2shortUrl)}" 
                class="btn btn-info d-flex align-items-center gap-2" 
                target="_blank"
@@ -2002,11 +1887,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 𝗚𝗲𝘁𝟮𝗦𝗵𝗼𝗿𝘁
             </a>`;
     } else {
-        shortLinkButtons += `<button class="btn btn-secondary" disabled>Get2Short Failed</button>`;
+        buttonsHtml += `<button class="btn btn-secondary" disabled>Get2Short Failed</button>`;
     }
     
     if (nowshortUrl) {
-        shortLinkButtons += `
+        buttonsHtml += `
             <a href="${getChromeOpenUrl(nowshortUrl)}" 
                class="btn btn-success d-flex align-items-center gap-2" 
                target="_blank"
@@ -2014,11 +1899,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 𝗡𝗼𝘄𝘀𝗵𝗼𝗿𝘁
             </a>`;
     } else {
-        shortLinkButtons += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
+        buttonsHtml += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
     }
     
-    // Show short link buttons
-    $('#modal-body-space-buttons').html(shortLinkButtons + close_btn);
+    // Update buttons
+    $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
     
     // Optional: Fetch path in background
     fetch(`/${cur}:id2path`, {
@@ -2267,9 +2152,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
             ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          <a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
-          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-           </a>
+          ${FEATURES.enableGKYFILEHOST ? `${FEATURES.enableGKYFILEHOST ? `<a type=\"button\" class=\"btn btn-success download-via-gkyfilehost\" data-file-id=\"${file_id}\"><i class=\"fa-solid fa-circle-down\"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱</a>` : ''}
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2408,9 +2291,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          <a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
-          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-           </a>
+          ${FEATURES.enableGKYFILEHOST ? `${FEATURES.enableGKYFILEHOST ? `<a type=\"button\" class=\"btn btn-success download-via-gkyfilehost\" data-file-id=\"${file_id}\"><i class=\"fa-solid fa-circle-down\"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱</a>` : ''}
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2593,9 +2474,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          <a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
-          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-           </a>
+          ${FEATURES.enableGKYFILEHOST ? `${FEATURES.enableGKYFILEHOST ? `<a type=\"button\" class=\"btn btn-success download-via-gkyfilehost\" data-file-id=\"${file_id}\"><i class=\"fa-solid fa-circle-down\"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱</a>` : ''}
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2750,9 +2629,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                     <div class="text-center">
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
-                            <a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
-                                <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-                            </a>
+                            ${FEATURES.enableGKYFILEHOST ? `${FEATURES.enableGKYFILEHOST ? `<a type=\"button\" class=\"btn btn-success download-via-gkyfilehost\" data-file-id=\"${file_id}\"><i class=\"fa-solid fa-circle-down\"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱</a>` : ''}
                             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="sr-only"></span>
@@ -3082,8 +2959,14 @@ function generateGDFlixLink(fileId) {
     });
 }
 
-// Update the generateGKYFILEHOSTLink function to call the worker endpoint
-function generateGKYFILEHOSTLink(fileId, fileName) {
+// ============================================
+// GKYFILEHOST INTEGRATION - NON-LOGGED-IN USERS ONLY
+// ============================================
+if (FEATURES.enableGKYFILEHOST) {
+	log('📥 GKYFILEHOST: Enabled for non-logged-in users');
+	
+	// Update the generateGKYFILEHOSTLink function to call the worker endpoint
+	window.generateGKYFILEHOSTLink = function(fileId, fileName) {
     return new Promise((resolve, reject) => {
         log('GKYFILEHOST - Received fileId:', fileId);
         log('GKYFILEHOST - Received fileName:', fileName);
@@ -3217,36 +3100,43 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
 }
 
 // Handler for Download button to open GKYFILEHOST link
-$(document).on('click', '.download-via-gkyfilehost', function(e) {
-    e.preventDefault();
-    const fileId = $(this).data('file-id');
-    const button = $(this);
-    
-    log('Download button clicked, fileId:', fileId);
-    
-    if (!fileId) {
-        alert('Error: No file ID found');
-        return;
-    }
-    
-    // Show loading state
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-    
-    // Call GKYFILEHOST function
-    generateGKYFILEHOSTLink(fileId)
-        .then((link) => {
-            button.prop('disabled', false).html(originalHtml);
-            log('Successfully opened GKYFILEHOST link:', link);
-        })
-        .catch((error) => {
-            button.html('<i class="fas fa-times fa-fw"></i> Failed');
-            setTimeout(() => {
-                button.prop('disabled', false).html(originalHtml);
-            }, 2000);
-            logError('Download error:', error);
-        });
-});
+	$(document).on('click', '.download-via-gkyfilehost', function(e) {
+	    e.preventDefault();
+	    const fileId = $(this).data('file-id');
+	    const button = $(this);
+	    
+	    log('Download button clicked, fileId:', fileId);
+	    
+	    if (!fileId) {
+	        alert('Error: No file ID found');
+	        return;
+	    }
+	    
+	    // Show loading state
+	    const originalHtml = button.html();
+	    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+	    
+	    // Call GKYFILEHOST function
+	    generateGKYFILEHOSTLink(fileId)
+	        .then((link) => {
+	            button.prop('disabled', false).html(originalHtml);
+	            log('Successfully opened GKYFILEHOST link:', link);
+	        })
+	        .catch((error) => {
+	            button.html('<i class="fas fa-times fa-fw"></i> Failed');
+	            setTimeout(() => {
+	                button.prop('disabled', false).html(originalHtml);
+	            }, 2000);
+	            logError('Download error:', error);
+	        });
+	});
+	
+	log('✅ GKYFILEHOST: Fully initialized for non-logged-in users');
+	
+} else {
+	log('⚠️ GKYFILEHOST: Disabled for logged-in users');
+	// For logged-in users, GKYFILEHOST functions are not available
+}
 
 
 // create a MutationObserver to listen for changes to the DOM
