@@ -8,6 +8,45 @@ const DEBUG = false; // ⚠️ SET TO FALSE IN PRODUCTION
 const log = (...args) => DEBUG && console.log(...args);
 const logError = (...args) => DEBUG && console.error(...args);
 
+// ============================================
+// USER SESSION MANAGEMENT
+// ============================================
+let userSession = {
+    isLoggedIn: false,
+    username: null,
+    checkSession: async function() {
+        try {
+            const response = await fetch('/check-session', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            const data = await response.json();
+            this.isLoggedIn = data.loggedIn || false;
+            this.username = data.username || null;
+            log('Session checked:', this.isLoggedIn ? 'Logged In' : 'Guest');
+            return this.isLoggedIn;
+        } catch (error) {
+            logError('Session check error:', error);
+            this.isLoggedIn = false;
+            this.username = null;
+            return false;
+        }
+    },
+    logout: async function() {
+        try {
+            await fetch('/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            this.isLoggedIn = false;
+            this.username = null;
+            window.location.reload();
+        } catch (error) {
+            logError('Logout error:', error);
+        }
+    }
+};
+
 // Initialize the page
 function init() {
 	document.siteName = $('title').html();
@@ -334,7 +373,52 @@ strong {
     display: none;
     margin-top: 1rem;
 }
+
+/* User Status Badge */
+.user-status-badge {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    background: rgba(0, 123, 255, 0.9);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-status-badge.guest {
+    background: rgba(108, 117, 125, 0.9);
+}
+
+.user-status-badge .logout-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.3s;
+}
+
+.user-status-badge .logout-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
 </style>
+
+<!-- User Status Badge -->
+<div class="user-status-badge guest" id="userStatusBadge">
+    <i class="fas fa-user"></i>
+    <span id="usernameDisplay">Guest</span>
+    <button class="logout-btn" id="logoutBtn" style="display:none;">Logout</button>
+</div>
 
 <!-- Login Modal -->
 <div class="login-modal" id="loginModal">
@@ -496,8 +580,9 @@ strong {
 </footer>`;
 $('body').html(html);
 
-// Initialize login modal functionality
+// Initialize login modal functionality and check session
 initializeLoginModal();
+initializeUserSession();
 }
 
 // Initialize login modal functionality
@@ -565,7 +650,8 @@ function initializeLoginModal() {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: formData.toString()
+                body: formData.toString(),
+                credentials: 'include'
             });
 
             const data = await response.json();
@@ -611,6 +697,39 @@ function initializeLoginModal() {
     if (error) {
         openLoginModal();
         showError(decodeURIComponent(error));
+    }
+}
+
+
+// Initialize user session on page load
+async function initializeUserSession() {
+    await userSession.checkSession();
+    updateUserStatusBadge();
+    
+    // Logout button handler
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        userSession.logout();
+    });
+}
+
+// Update user status badge
+function updateUserStatusBadge() {
+    const badge = document.getElementById('userStatusBadge');
+    const usernameDisplay = document.getElementById('usernameDisplay');
+    const logoutBtn = document.getElementById('logoutBtn');
+    
+    if (userSession.isLoggedIn) {
+        badge.classList.remove('guest');
+        badge.classList.add('logged-in');
+        badge.style.background = 'rgba(40, 167, 69, 0.9)';
+        usernameDisplay.textContent = userSession.username || 'User';
+        logoutBtn.style.display = 'inline-block';
+    } else {
+        badge.classList.remove('logged-in');
+        badge.classList.add('guest');
+        badge.style.background = 'rgba(108, 117, 125, 0.9)';
+        usernameDisplay.textContent = 'Guest';
+        logoutBtn.style.display = 'none';
     }
 }
 
@@ -1668,9 +1787,12 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Modified onSearchResultItemClick function - Generates both Get2Short and Nowshort
+// Modified onSearchResultItemClick function - Different behavior for Guest vs Logged-In
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
+    
+    // Check if user is logged in
+    const isLoggedIn = userSession.isLoggedIn;
     
     // Set title immediately
     var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
@@ -1689,7 +1811,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         }
     }
     
-    // Generate file info content
+    // Generate file info content (SAME FOR BOTH)
     let content = `
     <table class="table table-dark" style="margin-bottom: 0 !important;">
         <tbody>
@@ -1731,7 +1853,45 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     
     const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
     
-    // Show content with loading buttons immediately
+    // ============================================
+    // LOGGED-IN USER PATH
+    // Show "Open in Chrome (Direct)" button only
+    // ============================================
+    if (isLoggedIn) {
+        log('Logged-in user - showing direct Chrome button');
+        
+        // Show content immediately
+        $('#modal-body-space').html(content);
+        
+        // Style adjustments
+        $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
+        $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
+        
+        // Build Chrome direct URL
+        const chromeDirectUrl = getChromeOpenUrl(directUrl);
+        
+        // Show only "Open in Chrome (Direct)" button
+        let finalButtons = `
+            <a href="${chromeDirectUrl}" 
+               class="btn btn-info d-flex align-items-center gap-2"
+               target="_blank"
+               title="Open directly in Chrome">
+                <i class="fab fa-chrome"></i> Open in Chrome (Direct)
+            </a>`;
+        
+        // Show button with close
+        $('#modal-body-space-buttons').html(finalButtons + close_btn);
+        
+        return; // Exit function - logged-in users done
+    }
+    
+    // ============================================
+    // GUEST USER PATH
+    // Show short links first
+    // ============================================
+    log('Guest user - showing short links first');
+    
+    // Show content with loading buttons for short links
     const loadingButtons = `
         <button class="btn btn-info d-flex align-items-center gap-2" id="get2short-loading" disabled>
             <div class="spinner-border spinner-border-sm" role="status">
@@ -1753,7 +1913,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
     $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
     
-    // Generate both links simultaneously
+    // Generate short links
     const generateGet2Short = async () => {
         let finalUrl = null;
         let retries = 3;
@@ -1824,17 +1984,17 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         return finalUrl;
     };
     
-    // Generate both links in parallel
+    // Generate both short links in parallel
     const [get2shortUrl, nowshortUrl] = await Promise.all([
         generateGet2Short(),
         generateNowshort()
     ]);
     
-    // Build buttons HTML
-    let buttonsHtml = '';
+    // Build short link buttons HTML
+    let shortLinkButtons = '';
     
     if (get2shortUrl) {
-        buttonsHtml += `
+        shortLinkButtons += `
             <a href="${getChromeOpenUrl(get2shortUrl)}" 
                class="btn btn-info d-flex align-items-center gap-2" 
                target="_blank"
@@ -1842,11 +2002,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 𝗚𝗲𝘁𝟮𝗦𝗵𝗼𝗿𝘁
             </a>`;
     } else {
-        buttonsHtml += `<button class="btn btn-secondary" disabled>Get2Short Failed</button>`;
+        shortLinkButtons += `<button class="btn btn-secondary" disabled>Get2Short Failed</button>`;
     }
     
     if (nowshortUrl) {
-        buttonsHtml += `
+        shortLinkButtons += `
             <a href="${getChromeOpenUrl(nowshortUrl)}" 
                class="btn btn-success d-flex align-items-center gap-2" 
                target="_blank"
@@ -1854,11 +2014,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 𝗡𝗼𝘄𝘀𝗵𝗼𝗿𝘁
             </a>`;
     } else {
-        buttonsHtml += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
+        shortLinkButtons += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
     }
     
-    // Update buttons
-    $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
+    // Show short link buttons
+    $('#modal-body-space-buttons').html(shortLinkButtons + close_btn);
     
     // Optional: Fetch path in background
     fetch(`/${cur}:id2path`, {
