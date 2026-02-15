@@ -1,6 +1,13 @@
-
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
 // v2.3.6
+
+// ============================================
+// OPTIMIZATION: Conditional Logging
+// ============================================
+const DEBUG = false; // ⚠️ SET TO FALSE IN PRODUCTION
+const log = (...args) => DEBUG && console.log(...args);
+const logError = (...args) => DEBUG && console.error(...args);
+
 // Initialize the page
 function init() {
 	document.siteName = $('title').html();
@@ -542,7 +549,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 				}
 			});
 	}
-	console.log("Performing Request again")
+	log("Performing Request again")
 	performRequest();
 }
 
@@ -606,7 +613,7 @@ function requestSearch(params, resultCallback, retries = 3) {
 
 // Render file list
 function list(path, id = '', fallback = false) {
-	console.log(id);
+	log(id);
 	var cur = window.current_drive_order || 0;
 	var drive_name = window.drive_names[cur];
 	var folder_name = !fallback ? decodeURIComponent(path.split('/').filter(Boolean).pop()) : 'Files';
@@ -649,7 +656,7 @@ function list(path, id = '', fallback = false) {
 	$('#head_md').hide().html('');
 
 	function handleSuccessResult(res, path, prevReqParams) {
-		console.log(res, path, prevReqParams);
+		log(res, path, prevReqParams);
 		if (fallback) {
 			title(res['name']);
 			$('#dirname').html(res['name']);
@@ -672,7 +679,7 @@ function list(path, id = '', fallback = false) {
 				append_files_to_list(path, res['data']['files']);
 			}
 		} else {
-			console.log('doing something...')
+			log('doing something...')
 			if (fallback) {
 				append_files_to_fallback_list(path, res['data']['files']);
 			} else {
@@ -696,7 +703,7 @@ function list(path, id = '', fallback = false) {
 
 						let $list = $('#list');
 						if (fallback) {
-							console.log('fallback inside handleSuccessResult');
+							log('fallback inside handleSuccessResult');
 							requestListPath(path, {
 									id: id,
 									password: prevReqParams['password'],
@@ -727,7 +734,7 @@ function list(path, id = '', fallback = false) {
 	}
 
 	if (fallback) {
-		console.log('fallback inside list');
+		log('fallback inside list');
 		requestListPath(path, {
 				id: id,
 				password: password
@@ -735,7 +742,7 @@ function list(path, id = '', fallback = false) {
 			handleSuccessResult,
 			null, null, fallback = true);
 	} else {
-		console.log("handling this")
+		log("handling this")
 		requestListPath(path, {
 				password: password
 			},
@@ -809,7 +816,7 @@ function askPassword(path) {
  */
 function append_files_to_fallback_list(path, files) {
 	try {
-		console.log('append_files_to_fallback_list');
+		log('append_files_to_fallback_list');
 		var $list = $('#list');
 		// Is it the last page of data?
 		var is_lastpage_loaded = null === $list.data('nextPageToken');
@@ -901,10 +908,10 @@ function append_files_to_fallback_list(path, files) {
 		        }
 		    }
 		})
-		// console.log(targetObj)
+		// log(targetObj)
 		if (Object.keys(targetObj).length) {
 		    localStorage.setItem(path, JSON.stringify(targetObj));
-		    // console.log(path)
+		    // log(path)
 		}*/
 
 		if (targetFiles.length > 0) {
@@ -950,7 +957,7 @@ function append_files_to_fallback_list(path, files) {
 			}
 		}
 	} catch (e) {
-		console.log(e);
+		log(e);
 	}
 }
 
@@ -1052,10 +1059,10 @@ function append_files_to_list(path, files) {
 	        }
 	    }
 	})
-	// console.log(targetObj)
+	// log(targetObj)
 	if (Object.keys(targetObj).length) {
 	    localStorage.setItem(path, JSON.stringify(targetObj));
-	    // console.log(path)
+	    // log(path)
 	}*/
 
 	if (targetFiles.length > 0) {
@@ -1356,7 +1363,7 @@ function append_search_result_to_list(files) {
 			}
 		}
 	} catch (e) {
-		console.log(e);
+		log(e);
 	}
 }
 
@@ -1470,11 +1477,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     .then(function(obj) {
         var href = `${obj.path}`;
         var encodedUrl = href.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
-        console.log('Path retrieved:', encodedUrl);
+        log('Path retrieved:', encodedUrl);
         // Path available if needed for other purposes
     })
     .catch(function(error) {
-        console.log('Path fetch error:', error);
+        log('Path fetch error:', error);
         // Modal already displayed, so error doesn't affect user
     });
 }
@@ -1512,7 +1519,7 @@ async function fallback(id, type) {
 				return response.json();
 			})
 			.then(function(obj) {
-				console.log(obj);
+				log(obj);
 				title(obj.name);
 				const mimeType = obj.mimeType;
 				const fileExtension = obj.fileExtension ? obj.fileExtension.toLowerCase() : 'GoogleApps';
@@ -1583,7 +1590,7 @@ async function file(path) {
 			return response.json();
 		})
 		.then(function(obj) {
-			console.log(obj);
+			log(obj);
 			const mimeType = obj.mimeType;
 			const createdTime = utc2jakarta(obj.createdTime);
 			const fileExtension = obj.fileExtension ? obj.fileExtension.toLowerCase() : 'GoogleApps';
@@ -1742,7 +1749,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
     const fileId = $(this).data('file-id');
     const button = $(this);
     
-    console.log('Button clicked, fileId:', fileId); // Debug log
+    log('Button clicked, fileId:', fileId); // Debug log
     
     if (!fileId) {
         alert('Error: No file ID found');
@@ -1762,7 +1769,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
         .catch((error) => {
             // Reset button on error
             button.prop('disabled', false).html(originalHtml);
-            console.error('GDFlix error:', error);
+            logError('GDFlix error:', error);
         });
     });
 	
@@ -1883,7 +1890,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     const fileId = $(this).data('file-id');
     const button = $(this);
     
-    console.log('Button clicked, fileId:', fileId); // Debug log
+    log('Button clicked, fileId:', fileId); // Debug log
     
     if (!fileId) {
         alert('Error: No file ID found');
@@ -1903,7 +1910,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         .catch((error) => {
             // Reset button on error
             button.prop('disabled', false).html(originalHtml);
-            console.error('GDFlix error:', error);
+            logError('GDFlix error:', error);
         });
     });
 	
@@ -2068,7 +2075,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     const fileId = $(this).data('file-id');
     const button = $(this);
     
-    console.log('Button clicked, fileId:', fileId); // Debug log
+    log('Button clicked, fileId:', fileId); // Debug log
     
     if (!fileId) {
         alert('Error: No file ID found');
@@ -2088,7 +2095,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         .catch((error) => {
             // Reset button on error
             button.prop('disabled', false).html(originalHtml);
-            console.error('GDFlix error:', error);
+            logError('GDFlix error:', error);
         });
     });
 
@@ -2387,7 +2394,7 @@ function copyFunction() {
 			tooltip.innerHTML = `<i class="fas fa-check fa-fw"></i>Copied`;
 		})
 		.catch(function(error) {
-			console.error("Failed to copy text: ", error);
+			logError("Failed to copy text: ", error);
 		});
 }
 
@@ -2476,11 +2483,11 @@ async function copyFile(driveid) {
 function generateGDFlixLink(fileId) {
     return new Promise((resolve, reject) => {
         // Debug logging
-        console.log('GDFlix - Received fileId:', fileId);
+        log('GDFlix - Received fileId:', fileId);
         
         // Basic validation
         if (!fileId) {
-            console.error('GDFlix - No file ID provided');
+            logError('GDFlix - No file ID provided');
             reject(new Error('No file ID provided'));
             return;
         }
@@ -2489,12 +2496,12 @@ function generateGDFlixLink(fileId) {
         fileId = String(fileId).trim();
         
         if (fileId === '') {
-            console.error('GDFlix - Empty file ID');
+            logError('GDFlix - Empty file ID');
             reject(new Error('Empty file ID'));
             return;
         }
         
-        console.log('GDFlix - Requesting link generation from worker...');
+        log('GDFlix - Requesting link generation from worker...');
         
         // Make request to worker endpoint
         fetch('/generate-gdflix', {
@@ -2507,17 +2514,17 @@ function generateGDFlixLink(fileId) {
             })
         })
         .then(response => {
-            console.log('GDFlix - Response status:', response.status);
+            log('GDFlix - Response status:', response.status);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
-            console.log('GDFlix - Worker response:', data);
+            log('GDFlix - Worker response:', data);
             
             if (data.success && data.gdflix_link) {
-                console.log('GDFlix - Generated link:', data.gdflix_link);
+                log('GDFlix - Generated link:', data.gdflix_link);
                 // Open the GDFlix link directly in a new tab
                 window.open(data.gdflix_link, '_blank');
                 resolve(data.gdflix_link);
@@ -2526,7 +2533,7 @@ function generateGDFlixLink(fileId) {
             }
         })
         .catch(error => {
-            console.error('GDFlix Error:', error);
+            logError('GDFlix Error:', error);
             alert('Failed to generate GDFlix link: ' + error.message);
             reject(error);
         });
