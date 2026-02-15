@@ -12,7 +12,21 @@ const logError = (...args) => DEBUG && console.error(...args);
 // LOGIN STATUS DETECTION (Injected by Worker)
 // ============================================
 // This line will be replaced by the worker with actual login status
-const IS_LOGGED_IN = typeof window !== 'undefined' && document.cookie.includes('session=') && document.cookie.split('session=')[1]?.split(';')[0] !== 'null';
+// If worker injection fails, it falls back to client-side detection
+let IS_LOGGED_IN = false;
+
+// Try to detect login status
+if (typeof window !== 'undefined') {
+	// Check if session cookie exists and is valid
+	if (document.cookie.includes('session=')) {
+		const sessionValue = document.cookie.split('session=')[1]?.split(';')[0];
+		// Session is valid if it exists and is not 'null' or empty
+		if (sessionValue && sessionValue !== 'null' && sessionValue.length > 10) {
+			IS_LOGGED_IN = true;
+			log('🔐 Login detected via session cookie');
+		}
+	}
+}
 
 log('🔐 User Login Status:', IS_LOGGED_IN ? 'LOGGED IN ✅' : 'GUEST ❌');
 
