@@ -1689,7 +1689,7 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Modified onSearchResultItemClick function - Generates both Get2Short and Nowshort
+// Modified onSearchResultItemClick function - Shows direct link for logged-in users, Get2Short/Nowshort for non-logged users
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
@@ -1752,136 +1752,162 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     
     const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
     
-    // Show content with loading buttons immediately
-    const loadingButtons = `
-        <button class="btn btn-info d-flex align-items-center gap-2" id="get2short-loading" disabled>
-            <div class="spinner-border spinner-border-sm" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            Loading..
-        </button>
-        <button class="btn btn-success d-flex align-items-center gap-2" id="nowshort-loading" disabled>
-            <div class="spinner-border spinner-border-sm" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            Loading..
-        </button>`;
-    
     $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(loadingButtons + close_btn);
     
-    // Style adjustments
-    $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
-    $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
-    
-    // Generate both links simultaneously
-    const generateGet2Short = async () => {
-        let finalUrl = null;
-        let retries = 3;
+    // Check if user is logged in
+    if (isUserLoggedIn()) {
+        // ===== LOGGED-IN USER: Show Direct Chrome Button =====
+        log('User is logged in - showing direct Chrome button');
         
-        while (retries > 0 && !finalUrl) {
-            try {
-                log(`Get2Short - Attempt ${4 - retries}/3`);
-                
-                const response = await fetch('/generate-get2short', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: directUrl })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.short_url) {
-                        finalUrl = data.short_url;
-                        log('Get2Short - Generated:', finalUrl);
-                        break;
-                    }
-                }
-                
-                retries--;
-                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-            } catch (error) {
-                logError('Get2Short error:', error);
-                retries--;
-                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-        }
-        
-        return finalUrl;
-    };
-    
-    const generateNowshort = async () => {
-        let finalUrl = null;
-        let retries = 3;
-        
-        while (retries > 0 && !finalUrl) {
-            try {
-                log(`Nowshort - Attempt ${4 - retries}/3`);
-                
-                const response = await fetch('/generate-nowshort', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: directUrl })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.short_url) {
-                        finalUrl = data.short_url;
-                        log('Nowshort - Generated:', finalUrl);
-                        break;
-                    }
-                }
-                
-                retries--;
-                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-            } catch (error) {
-                logError('Nowshort error:', error);
-                retries--;
-                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-        }
-        
-        return finalUrl;
-    };
-    
-    // Generate both links in parallel
-    const [get2shortUrl, nowshortUrl] = await Promise.all([
-        generateGet2Short(),
-        generateNowshort()
-    ]);
-    
-    // Build buttons HTML
-    let buttonsHtml = '';
-    
-    if (get2shortUrl) {
-        buttonsHtml += `
-            <a href="${getChromeOpenUrl(get2shortUrl)}" 
+        // Create Chrome button HTML with direct URL (exact same as working version)
+        const chromeButtonHtml = `
+            <a href="${getChromeOpenUrl(directUrl)}" 
                class="btn btn-info d-flex align-items-center gap-2" 
                target="_blank"
-               title="Open via Get2Short">
-                𝗚𝗲𝘁𝟮𝗦𝗵𝗼𝗿𝘁
+               title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲">
+                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
+                𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)  
             </a>`;
+        
+        // Update buttons immediately with the direct Chrome link
+        $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
+        $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
+        $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
+        
     } else {
-        buttonsHtml += `<button class="btn btn-secondary" disabled>Get2Short Failed</button>`;
+        // ===== NON-LOGGED-IN USER: Show Get2Short and Nowshort =====
+        log('User is not logged in - generating Get2Short and Nowshort links');
+        
+        // Show content with loading buttons immediately
+        const loadingButtons = `
+            <button class="btn btn-info d-flex align-items-center gap-2" id="get2short-loading" disabled>
+                <div class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                Loading..
+            </button>
+            <button class="btn btn-success d-flex align-items-center gap-2" id="nowshort-loading" disabled>
+                <div class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                Loading..
+            </button>`;
+        
+        $('#modal-body-space-buttons').html(loadingButtons + close_btn);
+        
+        // Style adjustments
+        $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
+        $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
+        
+        // Generate both links simultaneously
+        const generateGet2Short = async () => {
+            let finalUrl = null;
+            let retries = 3;
+            
+            while (retries > 0 && !finalUrl) {
+                try {
+                    log(`Get2Short - Attempt ${4 - retries}/3`);
+                    
+                    const response = await fetch('/generate-get2short', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url: directUrl })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.short_url) {
+                            finalUrl = data.short_url;
+                            log('Get2Short - Generated:', finalUrl);
+                            break;
+                        }
+                    }
+                    
+                    retries--;
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+                } catch (error) {
+                    logError('Get2Short error:', error);
+                    retries--;
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+            }
+            
+            return finalUrl;
+        };
+        
+        const generateNowshort = async () => {
+            let finalUrl = null;
+            let retries = 3;
+            
+            while (retries > 0 && !finalUrl) {
+                try {
+                    log(`Nowshort - Attempt ${4 - retries}/3`);
+                    
+                    const response = await fetch('/generate-nowshort', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url: directUrl })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.short_url) {
+                            finalUrl = data.short_url;
+                            log('Nowshort - Generated:', finalUrl);
+                            break;
+                        }
+                    }
+                    
+                    retries--;
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+                } catch (error) {
+                    logError('Nowshort error:', error);
+                    retries--;
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+            }
+            
+            return finalUrl;
+        };
+        
+        // Generate both links in parallel
+        const [get2shortUrl, nowshortUrl] = await Promise.all([
+            generateGet2Short(),
+            generateNowshort()
+        ]);
+        
+        // Build buttons HTML
+        let buttonsHtml = '';
+        
+        if (get2shortUrl) {
+            buttonsHtml += `
+                <a href="${getChromeOpenUrl(get2shortUrl)}" 
+                   class="btn btn-info d-flex align-items-center gap-2" 
+                   target="_blank"
+                   title="Open via Get2Short">
+                    𝗚𝗲𝘁𝟮𝗦𝗵𝗼𝗿𝘁
+                </a>`;
+        } else {
+            buttonsHtml += `<button class="btn btn-secondary" disabled>Get2Short Failed</button>`;
+        }
+        
+        if (nowshortUrl) {
+            buttonsHtml += `
+                <a href="${getChromeOpenUrl(nowshortUrl)}" 
+                   class="btn btn-success d-flex align-items-center gap-2" 
+                   target="_blank"
+                   title="Open via Nowshort">
+                    𝗡𝗼𝘄𝘀𝗵𝗼𝗿𝘁
+                </a>`;
+        } else {
+            buttonsHtml += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
+        }
+        
+        // Update buttons
+        $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
     }
     
-    if (nowshortUrl) {
-        buttonsHtml += `
-            <a href="${getChromeOpenUrl(nowshortUrl)}" 
-               class="btn btn-success d-flex align-items-center gap-2" 
-               target="_blank"
-               title="Open via Nowshort">
-                𝗡𝗼𝘄𝘀𝗵𝗼𝗿𝘁
-            </a>`;
-    } else {
-        buttonsHtml += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
-    }
-    
-    // Update buttons
-    $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
-    
-    // Optional: Fetch path in background
+    // Optional: Fetch path in background (for all users)
     fetch(`/${cur}:id2path`, {
         method: 'POST',
         body: JSON.stringify({ id: file_id }),
