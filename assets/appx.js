@@ -9,7 +9,7 @@ const log = (...args) => DEBUG && console.log(...args);
 const logError = (...args) => DEBUG && console.error(...args);
 
 // =====================================================================
-// LOGIN DETECTION AND SHORTLINK FUNCTIONS
+// LOGIN DETECTION FUNCTION
 // =====================================================================
 
 // Check if user is logged in by verifying session cookie
@@ -29,59 +29,6 @@ function isUserLoggedIn() {
     log('User is not logged in');
     return false;
 }
-
-// Generate Get2Short link
-async function generateGet2ShortLink(url) {
-    try {
-        const response = await fetch('/generate-get2short', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: url })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.success && data.shortlink) {
-            return data.shortlink;
-        } else {
-            throw new Error(data.error || 'Failed to generate Get2Short link');
-        }
-    } catch (error) {
-        logError('Get2Short Error:', error);
-        throw error;
-    }
-}
-
-// Generate Nowshort link
-async function generateNowshortLink(url) {
-    try {
-        const response = await fetch('/generate-nowshort', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: url })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.success && data.shortlink) {
-            return data.shortlink;
-        } else {
-            throw new Error(data.error || 'Failed to generate Nowshort link');
-        }
-    } catch (error) {
-        logError('Nowshort Error:', error);
-        throw error;
-    }
-}
-
 
 // Initialize the page
 function init() {
@@ -646,20 +593,11 @@ function initializeLoginModal() {
             const data = await response.json();
 
             if (data.ok) {
-                // Success - refresh navigation and redirect
+                // Success - redirect to home or reload page
                 showError('Login successful! Redirecting...', 'success');
-                
-                // Wait a bit for cookie to be set, then refresh navigation
                 setTimeout(() => {
-                    // Refresh the navigation to show Logout button
-                    nav(window.location.pathname);
-                    closeLoginModal();
-                    
-                    // Redirect to home page
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 500);
-                }, 500);
+                    window.location.href = '/';
+                }, 1000);
             } else {
                 showError('Invalid username or password');
             }
@@ -1853,8 +1791,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.success && data.shortlink) {
-                        finalUrl = data.shortlink;
+                    if (data.success && data.short_url) {
+                        finalUrl = data.short_url;
                         log('Get2Short - Generated:', finalUrl);
                         break;
                     }
@@ -1888,8 +1826,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.success && data.shortlink) {
-                        finalUrl = data.shortlink;
+                    if (data.success && data.short_url) {
+                        finalUrl = data.short_url;
                         log('Nowshort - Generated:', finalUrl);
                         break;
                     }
@@ -2188,16 +2126,16 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
           <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center"> 
             ${UI.display_drive_link ? ` 
-          <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-            data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-        ${isUserLoggedIn() 
-          ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
-               <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-             </a>`
-          : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
-               <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-             </a>`
-        }
+           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
+          ${isUserLoggedIn() 
+            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+                 <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+               </a>`
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+           </a>`
+          }
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2334,16 +2272,16 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
           <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center"> 
             ${UI.display_drive_link ? ` 
-          <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-            data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-        ${isUserLoggedIn() 
-          ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
-               <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-             </a>`
-          : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
-               <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-             </a>`
-        }
+           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
+          ${isUserLoggedIn() 
+            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+                 <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+               </a>`
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+           </a>`
+          }
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2524,16 +2462,16 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
           <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center"> 
             ${UI.display_drive_link ? ` 
-          <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-            data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-        ${isUserLoggedIn() 
-          ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
-               <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-             </a>`
-          : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
-               <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-             </a>`
-        }
+           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
+          ${isUserLoggedIn() 
+            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+                 <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+               </a>`
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+           </a>`
+          }
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2688,9 +2626,14 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                     <div class="text-center">
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
-                            <a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+                            ${isUserLoggedIn() 
+            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+                 <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+               </a>`
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
                                 <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-                            </a>
+                            </a>`
+          }
                             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="sr-only"></span>
@@ -3019,96 +2962,6 @@ function generateGDFlixLink(fileId) {
         });
     });
 }
-
-
-// =====================================================================
-// BUTTON HANDLERS FOR GET2SHORT, NOWSHORT, AND GDFLIX
-// =====================================================================
-
-// Get2Short button handler
-$(document).on('click', '.generate-get2short-btn', function() {
-    const url = $(this).data('url');
-    const button = $(this);
-    
-    log('Get2Short button clicked, URL:', url);
-    
-    if (!url) {
-        alert('Error: No URL found');
-        return;
-    }
-    
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Generating...');
-    
-    generateGet2ShortLink(url)
-        .then((shortlink) => {
-            button.prop('disabled', false).html(originalHtml);
-            window.open(shortlink, '_blank');
-            log('Get2Short link generated:', shortlink);
-        })
-        .catch((error) => {
-            button.prop('disabled', false).html('<i class="fas fa-times fa-fw"></i> Failed');
-            setTimeout(() => button.html(originalHtml), 2000);
-            alert('Failed to generate Get2Short link: ' + error.message);
-            logError('Get2Short error:', error);
-        });
-});
-
-// Nowshort button handler
-$(document).on('click', '.generate-nowshort-btn', function() {
-    const url = $(this).data('url');
-    const button = $(this);
-    
-    log('Nowshort button clicked, URL:', url);
-    
-    if (!url) {
-        alert('Error: No URL found');
-        return;
-    }
-    
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Generating...');
-    
-    generateNowshortLink(url)
-        .then((shortlink) => {
-            button.prop('disabled', false).html(originalHtml);
-            window.open(shortlink, '_blank');
-            log('Nowshort link generated:', shortlink);
-        })
-        .catch((error) => {
-            button.prop('disabled', false).html('<i class="fas fa-times fa-fw"></i> Failed');
-            setTimeout(() => button.html(originalHtml), 2000);
-            alert('Failed to generate Nowshort link: ' + error.message);
-            logError('Nowshort error:', error);
-        });
-});
-
-// GDFlix button click handler
-$(document).on('click', '.gdflix-btn', function() {
-    const fileId = $(this).data('file-id');
-    const button = $(this);
-    
-    log('GDFlix Button clicked, fileId:', fileId);
-    
-    if (!fileId) {
-        alert('Error: No file ID found');
-        return;
-    }
-    
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-    
-    generateGDFlixLink(fileId)
-        .then(() => {
-            button.prop('disabled', false).html(originalHtml);
-            log('GDFlix link generated successfully!');
-        })
-        .catch((error) => {
-            button.prop('disabled', false).html(originalHtml);
-            logError('GDFlix error:', error);
-        });
-});
-
 
 // Update the generateGKYFILEHOSTLink function to call the worker endpoint
 function generateGKYFILEHOSTLink(fileId, fileName) {
