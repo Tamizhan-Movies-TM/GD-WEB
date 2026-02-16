@@ -14,13 +14,19 @@ const logError = (...args) => DEBUG && console.error(...args);
 
 // Check if user is logged in by verifying session cookie
 function isUserLoggedIn() {
-    const cookie = document.cookie;
-    if (cookie && cookie.includes('session=')) {
-        const session = cookie.split('session=').pop().split(';').shift().trim();
-        if (session && session !== 'null' && session !== '') {
-            return true;
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'session') {
+            const sessionValue = value ? value.trim() : '';
+            // Check if session has a valid value
+            if (sessionValue && sessionValue !== 'null' && sessionValue !== '' && sessionValue !== 'undefined') {
+                log('User is logged in, session:', sessionValue);
+                return true;
+            }
         }
     }
+    log('User is not logged in');
     return false;
 }
 
@@ -640,11 +646,20 @@ function initializeLoginModal() {
             const data = await response.json();
 
             if (data.ok) {
-                // Success - redirect to home or reload page
+                // Success - refresh navigation and redirect
                 showError('Login successful! Redirecting...', 'success');
+                
+                // Wait a bit for cookie to be set, then refresh navigation
                 setTimeout(() => {
-                    window.location.href = '/';
-                }, 1000);
+                    // Refresh the navigation to show Logout button
+                    nav(window.location.pathname);
+                    closeLoginModal();
+                    
+                    // Redirect to home page
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 500);
+                }, 500);
             } else {
                 showError('Invalid username or password');
             }
