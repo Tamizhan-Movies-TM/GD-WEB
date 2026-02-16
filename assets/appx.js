@@ -4,7 +4,7 @@
 // ============================================
 // OPTIMIZATION: Conditional Logging
 // ============================================
-const DEBUG = false; // ⚠️ SET TO FALSE IN PRODUCTION
+const DEBUG = true; // ⚠️ SET TO TRUE FOR DEBUGGING, FALSE IN PRODUCTION
 const log = (...args) => DEBUG && console.log(...args);
 const logError = (...args) => DEBUG && console.error(...args);
 
@@ -13,13 +13,21 @@ const logError = (...args) => DEBUG && console.error(...args);
 // ============================================
 // Detect if user is logged in by checking for session cookie
 function isUserLoggedIn() {
+    // Check if session cookie exists and has a value
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === 'session' && value && value !== 'null' && value !== '') {
-            return true;
+        const trimmed = cookie.trim();
+        // Check if cookie starts with 'session='
+        if (trimmed.startsWith('session=')) {
+            const value = trimmed.substring(8); // Get value after 'session='
+            // Session is valid if it has content and is not 'null' or empty
+            if (value && value !== 'null' && value !== '' && value.length > 5) {
+                console.log('[AUTH] Session cookie found, length:', value.length);
+                return true;
+            }
         }
     }
+    console.log('[AUTH] No valid session cookie found');
     return false;
 }
 
@@ -44,12 +52,13 @@ window.FEATURES = {
     showDownload: true
 };
 
-// Log the configuration
+// Log the configuration (always show this for debugging)
 console.log(
-    `%c[AUTH] User Type: ${window.isLoggedIn ? 'LOGGED IN' : 'NOT LOGGED IN'}`,
-    `color: ${window.isLoggedIn ? 'green' : 'orange'}; font-weight: bold`
+    `%c[AUTH] User Type: ${window.isLoggedIn ? 'LOGGED IN ✓' : 'NOT LOGGED IN ✗'}`,
+    `color: ${window.isLoggedIn ? 'green' : 'orange'}; font-weight: bold; font-size: 14px;`
 );
 console.log('[FEATURES] Enabled features:', window.FEATURES);
+console.log('[DEBUG] All cookies:', document.cookie);
 
 // Initialize the page
 function init() {
