@@ -11,28 +11,29 @@ const logError = (...args) => DEBUG && console.error(...args);
 // ============================================
 // DYNAMIC USER TYPE DETECTION
 // ============================================
-// Detect if user is logged in by checking for session cookie
-function isUserLoggedIn() {
-    // Check if session cookie exists and has a value
-    const cookies = document.cookie.split(';');
-    for (let cookie of cookies) {
-        const trimmed = cookie.trim();
-        // Check if cookie starts with 'session='
-        if (trimmed.startsWith('session=')) {
-            const value = trimmed.substring(8); // Get value after 'session='
-            // Session is valid if it has content and is not 'null' or empty
-            if (value && value !== 'null' && value !== '' && value.length > 5) {
-                console.log('[AUTH] Session cookie found, length:', value.length);
-                return true;
+// Login status is injected by worker.js (server-side)
+// If not injected, fall back to client-side cookie detection
+if (typeof window.isLoggedIn === 'undefined') {
+    console.log('[AUTH] No server-injected status, checking cookies...');
+    
+    function isUserLoggedIn() {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const trimmed = cookie.trim();
+            if (trimmed.startsWith('session=')) {
+                const value = trimmed.substring(8);
+                if (value && value !== 'null' && value !== '' && value.length > 5) {
+                    console.log('[AUTH] Session cookie found, length:', value.length);
+                    return true;
+                }
             }
         }
+        console.log('[AUTH] No valid session cookie found');
+        return false;
     }
-    console.log('[AUTH] No valid session cookie found');
-    return false;
+    
+    window.isLoggedIn = isUserLoggedIn();
 }
-
-// Set user login status
-window.isLoggedIn = isUserLoggedIn();
 
 // Feature flags based on login status
 window.FEATURES = {
