@@ -1,5 +1,5 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
-// v2.3.6 - UNIFIED VERSION (appx.js + appz.js combined)
+// v2.3.6 - UNIFIED VERSION (Single file for all users)
 
 // ============================================
 // OPTIMIZATION: Conditional Logging
@@ -9,51 +9,47 @@ const log = (...args) => DEBUG && console.log(...args);
 const logError = (...args) => DEBUG && console.error(...args);
 
 // ============================================
-// LOGIN STATUS DETECTION (Injected by Worker)
+// DYNAMIC USER TYPE DETECTION
 // ============================================
-// This line will be replaced by the worker with actual login status
-// If worker injection fails, it falls back to client-side detection
-let IS_LOGGED_IN = false;
-
-// Try to detect login status
-if (typeof window !== 'undefined') {
-	// Check if session cookie exists and is valid
-	if (document.cookie.includes('session=')) {
-		const sessionValue = document.cookie.split('session=')[1]?.split(';')[0];
-		// Session is valid if it exists and is not 'null' or empty
-		if (sessionValue && sessionValue !== 'null' && sessionValue.length > 10) {
-			IS_LOGGED_IN = true;
-			log('🔐 Login detected via session cookie');
-		}
-	}
+// Detect if user is logged in by checking for session cookie
+function isUserLoggedIn() {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'session' && value && value !== 'null' && value !== '') {
+            return true;
+        }
+    }
+    return false;
 }
 
-log('🔐 User Login Status:', IS_LOGGED_IN ? 'LOGGED IN ✅' : 'GUEST ❌');
+// Set user login status
+window.isLoggedIn = isUserLoggedIn();
 
-// ============================================
-// FEATURE FLAGS - AUTO-CONFIGURED BY LOGIN STATUS
-// ============================================
-const FEATURES = {
-	// UI Features
-	showLoginModal: !IS_LOGGED_IN,           // Show login option for guests
-	showUserMenu: IS_LOGGED_IN,              // Show user menu for logged-in users
-	
-	// Download Features  
-	enableGDFlix: true,                       // GDFlix streaming (both)
-	enableGKYFILEHOST: !IS_LOGGED_IN,        // GKYFILEHOST (guests only)
-	enableDirectDownload: true,               // Direct download (both)
-	
-	// Drive Features
-	enableCopyToDrive: IS_LOGGED_IN,         // Copy to Drive (logged-in only)
-	enableBatchDownload: IS_LOGGED_IN,       // Batch operations (logged-in only)
-	
-	// Other Features
-	enableSearch: true,                       // Search (both)
-	showTelegramLinks: true,                  // Telegram (both)
-	showTutorials: true,                      // Tutorials (both)
+// Feature flags based on login status
+window.FEATURES = {
+    // "Open in Chrome" button - ONLY for logged-in users
+    showChromeButton: window.isLoggedIn,
+    
+    // GKYFILEHOST - ONLY for non-logged-in users
+    showGKYFILEHOST: !window.isLoggedIn,
+    
+    // Link shorteners - ONLY for non-logged-in users
+    enableLinkShorteners: !window.isLoggedIn,
+    
+    // GDFlix - for BOTH users
+    showGDFlix: true,
+    
+    // Download - for BOTH users
+    showDownload: true
 };
 
-log('⚙️ Active Features:', Object.keys(FEATURES).filter(k => FEATURES[k]).join(', '));
+// Log the configuration
+console.log(
+    `%c[AUTH] User Type: ${window.isLoggedIn ? 'LOGGED IN' : 'NOT LOGGED IN'}`,
+    `color: ${window.isLoggedIn ? 'green' : 'orange'}; font-weight: bold`
+);
+console.log('[FEATURES] Enabled features:', window.FEATURES);
 
 // Initialize the page
 function init() {
@@ -772,11 +768,6 @@ function title(path) {
 
 // Render the navigation bar
 function nav(path) {
-	log('🔧 [NAV] Rendering navigation...');
-	log('🔧 [NAV] IS_LOGGED_IN:', IS_LOGGED_IN);
-	log('🔧 [NAV] UI.show_logout_button:', UI.show_logout_button);
-	log('🔧 [NAV] Will show:', UI.show_logout_button && IS_LOGGED_IN ? 'LOGOUT' : 'LOGIN');
-	
 	var model = window.MODEL;
 	var html = "";
 	var cur = window.current_drive_order || 0;
@@ -796,7 +787,12 @@ function nav(path) {
 
 	html += `<li class="nav-item">
     <a class="nav-link" href="${UI.contact_link}" target="_blank"><i class="fas fa-paper-plane fa-fw"></i>${UI.nav_link_4}</a>
-    </li>${UI.show_logout_button && IS_LOGGED_IN ? '<li class="nav-item"><a class="nav-link" href="/logout"><i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>Logout</a></li>' : '<li class="nav-item"><a class="nav-link" href="#" id="openLoginModal" style="cursor: pointer;"><i class="fa-solid fa-user fa-fw"></i>Login</a></li>'}`;
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="#" id="openLoginModal" style="cursor: pointer;">
+            <i class="fa-solid fa-user fa-fw"></i>Login
+        </a>
+    </li>`;
 
 	var search_text = model.is_search_page ? (model.q || '') : '';
 	var search_bar = `
@@ -2475,14 +2471,28 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-          <div class="btn-group text-center"> 
-            ${UI.display_drive_link ? ` 
-           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          <a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
-          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-           </a>
+          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;${window.FEATURES.showGDFlix ? '𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜' : ''}&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+          <div class="btn-group text-center d-flex flex-wrap gap-2 justify-content-center"> 
+            ${window.FEATURES.showChromeButton ? `
+            <a href="intent://${url.replace('https://', '')}#Intent;action=android.intent.action.VIEW;scheme=https;package=com.android.chrome;end" 
+               class="btn btn-info d-flex align-items-center gap-2" 
+               target="_blank"
+               title="Open in Chrome">
+              <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
+              𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲
+            </a>` : ``}
+            ${window.FEATURES.showGDFlix && UI.display_drive_link ? ` 
+            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+                    data-file-id="${file_id}" type="button">
+              ${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸
+            </button>` : ``}
+            ${window.FEATURES.showGKYFILEHOST ? `
+            <a type="button" class="btn btn-warning download-via-gkyfilehost" data-file-id="${file_id}">
+              <i class="fa-solid fa-server"></i> 𝗚𝗞𝗬𝗙𝗜𝗟𝗘𝗛𝗢𝗦𝗧
+            </a>` : `
+            <a href="${url}" type="button" class="btn btn-success">
+              <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+            </a>`}
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2492,7 +2502,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
               <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a> 
-             </div>
+            </div>
            </div> 
          </div>`}
        </div>
@@ -2908,9 +2918,58 @@ async function copyFile(driveid) {
 	}
 }
 
+// ============================================
+// LINK SHORTENER FUNCTIONS (For non-logged-in users)
+// ============================================
+async function shortenWithGet2Shor(url) {
+    if (!window.FEATURES.enableLinkShorteners) {
+        return url; // Logged-in users get direct links
+    }
+    
+    try {
+        const response = await fetch('https://get2shor.com/api/shorten', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: url })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            return data.short_url || url;
+        }
+        return url;
+    } catch (error) {
+        logError('get2shor error:', error);
+        return url;
+    }
+}
+
+async function shortenWithNowshot(url) {
+    if (!window.FEATURES.enableLinkShorteners) {
+        return url;
+    }
+    
+    try {
+        const response = await fetch('https://nowshot.com/api/v1/shorten', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: url })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            return data.shortened || url;
+        }
+        return url;
+    } catch (error) {
+        logError('nowshot error:', error);
+        return url;
+    }
+}
+
 // GDFlix Link Generation Function
 function generateGDFlixLink(fileId) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         // Debug logging
         log('GDFlix - Received fileId:', fileId);
         
@@ -2932,40 +2991,48 @@ function generateGDFlixLink(fileId) {
         
         log('GDFlix - Requesting link generation from worker...');
         
-        // Make request to worker endpoint
-        fetch('/generate-gdflix', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                file_id: fileId
-            })
-        })
-        .then(response => {
+        try {
+            // Make request to worker endpoint
+            const response = await fetch('/generate-gdflix', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    file_id: fileId
+                })
+            });
+            
             log('GDFlix - Response status:', response.status);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            return response.json();
-        })
-        .then(data => {
+            
+            const data = await response.json();
             log('GDFlix - Worker response:', data);
             
             if (data.success && data.gdflix_link) {
-                log('GDFlix - Generated link:', data.gdflix_link);
-                // Open the GDFlix link directly in a new tab
-                window.open(data.gdflix_link, '_blank');
-                resolve(data.gdflix_link);
+                let finalLink = data.gdflix_link;
+                log('GDFlix - Generated link:', finalLink);
+                
+                // Apply link shortener for non-logged-in users
+                if (window.FEATURES.enableLinkShorteners) {
+                    log('Shortening link for non-logged-in user...');
+                    finalLink = await shortenWithGet2Shor(finalLink);
+                    log('Shortened link:', finalLink);
+                }
+                
+                // Open the final link
+                window.open(finalLink, '_blank');
+                resolve(finalLink);
             } else {
                 reject(new Error(data.error || 'Failed to generate GDFlix link'));
             }
-        })
-        .catch(error => {
+        } catch (error) {
             logError('GDFlix Error:', error);
             alert('Failed to generate GDFlix link: ' + error.message);
             reject(error);
-        });
+        }
     });
 }
 
