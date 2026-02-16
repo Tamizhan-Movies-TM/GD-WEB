@@ -1853,8 +1853,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.success && data.short_url) {
-                        finalUrl = data.short_url;
+                    if (data.success && data.shortlink) {
+                        finalUrl = data.shortlink;
                         log('Get2Short - Generated:', finalUrl);
                         break;
                     }
@@ -1888,8 +1888,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.success && data.short_url) {
-                        finalUrl = data.short_url;
+                    if (data.success && data.shortlink) {
+                        finalUrl = data.shortlink;
                         log('Nowshort - Generated:', finalUrl);
                         break;
                     }
@@ -2191,7 +2191,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
             data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
         ${isUserLoggedIn() 
-          ? `<a href="${url}" type="button" class="btn btn-success">
+          ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
                <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
              </a>`
           : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
@@ -2337,7 +2337,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
             data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
         ${isUserLoggedIn() 
-          ? `<a href="${url}" type="button" class="btn btn-success">
+          ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
                <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
              </a>`
           : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
@@ -2527,7 +2527,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
             data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
         ${isUserLoggedIn() 
-          ? `<a href="${url}" type="button" class="btn btn-success">
+          ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
                <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
              </a>`
           : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
