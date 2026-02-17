@@ -1,19 +1,5 @@
-// Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.
-// v2.3.7 - Improved with security and performance enhancements
-
-// ============================================
-// CONFIGURATION CONSTANTS
-// ============================================
-const CONFIG = {
-    CACHE_MAX_SIZE: 100,
-    CACHE_TTL_SECONDS: 3600,
-    FILE_ID_MIN_LENGTH: 10,
-    FILE_ID_MAX_LENGTH: 100,
-    REQUEST_TIMEOUT_MS: 30000,
-    RETRY_ATTEMPTS: 3,
-    RETRY_DELAY_MS: 1000,
-    MAX_FILENAME_LENGTH: 255
-};
+// Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
+// v2.3.6
 
 // ============================================
 // OPTIMIZATION: Conditional Logging
@@ -22,225 +8,18 @@ const DEBUG = false; // ⚠️ SET TO FALSE IN PRODUCTION
 const log = (...args) => DEBUG && console.log(...args);
 const logError = (...args) => DEBUG && console.error(...args);
 
-// ============================================
-// IMPROVED LOGGING INFRASTRUCTURE
-// ============================================
-class Logger {
-    constructor(level = 'info') {
-        this.level = level;
-        this.levels = { debug: 0, info: 1, warn: 2, error: 3 };
-    }
-    
-    log(level, message, ...args) {
-        if (this.levels[level] >= this.levels[this.level]) {
-            const timestamp = new Date().toISOString();
-            console[level](timestamp, `[${level.toUpperCase()}]`, message, ...args);
-        }
-    }
-    
-    debug(message, ...args) { this.log('debug', message, ...args); }
-    info(message, ...args) { this.log('info', message, ...args); }
-    warn(message, ...args) { this.log('warn', message, ...args); }
-    error(message, ...args) { this.log('error', message, ...args); }
-}
+// =====================================================================
+// LOGIN DETECTION FUNCTION
+// =====================================================================
 
-const logger = new Logger(DEBUG ? 'debug' : 'info');
-
-// ============================================
-// IMPROVED ERROR HANDLER
-// ============================================
-class ErrorHandler {
-    static handle(error, context) {
-        const errorId = crypto.randomUUID();
-        logger.error(`[${errorId}] Error in ${context}:`, error);
-        
-        return {
-            id: errorId,
-            message: this.getUserMessage(error),
-            technical: error.message,
-            timestamp: new Date().toISOString()
-        };
-    }
-    
-    static getUserMessage(error) {
-        if (error.message.includes('Failed to login')) {
-            return 'Authentication failed. Please check your credentials.';
-        }
-        if (error.message.includes('timeout')) {
-            return 'Request timed out. Please try again.';
-        }
-        if (error.message.includes('Network')) {
-            return 'Network error. Please check your internet connection.';
-        }
-        if (error.message.includes('Invalid')) {
-            return 'Invalid input provided. Please check and try again.';
-        }
-        return 'An unexpected error occurred. Please try again.';
-    }
-    
-    static showNotification(message, type = 'error') {
-        console[type === 'error' ? 'error' : 'log'](message);
-        // You can integrate with a toast notification library here
-    }
-}
-
-// ============================================
-// INPUT VALIDATION UTILITIES
-// ============================================
-class InputValidator {
-    static validateFileId(fileId) {
-        if (!fileId) {
-            throw new Error('File ID is required');
-        }
-        
-        const trimmedId = String(fileId).trim();
-        
-        if (trimmedId.length < CONFIG.FILE_ID_MIN_LENGTH || trimmedId.length > CONFIG.FILE_ID_MAX_LENGTH) {
-            throw new Error(`Invalid file ID length (expected ${CONFIG.FILE_ID_MIN_LENGTH}-${CONFIG.FILE_ID_MAX_LENGTH} characters)`);
-        }
-        
-        if (!/^[a-zA-Z0-9_-]+$/.test(trimmedId)) {
-            throw new Error('Invalid file ID format (only alphanumeric, dash, and underscore allowed)');
-        }
-        
-        return trimmedId;
-    }
-    
-    static validateFileName(fileName) {
-        if (!fileName) {
-            return 'download';
-        }
-        
-        let sanitized = String(fileName).trim();
-        sanitized = sanitized.replace(/[<>:"/\\|?*\x00-\x1F]/g, '');
-        
-        if (sanitized.length > CONFIG.MAX_FILENAME_LENGTH) {
-            sanitized = sanitized.substring(0, CONFIG.MAX_FILENAME_LENGTH);
-        }
-        
-        return sanitized || 'download';
-    }
-    
-    static sanitizeHTML(html) {
-        const div = document.createElement('div');
-        div.textContent = html;
-        return div.innerHTML;
-    }
-}
-
-// ============================================
-// FETCH WITH TIMEOUT UTILITY
-// ============================================
-async function fetchWithTimeout(url, options = {}, timeout = CONFIG.REQUEST_TIMEOUT_MS) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-    
-    try {
-        const response = await fetch(url, {
-            ...options,
-            signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-        return response;
-    } catch (error) {
-        clearTimeout(timeoutId);
-        if (error.name === 'AbortError') {
-            throw new Error('Request timeout');
-        }
-        throw error;
-    }
-}
-
-// ============================================
-// FETCH WITH RETRY UTILITY
-// ============================================
-async function fetchWithRetry(url, options = {}, retries = CONFIG.RETRY_ATTEMPTS) {
-    let lastError;
-    
-    for (let i = 0; i < retries; i++) {
-        try {
-            const response = await fetchWithTimeout(url, options);
-            return response;
-        } catch (error) {
-            lastError = error;
-            logger.warn(`Fetch attempt ${i + 1} failed:`, error.message);
-            
-            if (i < retries - 1) {
-                await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY_MS * (i + 1)));
-            }
-        }
-    }
-    
-    throw lastError;
-}
-
-// ============================================
-// IMPROVED SESSION MANAGEMENT
-// ============================================
-class SessionManager {
-    static async isUserLoggedIn() {
-        const sessionToken = this.getCookie('session');
-        
-        if (!sessionToken || sessionToken === 'null' || sessionToken === 'undefined') {
-            logger.debug('No valid session token found');
-            return false;
-        }
-        
-        // For backwards compatibility, if no server endpoint exists, just check cookie exists
-        try {
-            const response = await fetchWithTimeout('/api/verify-session', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Session-Token': sessionToken
-                }
-            }, 5000);
-            
-            if (!response.ok) {
-                logger.warn('Session verification failed:', response.status);
-                return false;
-            }
-            
-            const data = await response.json();
-            return data.valid === true;
-        } catch (error) {
-            // If endpoint doesn't exist, fallback to simple cookie check
-            logger.debug('Session verification endpoint not available, using simple check');
-            return true; // Cookie exists, assume valid
-        }
-    }
-    
-    static getCookie(name) {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            const [cookieName, cookieValue] = cookie.trim().split('=');
-            if (cookieName === name) {
-                return cookieValue ? decodeURIComponent(cookieValue.trim()) : null;
-            }
-        }
-        return null;
-    }
-    
-    static setCookie(name, value, days = 7) {
-        const expires = new Date();
-        expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-        
-        const cookieString = `${name}=${encodeURIComponent(value)}; expires=${expires.toUTCString()}; path=/; SameSite=Strict; Secure`;
-        document.cookie = cookieString;
-    }
-    
-    static deleteCookie(name) {
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-    }
-}
-
-// Backwards compatible function
+// Check if user is logged in by verifying session cookie
 function isUserLoggedIn() {
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
         const [name, value] = cookie.trim().split('=');
         if (name === 'session') {
             const sessionValue = value ? value.trim() : '';
+            // Check if session has a valid value
             if (sessionValue && sessionValue !== 'null' && sessionValue !== '' && sessionValue !== 'undefined') {
                 log('User is logged in, session:', sessionValue);
                 return true;
@@ -249,65 +28,6 @@ function isUserLoggedIn() {
     }
     log('User is not logged in');
     return false;
-}
-
-// ============================================
-// DOM UTILITIES
-// ============================================
-class DOMUtils {
-    static elementCache = new Map();
-    
-    static getElement(selector) {
-        if (this.elementCache.has(selector)) {
-            return this.elementCache.get(selector);
-        }
-        
-        const element = selector.startsWith('#') 
-            ? document.getElementById(selector.substring(1))
-            : document.querySelector(selector);
-            
-        if (element) {
-            this.elementCache.set(selector, element);
-        }
-        
-        return element;
-    }
-    
-    static clearCache() {
-        this.elementCache.clear();
-    }
-    
-    static setHTML(element, content, sanitize = true) {
-        if (!element) return;
-        
-        if (sanitize) {
-            element.textContent = content;
-        } else {
-            element.innerHTML = content;
-        }
-    }
-    
-    static createElement(tag, attributes = {}, content = '') {
-        const element = document.createElement(tag);
-        
-        Object.entries(attributes).forEach(([key, value]) => {
-            if (key === 'className') {
-                element.className = value;
-            } else if (key === 'dataset') {
-                Object.entries(value).forEach(([dataKey, dataValue]) => {
-                    element.dataset[dataKey] = dataValue;
-                });
-            } else {
-                element.setAttribute(key, value);
-            }
-        });
-        
-        if (content) {
-            element.textContent = content;
-        }
-        
-        return element;
-    }
 }
 
 // Initialize the page
@@ -560,9 +280,6 @@ strong {
     width: 100%;
     height: 100%;
     animation: animStarRotate 90s linear infinite;
-}
-
-#stars::after {
     background-image: radial-gradient(#ffffff 1px, transparent 1%);
     background-size: 50px 50px;
 }
@@ -575,9 +292,6 @@ strong {
     width: 170%;
     height: 500%;
     animation: animStar 60s linear infinite;
-}
-
-#stars::before {
     background-image: radial-gradient(#ffffff 1px, transparent 1%);
     background-size: 50px 50px;
     opacity: 0.5;
@@ -957,7 +671,7 @@ function getQueryVariable(variable) {
 	var pair;
 	for (var i = 0; i < vars.length; i++) {
 		pair = vars[i].split('=');
-		if (pair[0] == variable) {
+		if (pair[0] === variable) {
 			return pair[1];
 		}
 	}
@@ -3208,32 +2922,54 @@ async function copyFile(driveid) {
 	}
 }
 
+// ============================================
+// FIX #16: UI Error Display (replaces blocking alert())
+// Shows errors in a non-blocking toast notification
+// ============================================
+function showError(message) {
+    // Try to use an existing error container or create a toast
+    let toast = document.getElementById('_gdi_error_toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = '_gdi_error_toast';
+        toast.style.cssText = [
+            'position:fixed', 'bottom:20px', 'right:20px', 'z-index:9999',
+            'background:#dc3545', 'color:#fff', 'padding:14px 20px',
+            'border-radius:8px', 'max-width:380px', 'font-size:14px',
+            'box-shadow:0 4px 12px rgba(0,0,0,0.4)', 'white-space:pre-wrap',
+            'display:none', 'line-height:1.5'
+        ].join(';');
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.style.display = 'block';
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => { toast.style.display = 'none'; }, 8000);
+}
+
 // GDFlix Link Generation Function
-function generateGDFlixLink(fileId) {
-    return new Promise((resolve, reject) => {
-        // Debug logging
-        log('GDFlix - Received fileId:', fileId);
-        
-        // Basic validation
-        if (!fileId) {
-            logError('GDFlix - No file ID provided');
-            reject(new Error('No file ID provided'));
-            return;
-        }
-        
-        // Convert to string if it's not already
-        fileId = String(fileId).trim();
-        
-        if (fileId === '') {
-            logError('GDFlix - Empty file ID');
-            reject(new Error('Empty file ID'));
-            return;
-        }
-        
-        log('GDFlix - Requesting link generation from worker...');
-        
-        // Make request to worker endpoint
-        fetch('/generate-gdflix', {
+async function generateGDFlixLink(fileId) {
+    // Debug logging
+    log('GDFlix - Received fileId:', fileId);
+    
+    // Basic validation
+    if (!fileId) {
+        logError('GDFlix - No file ID provided');
+        throw new Error('No file ID provided');
+    }
+    
+    // Convert to string if it's not already
+    fileId = String(fileId).trim();
+    
+    if (fileId === '') {
+        logError('GDFlix - Empty file ID');
+        throw new Error('Empty file ID');
+    }
+    
+    log('GDFlix - Requesting link generation from worker...');
+    
+    try {
+        const response = await fetch('/generate-gdflix', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -3241,79 +2977,68 @@ function generateGDFlixLink(fileId) {
             body: JSON.stringify({
                 file_id: fileId
             })
-        })
-        .then(response => {
-            log('GDFlix - Response status:', response.status);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            log('GDFlix - Worker response:', data);
-            
-            if (data.success && data.gdflix_link) {
-                log('GDFlix - Generated link:', data.gdflix_link);
-                // Open the GDFlix link directly in a new tab
-                window.open(data.gdflix_link, '_blank');
-                resolve(data.gdflix_link);
-            } else {
-                reject(new Error(data.error || 'Failed to generate GDFlix link'));
-            }
-        })
-        .catch(error => {
-            logError('GDFlix Error:', error);
-            alert('Failed to generate GDFlix link: ' + error.message);
-            reject(error);
         });
-    });
+
+        log('GDFlix - Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        log('GDFlix - Worker response:', data);
+
+        if (data.success && data.gdflix_link) {
+            log('GDFlix - Generated link:', data.gdflix_link);
+            // Open the GDFlix link directly in a new tab
+            window.open(data.gdflix_link, '_blank');
+            return data.gdflix_link;
+        } else {
+            throw new Error(data.error || 'Failed to generate GDFlix link');
+        }
+    } catch (error) {
+        logError('GDFlix Error:', error);
+        showError('Failed to generate GDFlix link: ' + error.message);
+        throw error;
+    }
 }
 
 // Update the generateGKYFILEHOSTLink function to call the worker endpoint
-function generateGKYFILEHOSTLink(fileId, fileName) {
-    return new Promise((resolve, reject) => {
-        log('GKYFILEHOST - Received fileId:', fileId);
-        log('GKYFILEHOST - Received fileName:', fileName);
-        
-        if (!fileId) {
-            logError('GKYFILEHOST - No file ID provided');
-            alert('Error: No file ID provided');
-            reject(new Error('No file ID provided'));
-            return;
-        }
-        
-        fileId = String(fileId).trim();
-        
-        if (fileId === '') {
-            logError('GKYFILEHOST - Empty file ID');
-            alert('Error: Empty file ID');
-            reject(new Error('Empty file ID'));
-            return;
-        }
-        
-        // Try to get filename from page if not provided
-        if (!fileName) {
-            try {
-                // Try to find the filename from the page title or heading
-                const titleElement = document.querySelector('h5.card-title');
-                if (titleElement) {
-                    fileName = titleElement.textContent.trim();
-                }
-            } catch (e) {
-                log('GKYFILEHOST - Could not extract filename from page');
+async function generateGKYFILEHOSTLink(fileId, fileName) {
+    log('GKYFILEHOST - Received fileId:', fileId);
+    log('GKYFILEHOST - Received fileName:', fileName);
+    
+    if (!fileId) {
+        logError('GKYFILEHOST - No file ID provided');
+        showError('Error: No file ID provided');
+        throw new Error('No file ID provided');
+    }
+    
+    fileId = String(fileId).trim();
+    
+    if (fileId === '') {
+        logError('GKYFILEHOST - Empty file ID');
+        showError('Error: Empty file ID');
+        throw new Error('Empty file ID');
+    }
+    
+    // Try to get filename from page if not provided
+    if (!fileName) {
+        try {
+            const titleElement = document.querySelector('h5.card-title');
+            if (titleElement) {
+                fileName = titleElement.textContent.trim();
             }
+        } catch (e) {
+            log('GKYFILEHOST - Could not extract filename from page');
         }
-        
-        log('GKYFILEHOST - Final fileName:', fileName || 'download');
-        log('GKYFILEHOST - Requesting link generation from worker...');
-        log('GKYFILEHOST - File ID being sent:', fileId);
-        
-        // Show a loading indicator (you can customize this)
-        const loadingMsg = 'Generating GKYFILEHOST link... Please wait...';
-        log(loadingMsg);
-        
-        // Make request to worker endpoint (FIXED: Changed from /generate-gkyfilehost to /gkyfilehost)
-        fetch('/gkyfilehost', {
+    }
+    
+    log('GKYFILEHOST - Final fileName:', fileName || 'download');
+    log('GKYFILEHOST - Requesting link generation from worker...');
+    log('GKYFILEHOST - File ID being sent:', fileId);
+    
+    try {
+        const response = await fetch('/gkyfilehost', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -3322,85 +3047,68 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
                 file_id: fileId,
                 file_name: fileName || 'download'
             })
-        })
-        .then(response => {
-            log('GKYFILEHOST - Response status:', response.status);
-            log('GKYFILEHOST - Response OK:', response.ok);
-            
-            // Try to get the response body even if status is not OK
-            return response.json().then(data => {
-                return { status: response.status, ok: response.ok, data: data };
-            }).catch(() => {
-                // If JSON parsing fails, try to get text
-                return response.text().then(text => {
-                    return { status: response.status, ok: response.ok, data: { error: text } };
-                });
-            });
-        })
-        .then(result => {
-            log('GKYFILEHOST - Full response:', result);
-            
-            if (!result.ok) {
-                // Show specific error from server
-                const errorMsg = result.data.error || result.data.details || `HTTP error! status: ${result.status}`;
-                logError('GKYFILEHOST - Server error:', errorMsg);
-                throw new Error(errorMsg);
-            }
-            
-            const data = result.data;
-            log('GKYFILEHOST - Worker response data:', data);
-            
-            if (data.success && (data.link || data.gkyfilehost_link)) {
-                const gkyLink = data.link || data.gkyfilehost_link;
-                log('GKYFILEHOST - Generated link:', gkyLink);
-                
-                // Validate the link format
-                if (!gkyLink.includes('gkyfilehost')) {
-                    logError('GKYFILEHOST - Warning: Link does not contain gkyfilehost domain');
-                }
-                
-                // Open the GKYFILEHOST link directly in a new tab
-                window.open(gkyLink, '_blank');
-                
-                // Show success message
-                log('✅ GKYFILEHOST link generated successfully!');
-                
-                resolve(gkyLink);
-            } else {
-                const errorMsg = data.error || 'Failed to generate GKYFILEHOST link - no link in response';
-                logError('GKYFILEHOST - Error from server:', errorMsg);
-                throw new Error(errorMsg);
-            }
-        })
-        .catch(error => {
-            logError('GKYFILEHOST Error:', error);
-            logError('GKYFILEHOST Error stack:', error.stack);
-            
-            // Show user-friendly error message
-            let userMessage = 'Failed to generate GKYFILEHOST link';
-            
-            if (error.message.includes('Failed to login')) {
-                userMessage += '\n\n⚠️ Login to GKYFILEHOST failed.\n\nPossible solutions:\n' +
-                             '1. Check your GKYFILEHOST account credentials\n' +
-                             '2. Make sure your account is active\n' +
-                             '3. Check Cloudflare Worker logs for details';
-            } else if (error.message.includes('HTTP error! status: 500')) {
-                userMessage += '\n\nServer error (500).\n\nPlease check:\n' +
-                             '1. Cloudflare Worker logs for details\n' +
-                             '2. GKYFILEHOST credentials are correct\n' +
-                             '3. The file ID is valid';
-            } else if (error.message.includes('HTTP error! status: 400')) {
-                userMessage += '\n\nBad request (400). The file ID might be invalid.';
-            } else if (error.message.includes('Failed to fetch')) {
-                userMessage += '\n\nNetwork error. Check your internet connection.';
-            } else {
-                userMessage += ':\n\n' + error.message;
-            }
-            
-            alert(userMessage);
-            reject(error);
         });
-    });
+
+        log('GKYFILEHOST - Response status:', response.status);
+        log('GKYFILEHOST - Response OK:', response.ok);
+
+        let data;
+        try {
+            data = await response.json();
+        } catch (_) {
+            const text = await response.text();
+            data = { error: text };
+        }
+
+        if (!response.ok) {
+            const errorMsg = data.error || data.details || `HTTP error! status: ${response.status}`;
+            logError('GKYFILEHOST - Server error:', errorMsg);
+            throw new Error(errorMsg);
+        }
+
+        log('GKYFILEHOST - Worker response data:', data);
+
+        if (data.success && (data.link || data.gkyfilehost_link)) {
+            const gkyLink = data.link || data.gkyfilehost_link;
+            log('GKYFILEHOST - Generated link:', gkyLink);
+
+            if (!gkyLink.includes('gkyfilehost')) {
+                logError('GKYFILEHOST - Warning: Link does not contain gkyfilehost domain');
+            }
+
+            window.open(gkyLink, '_blank');
+            log('✅ GKYFILEHOST link generated successfully!');
+            return gkyLink;
+        } else {
+            throw new Error(data.error || 'Failed to generate GKYFILEHOST link - no link in response');
+        }
+    } catch (error) {
+        logError('GKYFILEHOST Error:', error);
+        logError('GKYFILEHOST Error stack:', error.stack);
+
+        let userMessage = 'Failed to generate GKYFILEHOST link';
+
+        if (error.message.includes('Failed to login')) {
+            userMessage += '\n\n⚠️ Login to GKYFILEHOST failed.\n\nPossible solutions:\n' +
+                         '1. Check your GKYFILEHOST account credentials\n' +
+                         '2. Make sure your account is active\n' +
+                         '3. Check Cloudflare Worker logs for details';
+        } else if (error.message.includes('HTTP error! status: 500')) {
+            userMessage += '\n\nServer error (500).\n\nPlease check:\n' +
+                         '1. Cloudflare Worker logs for details\n' +
+                         '2. GKYFILEHOST credentials are correct\n' +
+                         '3. The file ID is valid';
+        } else if (error.message.includes('HTTP error! status: 400')) {
+            userMessage += '\n\nBad request (400). The file ID might be invalid.';
+        } else if (error.message.includes('Failed to fetch')) {
+            userMessage += '\n\nNetwork error. Check your internet connection.';
+        } else {
+            userMessage += ':\n\n' + error.message;
+        }
+
+        showError(userMessage);
+        throw error;
+    }
 }
 
 // Handler for Download button to open GKYFILEHOST link
