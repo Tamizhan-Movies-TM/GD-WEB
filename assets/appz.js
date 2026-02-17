@@ -1,5 +1,35 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
 // v2.3.6
+
+// ============================================
+// OPTIMIZATION: Conditional Logging
+// ============================================
+const DEBUG = false; // ⚠️ SET TO FALSE IN PRODUCTION
+const log = (...args) => DEBUG && console.log(...args);
+const logError = (...args) => DEBUG && console.error(...args);
+
+// =====================================================================
+// LOGIN DETECTION FUNCTION
+// =====================================================================
+
+// Check if user is logged in by verifying session cookie
+function isUserLoggedIn() {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'session') {
+            const sessionValue = value ? value.trim() : '';
+            // Check if session has a valid value
+            if (sessionValue && sessionValue !== 'null' && sessionValue !== '' && sessionValue !== 'undefined') {
+                log('User is logged in, session:', sessionValue);
+                return true;
+            }
+        }
+    }
+    log('User is not logged in');
+    return false;
+}
+
 // Initialize the page
 function init() {
 	document.siteName = $('title').html();
@@ -573,7 +603,7 @@ function initializeLoginModal() {
             }
         } catch (error) {
             showError('Network error. Please try again.');
-            console.error('Login error:', error);
+            logError('Login error:', error);
         }
     });
 
@@ -737,11 +767,10 @@ function nav(path) {
 	html += `<li class="nav-item">
     <a class="nav-link" href="${UI.contact_link}" target="_blank"><i class="fas fa-paper-plane fa-fw"></i>${UI.nav_link_4}</a>
     </li>
-    <li class="nav-item">
-        <a class="nav-link" href="#" id="openLoginModal" style="cursor: pointer;">
-            <i class="fa-solid fa-user fa-fw"></i>Login
-        </a>
-    </li>`;
+    ${isUserLoggedIn() 
+        ? '<li class="nav-item"><a class="nav-link" href="/logout"><i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>Logout</a></li>'
+        : '<li class="nav-item"><a class="nav-link" href="#" id="openLoginModal" style="cursor: pointer;"><i class="fa-solid fa-user fa-fw"></i>Login</a></li>'
+    }`;
 
 	var search_text = model.is_search_page ? (model.q || '') : '';
 	var search_bar = `
@@ -850,7 +879,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 				}
 			});
 	}
-	console.log("Performing Request again")
+	log("Performing Request again")
 	performRequest();
 }
 
@@ -912,7 +941,7 @@ function requestSearch(params, resultCallback, retries = 3) {
 
 // Render file list
 function list(path, id = '', fallback = false) {
-	console.log(id);
+	log(id);
 	var cur = window.current_drive_order || 0;
 	var drive_name = window.drive_names[cur];
 	var folder_name = !fallback ? decodeURIComponent(path.split('/').filter(Boolean).pop()) : 'Files';
@@ -955,7 +984,7 @@ function list(path, id = '', fallback = false) {
 	$('#head_md').hide().html('');
 
 	function handleSuccessResult(res, path, prevReqParams) {
-		console.log(res, path, prevReqParams);
+		log(res, path, prevReqParams);
 		if (fallback) {
 			title(res['name']);
 			$('#dirname').html(res['name']);
@@ -978,7 +1007,7 @@ function list(path, id = '', fallback = false) {
 				append_files_to_list(path, res['data']['files']);
 			}
 		} else {
-			console.log('doing something...')
+			log('doing something...')
 			if (fallback) {
 				append_files_to_fallback_list(path, res['data']['files']);
 			} else {
@@ -1002,7 +1031,7 @@ function list(path, id = '', fallback = false) {
 
 						let $list = $('#list');
 						if (fallback) {
-							console.log('fallback inside handleSuccessResult');
+							log('fallback inside handleSuccessResult');
 							requestListPath(path, {
 									id: id,
 									password: prevReqParams['password'],
@@ -1033,7 +1062,7 @@ function list(path, id = '', fallback = false) {
 	}
 
 	if (fallback) {
-		console.log('fallback inside list');
+		log('fallback inside list');
 		requestListPath(path, {
 				id: id,
 				password: password
@@ -1041,7 +1070,7 @@ function list(path, id = '', fallback = false) {
 			handleSuccessResult,
 			null, null, fallback = true);
 	} else {
-		console.log("handling this")
+		log("handling this")
 		requestListPath(path, {
 				password: password
 			},
@@ -1115,7 +1144,7 @@ function askPassword(path) {
  */
 function append_files_to_fallback_list(path, files) {
 	try {
-		console.log('append_files_to_fallback_list');
+		log('append_files_to_fallback_list');
 		var $list = $('#list');
 		// Is it the last page of data?
 		var is_lastpage_loaded = null === $list.data('nextPageToken');
@@ -1207,10 +1236,10 @@ function append_files_to_fallback_list(path, files) {
 		        }
 		    }
 		})
-		// console.log(targetObj)
+		// log(targetObj)
 		if (Object.keys(targetObj).length) {
 		    localStorage.setItem(path, JSON.stringify(targetObj));
-		    // console.log(path)
+		    // log(path)
 		}*/
 
 		if (targetFiles.length > 0) {
@@ -1256,7 +1285,7 @@ function append_files_to_fallback_list(path, files) {
 			}
 		}
 	} catch (e) {
-		console.log(e);
+		log(e);
 	}
 }
 
@@ -1358,10 +1387,10 @@ function append_files_to_list(path, files) {
 	        }
 	    }
 	})
-	// console.log(targetObj)
+	// log(targetObj)
 	if (Object.keys(targetObj).length) {
 	    localStorage.setItem(path, JSON.stringify(targetObj));
-	    // console.log(path)
+	    // log(path)
 	}*/
 
 	if (targetFiles.length > 0) {
@@ -1656,11 +1685,11 @@ function append_search_result_to_list(files) {
 			}
 		}
 	} catch (e) {
-		console.log(e);
+		log(e);
 	}
 }
 
-// Modified onSearchResultItemClick function - Generates both Get2Short and Nowshort
+// Modified onSearchResultItemClick function - Shows direct link for logged-in users, Get2Short/Nowshort for non-logged users
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
@@ -1723,141 +1752,167 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     
     const close_btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">𝗖𝗹𝗼𝘀𝗲</button>`;
     
-    // Show content with loading buttons immediately
-    const loadingButtons = `
-        <button class="btn btn-info d-flex align-items-center gap-2" id="get2short-loading" disabled>
-            <div class="spinner-border spinner-border-sm" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            Loading..
-        </button>
-        <button class="btn btn-success d-flex align-items-center gap-2" id="nowshort-loading" disabled>
-            <div class="spinner-border spinner-border-sm" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            Loading..
-        </button>`;
-    
     $('#modal-body-space').html(content);
-    $('#modal-body-space-buttons').html(loadingButtons + close_btn);
     
-    // Style adjustments
-    $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
-    $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
-    
-    // Generate both links simultaneously
-    const generateGet2Short = async () => {
-        let finalUrl = null;
-        let retries = 3;
+    // Check if user is logged in
+    if (isUserLoggedIn()) {
+        // ===== LOGGED-IN USER: Show Direct Chrome Button =====
+        log('User is logged in - showing direct Chrome button');
         
-        while (retries > 0 && !finalUrl) {
-            try {
-                console.log(`Get2Short - Attempt ${4 - retries}/3`);
-                
-                const response = await fetch('/generate-get2short', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: directUrl })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.short_url) {
-                        finalUrl = data.short_url;
-                        console.log('Get2Short - Generated:', finalUrl);
-                        break;
-                    }
-                }
-                
-                retries--;
-                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-            } catch (error) {
-                console.error('Get2Short error:', error);
-                retries--;
-                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-        }
-        
-        return finalUrl;
-    };
-    
-    const generateNowshort = async () => {
-        let finalUrl = null;
-        let retries = 3;
-        
-        while (retries > 0 && !finalUrl) {
-            try {
-                console.log(`Nowshort - Attempt ${4 - retries}/3`);
-                
-                const response = await fetch('/generate-nowshort', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: directUrl })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.short_url) {
-                        finalUrl = data.short_url;
-                        console.log('Nowshort - Generated:', finalUrl);
-                        break;
-                    }
-                }
-                
-                retries--;
-                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-            } catch (error) {
-                console.error('Nowshort error:', error);
-                retries--;
-                if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-        }
-        
-        return finalUrl;
-    };
-    
-    // Generate both links in parallel
-    const [get2shortUrl, nowshortUrl] = await Promise.all([
-        generateGet2Short(),
-        generateNowshort()
-    ]);
-    
-    // Build buttons HTML
-    let buttonsHtml = '';
-    
-    if (get2shortUrl) {
-        buttonsHtml += `
-            <a href="${getChromeOpenUrl(get2shortUrl)}" 
+        // Create Chrome button HTML with direct URL (exact same as working version)
+        const chromeButtonHtml = `
+            <a href="${getChromeOpenUrl(directUrl)}" 
                class="btn btn-info d-flex align-items-center gap-2" 
                target="_blank"
-               title="Open via Get2Short">
-                𝗚𝗲𝘁𝟮𝗦𝗵𝗼𝗿𝘁
+               title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲">
+                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
+                𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)  
             </a>`;
+        
+        // Update buttons immediately with the direct Chrome link
+        $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
+        $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
+        $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
+        
     } else {
-        buttonsHtml += `<button class="btn btn-secondary" disabled>Get2Short Failed</button>`;
+        // ===== NON-LOGGED-IN USER: Show Get2Short and Nowshort =====
+        log('User is not logged in - generating Get2Short and Nowshort links');
+        
+        // Show content with loading buttons immediately
+        const loadingButtons = `
+            <button class="btn btn-info d-flex align-items-center gap-2" id="get2short-loading" disabled>
+                <div class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                Loading..
+            </button>
+            <button class="btn btn-success d-flex align-items-center gap-2" id="nowshort-loading" disabled>
+                <div class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                Loading..
+            </button>`;
+        
+        $('#modal-body-space-buttons').html(loadingButtons + close_btn);
+        
+        // Style adjustments
+        $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
+        $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
+        
+        // Generate both links simultaneously
+        const generateGet2Short = async () => {
+            let finalUrl = null;
+            let retries = 3;
+            
+            while (retries > 0 && !finalUrl) {
+                try {
+                    log(`Get2Short - Attempt ${4 - retries}/3`);
+                    
+                    const response = await fetch('/generate-get2short', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url: directUrl })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.short_url) {
+                            finalUrl = data.short_url;
+                            log('Get2Short - Generated:', finalUrl);
+                            break;
+                        }
+                    }
+                    
+                    retries--;
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+                } catch (error) {
+                    logError('Get2Short error:', error);
+                    retries--;
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+            }
+            
+            return finalUrl;
+        };
+        
+        const generateNowshort = async () => {
+            let finalUrl = null;
+            let retries = 3;
+            
+            while (retries > 0 && !finalUrl) {
+                try {
+                    log(`Nowshort - Attempt ${4 - retries}/3`);
+                    
+                    const response = await fetch('/generate-nowshort', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url: directUrl })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.short_url) {
+                            finalUrl = data.short_url;
+                            log('Nowshort - Generated:', finalUrl);
+                            break;
+                        }
+                    }
+                    
+                    retries--;
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+                } catch (error) {
+                    logError('Nowshort error:', error);
+                    retries--;
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+            }
+            
+            return finalUrl;
+        };
+        
+        // Generate both links in parallel
+        const [get2shortUrl, nowshortUrl] = await Promise.all([
+            generateGet2Short(),
+            generateNowshort()
+        ]);
+        
+        // Build buttons HTML
+        let buttonsHtml = '';
+        
+        if (get2shortUrl) {
+            buttonsHtml += `
+                <a href="${getChromeOpenUrl(get2shortUrl)}" 
+                   class="btn btn-info d-flex align-items-center gap-2" 
+                   target="_blank"
+                   title="Open via Get2Short">
+                    𝗚𝗲𝘁𝟮𝗦𝗵𝗼𝗿𝘁
+                </a>`;
+        } else {
+            buttonsHtml += `<button class="btn btn-secondary" disabled>Get2Short Failed</button>`;
+        }
+        
+        if (nowshortUrl) {
+            buttonsHtml += `
+                <a href="${getChromeOpenUrl(nowshortUrl)}" 
+                   class="btn btn-success d-flex align-items-center gap-2" 
+                   target="_blank"
+                   title="Open via Nowshort">
+                    𝗡𝗼𝘄𝘀𝗵𝗼𝗿𝘁
+                </a>`;
+        } else {
+            buttonsHtml += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
+        }
+        
+        // Update buttons
+        $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
     }
     
-    if (nowshortUrl) {
-        buttonsHtml += `
-            <a href="${getChromeOpenUrl(nowshortUrl)}" 
-               class="btn btn-success d-flex align-items-center gap-2" 
-               target="_blank"
-               title="Open via Nowshort">
-                𝗡𝗼𝘄𝘀𝗵𝗼𝗿𝘁
-            </a>`;
-    } else {
-        buttonsHtml += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
-    }
-    
-    // Update buttons
-    $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
-    
-    // Optional: Fetch path in background
+    // Optional: Fetch path in background (for all users)
     fetch(`/${cur}:id2path`, {
         method: 'POST',
         body: JSON.stringify({ id: file_id }),
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    }).catch(error => console.log('Path fetch error:', error));
+    }).catch(error => log('Path fetch error:', error));
 }
 
 function get_file(path, file, callback) {
@@ -1893,7 +1948,7 @@ async function fallback(id, type) {
 				return response.json();
 			})
 			.then(function(obj) {
-				console.log(obj);
+				log(obj);
 				title(obj.name);
 				const mimeType = obj.mimeType;
 				const fileExtension = obj.fileExtension ? obj.fileExtension.toLowerCase() : 'GoogleApps';
@@ -1964,7 +2019,7 @@ async function file(path) {
 			return response.json();
 		})
 		.then(function(obj) {
-			console.log(obj);
+			log(obj);
 			const mimeType = obj.mimeType;
 			const createdTime = utc2jakarta(obj.createdTime);
 			const fileExtension = obj.fileExtension ? obj.fileExtension.toLowerCase() : 'GoogleApps';
@@ -2099,9 +2154,14 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
             ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          <a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+          ${isUserLoggedIn() 
+            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+                 <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+               </a>`
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
           <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-           </a>
+           </a>`
+          }
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2123,7 +2183,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
     const fileId = $(this).data('file-id');
     const button = $(this);
     
-    console.log('Button clicked, fileId:', fileId); // Debug log
+    log('Button clicked, fileId:', fileId); // Debug log
     
     if (!fileId) {
         alert('Error: No file ID found');
@@ -2143,7 +2203,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
         .catch((error) => {
             // Reset button on error
             button.prop('disabled', false).html(originalHtml);
-            console.error('GDFlix error:', error);
+            logError('GDFlix error:', error);
         });
     });
 	
@@ -2240,9 +2300,14 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          <a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+          ${isUserLoggedIn() 
+            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+                 <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+               </a>`
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
           <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-           </a>
+           </a>`
+          }
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2264,7 +2329,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     const fileId = $(this).data('file-id');
     const button = $(this);
     
-    console.log('Button clicked, fileId:', fileId); // Debug log
+    log('Button clicked, fileId:', fileId); // Debug log
     
     if (!fileId) {
         alert('Error: No file ID found');
@@ -2284,7 +2349,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         .catch((error) => {
             // Reset button on error
             button.prop('disabled', false).html(originalHtml);
-            console.error('GDFlix error:', error);
+            logError('GDFlix error:', error);
         });
     });
 	
@@ -2336,42 +2401,11 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   // Document display video  mkv|mp4|webm|avi| 
    function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	 // Define all player icons
-    // Android Video Player Icons
     const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
     const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    
-    // Android Audio Player Icons
-    const poweramp_icon = `<i class="fas fa-bolt" style="color:#FFA500; margin-right: 8px;"></i>`;
-    const tidal_icon = `<i class="fas fa-wave-square" style="color:#000000; margin-right: 8px;"></i>`;
-    const deezer_icon = `<i class="fas fa-heart" style="color:#FF0092; margin-right: 8px;"></i>`;
-    
-    // PC Video Player Icons
-    const pc_download_icon = `<i class="fas fa-download" style="color:#28A745; margin-right: 8px;"></i>`;
-    const pot_icon = `<i class="fas fa-tv" style="color:#5A67D8; margin-right: 8px;"></i>`;
-    const wmp_icon = `<i class="fab fa-windows" style="color:#0078D4; margin-right: 8px;"></i>`;
-    const mpv_icon = `<i class="fas fa-play" style="color:#8B5CF6; margin-right: 8px;"></i>`;
-    const player123_icon = `<i class="fas fa-hashtag" style="color:#3B82F6; margin-right: 8px;"></i>`;
-    const kmp_icon = `<i class="fas fa-play-circle" style="color:#1E3A8A; margin-right: 8px;"></i>`;
-    const gom_icon = `<i class="fas fa-circle-play" style="color:#10B981; margin-right: 8px;"></i>`;
-    
-    // PC Audio Player Icons
-    const foobar_icon = `<i class="fas fa-headphones" style="color:#6366F1; margin-right: 8px;"></i>`;
-    const aimp_icon = `<i class="fas fa-volume-up" style="color:#EF4444; margin-right: 8px;"></i>`;
-    const winamp_icon = `<i class="fas fa-music" style="color:#F97316; margin-right: 8px;"></i>`;
-    const musicbee_icon = `<i class="fas fa-bee" style="color:#F59E0B; margin-right: 8px;"></i>`;
-    
-    // iOS Video Player Icons
-    const infuse_icon = `<i class="fas fa-fire" style="color:#F97316; margin-right: 8px;"></i>`;
-    const nplayer_icon = `<i class="fas fa-forward" style="color:#8B5CF6; margin-right: 8px;"></i>`;
-    const oplayer_icon = `<i class="fas fa-circle-play" style="color:#3B82F6; margin-right: 8px;"></i>`;
-    const avplayer_icon = `<i class="fas fa-play-circle" style="color:#06B6D4; margin-right: 8px;"></i>`;
-    
-    // iOS Audio Player Icons
-    const spotify_icon = `<i class="fab fa-spotify" style="color:#1DB954; margin-right: 8px;"></i>`;
-    const apple_music_icon = `<i class="fab fa-apple" style="color:#FA243C; margin-right: 8px;"></i>`;
 		 var url_base64 = btoa(url);
 	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 	  let player
@@ -2456,9 +2490,14 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          <a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+          ${isUserLoggedIn() 
+            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+                 <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+               </a>`
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
           <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-           </a>
+           </a>`
+          }
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2467,9 +2506,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
-              <a class="dropdown-item" href="#" onclick="openBrowserPlayer('${url.replace(/'/g, "\\'")}', '${name.replace(/'/g, "\\'")}'); return false;">${wmp_icon} Play in Browser</a>
-              <a class="dropdown-item" href="infuse://x-callback-url/play?url=${encodeURIComponent(url)}">${infuse_icon} Infuse</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a> 
              </div>
            </div> 
          </div>`}
@@ -2482,7 +2519,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     const fileId = $(this).data('file-id');
     const button = $(this);
     
-    console.log('Button clicked, fileId:', fileId); // Debug log
+    log('Button clicked, fileId:', fileId); // Debug log
     
     if (!fileId) {
         alert('Error: No file ID found');
@@ -2502,7 +2539,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         .catch((error) => {
             // Reset button on error
             button.prop('disabled', false).html(originalHtml);
-            console.error('GDFlix error:', error);
+            logError('GDFlix error:', error);
         });
     });
 
@@ -2562,28 +2599,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	var url_base64 = btoa(url);
 	const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-	
-	// Define all player icons for audio
-	const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-	const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`;
-	const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
-	const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-	
-	// Android Audio Icons
-	const poweramp_icon = `<i class="fas fa-bolt" style="color:#FFA500; margin-right: 8px;"></i>`;
-	const tidal_icon = `<i class="fas fa-wave-square" style="color:#000000; margin-right: 8px;"></i>`;
-	const deezer_icon = `<i class="fas fa-heart" style="color:#FF0092; margin-right: 8px;"></i>`;
-	
-	// PC Icons
-	const pc_download_icon = `<i class="fas fa-download" style="color:#28A745; margin-right: 8px;"></i>`;
-	const foobar_icon = `<i class="fas fa-headphones" style="color:#6366F1; margin-right: 8px;"></i>`;
-	const aimp_icon = `<i class="fas fa-volume-up" style="color:#EF4444; margin-right: 8px;"></i>`;
-	const winamp_icon = `<i class="fas fa-music" style="color:#F97316; margin-right: 8px;"></i>`;
-	const musicbee_icon = `<i class="fas fa-bee" style="color:#F59E0B; margin-right: 8px;"></i>`;
-	
-	// iOS Audio Icons
-	const spotify_icon = `<i class="fab fa-spotify" style="color:#1DB954; margin-right: 8px;"></i>`;
-	const apple_music_icon = `<i class="fab fa-apple" style="color:#FA243C; margin-right: 8px;"></i>`;
 
 	// Add the container and card elements
 	var player = `<video id="aplayer" poster="${UI.audioposter}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; object-fit: cover; min-height: 200px;">
@@ -2637,18 +2652,23 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                     <div class="text-center">
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
-                            <a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+                            ${isUserLoggedIn() 
+            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+                 <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+               </a>`
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
                                 <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-                            </a>
+                            </a>`
+          }
                             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="sr-only"></span>
                             </button>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=audio/*;S.title=${encoded_name};end">${vlc_icon} VLC Audio</a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.maxmpz.audioplayer;category=android.intent.category.DEFAULT;type=audio/*;S.title=${encoded_name};end">${poweramp_icon} Poweramp</a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.aspiro.tidal;category=android.intent.category.DEFAULT;type=audio/*;S.title=${encoded_name};end">${tidal_icon} Tidal</a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=deezer.android.app;category=android.intent.category.DEFAULT;type=audio/*;S.title=${encoded_name};end">${deezer_icon} Deezer</a>
+                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">Playit</a>
+                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">XPlayer</a>
+                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">MX Player</a>
+                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">VLC Player</a>
                             </div>
                         </div>
                     </div>
@@ -2823,7 +2843,7 @@ function copyFunction() {
 			tooltip.innerHTML = `<i class="fas fa-check fa-fw"></i>Copied`;
 		})
 		.catch(function(error) {
-			console.error("Failed to copy text: ", error);
+			logError("Failed to copy text: ", error);
 		});
 }
 
@@ -2912,11 +2932,11 @@ async function copyFile(driveid) {
 function generateGDFlixLink(fileId) {
     return new Promise((resolve, reject) => {
         // Debug logging
-        console.log('GDFlix - Received fileId:', fileId);
+        log('GDFlix - Received fileId:', fileId);
         
         // Basic validation
         if (!fileId) {
-            console.error('GDFlix - No file ID provided');
+            logError('GDFlix - No file ID provided');
             reject(new Error('No file ID provided'));
             return;
         }
@@ -2925,12 +2945,12 @@ function generateGDFlixLink(fileId) {
         fileId = String(fileId).trim();
         
         if (fileId === '') {
-            console.error('GDFlix - Empty file ID');
+            logError('GDFlix - Empty file ID');
             reject(new Error('Empty file ID'));
             return;
         }
         
-        console.log('GDFlix - Requesting link generation from worker...');
+        log('GDFlix - Requesting link generation from worker...');
         
         // Make request to worker endpoint
         fetch('/generate-gdflix', {
@@ -2943,17 +2963,17 @@ function generateGDFlixLink(fileId) {
             })
         })
         .then(response => {
-            console.log('GDFlix - Response status:', response.status);
+            log('GDFlix - Response status:', response.status);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
-            console.log('GDFlix - Worker response:', data);
+            log('GDFlix - Worker response:', data);
             
             if (data.success && data.gdflix_link) {
-                console.log('GDFlix - Generated link:', data.gdflix_link);
+                log('GDFlix - Generated link:', data.gdflix_link);
                 // Open the GDFlix link directly in a new tab
                 window.open(data.gdflix_link, '_blank');
                 resolve(data.gdflix_link);
@@ -2962,7 +2982,7 @@ function generateGDFlixLink(fileId) {
             }
         })
         .catch(error => {
-            console.error('GDFlix Error:', error);
+            logError('GDFlix Error:', error);
             alert('Failed to generate GDFlix link: ' + error.message);
             reject(error);
         });
@@ -2972,11 +2992,11 @@ function generateGDFlixLink(fileId) {
 // Update the generateGKYFILEHOSTLink function to call the worker endpoint
 function generateGKYFILEHOSTLink(fileId, fileName) {
     return new Promise((resolve, reject) => {
-        console.log('GKYFILEHOST - Received fileId:', fileId);
-        console.log('GKYFILEHOST - Received fileName:', fileName);
+        log('GKYFILEHOST - Received fileId:', fileId);
+        log('GKYFILEHOST - Received fileName:', fileName);
         
         if (!fileId) {
-            console.error('GKYFILEHOST - No file ID provided');
+            logError('GKYFILEHOST - No file ID provided');
             alert('Error: No file ID provided');
             reject(new Error('No file ID provided'));
             return;
@@ -2985,7 +3005,7 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
         fileId = String(fileId).trim();
         
         if (fileId === '') {
-            console.error('GKYFILEHOST - Empty file ID');
+            logError('GKYFILEHOST - Empty file ID');
             alert('Error: Empty file ID');
             reject(new Error('Empty file ID'));
             return;
@@ -3000,17 +3020,17 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
                     fileName = titleElement.textContent.trim();
                 }
             } catch (e) {
-                console.log('GKYFILEHOST - Could not extract filename from page');
+                log('GKYFILEHOST - Could not extract filename from page');
             }
         }
         
-        console.log('GKYFILEHOST - Final fileName:', fileName || 'download');
-        console.log('GKYFILEHOST - Requesting link generation from worker...');
-        console.log('GKYFILEHOST - File ID being sent:', fileId);
+        log('GKYFILEHOST - Final fileName:', fileName || 'download');
+        log('GKYFILEHOST - Requesting link generation from worker...');
+        log('GKYFILEHOST - File ID being sent:', fileId);
         
         // Show a loading indicator (you can customize this)
         const loadingMsg = 'Generating GKYFILEHOST link... Please wait...';
-        console.log(loadingMsg);
+        log(loadingMsg);
         
         // Make request to worker endpoint (FIXED: Changed from /generate-gkyfilehost to /gkyfilehost)
         fetch('/gkyfilehost', {
@@ -3024,8 +3044,8 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
             })
         })
         .then(response => {
-            console.log('GKYFILEHOST - Response status:', response.status);
-            console.log('GKYFILEHOST - Response OK:', response.ok);
+            log('GKYFILEHOST - Response status:', response.status);
+            log('GKYFILEHOST - Response OK:', response.ok);
             
             // Try to get the response body even if status is not OK
             return response.json().then(data => {
@@ -3038,43 +3058,43 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
             });
         })
         .then(result => {
-            console.log('GKYFILEHOST - Full response:', result);
+            log('GKYFILEHOST - Full response:', result);
             
             if (!result.ok) {
                 // Show specific error from server
                 const errorMsg = result.data.error || result.data.details || `HTTP error! status: ${result.status}`;
-                console.error('GKYFILEHOST - Server error:', errorMsg);
+                logError('GKYFILEHOST - Server error:', errorMsg);
                 throw new Error(errorMsg);
             }
             
             const data = result.data;
-            console.log('GKYFILEHOST - Worker response data:', data);
+            log('GKYFILEHOST - Worker response data:', data);
             
             if (data.success && (data.link || data.gkyfilehost_link)) {
                 const gkyLink = data.link || data.gkyfilehost_link;
-                console.log('GKYFILEHOST - Generated link:', gkyLink);
+                log('GKYFILEHOST - Generated link:', gkyLink);
                 
                 // Validate the link format
                 if (!gkyLink.includes('gkyfilehost')) {
-                    console.warn('GKYFILEHOST - Warning: Link does not contain gkyfilehost domain');
+                    logError('GKYFILEHOST - Warning: Link does not contain gkyfilehost domain');
                 }
                 
                 // Open the GKYFILEHOST link directly in a new tab
                 window.open(gkyLink, '_blank');
                 
                 // Show success message
-                console.log('✅ GKYFILEHOST link generated successfully!');
+                log('✅ GKYFILEHOST link generated successfully!');
                 
                 resolve(gkyLink);
             } else {
                 const errorMsg = data.error || 'Failed to generate GKYFILEHOST link - no link in response';
-                console.error('GKYFILEHOST - Error from server:', errorMsg);
+                logError('GKYFILEHOST - Error from server:', errorMsg);
                 throw new Error(errorMsg);
             }
         })
         .catch(error => {
-            console.error('GKYFILEHOST Error:', error);
-            console.error('GKYFILEHOST Error stack:', error.stack);
+            logError('GKYFILEHOST Error:', error);
+            logError('GKYFILEHOST Error stack:', error.stack);
             
             // Show user-friendly error message
             let userMessage = 'Failed to generate GKYFILEHOST link';
@@ -3109,7 +3129,7 @@ $(document).on('click', '.download-via-gkyfilehost', function(e) {
     const fileId = $(this).data('file-id');
     const button = $(this);
     
-    console.log('Download button clicked, fileId:', fileId);
+    log('Download button clicked, fileId:', fileId);
     
     if (!fileId) {
         alert('Error: No file ID found');
@@ -3124,218 +3144,16 @@ $(document).on('click', '.download-via-gkyfilehost', function(e) {
     generateGKYFILEHOSTLink(fileId)
         .then((link) => {
             button.prop('disabled', false).html(originalHtml);
-            console.log('Successfully opened GKYFILEHOST link:', link);
+            log('Successfully opened GKYFILEHOST link:', link);
         })
         .catch((error) => {
             button.html('<i class="fas fa-times fa-fw"></i> Failed');
             setTimeout(() => {
                 button.prop('disabled', false).html(originalHtml);
             }, 2000);
-            console.error('Download error:', error);
+            logError('Download error:', error);
         });
 });
-
-// Function to try opening video/audio in different PC players
-function tryOpenInPlayer(url, playerType) {
-    const protocols = {
-        'vlc': ['vlc://', 'vlc://'],
-        'potplayer': ['potplayer://', 'pot://'],
-        'mpc': ['mpc-hc://', 'mpc://'],
-        'foobar': ['foobar2000://', 'fb2k://'],
-        'aimp': ['aimp://', 'aimp://']
-    };
-    
-    const playerNames = {
-        'vlc': 'VLC Player',
-        'potplayer': 'PotPlayer',
-        'mpc': 'MPC-HC',
-        'foobar': 'Foobar2000',
-        'aimp': 'AIMP'
-    };
-    
-    const playerName = playerNames[playerType] || 'video player';
-    const protocolList = protocols[playerType] || ['vlc://'];
-    
-    let opened = false;
-    
-    // Try different protocol variations
-    for (let protocol of protocolList) {
-        try {
-            const customUrl = protocol + url;
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = customUrl;
-            document.body.appendChild(iframe);
-            
-            // Remove iframe after attempt
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-            }, 1000);
-            
-            opened = true;
-            break;
-        } catch (e) {
-            console.log('Protocol failed:', protocol);
-        }
-    }
-    
-    // Show helpful message
-    setTimeout(() => {
-        if (!opened || true) { // Always show fallback message
-            const message = `🎬 Trying to open in ${playerName}...\n\n` +
-                `If ${playerName} doesn't open automatically:\n\n` +
-                `✅ Method 1: Download & Open\n` +
-                `   Click "Download" then open the file\n\n` +
-                `✅ Method 2: Copy URL & Paste\n` +
-                `   1. Click "Copy URL & Instructions"\n` +
-                `   2. Follow the steps shown\n\n` +
-                `✅ Method 3: Play in Browser\n` +
-                `   Click "Play in Browser" for instant playback`;
-            
-            alert(message);
-        }
-    }, 500);
-    
-    // Also try window.location as fallback
-    try {
-        window.location.href = protocolList[0] + url;
-    } catch (e) {
-        console.log('window.location failed');
-    }
-}
-
-// Function to open video in a proper browser player page
-function openBrowserPlayer(videoUrl, videoName) {
-    // Create a new window with a proper video player
-    const playerWindow = window.open('', '_blank', 'width=1280,height=720');
-    
-    if (!playerWindow) {
-        alert('Please allow pop-ups to play video in browser player!');
-        return;
-    }
-    
-    // Write a complete HTML page with video player
-    playerWindow.document.write(`
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${videoName || 'Video Player'}</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: #000;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
-        
-        .player-container {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .player-header {
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 15px 20px;
-            width: 100%;
-            text-align: center;
-            position: fixed;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .player-header h1 {
-            font-size: 18px;
-            font-weight: normal;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        video {
-            width: 100%;
-            height: 100%;
-            max-width: 100vw;
-            max-height: 100vh;
-            object-fit: contain;
-        }
-        
-        .error-message {
-            color: white;
-            text-align: center;
-            padding: 20px;
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="player-container">
-        <div class="player-header">
-            <h1>${videoName || 'Video Player'}</h1>
-        </div>
-        
-        <video id="videoPlayer" controls autoplay>
-            <source src="${videoUrl}" type="video/mp4">
-            <source src="${videoUrl}" type="video/webm">
-            <source src="${videoUrl}" type="video/mkv">
-            Your browser does not support the video tag.
-        </video>
-        
-        <div class="error-message" id="errorMessage">
-            ⚠️ Unable to load video. Please try downloading instead.
-        </div>
-    </div>
-    
-    <script>
-        const video = document.getElementById('videoPlayer');
-        const errorMsg = document.getElementById('errorMessage');
-        
-        video.addEventListener('error', function() {
-            errorMsg.style.display = 'block';
-            video.style.display = 'none';
-        });
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            switch(e.key) {
-                case ' ':
-                    e.preventDefault();
-                    if (video.paused) video.play();
-                    else video.pause();
-                    break;
-                case 'ArrowLeft':
-                    video.currentTime -= 10;
-                    break;
-                case 'ArrowRight':
-                    video.currentTime += 10;
-                    break;
-                case 'f':
-                case 'F':
-                    if (video.requestFullscreen) video.requestFullscreen();
-                    break;
-                case 'Escape':
-                    window.close();
-                    break;
-            }
-        });
-    </script>
-</body>
-</html>
-    `);
-    
-    playerWindow.document.close();
-}
 
 
 // create a MutationObserver to listen for changes to the DOM
