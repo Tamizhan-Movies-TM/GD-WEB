@@ -1125,14 +1125,15 @@ function list(path, id = '', fallback = false) {
 		// Select the text inside the temporary input element
 		tempInput.select();
 
-		// Copy the selected text to the clipboard
-		document.execCommand("copy");
-
-		// Remove the temporary input element from the document
+		// FIX A6: execCommand("copy") deprecated — replaced with Clipboard API + fallback
+		try {
+			await navigator.clipboard.writeText(tempInput.value);
+		} catch(e) {
+			document.execCommand("copy"); // fallback for very old browsers
+		}
 		document.body.removeChild(tempInput);
-
-		// Alert the user that the data has been copied
-		alert("Selected items copied to clipboard!");
+		var tt = document.getElementById("myTooltip"); if(tt) tt.innerHTML = '<i class="fas fa-check fa-fw"></i>Copied!';
+		setTimeout(function(){ if(tt) tt.innerHTML = '<i class="fas fa-copy fa-fw"></i>Copy'; }, 2000);
 	});
 }
 
@@ -1171,8 +1172,7 @@ function append_files_to_fallback_list(path, files) {
 						<span>This folder is empty</span>
 					</div></div>`;
 		}
-		for (i in files) {
-			var item = files[i];
+		for (const item of files) { // FIX A4: for..in on array → for..of
 			var p = "/fallback?id=" + item.id
 			item['createdTime'] = utc2jakarta(item['createdTime']);
 			// replace / with %2F
@@ -1321,8 +1321,7 @@ function append_files_to_list(path, files) {
 					<span>This folder is empty</span>
 				</div></div>`;
 	}
-	for (i in files) {
-		var item = files[i];
+	for (const item of files) { // FIX A4: for..in on array → for..of
 		var ep = encodeURIComponent(item.name).replace(/\//g, '%2F') + '/';
 		var p = path + ep.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
 		item['createdTime'] = utc2jakarta(item['createdTime']);
@@ -1586,9 +1585,8 @@ function render_search_result_list() {
 				el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
 				document.body.appendChild(el);
 				el.select();
-				document.execCommand("copy");
+				document.execCommand("copy"); // FIX A6: kept as fallback inside .catch()
 				document.body.removeChild(el);
-				alert("Selected items copied to clipboard!");
 			});
 		} else {
 			const el = document.createElement("textarea");
@@ -1596,9 +1594,8 @@ function render_search_result_list() {
 			el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
 			document.body.appendChild(el);
 			el.select();
-			document.execCommand("copy");
+			document.execCommand("copy"); // FIX A6: fallback for old browsers
 			document.body.removeChild(el);
-			alert("Selected items copied to clipboard!");
 		}
 	}, { passive: true });
 }
@@ -1625,8 +1622,7 @@ function append_search_result_to_list(files) {
 		html = "";
 		var totalsize = 0;
 		var is_file = false;
-		for (i in files) {
-			var item = files[i];
+		for (const item of files) { // FIX A4: for..in on array → for..of
 			
 			// Skip folders in search results
 			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
@@ -1922,7 +1918,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     fetch(`/${cur}:id2path`, {
         method: 'POST',
         body: JSON.stringify({ id: file_id }),
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        headers: { 'Content-Type': 'application/json' } // FIX A5: was urlencoded but body is JSON
     }).catch(error => log('Path fetch error:', error));
 }
 
@@ -2189,34 +2185,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
   </div>`;
 	$('#content').html(content);
 
-	// Add GDFlix button click handler
-  $(document).on('click', '.gdflix-btn', function() {
-    const fileId = $(this).data('file-id');
-    const button = $(this);
-    
-    log('Button clicked, fileId:', fileId); // Debug log
-    
-    if (!fileId) {
-        alert('Error: No file ID found');
-        return;
-    }
-    
-    // Show loading state
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-    
-    // Call the GDFlix function with proper error handling
-    generateGDFlixLink(fileId)
-        .then(() => {
-            // Reset button on success
-            button.prop('disabled', false).html(originalHtml);
-        })
-        .catch((error) => {
-            // Reset button on error
-            button.prop('disabled', false).html(originalHtml);
-            logError('GDFlix error:', error);
-        });
-    });
+  // FIX A8: .gdflix-btn handler deduplicated — single handler at end of file
 	
 	// Rest of the function remains the same...
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
@@ -2335,34 +2304,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   </div>`;
 	$("#content").html(content);
 
-	// Add GDFlix button click handler
-  $(document).on('click', '.gdflix-btn', function() {
-    const fileId = $(this).data('file-id');
-    const button = $(this);
-    
-    log('Button clicked, fileId:', fileId); // Debug log
-    
-    if (!fileId) {
-        alert('Error: No file ID found');
-        return;
-    }
-    
-    // Show loading state
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-    
-    // Call the GDFlix function with proper error handling
-    generateGDFlixLink(fileId)
-        .then(() => {
-            // Reset button on success
-            button.prop('disabled', false).html(originalHtml);
-        })
-        .catch((error) => {
-            // Reset button on error
-            button.prop('disabled', false).html(originalHtml);
-            logError('GDFlix error:', error);
-        });
-    });
+  // FIX A8: .gdflix-btn handler deduplicated — single handler at end of file
 	
 	// Rest of the function remains the same...
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
@@ -2525,34 +2467,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       </div>`; 
     $("#content").html(content);
 
-// Add GDFlix button click handler
-  $(document).on('click', '.gdflix-btn', function() {
-    const fileId = $(this).data('file-id');
-    const button = $(this);
-    
-    log('Button clicked, fileId:', fileId); // Debug log
-    
-    if (!fileId) {
-        alert('Error: No file ID found');
-        return;
-    }
-    
-    // Show loading state
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-    
-    // Call the GDFlix function with proper error handling
-    generateGDFlixLink(fileId)
-        .then(() => {
-            // Reset button on success
-            button.prop('disabled', false).html(originalHtml);
-        })
-        .catch((error) => {
-            // Reset button on error
-            button.prop('disabled', false).html(originalHtml);
-            logError('GDFlix error:', error);
-        });
-    });
+  // FIX A8: .gdflix-btn handler deduplicated — single handler at end of file
 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
@@ -2716,7 +2631,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                     case "jwplayer":
                     jwplayer("player").setup({
                         file: url,
-                        type: mimeTypeFixed,
+                        type: mimeType, // FIX A2: mimeTypeFixed was undefined — fixed to mimeType
                         autostart: false,
                         image: poster,
                         width: "100%",
@@ -2803,12 +2718,14 @@ function formatFileSize(bytes) {
 }
 
 
-String.prototype.trim = function(char) {
+// FIX A1: String.prototype.trim override removed — was corrupting jQuery/Bootstrap globally.
+// Replaced with standalone trimChar() utility.
+function trimChar(str, char) {
 	if (char) {
-		return this.replace(new RegExp('^\\' + char + '+|\\' + char + '+$', 'g'), '');
+		return String(str).replace(new RegExp('^\\' + char + '+|\\' + char + '+$', 'g'), '');
 	}
-	return this.replace(/^\s+|\s+$/g, '');
-};
+	return String(str).replace(/^\s+|\s+$/g, '');
+}
 
 
 // README.md HEAD.md support
@@ -2877,7 +2794,7 @@ function updateCheckboxes() {
 	}
 }
 
-async function getCookie(name) {
+function getCookie(name) { // FIX A3: removed spurious async — no await inside, callers got Promise not string
 	var nameEQ = name + "=";
 	var ca = document.cookie.split(';');
 	for (var i = 0; i < ca.length; i++) {
@@ -3167,16 +3084,15 @@ $(document).on('click', '.download-via-gkyfilehost', function(e) {
 });
 
 
-// create a MutationObserver to listen for changes to the DOM
-const observer = new MutationObserver(() => {
-	updateCheckboxes();
+// FIX A7: MutationObserver scope narrowed from document.documentElement (entire page)
+// to document.body, and only triggers updateCheckboxes when #list or #content changes.
+// Previously fired on every DOM mutation (animations, tooltips, etc.) causing exponential
+// event-listener accumulation on large file lists.
+const observer = new MutationObserver((mutations) => {
+	const relevant = mutations.some(m =>
+		m.target.id === 'list' || m.target.id === 'content' ||
+		(m.target.closest && (m.target.closest('#list') || m.target.closest('#content')))
+	);
+	if (relevant) updateCheckboxes();
 });
-
-// define the options for the observer (listen for changes to child elements)
-const options = {
-	childList: true,
-	subtree: true
-};
-
-// observe changes to the body element
-observer.observe(document.documentElement, options);
+observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
