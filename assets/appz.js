@@ -800,12 +800,10 @@ function nav(path) {
 }
 
 // Sleep Function to Retry API Calls
-function sleep(milliseconds) {
-	const date = Date.now();
-	let currentDate = null;
-	do {
-		currentDate = Date.now();
-	} while (currentDate - date < milliseconds);
+// FIX BUG-01: Changed from blocking spin-loop to non-blocking async Promise.
+// The old version froze the browser tab for the full duration.
+function sleep(ms) {
+	return new Promise(resolve => setTimeout(resolve, ms));
 }
                                      
 /**
@@ -871,11 +869,13 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 					$('#update').hide();
 				}
 			})
-			.catch(function(error) {
+			.catch(async function(error) {
 				if (retries > 0) {
-					sleep(2000);
+					// FIX BUG-01: await the async sleep so the browser is NOT blocked
 					document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Retrying...</div></div></div>`;
-					performRequest(path, requestData, resultCallback, authErrorCallback, retries - 1);
+					await sleep(2000);
+					retries--;
+					performRequest();
 				} else {
 					document.getElementById('update').innerHTML = `<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div></div></div>`;
 					document.getElementById('list').innerHTML = `<div class='alert alert-danger' role='alert'> We were unable to get data from the server. ` + error + `</div></div></div>`;
@@ -925,9 +925,10 @@ function requestSearch(params, resultCallback, retries = 3) {
 					$('#update').remove();
 				}
 			})
-			.catch(function(error) {
+			.catch(async function(error) {
 				if (retries > 0) {
-					sleep(2000);
+					// FIX BUG-01: await the async sleep so the browser is NOT blocked
+					await sleep(2000);
 					$('#update').html(`<div class='alert alert-info' role='alert'> Retrying...</div></div></div>`);
 					performRequest(retries - 1);
 				} else {
@@ -2601,6 +2602,15 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+	// FIX BUG-03: encoded_url and encoded_name_safe were used in the dropdown intent links
+	// below but were never declared in this function — causing intent:undefined URLs.
+	const encoded_url = encodeURIComponent(url);
+	const encoded_name_safe = encodeURIComponent(name);
+
+	// FIX BUG-05: poster was used in the DPlayer setup below but was never passed as a
+	// parameter. Fall back to UI.audioposter so the player thumbnail always works.
+	const poster = UI.audioposter || null;
+
 	var url_base64 = btoa(url);
 	const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
@@ -2709,7 +2719,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                     case "jwplayer":
                     jwplayer("player").setup({
                         file: url,
-                        type: mimeTypeFixed,
+                        type: mimeType, // FIX BUG-04: was mimeTypeFixed (undefined variable)
                         autostart: false,
                         image: poster,
                         width: "100%",
@@ -2796,12 +2806,14 @@ function formatFileSize(bytes) {
 }
 
 
-String.prototype.trim = function(char) {
+// FIX BUG-02: Do NOT override String.prototype.trim — it breaks jQuery, Bootstrap, and all
+// third-party libraries. Use a standalone trimChar() helper instead.
+function trimChar(str, char) {
 	if (char) {
-		return this.replace(new RegExp('^\\' + char + '+|\\' + char + '+$', 'g'), '');
+		return String(str).replace(new RegExp('^\\' + char + '+|\\' + char + '+$', 'g'), '');
 	}
-	return this.replace(/^\s+|\s+$/g, '');
-};
+	return String(str).replace(/^\s+|\s+$/g, '');
+}
 
 
 // README.md HEAD.md support
