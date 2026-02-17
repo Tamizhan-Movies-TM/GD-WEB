@@ -800,10 +800,12 @@ function nav(path) {
 }
 
 // Sleep Function to Retry API Calls
-// FIX BUG-01: Changed from blocking spin-loop to non-blocking async Promise.
-// The old version froze the browser tab for the full duration.
-function sleep(ms) {
-	return new Promise(resolve => setTimeout(resolve, ms));
+function sleep(milliseconds) {
+	const date = Date.now();
+	let currentDate = null;
+	do {
+		currentDate = Date.now();
+	} while (currentDate - date < milliseconds);
 }
                                      
 /**
@@ -851,12 +853,19 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 					$('#update').hide();
 					return 500
 				}
+				// FIX 404-BUG: 401 was producing confusing 404 error for non-logged-in users
+				if (response.status === 401) {
+					document.getElementById('list').innerHTML = '<div class="text-center"><div class="card-body text-center"><div class="' + UI.file_view_alert_class + '" role="alert"><i class="fa-solid fa-lock fa-fw"></i> <b>Login Required</b></div></div><p>You need to be logged in to view this content.</p><div class="card-text text-center"><div class="btn-group"><a href="/login" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket fa-fw"></i> Login</a><a href="/" class="btn btn-secondary ms-2"><i class="fa-solid fa-house fa-fw"></i> Home</a></div></div></div>';
+					$('#update').hide();
+					return 401;
+				}
 				if (!response.ok) {
 					throw new Error('Request failed');
 				}
 				return response.json();
 			})
 			.then(function(res) {
+				if (res === 401) return;
 				if (res && res.error && res.error.code === 401) {
 					// Password verification failed
 					askPassword(path);
@@ -869,13 +878,11 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 					$('#update').hide();
 				}
 			})
-			.catch(async function(error) {
+			.catch(function(error) {
 				if (retries > 0) {
-					// FIX BUG-01: await the async sleep so the browser is NOT blocked
+					sleep(2000);
 					document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Retrying...</div></div></div>`;
-					await sleep(2000);
-					retries--;
-					performRequest();
+					performRequest(path, requestData, resultCallback, authErrorCallback, retries - 1);
 				} else {
 					document.getElementById('update').innerHTML = `<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div></div></div>`;
 					document.getElementById('list').innerHTML = `<div class='alert alert-danger' role='alert'> We were unable to get data from the server. ` + error + `</div></div></div>`;
@@ -925,10 +932,9 @@ function requestSearch(params, resultCallback, retries = 3) {
 					$('#update').remove();
 				}
 			})
-			.catch(async function(error) {
+			.catch(function(error) {
 				if (retries > 0) {
-					// FIX BUG-01: await the async sleep so the browser is NOT blocked
-					await sleep(2000);
+					sleep(2000);
 					$('#update').html(`<div class='alert alert-info' role='alert'> Retrying...</div></div></div>`);
 					performRequest(retries - 1);
 				} else {
@@ -2602,15 +2608,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-	// FIX BUG-03: encoded_url and encoded_name_safe were used in the dropdown intent links
-	// below but were never declared in this function — causing intent:undefined URLs.
-	const encoded_url = encodeURIComponent(url);
-	const encoded_name_safe = encodeURIComponent(name);
-
-	// FIX BUG-05: poster was used in the DPlayer setup below but was never passed as a
-	// parameter. Fall back to UI.audioposter so the player thumbnail always works.
-	const poster = UI.audioposter || null;
-
 	var url_base64 = btoa(url);
 	const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
@@ -2719,7 +2716,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                     case "jwplayer":
                     jwplayer("player").setup({
                         file: url,
-                        type: mimeType, // FIX BUG-04: was mimeTypeFixed (undefined variable)
+                        type: mimeTypeFixed,
                         autostart: false,
                         image: poster,
                         width: "100%",
@@ -2806,14 +2803,12 @@ function formatFileSize(bytes) {
 }
 
 
-// FIX BUG-02: Do NOT override String.prototype.trim — it breaks jQuery, Bootstrap, and all
-// third-party libraries. Use a standalone trimChar() helper instead.
-function trimChar(str, char) {
+String.prototype.trim = function(char) {
 	if (char) {
-		return String(str).replace(new RegExp('^\\' + char + '+|\\' + char + '+$', 'g'), '');
+		return this.replace(new RegExp('^\\' + char + '+|\\' + char + '+$', 'g'), '');
 	}
-	return String(str).replace(/^\s+|\s+$/g, '');
-}
+	return this.replace(/^\s+|\s+$/g, '');
+};
 
 
 // README.md HEAD.md support
