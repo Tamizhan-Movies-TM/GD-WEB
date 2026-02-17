@@ -678,7 +678,9 @@ function getQueryVariable(variable) {
 		var eqIdx = vars[i].indexOf('=');
 		if (eqIdx === -1) continue;
 		var key = vars[i].substring(0, eqIdx);
-		var val = vars[i].substring(eqIdx + 1); // preserves '=' padding in Base64 values
+		// decodeURIComponent: restores '+'/'/' from %2B/%2F for Base64 encrypted IDs
+		// substring from first '=' only: preserves '==' padding at end of Base64 values
+		var val = decodeURIComponent(vars[i].substring(eqIdx + 1));
 		if (key == variable) {
 			return val;
 		}
@@ -1700,10 +1702,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     $('#SearchModelLabel').html(title);
     
     // Create the direct URL
-    // NOTE: Do NOT use encodeURIComponent here — file_id is already an AES-Base64 encrypted string
-    // containing '+' and '/' chars. Encoding them to %2B/%2F causes double-encoding:
-    // the server decodes the URL once and gets '%2B'/'%2F' instead of '+'/'/', breaking atob() decryption.
-    const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
+    const encodedFileId = encodeURIComponent(file_id);
+    const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
     
     // Function to get Chrome open URL
     function getChromeOpenUrl(url) {
