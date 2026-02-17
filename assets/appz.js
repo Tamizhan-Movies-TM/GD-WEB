@@ -280,6 +280,9 @@ strong {
     width: 100%;
     height: 100%;
     animation: animStarRotate 90s linear infinite;
+}
+
+#stars::after {
     background-image: radial-gradient(#ffffff 1px, transparent 1%);
     background-size: 50px 50px;
 }
@@ -292,6 +295,9 @@ strong {
     width: 170%;
     height: 500%;
     animation: animStar 60s linear infinite;
+}
+
+#stars::before {
     background-image: radial-gradient(#ffffff 1px, transparent 1%);
     background-size: 50px 50px;
     opacity: 0.5;
@@ -668,11 +674,13 @@ function getDocumentHeight() {
 function getQueryVariable(variable) {
 	var query = window.location.search.substring(1);
 	var vars = query.split('&');
-	var pair;
 	for (var i = 0; i < vars.length; i++) {
-		pair = vars[i].split('=');
-		if (pair[0] === variable) {
-			return pair[1];
+		var eqIdx = vars[i].indexOf('=');
+		if (eqIdx === -1) continue;
+		var key = vars[i].substring(0, eqIdx);
+		var val = vars[i].substring(eqIdx + 1); // preserves '=' padding in Base64 values
+		if (key == variable) {
+			return val;
 		}
 	}
 	return (false);
@@ -1692,8 +1700,10 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     $('#SearchModelLabel').html(title);
     
     // Create the direct URL
-    const encodedFileId = encodeURIComponent(file_id);
-    const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
+    // NOTE: Do NOT use encodeURIComponent here — file_id is already an AES-Base64 encrypted string
+    // containing '+' and '/' chars. Encoding them to %2B/%2F causes double-encoding:
+    // the server decodes the URL once and gets '%2B'/'%2F' instead of '+'/'/', breaking atob() decryption.
+    const directUrl = `${window.location.origin}/fallback?id=${file_id}${can_preview ? '&a=view' : ''}`;
     
     // Function to get Chrome open URL
     function getChromeOpenUrl(url) {
@@ -2922,54 +2932,32 @@ async function copyFile(driveid) {
 	}
 }
 
-// ============================================
-// FIX #16: UI Error Display (replaces blocking alert())
-// Shows errors in a non-blocking toast notification
-// ============================================
-function showError(message) {
-    // Try to use an existing error container or create a toast
-    let toast = document.getElementById('_gdi_error_toast');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = '_gdi_error_toast';
-        toast.style.cssText = [
-            'position:fixed', 'bottom:20px', 'right:20px', 'z-index:9999',
-            'background:#dc3545', 'color:#fff', 'padding:14px 20px',
-            'border-radius:8px', 'max-width:380px', 'font-size:14px',
-            'box-shadow:0 4px 12px rgba(0,0,0,0.4)', 'white-space:pre-wrap',
-            'display:none', 'line-height:1.5'
-        ].join(';');
-        document.body.appendChild(toast);
-    }
-    toast.textContent = message;
-    toast.style.display = 'block';
-    clearTimeout(toast._hideTimer);
-    toast._hideTimer = setTimeout(() => { toast.style.display = 'none'; }, 8000);
-}
-
 // GDFlix Link Generation Function
-async function generateGDFlixLink(fileId) {
-    // Debug logging
-    log('GDFlix - Received fileId:', fileId);
-    
-    // Basic validation
-    if (!fileId) {
-        logError('GDFlix - No file ID provided');
-        throw new Error('No file ID provided');
-    }
-    
-    // Convert to string if it's not already
-    fileId = String(fileId).trim();
-    
-    if (fileId === '') {
-        logError('GDFlix - Empty file ID');
-        throw new Error('Empty file ID');
-    }
-    
-    log('GDFlix - Requesting link generation from worker...');
-    
-    try {
-        const response = await fetch('/generate-gdflix', {
+function generateGDFlixLink(fileId) {
+    return new Promise((resolve, reject) => {
+        // Debug logging
+        log('GDFlix - Received fileId:', fileId);
+        
+        // Basic validation
+        if (!fileId) {
+            logError('GDFlix - No file ID provided');
+            reject(new Error('No file ID provided'));
+            return;
+        }
+        
+        // Convert to string if it's not already
+        fileId = String(fileId).trim();
+        
+        if (fileId === '') {
+            logError('GDFlix - Empty file ID');
+            reject(new Error('Empty file ID'));
+            return;
+        }
+        
+        log('GDFlix - Requesting link generation from worker...');
+        
+        // Make request to worker endpoint
+        fetch('/generate-gdflix', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -2977,68 +2965,79 @@ async function generateGDFlixLink(fileId) {
             body: JSON.stringify({
                 file_id: fileId
             })
+        })
+        .then(response => {
+            log('GDFlix - Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            log('GDFlix - Worker response:', data);
+            
+            if (data.success && data.gdflix_link) {
+                log('GDFlix - Generated link:', data.gdflix_link);
+                // Open the GDFlix link directly in a new tab
+                window.open(data.gdflix_link, '_blank');
+                resolve(data.gdflix_link);
+            } else {
+                reject(new Error(data.error || 'Failed to generate GDFlix link'));
+            }
+        })
+        .catch(error => {
+            logError('GDFlix Error:', error);
+            alert('Failed to generate GDFlix link: ' + error.message);
+            reject(error);
         });
-
-        log('GDFlix - Response status:', response.status);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        log('GDFlix - Worker response:', data);
-
-        if (data.success && data.gdflix_link) {
-            log('GDFlix - Generated link:', data.gdflix_link);
-            // Open the GDFlix link directly in a new tab
-            window.open(data.gdflix_link, '_blank');
-            return data.gdflix_link;
-        } else {
-            throw new Error(data.error || 'Failed to generate GDFlix link');
-        }
-    } catch (error) {
-        logError('GDFlix Error:', error);
-        showError('Failed to generate GDFlix link: ' + error.message);
-        throw error;
-    }
+    });
 }
 
 // Update the generateGKYFILEHOSTLink function to call the worker endpoint
-async function generateGKYFILEHOSTLink(fileId, fileName) {
-    log('GKYFILEHOST - Received fileId:', fileId);
-    log('GKYFILEHOST - Received fileName:', fileName);
-    
-    if (!fileId) {
-        logError('GKYFILEHOST - No file ID provided');
-        showError('Error: No file ID provided');
-        throw new Error('No file ID provided');
-    }
-    
-    fileId = String(fileId).trim();
-    
-    if (fileId === '') {
-        logError('GKYFILEHOST - Empty file ID');
-        showError('Error: Empty file ID');
-        throw new Error('Empty file ID');
-    }
-    
-    // Try to get filename from page if not provided
-    if (!fileName) {
-        try {
-            const titleElement = document.querySelector('h5.card-title');
-            if (titleElement) {
-                fileName = titleElement.textContent.trim();
-            }
-        } catch (e) {
-            log('GKYFILEHOST - Could not extract filename from page');
+function generateGKYFILEHOSTLink(fileId, fileName) {
+    return new Promise((resolve, reject) => {
+        log('GKYFILEHOST - Received fileId:', fileId);
+        log('GKYFILEHOST - Received fileName:', fileName);
+        
+        if (!fileId) {
+            logError('GKYFILEHOST - No file ID provided');
+            alert('Error: No file ID provided');
+            reject(new Error('No file ID provided'));
+            return;
         }
-    }
-    
-    log('GKYFILEHOST - Final fileName:', fileName || 'download');
-    log('GKYFILEHOST - Requesting link generation from worker...');
-    log('GKYFILEHOST - File ID being sent:', fileId);
-    
-    try {
-        const response = await fetch('/gkyfilehost', {
+        
+        fileId = String(fileId).trim();
+        
+        if (fileId === '') {
+            logError('GKYFILEHOST - Empty file ID');
+            alert('Error: Empty file ID');
+            reject(new Error('Empty file ID'));
+            return;
+        }
+        
+        // Try to get filename from page if not provided
+        if (!fileName) {
+            try {
+                // Try to find the filename from the page title or heading
+                const titleElement = document.querySelector('h5.card-title');
+                if (titleElement) {
+                    fileName = titleElement.textContent.trim();
+                }
+            } catch (e) {
+                log('GKYFILEHOST - Could not extract filename from page');
+            }
+        }
+        
+        log('GKYFILEHOST - Final fileName:', fileName || 'download');
+        log('GKYFILEHOST - Requesting link generation from worker...');
+        log('GKYFILEHOST - File ID being sent:', fileId);
+        
+        // Show a loading indicator (you can customize this)
+        const loadingMsg = 'Generating GKYFILEHOST link... Please wait...';
+        log(loadingMsg);
+        
+        // Make request to worker endpoint (FIXED: Changed from /generate-gkyfilehost to /gkyfilehost)
+        fetch('/gkyfilehost', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -3047,68 +3046,85 @@ async function generateGKYFILEHOSTLink(fileId, fileName) {
                 file_id: fileId,
                 file_name: fileName || 'download'
             })
-        });
-
-        log('GKYFILEHOST - Response status:', response.status);
-        log('GKYFILEHOST - Response OK:', response.ok);
-
-        let data;
-        try {
-            data = await response.json();
-        } catch (_) {
-            const text = await response.text();
-            data = { error: text };
-        }
-
-        if (!response.ok) {
-            const errorMsg = data.error || data.details || `HTTP error! status: ${response.status}`;
-            logError('GKYFILEHOST - Server error:', errorMsg);
-            throw new Error(errorMsg);
-        }
-
-        log('GKYFILEHOST - Worker response data:', data);
-
-        if (data.success && (data.link || data.gkyfilehost_link)) {
-            const gkyLink = data.link || data.gkyfilehost_link;
-            log('GKYFILEHOST - Generated link:', gkyLink);
-
-            if (!gkyLink.includes('gkyfilehost')) {
-                logError('GKYFILEHOST - Warning: Link does not contain gkyfilehost domain');
+        })
+        .then(response => {
+            log('GKYFILEHOST - Response status:', response.status);
+            log('GKYFILEHOST - Response OK:', response.ok);
+            
+            // Try to get the response body even if status is not OK
+            return response.json().then(data => {
+                return { status: response.status, ok: response.ok, data: data };
+            }).catch(() => {
+                // If JSON parsing fails, try to get text
+                return response.text().then(text => {
+                    return { status: response.status, ok: response.ok, data: { error: text } };
+                });
+            });
+        })
+        .then(result => {
+            log('GKYFILEHOST - Full response:', result);
+            
+            if (!result.ok) {
+                // Show specific error from server
+                const errorMsg = result.data.error || result.data.details || `HTTP error! status: ${result.status}`;
+                logError('GKYFILEHOST - Server error:', errorMsg);
+                throw new Error(errorMsg);
             }
-
-            window.open(gkyLink, '_blank');
-            log('✅ GKYFILEHOST link generated successfully!');
-            return gkyLink;
-        } else {
-            throw new Error(data.error || 'Failed to generate GKYFILEHOST link - no link in response');
-        }
-    } catch (error) {
-        logError('GKYFILEHOST Error:', error);
-        logError('GKYFILEHOST Error stack:', error.stack);
-
-        let userMessage = 'Failed to generate GKYFILEHOST link';
-
-        if (error.message.includes('Failed to login')) {
-            userMessage += '\n\n⚠️ Login to GKYFILEHOST failed.\n\nPossible solutions:\n' +
-                         '1. Check your GKYFILEHOST account credentials\n' +
-                         '2. Make sure your account is active\n' +
-                         '3. Check Cloudflare Worker logs for details';
-        } else if (error.message.includes('HTTP error! status: 500')) {
-            userMessage += '\n\nServer error (500).\n\nPlease check:\n' +
-                         '1. Cloudflare Worker logs for details\n' +
-                         '2. GKYFILEHOST credentials are correct\n' +
-                         '3. The file ID is valid';
-        } else if (error.message.includes('HTTP error! status: 400')) {
-            userMessage += '\n\nBad request (400). The file ID might be invalid.';
-        } else if (error.message.includes('Failed to fetch')) {
-            userMessage += '\n\nNetwork error. Check your internet connection.';
-        } else {
-            userMessage += ':\n\n' + error.message;
-        }
-
-        showError(userMessage);
-        throw error;
-    }
+            
+            const data = result.data;
+            log('GKYFILEHOST - Worker response data:', data);
+            
+            if (data.success && (data.link || data.gkyfilehost_link)) {
+                const gkyLink = data.link || data.gkyfilehost_link;
+                log('GKYFILEHOST - Generated link:', gkyLink);
+                
+                // Validate the link format
+                if (!gkyLink.includes('gkyfilehost')) {
+                    logError('GKYFILEHOST - Warning: Link does not contain gkyfilehost domain');
+                }
+                
+                // Open the GKYFILEHOST link directly in a new tab
+                window.open(gkyLink, '_blank');
+                
+                // Show success message
+                log('✅ GKYFILEHOST link generated successfully!');
+                
+                resolve(gkyLink);
+            } else {
+                const errorMsg = data.error || 'Failed to generate GKYFILEHOST link - no link in response';
+                logError('GKYFILEHOST - Error from server:', errorMsg);
+                throw new Error(errorMsg);
+            }
+        })
+        .catch(error => {
+            logError('GKYFILEHOST Error:', error);
+            logError('GKYFILEHOST Error stack:', error.stack);
+            
+            // Show user-friendly error message
+            let userMessage = 'Failed to generate GKYFILEHOST link';
+            
+            if (error.message.includes('Failed to login')) {
+                userMessage += '\n\n⚠️ Login to GKYFILEHOST failed.\n\nPossible solutions:\n' +
+                             '1. Check your GKYFILEHOST account credentials\n' +
+                             '2. Make sure your account is active\n' +
+                             '3. Check Cloudflare Worker logs for details';
+            } else if (error.message.includes('HTTP error! status: 500')) {
+                userMessage += '\n\nServer error (500).\n\nPlease check:\n' +
+                             '1. Cloudflare Worker logs for details\n' +
+                             '2. GKYFILEHOST credentials are correct\n' +
+                             '3. The file ID is valid';
+            } else if (error.message.includes('HTTP error! status: 400')) {
+                userMessage += '\n\nBad request (400). The file ID might be invalid.';
+            } else if (error.message.includes('Failed to fetch')) {
+                userMessage += '\n\nNetwork error. Check your internet connection.';
+            } else {
+                userMessage += ':\n\n' + error.message;
+            }
+            
+            alert(userMessage);
+            reject(error);
+        });
+    });
 }
 
 // Handler for Download button to open GKYFILEHOST link
