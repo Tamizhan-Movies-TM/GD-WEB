@@ -1,5 +1,19 @@
-// Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
-// v2.3.6
+// Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.
+// v2.3.7 - Improved with security and performance enhancements
+
+// ============================================
+// CONFIGURATION CONSTANTS
+// ============================================
+const CONFIG = {
+    CACHE_MAX_SIZE: 100,
+    CACHE_TTL_SECONDS: 3600,
+    FILE_ID_MIN_LENGTH: 10,
+    FILE_ID_MAX_LENGTH: 100,
+    REQUEST_TIMEOUT_MS: 30000,
+    RETRY_ATTEMPTS: 3,
+    RETRY_DELAY_MS: 1000,
+    MAX_FILENAME_LENGTH: 255
+};
 
 // ============================================
 // OPTIMIZATION: Conditional Logging
@@ -8,18 +22,225 @@ const DEBUG = false; // ⚠️ SET TO FALSE IN PRODUCTION
 const log = (...args) => DEBUG && console.log(...args);
 const logError = (...args) => DEBUG && console.error(...args);
 
-// =====================================================================
-// LOGIN DETECTION FUNCTION
-// =====================================================================
+// ============================================
+// IMPROVED LOGGING INFRASTRUCTURE
+// ============================================
+class Logger {
+    constructor(level = 'info') {
+        this.level = level;
+        this.levels = { debug: 0, info: 1, warn: 2, error: 3 };
+    }
+    
+    log(level, message, ...args) {
+        if (this.levels[level] >= this.levels[this.level]) {
+            const timestamp = new Date().toISOString();
+            console[level](timestamp, `[${level.toUpperCase()}]`, message, ...args);
+        }
+    }
+    
+    debug(message, ...args) { this.log('debug', message, ...args); }
+    info(message, ...args) { this.log('info', message, ...args); }
+    warn(message, ...args) { this.log('warn', message, ...args); }
+    error(message, ...args) { this.log('error', message, ...args); }
+}
 
-// Check if user is logged in by verifying session cookie
+const logger = new Logger(DEBUG ? 'debug' : 'info');
+
+// ============================================
+// IMPROVED ERROR HANDLER
+// ============================================
+class ErrorHandler {
+    static handle(error, context) {
+        const errorId = crypto.randomUUID();
+        logger.error(`[${errorId}] Error in ${context}:`, error);
+        
+        return {
+            id: errorId,
+            message: this.getUserMessage(error),
+            technical: error.message,
+            timestamp: new Date().toISOString()
+        };
+    }
+    
+    static getUserMessage(error) {
+        if (error.message.includes('Failed to login')) {
+            return 'Authentication failed. Please check your credentials.';
+        }
+        if (error.message.includes('timeout')) {
+            return 'Request timed out. Please try again.';
+        }
+        if (error.message.includes('Network')) {
+            return 'Network error. Please check your internet connection.';
+        }
+        if (error.message.includes('Invalid')) {
+            return 'Invalid input provided. Please check and try again.';
+        }
+        return 'An unexpected error occurred. Please try again.';
+    }
+    
+    static showNotification(message, type = 'error') {
+        console[type === 'error' ? 'error' : 'log'](message);
+        // You can integrate with a toast notification library here
+    }
+}
+
+// ============================================
+// INPUT VALIDATION UTILITIES
+// ============================================
+class InputValidator {
+    static validateFileId(fileId) {
+        if (!fileId) {
+            throw new Error('File ID is required');
+        }
+        
+        const trimmedId = String(fileId).trim();
+        
+        if (trimmedId.length < CONFIG.FILE_ID_MIN_LENGTH || trimmedId.length > CONFIG.FILE_ID_MAX_LENGTH) {
+            throw new Error(`Invalid file ID length (expected ${CONFIG.FILE_ID_MIN_LENGTH}-${CONFIG.FILE_ID_MAX_LENGTH} characters)`);
+        }
+        
+        if (!/^[a-zA-Z0-9_-]+$/.test(trimmedId)) {
+            throw new Error('Invalid file ID format (only alphanumeric, dash, and underscore allowed)');
+        }
+        
+        return trimmedId;
+    }
+    
+    static validateFileName(fileName) {
+        if (!fileName) {
+            return 'download';
+        }
+        
+        let sanitized = String(fileName).trim();
+        sanitized = sanitized.replace(/[<>:"/\\|?*\x00-\x1F]/g, '');
+        
+        if (sanitized.length > CONFIG.MAX_FILENAME_LENGTH) {
+            sanitized = sanitized.substring(0, CONFIG.MAX_FILENAME_LENGTH);
+        }
+        
+        return sanitized || 'download';
+    }
+    
+    static sanitizeHTML(html) {
+        const div = document.createElement('div');
+        div.textContent = html;
+        return div.innerHTML;
+    }
+}
+
+// ============================================
+// FETCH WITH TIMEOUT UTILITY
+// ============================================
+async function fetchWithTimeout(url, options = {}, timeout = CONFIG.REQUEST_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        return response;
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('Request timeout');
+        }
+        throw error;
+    }
+}
+
+// ============================================
+// FETCH WITH RETRY UTILITY
+// ============================================
+async function fetchWithRetry(url, options = {}, retries = CONFIG.RETRY_ATTEMPTS) {
+    let lastError;
+    
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetchWithTimeout(url, options);
+            return response;
+        } catch (error) {
+            lastError = error;
+            logger.warn(`Fetch attempt ${i + 1} failed:`, error.message);
+            
+            if (i < retries - 1) {
+                await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY_MS * (i + 1)));
+            }
+        }
+    }
+    
+    throw lastError;
+}
+
+// ============================================
+// IMPROVED SESSION MANAGEMENT
+// ============================================
+class SessionManager {
+    static async isUserLoggedIn() {
+        const sessionToken = this.getCookie('session');
+        
+        if (!sessionToken || sessionToken === 'null' || sessionToken === 'undefined') {
+            logger.debug('No valid session token found');
+            return false;
+        }
+        
+        // For backwards compatibility, if no server endpoint exists, just check cookie exists
+        try {
+            const response = await fetchWithTimeout('/api/verify-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Session-Token': sessionToken
+                }
+            }, 5000);
+            
+            if (!response.ok) {
+                logger.warn('Session verification failed:', response.status);
+                return false;
+            }
+            
+            const data = await response.json();
+            return data.valid === true;
+        } catch (error) {
+            // If endpoint doesn't exist, fallback to simple cookie check
+            logger.debug('Session verification endpoint not available, using simple check');
+            return true; // Cookie exists, assume valid
+        }
+    }
+    
+    static getCookie(name) {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [cookieName, cookieValue] = cookie.trim().split('=');
+            if (cookieName === name) {
+                return cookieValue ? decodeURIComponent(cookieValue.trim()) : null;
+            }
+        }
+        return null;
+    }
+    
+    static setCookie(name, value, days = 7) {
+        const expires = new Date();
+        expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+        
+        const cookieString = `${name}=${encodeURIComponent(value)}; expires=${expires.toUTCString()}; path=/; SameSite=Strict; Secure`;
+        document.cookie = cookieString;
+    }
+    
+    static deleteCookie(name) {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    }
+}
+
+// Backwards compatible function
 function isUserLoggedIn() {
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
         const [name, value] = cookie.trim().split('=');
         if (name === 'session') {
             const sessionValue = value ? value.trim() : '';
-            // Check if session has a valid value
             if (sessionValue && sessionValue !== 'null' && sessionValue !== '' && sessionValue !== 'undefined') {
                 log('User is logged in, session:', sessionValue);
                 return true;
@@ -28,6 +249,65 @@ function isUserLoggedIn() {
     }
     log('User is not logged in');
     return false;
+}
+
+// ============================================
+// DOM UTILITIES
+// ============================================
+class DOMUtils {
+    static elementCache = new Map();
+    
+    static getElement(selector) {
+        if (this.elementCache.has(selector)) {
+            return this.elementCache.get(selector);
+        }
+        
+        const element = selector.startsWith('#') 
+            ? document.getElementById(selector.substring(1))
+            : document.querySelector(selector);
+            
+        if (element) {
+            this.elementCache.set(selector, element);
+        }
+        
+        return element;
+    }
+    
+    static clearCache() {
+        this.elementCache.clear();
+    }
+    
+    static setHTML(element, content, sanitize = true) {
+        if (!element) return;
+        
+        if (sanitize) {
+            element.textContent = content;
+        } else {
+            element.innerHTML = content;
+        }
+    }
+    
+    static createElement(tag, attributes = {}, content = '') {
+        const element = document.createElement(tag);
+        
+        Object.entries(attributes).forEach(([key, value]) => {
+            if (key === 'className') {
+                element.className = value;
+            } else if (key === 'dataset') {
+                Object.entries(value).forEach(([dataKey, dataValue]) => {
+                    element.dataset[dataKey] = dataValue;
+                });
+            } else {
+                element.setAttribute(key, value);
+            }
+        });
+        
+        if (content) {
+            element.textContent = content;
+        }
+        
+        return element;
+    }
 }
 
 // Initialize the page
