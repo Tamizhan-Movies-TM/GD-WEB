@@ -30,6 +30,20 @@ function isUserLoggedIn() {
     return false;
 }
 
+// ============================================
+// SECURITY: HTML escape helper — prevents XSS from
+// file names containing <script> or event handlers
+// ============================================
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+}
+
 // Initialize the page
 function init() {
 	document.siteName = $('title').html();
@@ -674,11 +688,15 @@ function getDocumentHeight() {
 function getQueryVariable(variable) {
 	var query = window.location.search.substring(1);
 	var vars = query.split('&');
-	var pair;
 	for (var i = 0; i < vars.length; i++) {
-		pair = vars[i].split('=');
-		if (pair[0] == variable) {
-			return pair[1];
+		var eqIdx = vars[i].indexOf('=');
+		if (eqIdx === -1) continue;
+		var key = vars[i].substring(0, eqIdx);
+		// decodeURIComponent: restores '+'/'/' from %2B/%2F for Base64 encrypted IDs
+		// substring from first '=' only: preserves '==' padding at end of Base64 values
+		var val = decodeURIComponent(vars[i].substring(eqIdx + 1));
+		if (key == variable) {
+			return val;
 		}
 	}
 	return (false);
@@ -795,13 +813,9 @@ function nav(path) {
 	$('#nav').html(html);
 }
 
-// Sleep Function to Retry API Calls
+// Sleep Function to Retry API Calls — non-blocking async version
 function sleep(milliseconds) {
-	const date = Date.now();
-	let currentDate = null;
-	do {
-		currentDate = Date.now();
-	} while (currentDate - date < milliseconds);
+	return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
                                      
 /**
@@ -867,10 +881,10 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 					$('#update').hide();
 				}
 			})
-			.catch(function(error) {
+			.catch(async function(error) {
 				if (retries > 0) {
-					sleep(2000);
 					document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Retrying...</div></div></div>`;
+					await sleep(2000);
 					performRequest(path, requestData, resultCallback, authErrorCallback, retries - 1);
 				} else {
 					document.getElementById('update').innerHTML = `<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div></div></div>`;
@@ -921,9 +935,9 @@ function requestSearch(params, resultCallback, retries = 3) {
 					$('#update').remove();
 				}
 			})
-			.catch(function(error) {
+			.catch(async function(error) {
 				if (retries > 0) {
-					sleep(2000);
+					await sleep(2000);
 					$('#update').html(`<div class='alert alert-info' role='alert'> Retrying...</div></div></div>`);
 					performRequest(retries - 1);
 				} else {
@@ -1166,7 +1180,7 @@ function append_files_to_fallback_list(path, files) {
 			item['createdTime'] = utc2jakarta(item['createdTime']);
 			// replace / with %2F
 			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">
+				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">
 				${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
 			} else {
 				var totalsize = totalsize + Number(item.size || 0);
@@ -1217,7 +1231,7 @@ function append_files_to_fallback_list(path, files) {
 					html += file_icon
 				}
 
-				html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
+				html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
 				${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
 			}
 		}
@@ -1317,7 +1331,7 @@ function append_files_to_list(path, files) {
 		item['createdTime'] = utc2jakarta(item['createdTime']);
 		// replace / with %2F
 		if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}<span class="d-flex gap-2">
+			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}<span class="d-flex gap-2">
 			${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
 		} else {
 			var totalsize = totalsize + Number(item.size || 0);
@@ -1368,7 +1382,7 @@ function append_files_to_list(path, files) {
 				html += file_icon
 			}
 
-			html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
+			html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
 	    ${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
 		}
 	}
@@ -1656,7 +1670,7 @@ function append_search_result_to_list(files) {
 				html += file_icon
 			}
 
-			html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
+			html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
 			${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
 		}
 		if (is_file && UI.allow_selecting_files) {
@@ -1719,7 +1733,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     <i class="fa-regular fa-folder-closed fa-fw"></i>
                     <span class="tth">Name</span>
                 </th>
-                <td>${file['name']}</td>
+                <td>${escapeHtml(file['name'])}</td>
             </tr>
             <tr>
                 <th>
@@ -2120,7 +2134,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 								<i class="fa-regular fa-folder-closed fa-fw"></i>
 								<span class="tth">Name</span>
 							</th>
-							<td>${name}</td>
+							<td>${escapeHtml(name)}</td>
 						</tr>
 						<tr>
 							<th>
@@ -2178,57 +2192,23 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
   </div>`;
 	$('#content').html(content);
 
-	// Add GDFlix button click handler
-  $(document).on('click', '.gdflix-btn', function() {
-    const fileId = $(this).data('file-id');
-    const button = $(this);
-    
-    log('Button clicked, fileId:', fileId); // Debug log
-    
-    if (!fileId) {
-        alert('Error: No file ID found');
-        return;
-    }
-    
-    // Show loading state
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-    
-    // Call the GDFlix function with proper error handling
-    generateGDFlixLink(fileId)
-        .then(() => {
-            // Reset button on success
-            button.prop('disabled', false).html(originalHtml);
-        })
-        .catch((error) => {
-            // Reset button on error
-            button.prop('disabled', false).html(originalHtml);
-            logError('GDFlix error:', error);
-        });
-    });
-	
-	// Rest of the function remains the same...
+	// GDFlix handler is registered once at module level (see bottom of file)
+
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
 	var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
 	var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
 	$('#modal-body-space').html(preview);
 	$('#modal-body-space-buttons').html(btn);
 	if (poster && !mimeType.startsWith('application/vnd.google-apps')) {
-		// Create a new image element
 		var img = new Image();
-		// Set up event handlers for image load and error
 		$(img).on('load', function() {
-			// Image loaded successfully
-			$('#preview_spinner').hide(); // Hide the spinner
+			$('#preview_spinner').hide();
 			$('#preview').css({'background': 'url("' + poster + '") 0 0 / 100% 100% no-repeat'});
 			$('#preview').addClass('border-0');
 			$('#overlay').css('opacity', '.9');
 		}).on('error', function() {
-			// Image failed to load
-			$('#preview_spinner').hide(); // Hide the spinner
-			// You might want to handle the error, for example, display a placeholder image or show an error message.
+			$('#preview_spinner').hide();
 		});
-		// Set the image source after setting up event handlers
 		img.src = poster;
 	}
 }
@@ -2266,7 +2246,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 								<i class="fa-regular fa-folder-closed fa-fw"></i>
 								<span class="tth">Name</span>
 							</th>
-							<td>${name}</td>
+							<td>${escapeHtml(name)}</td>
 						</tr>
 						<tr>
 							<th>
@@ -2324,36 +2304,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   </div>`;
 	$("#content").html(content);
 
-	// Add GDFlix button click handler
-  $(document).on('click', '.gdflix-btn', function() {
-    const fileId = $(this).data('file-id');
-    const button = $(this);
-    
-    log('Button clicked, fileId:', fileId); // Debug log
-    
-    if (!fileId) {
-        alert('Error: No file ID found');
-        return;
-    }
-    
-    // Show loading state
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-    
-    // Call the GDFlix function with proper error handling
-    generateGDFlixLink(fileId)
-        .then(() => {
-            // Reset button on success
-            button.prop('disabled', false).html(originalHtml);
-        })
-        .catch((error) => {
-            // Reset button on error
-            button.prop('disabled', false).html(originalHtml);
-            logError('GDFlix error:', error);
-        });
-    });
-	
-	// Rest of the function remains the same...
+	// GDFlix handler is registered once at module level (see bottom of file)
+
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
 	var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
 	var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
@@ -2456,7 +2408,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                 <i class="fa-regular fa-folder-closed fa-fw"></i>
                 <span class="tth">Name</span>
               </th>
-              <td>${name}</td>
+              <td>${escapeHtml(name)}</td>
             </tr>
             <tr>
               <th>
@@ -2514,34 +2466,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       </div>`; 
     $("#content").html(content);
 
-// Add GDFlix button click handler
-  $(document).on('click', '.gdflix-btn', function() {
-    const fileId = $(this).data('file-id');
-    const button = $(this);
-    
-    log('Button clicked, fileId:', fileId); // Debug log
-    
-    if (!fileId) {
-        alert('Error: No file ID found');
-        return;
-    }
-    
-    // Show loading state
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-    
-    // Call the GDFlix function with proper error handling
-    generateGDFlixLink(fileId)
-        .then(() => {
-            // Reset button on success
-            button.prop('disabled', false).html(originalHtml);
-        })
-        .catch((error) => {
-            // Reset button on error
-            button.prop('disabled', false).html(originalHtml);
-            logError('GDFlix error:', error);
-        });
-    });
+  // GDFlix handler is registered once at module level (see bottom of file)
 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
@@ -2626,7 +2551,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                     <tbody>
                         <tr>
                             <th><i class="fa-regular fa-folder-closed fa-fw"></i><span class="tth">Name</span></th>
-                            <td>${name}</td>
+                            <td>${escapeHtml(name)}</td>
                         </tr>
                         <tr>
                             <th><i class="fa-regular fa-clock fa-fw"></i><span class="tth">Datetime</span></th>
@@ -3155,6 +3080,36 @@ $(document).on('click', '.download-via-gkyfilehost', function(e) {
         });
 });
 
+
+// ============================================
+// SINGLE TOP-LEVEL GDFlix Button Handler
+// Registered once here — replaces 3 duplicate handlers that were
+// previously registered inside file_video(), file_code(), file_others()
+// on every file page load.
+// ============================================
+$(document).on('click', '.gdflix-btn', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+
+    log('GDFlix button clicked, fileId:', fileId);
+
+    if (!fileId) {
+        alert('Error: No file ID found');
+        return;
+    }
+
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+
+    generateGDFlixLink(fileId)
+        .then(() => {
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            button.prop('disabled', false).html(originalHtml);
+            logError('GDFlix error:', error);
+        });
+});
 
 // create a MutationObserver to listen for changes to the DOM
 const observer = new MutationObserver(() => {
