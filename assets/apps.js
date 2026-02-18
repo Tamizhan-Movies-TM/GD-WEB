@@ -8,38 +8,6 @@ const DEBUG = false; // ⚠️ SET TO FALSE IN PRODUCTION
 const log = (...args) => DEBUG && console.log(...args);
 const logError = (...args) => DEBUG && console.error(...args);
 
-// ============================================
-// PERFORMANCE: Pre-compiled constants — created once, reused on every file render
-// ============================================
-const _reHash = /#/g;            // replaces _reHash inside loops
-const _reQ    = /\?/g;           // replaces _reQ inside loops
-const _origin = window.location.origin; // cached — avoids property lookup per file
-
-// O(1) extension → icon lookup (replaces 7 chained String.indexOf scans per file)
-const _iconMap = new Map(Object.entries({
-    mp4:'V', webm:'V', avi:'V', mpg:'V', mpeg:'V', mkv:'V',
-    rm:'V', rmvb:'V', mov:'V', wmv:'V', asf:'V', ts:'V', flv:'V',
-    html:'C', php:'C', css:'C', go:'C', java:'C', js:'C',
-    json:'C', txt:'C', sh:'C',
-    zip:'Z', rar:'Z', tar:'Z', '7z':'Z', gz:'Z',
-    bmp:'I', jpg:'I', jpeg:'I', png:'I', gif:'I',
-    m4a:'A', mp3:'A', flac:'A', wav:'A', ogg:'A',
-    md:'M', pdf:'P'
-}));
-function _getIcon(ext, mimeType, iconLink) {
-    const t = ext ? _iconMap.get(ext.toLowerCase()) : null;
-    if (t === 'V') return video_icon;
-    if (t === 'C') return code_icon;
-    if (t === 'Z') return zip_icon;
-    if (t === 'I') return image_icon;
-    if (t === 'A') return audio_icon;
-    if (t === 'M') return markdown_icon;
-    if (t === 'P') return pdf_icon;
-    if (mimeType && mimeType.startsWith('application/vnd.google-apps.'))
-        return '<img src="' + iconLink + '" class="d-flex" style="width:1.24rem;margin-left:.12rem;margin-right:.12rem;">';
-    return file_icon;
-}
-
 // =====================================================================
 // LOGIN DETECTION FUNCTION
 // =====================================================================
@@ -1219,8 +1187,8 @@ function append_files_to_fallback_list(path, files) {
 				item['size'] = formatFileSize(item['size']) || '—';
 				is_file = true;
 				const epn = item.name;
-				const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
-				let pn = path + epn.replace(_reHash, '%23').replace(_reQ, '%3F');
+				const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+				let pn = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
 				let c = "file";
 				// README is displayed after the last page is loaded, otherwise it will affect the scroll event
 				if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
@@ -1243,7 +1211,25 @@ function append_files_to_fallback_list(path, files) {
 				//}
 				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${p}&a=view"><span>`
 
-				html += _getIcon(ext, item.mimeType, item.iconLink);
+				if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
+					html += video_icon
+				} else if ("|html|php|css|go|java|js|json|txt|sh|".indexOf(`|${ext}|`) >= 0) {
+					html += code_icon
+				} else if ("|zip|rar|tar|7z|gz|".indexOf(`|${ext}|`) >= 0) {
+					html += zip_icon
+				} else if ("|bmp|jpg|jpeg|png|gif|".indexOf(`|${ext}|`) >= 0) {
+					html += image_icon
+				} else if ("|m4a|mp3|flac|wav|ogg|".indexOf(`|${ext}|`) >= 0) {
+					html += audio_icon
+				} else if ("|md|".indexOf(`|${ext}|`) >= 0) {
+					html += markdown_icon
+				} else if ("|pdf|".indexOf(`|${ext}|`) >= 0) {
+					html += pdf_icon
+				} else if (item.mimeType.startsWith('application/vnd.google-apps.')) {
+					html += `<img src="${item.iconLink}" class="d-flex" style="width: 1.24rem; margin-left: 0.12rem; margin-right: 0.12rem;">`
+				} else {
+					html += file_icon
+				}
 
 				html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
 				${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
@@ -1296,8 +1282,7 @@ function append_files_to_fallback_list(path, files) {
 		}
 
 		// When it is page 1, remove the horizontal loading bar
-		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
+		$list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
 			if (total_files == 0) {
@@ -1337,7 +1322,7 @@ function append_files_to_list(path, files) {
 	for (let i = 0; i < files.length; i++) {
 		const item = files[i];
 		var ep = encodeURIComponent(item.name).replace(/\//g, '%2F') + '/';
-		var p = path + ep.replace(_reHash, '%23').replace(_reQ, '%3F');
+		var p = path + ep.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
 		item['createdTime'] = utc2jakarta(item['createdTime']);
 		// replace / with %2F
 		if (item['mimeType'] == 'application/vnd.google-apps.folder') {
@@ -1348,8 +1333,8 @@ function append_files_to_list(path, files) {
 			item['size'] = formatFileSize(item['size']) || '—';
 			is_file = true;
 			const epn = item.name;
-			const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
-			let pn = path + epn.replace(_reHash, '%23').replace(_reQ, '%3F');
+			const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+			let pn = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
 			let c = "file";
 			// README is displayed after the last page is loaded, otherwise it will affect the scroll event
 			if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
@@ -1372,7 +1357,25 @@ function append_files_to_list(path, files) {
 			//}
 			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
 
-			html += _getIcon(ext, item.mimeType, item.iconLink);
+			if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
+				html += video_icon
+			} else if ("|html|php|css|go|java|js|json|txt|sh|".indexOf(`|${ext}|`) >= 0) {
+				html += code_icon
+			} else if ("|zip|rar|tar|7z|gz|".indexOf(`|${ext}|`) >= 0) {
+				html += zip_icon
+			} else if ("|bmp|jpg|jpeg|png|gif|".indexOf(`|${ext}|`) >= 0) {
+				html += image_icon
+			} else if ("|m4a|mp3|flac|wav|ogg|".indexOf(`|${ext}|`) >= 0) {
+				html += audio_icon
+			} else if ("|md|".indexOf(`|${ext}|`) >= 0) {
+				html += markdown_icon
+			} else if ("|pdf|".indexOf(`|${ext}|`) >= 0) {
+				html += pdf_icon
+			} else if (item.mimeType.startsWith('application/vnd.google-apps.')) {
+				html += `<img src="${item.iconLink}" class="d-flex" style="width: 1.24rem; margin-left: 0.12rem; margin-right: 0.12rem;">`
+			} else {
+				html += file_icon
+			}
 
 			html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
 	    ${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
@@ -1425,8 +1428,7 @@ function append_files_to_list(path, files) {
 	}
 
 	// When it is page 1, remove the horizontal loading bar
-	// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
+	$list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
 	// When it is the last page, count and display the total number of items
 	if (is_lastpage_loaded) {
 		total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1645,10 +1647,28 @@ function append_search_result_to_list(files) {
 			item['size'] = formatFileSize(item['size']) || '—';
 			item['md5Checksum'] = item['md5Checksum'] || '—';
 			const ext = item.fileExtension;
-			const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
+			const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
 			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="$item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
 
-			html += _getIcon(ext, item.mimeType, item.iconLink);
+			if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
+				html += video_icon
+			} else if ("|html|php|css|go|java|js|json|txt|sh|".indexOf(`|${ext}|`) >= 0) {
+				html += code_icon
+			} else if ("|zip|rar|tar|7z|gz|".indexOf(`|${ext}|`) >= 0) {
+				html += zip_icon
+			} else if ("|bmp|jpg|jpeg|png|gif|".indexOf(`|${ext}|`) >= 0) {
+				html += image_icon
+			} else if ("|m4a|mp3|flac|wav|ogg|".indexOf(`|${ext}|`) >= 0) {
+				html += audio_icon
+			} else if ("|md|".indexOf(`|${ext}|`) >= 0) {
+				html += markdown_icon
+			} else if ("|pdf|".indexOf(`|${ext}|`) >= 0) {
+				html += pdf_icon
+			} else if (item.mimeType.startsWith('application/vnd.google-apps.')) {
+				html += `<img src="${item.iconLink}" class="d-flex" style="width: 1.24rem; margin-left: 0.12rem; margin-right: 0.12rem;">`
+			} else {
+				html += file_icon
+			}
 
 			html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
 			${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
@@ -1657,8 +1677,7 @@ function append_search_result_to_list(files) {
 			document.getElementById('select_items').style.display = 'block';
 		}
 		// When it is page 1, remove the horizontal loading bar
-		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
+		$list.html(($list.data('curPageIndex') == '0' ? '' : $list.html()) + html);
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
 			total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -2631,22 +2650,21 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
 }
 
 // Time conversion
-// PERF: Intl.DateTimeFormat cached once at startup.
-// Old approach used toLocaleString() which creates a new formatter object
-// internally on every call — costs 10-50ms each, especially on mobile.
-const _jakartaFmt = new Intl.DateTimeFormat('en-CA', {
-	timeZone: 'Asia/Jakarta',
-	year: 'numeric', month: '2-digit', day: '2-digit',
-	hour: '2-digit', minute: '2-digit', hour12: false
-});
 function utc2jakarta(utc_datetime) {
-	if (!utc_datetime) return '';
-	try {
-		const p = {};
-		_jakartaFmt.formatToParts(new Date(utc_datetime))
-			.forEach(function(x) { p[x.type] = x.value; });
-		return p.day + '-' + p.month + '-' + p.year + ' ' + p.hour + ':' + p.minute;
-	} catch(e) { return utc_datetime; }
+	// Convert UTC datetime to local Jakarta time
+	var utcDate = new Date(utc_datetime);
+	var jakartaOptions = { timeZone: 'Asia/Jakarta' };
+	var jakartaDate = new Date(utcDate.toLocaleString('en-US', jakartaOptions));
+
+	// Format the Jakarta date and time
+	var year = jakartaDate.getFullYear();
+	var month = ('0' + (jakartaDate.getMonth() + 1)).slice(-2);
+	var date = ('0' + jakartaDate.getDate()).slice(-2);
+	var hour = ('0' + jakartaDate.getHours()).slice(-2);
+	var minute = ('0' + jakartaDate.getMinutes()).slice(-2);
+	var second = ('0' + jakartaDate.getSeconds()).slice(-2);
+
+	return `${date}-${month}-${year} ${hour}:${minute}`;
 }
 
 // MIME type formatting
