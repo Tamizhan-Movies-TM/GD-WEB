@@ -30,6 +30,20 @@ function isUserLoggedIn() {
     return false;
 }
 
+// ============================================
+// SECURITY: HTML escape helper — prevents XSS from
+// file names containing <script> or event handlers
+// ============================================
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+}
+
 // Initialize the page
 function init() {
 	document.siteName = $('title').html();
@@ -799,13 +813,9 @@ function nav(path) {
 	$('#nav').html(html);
 }
 
-// Sleep Function to Retry API Calls
+// Sleep Function to Retry API Calls — non-blocking async version
 function sleep(milliseconds) {
-	const date = Date.now();
-	let currentDate = null;
-	do {
-		currentDate = Date.now();
-	} while (currentDate - date < milliseconds);
+	return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
                                      
 /**
@@ -829,7 +839,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 		path = "/0:fallback"
 	}
 
-	function performRequest() {
+	function performRequest(remainingRetries) {
 		fetch(fallback ? "/0:fallback" : path, {
 				method: 'POST',
 				headers: {
@@ -871,11 +881,11 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 					$('#update').hide();
 				}
 			})
-			.catch(function(error) {
-				if (retries > 0) {
-					sleep(2000);
+			.catch(async function(error) {
+				if (remainingRetries > 0) {
 					document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Retrying...</div></div></div>`;
-					performRequest(path, requestData, resultCallback, authErrorCallback, retries - 1);
+					await sleep(2000);
+					performRequest(remainingRetries - 1);
 				} else {
 					document.getElementById('update').innerHTML = `<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div></div></div>`;
 					document.getElementById('list').innerHTML = `<div class='alert alert-danger' role='alert'> We were unable to get data from the server. ` + error + `</div></div></div>`;
@@ -884,7 +894,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 			});
 	}
 	log("Performing Request again")
-	performRequest();
+	performRequest(retries);
 }
 
 
@@ -925,9 +935,9 @@ function requestSearch(params, resultCallback, retries = 3) {
 					$('#update').remove();
 				}
 			})
-			.catch(function(error) {
-				if (retries > 0) {
-					sleep(2000);
+			.catch(async function(error) {
+				if (remainingRetries > 0) {
+					await sleep(2000);
 					$('#update').html(`<div class='alert alert-info' role='alert'> Retrying...</div></div></div>`);
 					performRequest(retries - 1);
 				} else {
@@ -1154,32 +1164,32 @@ function append_files_to_fallback_list(path, files) {
 		var is_lastpage_loaded = null === $list.data('nextPageToken');
 		var is_firstpage = '0' == $list.data('curPageIndex');
 
-		html = "";
+		let html = "";
 		let targetFiles = [];
-		var totalsize = 0;
-		var is_file = false
+		let totalsize = 0;
+		let is_file = false;
 		if (files.length == 0) {
 			html = `<div class="card-body"><div class="d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4">
 						<span><i class="fa-solid fa-heart-crack fa-2xl me-0"></i></span>
 						<span>This folder is empty</span>
 					</div></div>`;
 		}
-		for (i in files) {
-			var item = files[i];
-			var p = "/fallback?id=" + item.id
+		for (let i = 0; i < files.length; i++) {
+			const item = files[i];
+			const p = "/fallback?id=" + item.id;
 			item['createdTime'] = utc2jakarta(item['createdTime']);
 			// replace / with %2F
 			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">
+				html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width: 85px;">—</span>` : ``}<span class="d-flex gap-2">
 				${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
 			} else {
-				var totalsize = totalsize + Number(item.size || 0);
+				totalsize = totalsize + Number(item.size || 0);
 				item['size'] = formatFileSize(item['size']) || '—';
-				var is_file = true
-				var epn = item.name;
-				var link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
-				var pn = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
-				var c = "file";
+				is_file = true;
+				const epn = item.name;
+				const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+				let pn = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+				let c = "file";
 				// README is displayed after the last page is loaded, otherwise it will affect the scroll event
 				if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
 					get_file(p, item, function(data) {
@@ -1193,7 +1203,7 @@ function append_files_to_fallback_list(path, files) {
 						$("img").addClass("img-fluid")
 					});
 				}
-				var ext = item.fileExtension
+				const ext = item.fileExtension;
 				//if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
 				//targetFiles.push(filepath);
 				pn += "?a=view";
@@ -1221,7 +1231,7 @@ function append_files_to_fallback_list(path, files) {
 					html += file_icon
 				}
 
-				html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
+				html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
 				${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
 			}
 		}
@@ -1304,33 +1314,33 @@ function append_files_to_list(path, files) {
 	var is_lastpage_loaded = null === $list.data('nextPageToken');
 	var is_firstpage = '0' == $list.data('curPageIndex');
 
-	html = "";
+	let html = "";
 	let targetFiles = [];
-	var totalsize = 0;
-	var is_file = false
+	let totalsize = 0;
+	let is_file = false;
 	if (files.length == 0) {
 		html = `<div class="card-body"><div class="d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4">
 					<span><i class="fa-solid fa-heart-crack fa-2xl me-0"></i></span>
 					<span>This folder is empty</span>
 				</div></div>`;
 	}
-	for (i in files) {
-		var item = files[i];
+	for (let i = 0; i < files.length; i++) {
+		const item = files[i];
 		var ep = encodeURIComponent(item.name).replace(/\//g, '%2F') + '/';
 		var p = path + ep.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
 		item['createdTime'] = utc2jakarta(item['createdTime']);
 		// replace / with %2F
 		if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}<span class="d-flex gap-2">
+			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}<span class="d-flex gap-2">
 			${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
 		} else {
-			var totalsize = totalsize + Number(item.size || 0);
+			totalsize = totalsize + Number(item.size || 0);
 			item['size'] = formatFileSize(item['size']) || '—';
-			var is_file = true
-			var epn = item.name;
-			var link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
-			var pn = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
-			var c = "file";
+			is_file = true;
+			const epn = item.name;
+			const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+			let pn = path + epn.replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
+			let c = "file";
 			// README is displayed after the last page is loaded, otherwise it will affect the scroll event
 			if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
 				get_file(p, item, function(data) {
@@ -1344,7 +1354,7 @@ function append_files_to_list(path, files) {
 					$("img").addClass("img-fluid")
 				});
 			}
-			var ext = item.fileExtension
+			const ext = item.fileExtension;
 			//if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
 			//targetFiles.push(filepath);
 			pn += "?a=view";
@@ -1372,7 +1382,7 @@ function append_files_to_list(path, files) {
 				html += file_icon
 			}
 
-			html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
+			html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
 	    ${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
 		}
 	}
@@ -1615,11 +1625,11 @@ function append_search_result_to_list(files) {
 			return sizeB - sizeA;
 		});
 
-		html = "";
-		var totalsize = 0;
-		var is_file = false;
-		for (i in files) {
-			var item = files[i];
+		let html = "";
+		let totalsize = 0;
+		let is_file = false;
+		for (let i = 0; i < files.length; i++) {
+			const item = files[i];
 			
 			// Skip folders in search results
 			if (item['mimeType'] == 'application/vnd.google-apps.folder') {
@@ -1632,12 +1642,12 @@ function append_search_result_to_list(files) {
 			item['createdTime'] = utc2jakarta(item['createdTime']);
 			
 			// Only process files (folders are skipped above)
-			var is_file = true;
-			var totalsize = totalsize + Number(item.size || 0);
+			is_file = true;
+			totalsize = totalsize + Number(item.size || 0);
 			item['size'] = formatFileSize(item['size']) || '—';
 			item['md5Checksum'] = item['md5Checksum'] || '—';
-			var ext = item.fileExtension;
-			var link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
+			const ext = item.fileExtension;
+			const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : window.location.origin + item.link;
 			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="$item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
 
 			if ("|mp4|webm|avi|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|".indexOf(`|${ext}|`) >= 0) {
@@ -1660,7 +1670,7 @@ function append_search_result_to_list(files) {
 				html += file_icon
 			}
 
-			html += `</span>${item.name}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
+			html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
 			${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
 		}
 		if (is_file && UI.allow_selecting_files) {
@@ -1723,7 +1733,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     <i class="fa-regular fa-folder-closed fa-fw"></i>
                     <span class="tth">Name</span>
                 </th>
-                <td>${file['name']}</td>
+                <td>${escapeHtml(file['name'])}</td>
             </tr>
             <tr>
                 <th>
@@ -1915,7 +1925,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     fetch(`/${cur}:id2path`, {
         method: 'POST',
         body: JSON.stringify({ id: file_id }),
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        headers: { 'Content-Type': 'application/json' }
     }).catch(error => log('Path fetch error:', error));
 }
 
@@ -1972,7 +1982,7 @@ async function fallback(id, type) {
 					const file_id = obj.fid;
 					var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
 					if (mimeType.includes("video") || video.includes(fileExtension)) {
-						var poster = obj.thumbnailLink ? poster : UI.poster;
+						poster = obj.thumbnailLink ? poster : UI.poster;
 						file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
 					} else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
 						file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
@@ -2042,7 +2052,7 @@ async function file(path) {
 				const file_id = obj.fid;
 				var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
 				if (mimeType.includes("video") || video.includes(fileExtension)) {
-					var poster = obj.thumbnailLink ? poster : UI.poster;
+					poster = obj.thumbnailLink ? poster : UI.poster;
 					file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
 				} else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
 					file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
@@ -2124,7 +2134,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
 								<i class="fa-regular fa-folder-closed fa-fw"></i>
 								<span class="tth">Name</span>
 							</th>
-							<td>${name}</td>
+							<td>${escapeHtml(name)}</td>
 						</tr>
 						<tr>
 							<th>
@@ -2182,57 +2192,23 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
   </div>`;
 	$('#content').html(content);
 
-	// Add GDFlix button click handler
-  $(document).on('click', '.gdflix-btn', function() {
-    const fileId = $(this).data('file-id');
-    const button = $(this);
-    
-    log('Button clicked, fileId:', fileId); // Debug log
-    
-    if (!fileId) {
-        alert('Error: No file ID found');
-        return;
-    }
-    
-    // Show loading state
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-    
-    // Call the GDFlix function with proper error handling
-    generateGDFlixLink(fileId)
-        .then(() => {
-            // Reset button on success
-            button.prop('disabled', false).html(originalHtml);
-        })
-        .catch((error) => {
-            // Reset button on error
-            button.prop('disabled', false).html(originalHtml);
-            logError('GDFlix error:', error);
-        });
-    });
-	
-	// Rest of the function remains the same...
+	// GDFlix handler is registered once at module level (see bottom of file)
+
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
 	var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
 	var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
 	$('#modal-body-space').html(preview);
 	$('#modal-body-space-buttons').html(btn);
 	if (poster && !mimeType.startsWith('application/vnd.google-apps')) {
-		// Create a new image element
 		var img = new Image();
-		// Set up event handlers for image load and error
 		$(img).on('load', function() {
-			// Image loaded successfully
-			$('#preview_spinner').hide(); // Hide the spinner
+			$('#preview_spinner').hide();
 			$('#preview').css({'background': 'url("' + poster + '") 0 0 / 100% 100% no-repeat'});
 			$('#preview').addClass('border-0');
 			$('#overlay').css('opacity', '.9');
 		}).on('error', function() {
-			// Image failed to load
-			$('#preview_spinner').hide(); // Hide the spinner
-			// You might want to handle the error, for example, display a placeholder image or show an error message.
+			$('#preview_spinner').hide();
 		});
-		// Set the image source after setting up event handlers
 		img.src = poster;
 	}
 }
@@ -2270,7 +2246,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 								<i class="fa-regular fa-folder-closed fa-fw"></i>
 								<span class="tth">Name</span>
 							</th>
-							<td>${name}</td>
+							<td>${escapeHtml(name)}</td>
 						</tr>
 						<tr>
 							<th>
@@ -2328,36 +2304,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   </div>`;
 	$("#content").html(content);
 
-	// Add GDFlix button click handler
-  $(document).on('click', '.gdflix-btn', function() {
-    const fileId = $(this).data('file-id');
-    const button = $(this);
-    
-    log('Button clicked, fileId:', fileId); // Debug log
-    
-    if (!fileId) {
-        alert('Error: No file ID found');
-        return;
-    }
-    
-    // Show loading state
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-    
-    // Call the GDFlix function with proper error handling
-    generateGDFlixLink(fileId)
-        .then(() => {
-            // Reset button on success
-            button.prop('disabled', false).html(originalHtml);
-        })
-        .catch((error) => {
-            // Reset button on error
-            button.prop('disabled', false).html(originalHtml);
-            logError('GDFlix error:', error);
-        });
-    });
-	
-	// Rest of the function remains the same...
+	// GDFlix handler is registered once at module level (see bottom of file)
+
 	$('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
 	var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
 	var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
@@ -2460,7 +2408,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                 <i class="fa-regular fa-folder-closed fa-fw"></i>
                 <span class="tth">Name</span>
               </th>
-              <td>${name}</td>
+              <td>${escapeHtml(name)}</td>
             </tr>
             <tr>
               <th>
@@ -2518,34 +2466,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       </div>`; 
     $("#content").html(content);
 
-// Add GDFlix button click handler
-  $(document).on('click', '.gdflix-btn', function() {
-    const fileId = $(this).data('file-id');
-    const button = $(this);
-    
-    log('Button clicked, fileId:', fileId); // Debug log
-    
-    if (!fileId) {
-        alert('Error: No file ID found');
-        return;
-    }
-    
-    // Show loading state
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-    
-    // Call the GDFlix function with proper error handling
-    generateGDFlixLink(fileId)
-        .then(() => {
-            // Reset button on success
-            button.prop('disabled', false).html(originalHtml);
-        })
-        .catch((error) => {
-            // Reset button on error
-            button.prop('disabled', false).html(originalHtml);
-            logError('GDFlix error:', error);
-        });
-    });
+  // GDFlix handler is registered once at module level (see bottom of file)
 
   // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
@@ -2630,7 +2551,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                     <tbody>
                         <tr>
                             <th><i class="fa-regular fa-folder-closed fa-fw"></i><span class="tth">Name</span></th>
-                            <td>${name}</td>
+                            <td>${escapeHtml(name)}</td>
                         </tr>
                         <tr>
                             <th><i class="fa-regular fa-clock fa-fw"></i><span class="tth">Datetime</span></th>
@@ -2669,10 +2590,10 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                             <span class="sr-only"></span>
                             </button>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">Playit</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">XPlayer</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">MX Player</a>
-                                <a class="dropdown-item" href="intent:${encoded_url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name_safe};end">VLC Player</a>
+                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
+                                <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
+                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
+                                <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
                             </div>
                         </div>
                     </div>
@@ -2796,12 +2717,15 @@ function formatFileSize(bytes) {
 }
 
 
-String.prototype.trim = function(char) {
+// ✅ FIX: Standalone trimChar utility — avoids overriding native String.prototype.trim
+// which can break browser internals and third-party libraries.
+// Usage: trimChar(str, char) — identical behaviour to the old prototype override.
+function trimChar(str, char) {
 	if (char) {
-		return this.replace(new RegExp('^\\' + char + '+|\\' + char + '+$', 'g'), '');
+		return String(str).replace(new RegExp('^\\' + char + '+|\\' + char + '+$', 'g'), '');
 	}
-	return this.replace(/^\s+|\s+$/g, '');
-};
+	return String(str).replace(/^\s+|\s+$/g, '');
+}
 
 
 // README.md HEAD.md support
@@ -2857,20 +2781,28 @@ function outFunc() {
 }
 
 // function to update the list of checkboxes
+// ✅ FIX: Use a named handler + removeEventListener before adding, to prevent
+// duplicate listeners from stacking on every MutationObserver DOM change.
 function updateCheckboxes() {
-	const checkboxes = document.querySelectorAll('input[type="checkbox"]');
 	const selectAllCheckbox = document.getElementById('select-all-checkboxes');
+	if (!selectAllCheckbox) return;
 
-	if (checkboxes.length > 0 && selectAllCheckbox) { // Check if checkboxes and selectAllCheckbox exist
-		selectAllCheckbox.addEventListener('click', () => {
-			checkboxes.forEach((checkbox) => {
-				checkbox.checked = selectAllCheckbox.checked;
-			});
-		});
+	const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+	if (checkboxes.length === 0) return;
+
+	// Remove any previously attached handler before re-adding
+	if (selectAllCheckbox._selectAllHandler) {
+		selectAllCheckbox.removeEventListener('click', selectAllCheckbox._selectAllHandler);
 	}
+	selectAllCheckbox._selectAllHandler = function() {
+		checkboxes.forEach((checkbox) => {
+			checkbox.checked = selectAllCheckbox.checked;
+		});
+	};
+	selectAllCheckbox.addEventListener('click', selectAllCheckbox._selectAllHandler);
 }
 
-async function getCookie(name) {
+function getCookie(name) { // ✅ FIX: removed unnecessary async (no await inside)
 	var nameEQ = name + "=";
 	var ca = document.cookie.split(';');
 	for (var i = 0; i < ca.length; i++) {
@@ -3159,6 +3091,36 @@ $(document).on('click', '.download-via-gkyfilehost', function(e) {
         });
 });
 
+
+// ============================================
+// SINGLE TOP-LEVEL GDFlix Button Handler
+// Registered once here — replaces 3 duplicate handlers that were
+// previously registered inside file_video(), file_code(), file_others()
+// on every file page load.
+// ============================================
+$(document).on('click', '.gdflix-btn', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+
+    log('GDFlix button clicked, fileId:', fileId);
+
+    if (!fileId) {
+        alert('Error: No file ID found');
+        return;
+    }
+
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+
+    generateGDFlixLink(fileId)
+        .then(() => {
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            button.prop('disabled', false).html(originalHtml);
+            logError('GDFlix error:', error);
+        });
+});
 
 // create a MutationObserver to listen for changes to the DOM
 const observer = new MutationObserver(() => {
