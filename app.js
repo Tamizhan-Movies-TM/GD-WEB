@@ -2350,42 +2350,100 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   //                        [Tamil+Telugu+Hindi]   Tamil.Telugu.Hindi
   // Returns array of display labels, e.g. ["🇮🇳 Tamil","🇮🇳 Telugu","🇮🇳 Hindi","🇬🇧 English"]
   // ─────────────────────────────────────────────────────────────────────────
-  const _LANG_DISPLAY = {
-    'tamil':    '🇮🇳 Tamil',
-    'telugu':   '🇮🇳 Telugu',
-    'hindi':    '🇮🇳 Hindi',
-    'malayalam':'🇮🇳 Malayalam',
-    'kannada':  '🇮🇳 Kannada',
-    'english':  '🇬🇧 English',
-    'japanese': '🇯🇵 Japanese',
-    'korean':   '🇰🇷 Korean',
-    'french':   '🇫🇷 French',
-    'spanish':  '🇪🇸 Spanish',
-    'arabic':   '🇸🇦 Arabic',
-    'chinese':  '🇨🇳 Chinese',
-    'german':   '🇩🇪 German',
-    'russian':  '🇷🇺 Russian',
-    'portuguese':'🇵🇹 Portuguese',
-    'italian':  '🇮🇹 Italian',
-    'thai':     '🇹🇭 Thai',
-    'turkish':  '🇹🇷 Turkish',
-  };
+  // ── Language alias table: maps every common abbreviation/variation → display ──
+  // Covers Tamil movie release naming conventions (Tam, Tam+Tel, Org Aud, etc.)
+  const _LANG_ALIASES = [
+    // Tamil
+    { patterns: ['tamil','tam','tamilhq','tam.','tam_','tam+'],       label: '🇮🇳 Tamil',      key: 'tamil' },
+    // Telugu
+    { patterns: ['telugu','tel','te.','tel.','tel_'],                  label: '🇮🇳 Telugu',     key: 'telugu' },
+    // Hindi
+    { patterns: ['hindi','hin','hin.','hin_','hind'],                  label: '🇮🇳 Hindi',      key: 'hindi' },
+    // Malayalam
+    { patterns: ['malayalam','mal','mal.','mal_'],                     label: '🇮🇳 Malayalam',  key: 'malayalam' },
+    // Kannada
+    { patterns: ['kannada','kan','kan.','kan_'],                       label: '🇮🇳 Kannada',    key: 'kannada' },
+    // English
+    { patterns: ['english','eng','eng.','eng_','en.'],                 label: '🇬🇧 English',    key: 'english' },
+    // Japanese
+    { patterns: ['japanese','jpn','jap','jp.'],                        label: '🇯🇵 Japanese',   key: 'japanese' },
+    // Korean
+    { patterns: ['korean','kor','ko.'],                                label: '🇰🇷 Korean',     key: 'korean' },
+    // French
+    { patterns: ['french','fra','fre','fr.'],                          label: '🇫🇷 French',     key: 'french' },
+    // Spanish
+    { patterns: ['spanish','spa','esp','es.'],                         label: '🇪🇸 Spanish',    key: 'spanish' },
+    // Arabic
+    { patterns: ['arabic','ara','arab'],                               label: '🇸🇦 Arabic',     key: 'arabic' },
+    // Chinese
+    { patterns: ['chinese','chi','zho','mandarin','cantonese'],        label: '🇨🇳 Chinese',    key: 'chinese' },
+    // German
+    { patterns: ['german','ger','deu'],                                label: '🇩🇪 German',     key: 'german' },
+    // Russian
+    { patterns: ['russian','rus'],                                     label: '🇷🇺 Russian',    key: 'russian' },
+    // Portuguese
+    { patterns: ['portuguese','por','pt.'],                            label: '🇵🇹 Portuguese', key: 'portuguese' },
+    // Italian
+    { patterns: ['italian','ita','it.'],                               label: '🇮🇹 Italian',    key: 'italian' },
+    // Thai
+    { patterns: ['thai','tha'],                                        label: '🇹🇭 Thai',       key: 'thai' },
+    // Turkish
+    { patterns: ['turkish','tur','trk'],                               label: '🇹🇷 Turkish',    key: 'turkish' },
+  ];
 
   function parseLanguagesFromName(fname) {
-    // Try to extract content from square brackets first: [Tamil + Telugu + Hindi + English]
-    const bracketMatch = fname.match(/\[([^\]]*(?:tamil|telugu|hindi|english|malayalam|kannada|japanese|korean|french|spanish|arabic|chinese|german|russian)[^\]]*)\]/i);
-    const src = bracketMatch ? bracketMatch[1] : fname;
-    // Split on + or | or & or comma (common separators)
-    const parts = src.split(/[\+\|\&,]+/).map(s => s.trim().toLowerCase()).filter(Boolean);
+    const lower = fname.toLowerCase();
     const langs = [];
-    for (const part of parts) {
-      for (const [key, label] of Object.entries(_LANG_DISPLAY)) {
-        if (part === key || part.startsWith(key) || part.endsWith(key)) {
-          if (!langs.find(l => l.label === label)) langs.push({ key, label });
-          break;
+
+    // ── Step 1: try to find a bracket section [Tamil + Telugu + Hindi + English] ──
+    // Also handles parentheses: (Tamil+Telugu+Hindi)
+    const bracketRx = /[\[\(]([^\]\)]{3,80})[\]\)]/g;
+    const segments = [];
+    let m;
+    while ((m = bracketRx.exec(lower)) !== null) segments.push(m[1]);
+    // If no useful bracket found, use full filename
+    if (segments.length === 0) segments.push(lower);
+
+    // ── Step 2: for each segment, tokenise and match ──────────────────────────
+    // Tokenise: split on space, +, |, &, comma, dot, underscore, hyphen (but keep tokens)
+    for (const seg of segments) {
+      // Normalise separators to space
+      const normalised = seg.replace(/[\+\|\&,\._\-]+/g, ' ');
+      // Also try matching raw segment for compound tokens like "tamhinen" 
+      const tokens = normalised.split(/\s+/).map(t => t.trim()).filter(t => t.length >= 2);
+
+      for (const token of tokens) {
+        for (const entry of _LANG_ALIASES) {
+          if (langs.find(l => l.key === entry.key)) continue; // already added
+          for (const pat of entry.patterns) {
+            // Exact match OR token starts with pattern (e.g. "tam" matches "tam", "tamil")
+            if (token === pat.replace(/[.\+_]$/,'') || token.startsWith(pat.replace(/[.\+_]$/,''))) {
+              langs.push({ key: entry.key, label: entry.label });
+              break;
+            }
+          }
         }
       }
     }
+
+    // ── Step 3: fallback — scan raw filename for known full words/abbrevs ────
+    // This catches cases like "Tam_Hin_Eng" where step 2 might miss on edge cases
+    if (langs.length < 2) {
+      for (const entry of _LANG_ALIASES) {
+        if (langs.find(l => l.key === entry.key)) continue;
+        for (const pat of entry.patterns) {
+          const cleanPat = pat.replace(/[.\+_]$/,'');
+          if (cleanPat.length < 2) continue;
+          // Use word-boundary-like check: preceded/followed by non-alpha
+          const rx = new RegExp('(?:^|[^a-z])' + cleanPat + '(?:[^a-z]|$)');
+          if (rx.test(lower)) {
+            langs.push({ key: entry.key, label: entry.label });
+            break;
+          }
+        }
+      }
+    }
+
     return langs;
   }
 
