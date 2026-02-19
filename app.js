@@ -9,6 +9,49 @@ const log = (...args) => DEBUG && console.log(...args);
 const logError = (...args) => DEBUG && console.error(...args);
 
 // ============================================
+// INSTANT FOLDER CACHE — localStorage based
+// Renders cached data immediately, then silently refreshes in background.
+// Result: folders open instantly on revisit (< 10ms) instead of waiting for network.
+// ============================================
+const FOLDER_CACHE_VERSION = 'v1';
+const FOLDER_CACHE_TTL_MS  = 5 * 60 * 1000; // 5 minutes — stale after this
+
+const FolderCache = {
+  _key(path) {
+    return `fc:${FOLDER_CACHE_VERSION}:${path}`;
+  },
+  get(path) {
+    try {
+      const raw = localStorage.getItem(this._key(path));
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      // Return even if stale — caller decides whether to background-refresh
+      return obj;
+    } catch(e) { return null; }
+  },
+  set(path, data) {
+    try {
+      localStorage.setItem(this._key(path), JSON.stringify({
+        ts: Date.now(),
+        data: data
+      }));
+    } catch(e) {
+      // QuotaExceededError — clear old folder cache entries only, not all storage
+      try {
+        const prefix = `fc:${FOLDER_CACHE_VERSION}:`;
+        Object.keys(localStorage)
+          .filter(k => k.startsWith(prefix))
+          .forEach(k => localStorage.removeItem(k));
+        localStorage.setItem(this._key(path), JSON.stringify({ ts: Date.now(), data: data }));
+      } catch(_) { /* give up gracefully */ }
+    }
+  },
+  isStale(obj) {
+    return !obj || (Date.now() - obj.ts) > FOLDER_CACHE_TTL_MS;
+  }
+};
+
+// ============================================
 // PERFORMANCE: Pre-compiled constants — created once, reused on every file render
 // ============================================
 const _reHash = /#/g;            // replaces _reHash inside loops
@@ -865,6 +908,44 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 		page_token: params['page_token'] || '',
 		page_index: params['page_index'] || 0
 	};
+
+	const isPagination = (params['page_index'] || 0) > 0 || !!params['page_token'];
+	const cacheKey = (fallback ? 'fb:' : 'lp:') + (params['id'] || path) + ':' + (params['page_index'] || 0);
+
+	// ✅ INSTANT CACHE: On first page, check localStorage first.
+	// If we have cached data, render it immediately (< 10ms) — no spinner, no wait.
+	// Then if stale (> 5 min old), silently background-refresh and update the list.
+	if (!isPagination) {
+		const cached = FolderCache.get(cacheKey);
+		if (cached) {
+			log('FolderCache: instant render for', cacheKey);
+			$('#update').hide();
+			// Remove spinner and render cached data right now
+			$('#spinner').remove();
+			resultCallback(cached.data, path, requestData);
+
+			if (!FolderCache.isStale(cached)) {
+				return; // Fresh cache — skip network entirely
+			}
+
+			// Stale — silently background-refresh
+			log('FolderCache: background refresh for', cacheKey);
+			fetch(fallback ? "/0:fallback" : path, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(requestData)
+			}).then(r => r.ok ? r.json() : null)
+			  .then(res => {
+				if (res && res.data && res.data.files) {
+					FolderCache.set(cacheKey, res);
+					resultCallback(res, path, requestData);
+				}
+			  }).catch(() => {});
+			return;
+		}
+	}
+
+	// No cache — normal fetch with connecting indicator
 	$('#update').show();
 	document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Connecting...</div>`;
 	if (fallback) {
@@ -883,9 +964,9 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 				if (response.status === 500) {
 					document.getElementById('list').innerHTML = `<div class="text-center">
 					<div class="card-body text-center">
-					  <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>500.</b> That’s an error.</div>
+					  <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>500.</b> That's an error.</div>
 					</div>
-					<p>The requested URL was not found on this server. That’s all we know.</p>
+					<p>The requested URL was not found on this server. That's all we know.</p>
 					<div class="card-text text-center">
 					  <div class="btn-group text-center">
 						<a href="/" type="button" class="btn btn-success">Homepage</a>
@@ -909,6 +990,10 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 					document.getElementById('list').innerHTML = `<div class='alert alert-danger' role='alert'> Server didn't send any data.</div>`;
 					$('#update').hide();
 				} else if (res && res.data) {
+					// Save to cache for instant render next time (page 0 only)
+					if (!isPagination) {
+						FolderCache.set(cacheKey, res);
+					}
 					resultCallback(res, path, requestData);
 					$('#update').hide();
 				}
@@ -925,7 +1010,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 				}
 			});
 	}
-	log("Performing Request again")
+	log("Performing Request")
 	performRequest(retries);
 }
 
