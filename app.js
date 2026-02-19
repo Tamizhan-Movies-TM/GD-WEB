@@ -9,49 +9,6 @@ const log = (...args) => DEBUG && console.log(...args);
 const logError = (...args) => DEBUG && console.error(...args);
 
 // ============================================
-// INSTANT FOLDER CACHE — localStorage based
-// Renders cached data immediately, then silently refreshes in background.
-// Result: folders open instantly on revisit (< 10ms) instead of waiting for network.
-// ============================================
-const FOLDER_CACHE_VERSION = 'v1';
-const FOLDER_CACHE_TTL_MS  = 5 * 60 * 1000; // 5 minutes — stale after this
-
-const FolderCache = {
-  _key(path) {
-    return `fc:${FOLDER_CACHE_VERSION}:${path}`;
-  },
-  get(path) {
-    try {
-      const raw = localStorage.getItem(this._key(path));
-      if (!raw) return null;
-      const obj = JSON.parse(raw);
-      // Return even if stale — caller decides whether to background-refresh
-      return obj;
-    } catch(e) { return null; }
-  },
-  set(path, data) {
-    try {
-      localStorage.setItem(this._key(path), JSON.stringify({
-        ts: Date.now(),
-        data: data
-      }));
-    } catch(e) {
-      // QuotaExceededError — clear old folder cache entries only, not all storage
-      try {
-        const prefix = `fc:${FOLDER_CACHE_VERSION}:`;
-        Object.keys(localStorage)
-          .filter(k => k.startsWith(prefix))
-          .forEach(k => localStorage.removeItem(k));
-        localStorage.setItem(this._key(path), JSON.stringify({ ts: Date.now(), data: data }));
-      } catch(_) { /* give up gracefully */ }
-    }
-  },
-  isStale(obj) {
-    return !obj || (Date.now() - obj.ts) > FOLDER_CACHE_TTL_MS;
-  }
-};
-
-// ============================================
 // PERFORMANCE: Pre-compiled constants — created once, reused on every file render
 // ============================================
 const _reHash = /#/g;            // replaces _reHash inside loops
@@ -908,44 +865,6 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 		page_token: params['page_token'] || '',
 		page_index: params['page_index'] || 0
 	};
-
-	const isPagination = (params['page_index'] || 0) > 0 || !!params['page_token'];
-	const cacheKey = (fallback ? 'fb:' : 'lp:') + (params['id'] || path) + ':' + (params['page_index'] || 0);
-
-	// ✅ INSTANT CACHE: On first page, check localStorage first.
-	// If we have cached data, render it immediately (< 10ms) — no spinner, no wait.
-	// Then if stale (> 5 min old), silently background-refresh and update the list.
-	if (!isPagination) {
-		const cached = FolderCache.get(cacheKey);
-		if (cached) {
-			log('FolderCache: instant render for', cacheKey);
-			$('#update').hide();
-			// Remove spinner and render cached data right now
-			$('#spinner').remove();
-			resultCallback(cached.data, path, requestData);
-
-			if (!FolderCache.isStale(cached)) {
-				return; // Fresh cache — skip network entirely
-			}
-
-			// Stale — silently background-refresh
-			log('FolderCache: background refresh for', cacheKey);
-			fetch(fallback ? "/0:fallback" : path, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(requestData)
-			}).then(r => r.ok ? r.json() : null)
-			  .then(res => {
-				if (res && res.data && res.data.files) {
-					FolderCache.set(cacheKey, res);
-					resultCallback(res, path, requestData);
-				}
-			  }).catch(() => {});
-			return;
-		}
-	}
-
-	// No cache — normal fetch with connecting indicator
 	$('#update').show();
 	document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Connecting...</div>`;
 	if (fallback) {
@@ -964,9 +883,9 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 				if (response.status === 500) {
 					document.getElementById('list').innerHTML = `<div class="text-center">
 					<div class="card-body text-center">
-					  <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>500.</b> That's an error.</div>
+					  <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>500.</b> That’s an error.</div>
 					</div>
-					<p>The requested URL was not found on this server. That's all we know.</p>
+					<p>The requested URL was not found on this server. That’s all we know.</p>
 					<div class="card-text text-center">
 					  <div class="btn-group text-center">
 						<a href="/" type="button" class="btn btn-success">Homepage</a>
@@ -990,10 +909,6 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 					document.getElementById('list').innerHTML = `<div class='alert alert-danger' role='alert'> Server didn't send any data.</div>`;
 					$('#update').hide();
 				} else if (res && res.data) {
-					// Save to cache for instant render next time (page 0 only)
-					if (!isPagination) {
-						FolderCache.set(cacheKey, res);
-					}
 					resultCallback(res, path, requestData);
 					$('#update').hide();
 				}
@@ -1010,7 +925,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 				}
 			});
 	}
-	log("Performing Request")
+	log("Performing Request again")
 	performRequest(retries);
 }
 
@@ -1157,16 +1072,13 @@ function list(path, id = '', fallback = false) {
 
 						window.scroll_status.loading_lock = true;
 
-						$(`<div id="spinner" class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`)
+						$(`<div id="spinner" class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status"><span class="sr-only"></span></div></div>`)
 							.insertBefore('#readme_md');
 
 						let $list = $('#list');
 						if (fallback) {
 							log('fallback inside handleSuccessResult');
-							// ✅ FIX: Was called with 7 args — requestListPath only accepts 6.
-							// Extra 'id' arg shifted the 'fallback' param out of position.
-							// Also removed 'fallback = true' assignment syntax (invalid in arg position).
-							requestListPath(path, {
+						requestListPath(path, {
 									id: id,
 									password: prevReqParams['password'],
 									page_token: $list.data('nextPageToken'),
@@ -1197,10 +1109,6 @@ function list(path, id = '', fallback = false) {
 
 	if (fallback) {
 		log('fallback inside list');
-		// ✅ FIX: 'fallback = true' in argument position is an assignment expression,
-		// not a named parameter — it sets the outer fallback variable and passes its
-		// value (true) as the 6th arg. While it accidentally works, it's misleading
-		// and fragile. Use literal 'true' directly.
 		requestListPath(path, {
 				id: id,
 				password: password
@@ -1219,8 +1127,8 @@ function list(path, id = '', fallback = false) {
 
 	const copyBtn = document.getElementById("handle-multiple-items-copy");
 
-	// Add a click event listener to the copy button
-	copyBtn.addEventListener("click", () => {
+	// Add a click event listener to the copy button (guard: only if element exists)
+	if (copyBtn) copyBtn.addEventListener("click", () => {
 		// Get all the checked checkboxes
 		const checkedItems = document.querySelectorAll('input[type="checkbox"]:checked');
 
@@ -1389,27 +1297,15 @@ function append_files_to_fallback_list(path, files) {
 
 		// When it is page 1, remove the horizontal loading bar
 		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if (Number($list.data('curPageIndex')) === 0) { $list.html(html); } else { $list.append(html); } // ✅ FIX: was strict === '0' string compare, always failed
+	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
-			// ✅ FIX: total_items and total_size were not calculated in fallback list —
-			// mirroring the same logic as append_files_to_list for consistent footer display
-			const total_size = formatFileSize(totalsize) || '0 Bytes';
-			const total_items = $list.find('.countitems').length;
-			const total_files_count = $list.find('.size_items').length;
-			if (total_items === 0) {
-				$('#count').removeClass('d-none').find('.number').text("0 item");
-			} else if (total_items === 1) {
-				$('#count').removeClass('d-none').find('.number').text("1 item");
-			} else {
-				$('#count').removeClass('d-none').find('.number').text(total_items + " items");
-			}
-			if (total_files_count === 0) {
+			if (total_files == 0) {
 				$('#count').removeClass('d-none').find('.totalsize').text("0 file");
-			} else if (total_files_count === 1) {
-				$('#count').removeClass('d-none').find('.totalsize').text("1 file, total: " + total_size);
+			} else if (total_files == 1) {
+				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
 			} else {
-				$('#count').removeClass('d-none').find('.totalsize').text(total_files_count + " files, total: " + total_size);
+				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
 			}
 		}
 	} catch (e) {
@@ -1530,7 +1426,7 @@ function append_files_to_list(path, files) {
 
 	// When it is page 1, remove the horizontal loading bar
 	// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if (Number($list.data('curPageIndex')) === 0) { $list.html(html); } else { $list.append(html); } // ✅ FIX: was strict === '0' string compare, always failed
+	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
 	// When it is the last page, count and display the total number of items
 	if (is_lastpage_loaded) {
 		total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1642,12 +1538,13 @@ function render_search_result_list() {
 		$list.data('nextPageToken', res['nextPageToken'])
 			 .data('curPageIndex', res['curPageIndex']);
 
-		// ✅ FIX: Remove spinner IMMEDIATELY (synchronously) before RAF
-		// Previously spinner could still be visible while RAF queued result render
+		// Remove spinner instantly
 		$('#spinner').remove();
 
-		// Render results
-		append_search_result_to_list(res['data']['files']);
+		// Fast render with requestAnimationFrame
+		requestAnimationFrame(() => {
+			append_search_result_to_list(res['data']['files']);
+		});
 
 		// Setup scroll only once
 		if (!window.scroll_status.event_bound && res['nextPageToken']) {
@@ -1761,7 +1658,7 @@ function append_search_result_to_list(files) {
 		}
 		// When it is page 1, remove the horizontal loading bar
 		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if (Number($list.data('curPageIndex')) === 0) { $list.html(html); } else { $list.append(html); } // ✅ FIX: was strict === '0' string compare, always failed
+	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
 			total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -2185,9 +2082,7 @@ function generateCopyFileBox(file_id, cookie_folder_id) {
 	return copyFileBox;
 }
 
-// ✅ FIX: HTML table at line ~2139 has a stray extra </td> closing tag after the Size <td>.
-// This creates invalid HTML that some browsers parse incorrectly.
-// Fixed by removing the duplicate closing tag.
+// Document display |zip|.exe/others direct downloads
 function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
@@ -2353,7 +2248,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                  <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
-						   </tr>
+					   </tr>
 					 </tbody>
 				 </table>
        ${UI.disable_video_download ? `` : `
@@ -2443,7 +2338,9 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
     const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
 	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-	  let player
+	  let player = '';
+	  let player_js = '';
+	  let player_css = '';
 	  if (!UI.disable_player) {
 		 if (player_config.player == "plyr") {
 			player = `<video id="player" playsinline controls data-poster="${poster}">
@@ -2478,12 +2375,12 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       <i class="fas fa-file-alt fa-fw"></i>File Information
     </div>
     <div class="card-body row g-3">
-      <div class="col-lg-4 col-md-12">
+      ${!UI.disable_player ? `<div class="col-lg-4 col-md-12">
         <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
           ${player}
         </div>
-      </div>
-      <div class="col-lg-8 col-md-12">
+      </div>` : ''}
+      <div class="${UI.disable_player ? 'col-12' : 'col-lg-8 col-md-12'}">
         <table class="table table-dark">
           <tbody>
             <tr>
@@ -2550,7 +2447,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
   // GDFlix handler is registered once at module level (see bottom of file)
 
-  // Load Video.js and initialize the player
+  // Load player script and stylesheet only when player is enabled
+  if (!UI.disable_player && player_js) {
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
 	videoJsScript.onload = function() {
@@ -2596,10 +2494,13 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	};
 	document.head.appendChild(videoJsScript);
 
-	var videoJsStylesheet = document.createElement('link');
-	videoJsStylesheet.href = player_css;
-	videoJsStylesheet.rel = 'stylesheet';
-	document.head.appendChild(videoJsStylesheet);
+	if (player_css) {
+		var videoJsStylesheet = document.createElement('link');
+		videoJsStylesheet.href = player_css;
+		videoJsStylesheet.rel = 'stylesheet';
+		document.head.appendChild(videoJsStylesheet);
+	}
+  } // end if (!UI.disable_player && player_js)
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
@@ -2907,9 +2808,7 @@ async function copyFile(driveid) {
 			return null;
 		}
 
-		// ✅ FIX: Added null guard — spinner element may not exist on all page types
-		const _spinner = document.getElementById('spinner');
-		if (_spinner) _spinner.style.display = 'block';
+		document.getElementById('spinner').style.display = 'block';
 		const _cookieExpiry = new Date();
 		_cookieExpiry.setFullYear(_cookieExpiry.getFullYear() + 1);
 		document.cookie = `root_id=${user_folder_id}; expires=${_cookieExpiry.toUTCString()}; path=/`;
@@ -2942,13 +2841,11 @@ async function copyFile(driveid) {
 			copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> Unable to Copy File </div>`;
 		}
 
-		const _spinner2 = document.getElementById('spinner');
-		if (_spinner2) _spinner2.style.display = 'none';
+		document.getElementById('spinner').style.display = 'none';
 	} catch (error) {
 		const copystatus = document.getElementById('copystatus');
 		copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> An error occurred ` + error + `</div>`;
-		const _spinner3 = document.getElementById('spinner');
-		if (_spinner3) _spinner3.style.display = 'none';
+		document.getElementById('spinner').style.display = 'none';
 	}
 }
 
@@ -3098,14 +2995,9 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
                 const gkyLink = data.link || data.gkyfilehost_link;
                 log('GKYFILEHOST - Generated link:', gkyLink);
                 
-                // ✅ FIX: Validate link with proper URL hostname check instead of loose includes()
-                // Old: !gkyLink.includes('gkyfilehost') — accepts any string with 'gkyfilehost' in it
-                let isValidGkyLink = false;
-                try {
-                  isValidGkyLink = new URL(gkyLink).hostname.endsWith('gkyfilehost.online');
-                } catch (_) { isValidGkyLink = false; }
-                if (!isValidGkyLink) {
-                    logError('GKYFILEHOST - Warning: Link does not appear to be from gkyfilehost.online:', gkyLink);
+                // Validate the link format
+                if (!gkyLink.includes('gkyfilehost')) {
+                    logError('GKYFILEHOST - Warning: Link does not contain gkyfilehost domain');
                 }
                 
                 // Open the GKYFILEHOST link directly in a new tab
@@ -3226,9 +3118,5 @@ const options = {
 	subtree: true
 };
 
-// ✅ FIX: Observe #content only — not the entire document.
-// Watching documentElement with subtree:true fires updateCheckboxes() hundreds of
-// times during every list render (once per inserted child element).
-// Scoping to #content cuts observer calls by ~99% while covering all list changes.
-const _observerTarget = document.getElementById('content') || document.documentElement;
-observer.observe(_observerTarget, options);
+// observe changes to the body element
+observer.observe(document.documentElement, options);
