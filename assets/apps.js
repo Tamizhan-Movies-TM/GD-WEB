@@ -18,18 +18,13 @@ const _origin = window.location.origin; // cached — avoids property lookup per
 // O(1) extension → icon lookup (replaces 7 chained String.indexOf scans per file)
 const _iconMap = new Map(Object.entries({
     mp4:'V', webm:'V', avi:'V', mpg:'V', mpeg:'V', mkv:'V',
-    rm:'V', rmvb:'V', mov:'V', wmv:'V', asf:'V', ts:'V', flv:'V', '3gp':'V', m4v:'V',
+    rm:'V', rmvb:'V', mov:'V', wmv:'V', asf:'V', ts:'V', flv:'V',
     html:'C', php:'C', css:'C', go:'C', java:'C', js:'C',
-    json:'C', txt:'C', sh:'C', xml:'C', py:'C', rb:'C', c:'C', cpp:'C',
+    json:'C', txt:'C', sh:'C',
     zip:'Z', rar:'Z', tar:'Z', '7z':'Z', gz:'Z',
-    bmp:'I', jpg:'I', jpeg:'I', png:'I', gif:'I', svg:'I', webp:'I',
-    m4a:'A', mp3:'A', flac:'A', wav:'A', ogg:'A', aac:'A', wma:'A',
-    md:'M', pdf:'P',
-    // ✅ FIX: Added missing common file types
-    srt:'S', sub:'S', ass:'S', vtt:'S',           // Subtitle files (important for movie site)
-    docx:'D', doc:'D', xlsx:'D', xls:'D', pptx:'D', ppt:'D',  // Office documents
-    epub:'B', mobi:'B',                           // eBooks
-    iso:'K', dmg:'K', apk:'K',                    // Disk/app images
+    bmp:'I', jpg:'I', jpeg:'I', png:'I', gif:'I',
+    m4a:'A', mp3:'A', flac:'A', wav:'A', ogg:'A',
+    md:'M', pdf:'P'
 }));
 function _getIcon(ext, mimeType, iconLink) {
     const t = ext ? _iconMap.get(ext.toLowerCase()) : null;
@@ -40,11 +35,6 @@ function _getIcon(ext, mimeType, iconLink) {
     if (t === 'A') return audio_icon;
     if (t === 'M') return markdown_icon;
     if (t === 'P') return pdf_icon;
-    // ✅ FIX: New icon types — fallback to file_icon for types without dedicated icons
-    if (t === 'S') return file_icon;  // Subtitle files
-    if (t === 'D') return file_icon;  // Office documents
-    if (t === 'B') return file_icon;  // eBooks
-    if (t === 'K') return file_icon;  // Disk/app images
     if (mimeType && mimeType.startsWith('application/vnd.google-apps.'))
         return '<img src="' + iconLink + '" class="d-flex" style="width:1.24rem;margin-left:.12rem;margin-right:.12rem;">';
     return file_icon;
