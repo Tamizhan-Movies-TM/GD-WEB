@@ -2331,240 +2331,375 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 }
 
 
-  // Document display video  mkv|mp4|webm|avi|
-  function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-    const vlc_icon     = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height:32px;width:32px;margin-right:5px;">`;
-    const mxplayer_icon= `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height:32px;width:32px;margin-right:5px;">`;
-    const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/xplayer-icon.png" alt="XPlayer" style="height:32px;width:32px;margin-right:5px;">`;
-    const playit_icon  = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height:32px;width:32px;margin-right:5px;">`;
-    const copyFileBox  = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
+  // Document display video  mkv|mp4|webm|avi| 
+   function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+	 // Define all player icons
+    const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
+    const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
+	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
+	  let player = '';
+	  let player_js = '';
+	  let player_css = '';
+	  if (!UI.disable_player) {
+		 if (player_config.player == "plyr") {
+			player = `<video id="player" playsinline controls data-poster="${poster}">
+      <source src="${url}" type="video/mp4" />
+      <source src="${url}" type="video/webm" />
+        </video>`
+			player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
+			player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
+		} else if (player_config.player == "videojs") {
+			player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
+      <source src="${url}" type="video/mp4" />
+      <source src="${url}" type="video/webm" />
+      <source src="${url}" type="video/avi" />
+    </video>`
+			player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
+			player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
+		} else if (player_config.player == "dplayer") {
+			player = `<div id="player-container"></div>`
+			player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js'
+			player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css'
+		} else if (player_config.player == "jwplayer") {
+			player = `<div id="player"></div>`
+			player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
+			player_css = ''
+		}
+	}
 
-    // ── Parse language names from filename ────────────────────────────────────
-    // Handles: [Tamil+Telugu+Hindi+English]  Tam_Hin_Eng  Tamil.Telugu.Hindi  etc.
-    const LANG_MAP = [
-      { keys:['tamil','tam'],        flag:'🇮🇳', name:'Tamil'     },
-      { keys:['telugu','tel'],       flag:'🇮🇳', name:'Telugu'    },
-      { keys:['hindi','hin'],        flag:'🇮🇳', name:'Hindi'     },
-      { keys:['malayalam','mal'],    flag:'🇮🇳', name:'Malayalam' },
-      { keys:['kannada','kan'],      flag:'🇮🇳', name:'Kannada'   },
-      { keys:['english','eng'],      flag:'🇬🇧', name:'English'   },
-      { keys:['japanese','jpn','jap'],flag:'🇯🇵',name:'Japanese'  },
-      { keys:['korean','kor'],       flag:'🇰🇷', name:'Korean'    },
-      { keys:['french','fra','fre'], flag:'🇫🇷', name:'French'    },
-      { keys:['spanish','spa'],      flag:'🇪🇸', name:'Spanish'   },
-      { keys:['arabic','ara'],       flag:'🇸🇦', name:'Arabic'    },
-      { keys:['chinese','chi','zho'],flag:'🇨🇳', name:'Chinese'   },
-      { keys:['german','ger'],       flag:'🇩🇪', name:'German'    },
-      { keys:['russian','rus'],      flag:'🇷🇺', name:'Russian'   },
-    ];
-
-    function detectLangs(fname) {
-      const s = fname.toLowerCase().replace(/[\[\]\(\)]/g,' ');
-      // normalise all separators to space
-      const words = s.replace(/[\+\|\&,\._\-]+/g,' ').split(/\s+/).filter(w=>w.length>=2);
-      const found = [];
-      for (const entry of LANG_MAP) {
-        if (found.find(f=>f.name===entry.name)) continue;
-        for (const key of entry.keys) {
-          if (words.some(w => w===key || w.startsWith(key))) {
-            found.push(entry); break;
-          }
-        }
-      }
-      // fallback: raw word boundary scan
-      if (found.length < 2) {
-        for (const entry of LANG_MAP) {
-          if (found.find(f=>f.name===entry.name)) continue;
-          for (const key of entry.keys) {
-            if (key.length < 3) continue;
-            if (new RegExp('(?:^|[^a-z])'+key+'(?:[^a-z]|$)').test(s)) {
-              found.push(entry); break;
-            }
-          }
-        }
-      }
-      return found;
-    }
-
-    const detectedLangs = detectLangs(name);
-    const hasMultiAudio = !UI.disable_player && detectedLangs.length > 1;
-
-    // ── Artplayer CSS (injected once) ────────────────────────────────────────
-    if (!document.getElementById('art-player-css-custom')) {
-      const st = document.createElement('style');
-      st.id = 'art-player-css-custom';
-      st.textContent = `
-        #art-player-wrap { border-radius:10px; overflow:hidden; background:#000; }
-        .art-video-player { border-radius:10px; min-height:200px; }
-      `;
-      document.head.appendChild(st);
-    }
-
-    // ── Player HTML ───────────────────────────────────────────────────────────
-    var playerHtml = '';
-    if (!UI.disable_player) {
-      playerHtml = '<div id="art-player-wrap"><div id="artplayer-container" style="width:100%;height:100%;min-height:270px;"></div></div>';
-    }
-
-    // ── Page content ──────────────────────────────────────────────────────────
-    var content = `
-    <div class="card">
-      <div class="card-header ${UI.file_view_alert_class}">
-        <i class="fas fa-file-alt fa-fw"></i>File Information
-      </div>
-      <div class="card-body row g-3">
-        <div class="col-lg-4 col-md-12">
-          ${playerHtml}
-        </div>
-        <div class="col-lg-8 col-md-12">
-          <table class="table table-dark">
-            <tbody>
-              <tr>
-                <th><i class="fa-regular fa-folder-closed fa-fw"></i><span class="tth">Name</span></th>
-                <td>${escapeHtml(name)}</td>
-              </tr>
-              <tr>
-                <th><i class="fa-regular fa-clock fa-fw"></i><span class="tth">Datetime</span></th>
-                <td>${createdTime}</td>
-              </tr>
-              <tr>
-                <th><i class="fa-solid fa-tag fa-fw"></i><span class="tth">Type</span></th>
-                <td>${formatMimeType(mimeType)}</td>
-              </tr>
-              <tr>
-                <th><i class="fa-solid fa-box-archive fa-fw"></i><span class="tth">Size</span></th>
-                <td>${size}</td>
-              </tr>
-            </tbody>
-          </table>
-          ${UI.disable_video_download ? '' : `
-          <div class="col-md-12">
-            <div class="text-center">
-              <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-              <div class="btn-group text-center">
-                ${UI.display_drive_link ? `<button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ''}
-                ${isUserLoggedIn()
-                  ? `<a href="${url}" type="button" class="btn btn-success" download><i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱</a>`
-                  : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}"><i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱</a>`}
-                <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
-                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  <span class="sr-only"></span>
-                </button>
-                <div class="dropdown-menu">
-                  <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
-                  <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
-                  <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
-                  <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
-                </div>
-              </div>
-            </div>
-          </div>`}
+ // Add the container and card elements
+  var content = `
+  <div class="card">
+    <div class="card-header ${UI.file_view_alert_class}">
+      <i class="fas fa-file-alt fa-fw"></i>File Information
+    </div>
+    <div class="card-body row g-3">
+      <div class="col-lg-4 col-md-12">
+        <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+          ${player}
         </div>
       </div>
-    </div>`;
-
+      <div class="col-lg-8 col-md-12">
+        <table class="table table-dark">
+          <tbody>
+            <tr>
+              <th>
+                <i class="fa-regular fa-folder-closed fa-fw"></i>
+                <span class="tth">Name</span>
+              </th>
+              <td>${escapeHtml(name)}</td>
+            </tr>
+            <tr>
+              <th>
+                <i class="fa-regular fa-clock fa-fw"></i>
+                <span class="tth">Datetime</span>
+              </th>
+              <td>${createdTime}</td>
+            </tr>
+            <tr>
+              <th>
+                <i class="fa-solid fa-tag fa-fw"></i>
+                <span class="tth">Type</span>
+              </th>
+              <td>${formatMimeType(mimeType)}</td>
+            </tr>
+            <tr>
+              <th>
+                <i class="fa-solid fa-box-archive fa-fw"></i>
+                  <span class="tth">Size</span>
+                    </th>
+                    <td>${size}</td>
+                    </td>
+						     </tr>
+					     </tbody>
+				    </table>
+        ${UI.disable_video_download ? `` : `
+      <div class="col-md-12">
+        <div class="text-center">
+          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+          <div class="btn-group text-center"> 
+            ${UI.display_drive_link ? ` 
+           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
+          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
+          ${isUserLoggedIn() 
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
+                 <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+               </a>`
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
+           </a>`
+          }
+            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
+                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="sr-only"></span>
+            </button>
+            <div class="dropdown-menu">
+              <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
+              <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a> 
+             </div>
+           </div> 
+         </div>`}
+       </div>
+      </div>`; 
     $("#content").html(content);
 
-    // ── Load Artplayer and init ───────────────────────────────────────────────
-    if (!UI.disable_player) {
-      // Load Artplayer CSS
-      if (!document.getElementById('artplayer-css')) {
-        var artCss = document.createElement('link');
-        artCss.id  = 'artplayer-css';
-        artCss.rel = 'stylesheet';
-        artCss.href= 'https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.css';
-        document.head.appendChild(artCss);
+  // GDFlix handler is registered once at module level (see bottom of file)
+
+  // ── Settings Panel CSS (injected once) ──────────────────────────────
+  if (!document.getElementById('tm-settings-css')) {
+    const _css = document.createElement('style');
+    _css.id = 'tm-settings-css';
+    _css.textContent = `
+      #tm-gear-btn {
+        position: absolute; bottom: 48px; right: 8px; z-index: 300;
+        background: rgba(0,0,0,.65); border: none; border-radius: 50%;
+        width: 34px; height: 34px; cursor: pointer; display: flex;
+        align-items: center; justify-content: center;
+        color: #fff; font-size: 18px; transition: background .2s;
+      }
+      #tm-gear-btn:hover { background: rgba(30,30,30,.9); }
+      #tm-settings-panel {
+        display: none; position: absolute; bottom: 88px; right: 8px;
+        z-index: 400; background: rgba(15,15,25,.95);
+        border: 1px solid rgba(255,255,255,.12); border-radius: 12px;
+        min-width: 230px; color: #fff; font-size: 13px;
+        box-shadow: 0 4px 24px rgba(0,0,0,.7);
+        backdrop-filter: blur(10px); overflow: hidden;
+      }
+      #tm-settings-panel.open { display: block; animation: tmPanelIn .15s ease; }
+      @keyframes tmPanelIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+      .tm-section-title {
+        padding: 10px 14px 6px; font-size: 11px; letter-spacing: 1px;
+        color: rgba(255,255,255,.45); text-transform: uppercase; font-weight: 600;
+      }
+      .tm-track-item {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px 14px; cursor: pointer; transition: background .15s;
+      }
+      .tm-track-item:hover { background: rgba(255,255,255,.07); }
+      .tm-track-item.active { color: #4ade80; }
+      .tm-track-dot {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: rgba(255,255,255,.2); flex-shrink: 0;
+      }
+      .tm-track-item.active .tm-track-dot { background: #4ade80; }
+      .tm-divider { height: 1px; background: rgba(255,255,255,.08); margin: 4px 0; }
+      .tm-section-empty { padding: 6px 14px 10px; color: rgba(255,255,255,.3); font-style: italic; }
+      .tm-panel-header {
+        padding: 12px 14px 8px; font-weight: 700; font-size: 13px;
+        border-bottom: 1px solid rgba(255,255,255,.08);
+        display: flex; align-items: center; gap: 6px;
+      }
+    `;
+    document.head.appendChild(_css);
+  }
+
+  // ── Load player script then init + attach settings panel ────────────
+  if (!UI.disable_player && player_js) {
+    var videoJsScript = document.createElement('script');
+    videoJsScript.src = player_js;
+    videoJsScript.onload = function() {
+
+      // ── Player init ────────────────────────────────────────────────
+      let _vjsPlayer = null; // reference for Video.js
+      if (player_config.player == "plyr") {
+        window._tmPlyr = new Plyr('#player', {
+          controls: ['play-large','play','progress','current-time','mute','volume','captions','settings','fullscreen'],
+          settings: ['captions','quality','speed'],
+        });
+      } else if (player_config.player == "videojs") {
+        _vjsPlayer = videojs('vplayer');
+        window._tmVjs = _vjsPlayer;
+      } else if (player_config.player == "dplayer") {
+        window._tmDp = new DPlayer({
+          container: document.getElementById('player-container'),
+          screenshot: true,
+          video: { url: url, pic: poster, thumbnails: poster },
+        });
+      } else if (player_config.player == "jwplayer") {
+        jwplayer("player").setup({
+          file: url, type: mimeType, autostart: false, image: poster,
+          width: "100%", aspectratio: "16:9", title: name,
+          description: "Powered by Google Drive Index",
+          tracks: [{ file: url, kind: "captions", label: "Default", "default": true }],
+          captions: { color: "#f3f378", fontSize: 14, backgroundOpacity: 50, edgeStyle: "raised" },
+        });
       }
 
-      // Load Artplayer JS
-      var artScript = document.createElement('script');
-      artScript.src = 'https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.js';
-      artScript.onload = function() {
+      // ── Build Settings Panel ────────────────────────────────────────
+      // Find the raw <video> element regardless of player wrapper
+      function _getVideoEl() {
+        return document.querySelector('#player video, #vplayer, #player-container video, video');
+      }
 
-        // ── Build Artplayer setting items for audio track switching ────────────
-        // Uses Artplayer's native `setting` panel (gear icon inside player)
-        // Each detected language becomes a menu item in Audio Track setting
-        // Capture lang keys/labels for safe closure use
-        var _langKeys   = detectedLangs.map(function(l){ return l.keys[0]; });
-        var _langLabels = detectedLangs.map(function(l){ return l.flag+' '+l.name; });
+      function _buildSettingsPanel(videoEl) {
+        // Remove any previous panel
+        const old = document.getElementById('tm-settings-panel');
+        if (old) old.remove();
+        const oldBtn = document.getElementById('tm-gear-btn');
+        if (oldBtn) oldBtn.remove();
 
-        // Audio switch function — called after art is defined
-        function _switchAudio(artInst, idx) {
-          var video  = artInst.video;
-          var key    = _langKeys[idx] || '';
-          if (video && video.audioTracks && video.audioTracks.length > 0) {
-            var tracks  = video.audioTracks;
-            var matched = false;
-            for (var t = 0; t < tracks.length; t++) {
-              var lbl = (tracks[t].label    || '').toLowerCase();
-              var lng = (tracks[t].language || '').toLowerCase();
-              var hit = lbl.indexOf(key) !== -1 || lng.indexOf(key.slice(0,3)) === 0;
-              if (!matched && hit) { tracks[t].enabled = true;  matched = true; }
-              else                 { tracks[t].enabled = false; }
+        // Find the player wrapper to position relative to
+        const wrapper = document.querySelector('.col-lg-4 .border, .col-lg-4 .h-100') ||
+                        document.querySelector('#player-container') ||
+                        (videoEl ? videoEl.parentElement : null);
+        if (!wrapper) return;
+        if (getComputedStyle(wrapper).position === 'static') wrapper.style.position = 'relative';
+
+        // ── Gear Button ──
+        const gearBtn = document.createElement('button');
+        gearBtn.id = 'tm-gear-btn';
+        gearBtn.title = 'Settings';
+        gearBtn.innerHTML = '⚙️';
+        wrapper.appendChild(gearBtn);
+
+        // ── Panel ──
+        const panel = document.createElement('div');
+        panel.id = 'tm-settings-panel';
+        wrapper.appendChild(panel);
+
+        function _refreshPanel() {
+          let html = `<div class="tm-panel-header">⚙️ Player Settings</div>`;
+
+          // ── AUDIO TRACKS ─────────────────────────────────────────
+          const audioTracks = videoEl ? videoEl.audioTracks : null;
+          html += `<div class="tm-section-title">🎵 Audio</div>`;
+          if (audioTracks && audioTracks.length > 0) {
+            for (let i = 0; i < audioTracks.length; i++) {
+              const t = audioTracks[i];
+              const lang = t.language || t.label || ('Track ' + (i + 1));
+              const active = t.enabled;
+              html += `<div class="tm-track-item ${active ? 'active' : ''}" data-tm-audio="${i}">
+                <div class="tm-track-dot"></div>
+                <span>${lang}${active ? ' <small style="opacity:.6">(current)</small>' : ''}</span>
+              </div>`;
             }
-            if (!matched) {
-              for (var t2 = 0; t2 < tracks.length; t2++) tracks[t2].enabled = (t2 === idx);
+          } else {
+            // Try Video.js audioTrackList
+            let vjsTracks = null;
+            if (window._tmVjs) {
+              try { vjsTracks = window._tmVjs.audioTrackList(); } catch(e) {}
+            }
+            if (vjsTracks && vjsTracks.length > 0) {
+              for (let i = 0; i < vjsTracks.length; i++) {
+                const t = vjsTracks[i];
+                const active = t.enabled;
+                const lang = t.language || t.label || ('Track ' + (i + 1));
+                html += `<div class="tm-track-item ${active ? 'active' : ''}" data-tm-vjs-audio="${i}">
+                  <div class="tm-track-dot"></div>
+                  <span>${lang}${active ? ' <small style="opacity:.6">(current)</small>' : ''}</span>
+                </div>`;
+              }
+            } else {
+              html += `<div class="tm-section-empty">Auto (single audio)</div>`;
             }
           }
-          artInst.notice.show = _langLabels[idx] + ' Audio';
-        }
 
-        var settingItems = [];
-        if (hasMultiAudio) {
-          var audioItems = detectedLangs.map(function(lang, i) {
-            return {
-              html    : lang.flag + ' ' + lang.name,
-              tooltip : lang.name,
-              default : i === 0,
-              onClick : (function(capturedIdx){
-                return function(item) { _switchAudio(art, capturedIdx); return item; };
-              })(i),
-            };
+          html += `<div class="tm-divider"></div>`;
+
+          // ── SUBTITLES / TEXT TRACKS ───────────────────────────────
+          html += `<div class="tm-section-title">💬 Subtitles</div>`;
+          const textTracks = videoEl ? videoEl.textTracks : null;
+          let subFound = false;
+          // "Off" option
+          const anySubOn = textTracks && Array.from(textTracks).some(t => t.mode === 'showing' && (t.kind === 'subtitles' || t.kind === 'captions'));
+          html += `<div class="tm-track-item ${!anySubOn ? 'active' : ''}" data-tm-sub="-1">
+            <div class="tm-track-dot"></div><span>Off</span>
+          </div>`;
+          if (textTracks && textTracks.length > 0) {
+            for (let i = 0; i < textTracks.length; i++) {
+              const t = textTracks[i];
+              if (t.kind !== 'subtitles' && t.kind !== 'captions') continue;
+              subFound = true;
+              const active = t.mode === 'showing';
+              const lang = t.label || t.language || ('Sub ' + (i + 1));
+              html += `<div class="tm-track-item ${active ? 'active' : ''}" data-tm-sub="${i}">
+                <div class="tm-track-dot"></div>
+                <span>${lang}${active ? ' <small style="opacity:.6">(on)</small>' : ''}</span>
+              </div>`;
+            }
+          }
+          if (!subFound) {
+            html += `<div class="tm-section-empty">No subtitles found</div>`;
+          }
+
+          panel.innerHTML = html;
+
+          // ── Audio click handlers ──────────────────────────────────
+          panel.querySelectorAll('[data-tm-audio]').forEach(el => {
+            el.addEventListener('click', function() {
+              const idx = parseInt(this.dataset.tmAudio);
+              for (let i = 0; i < audioTracks.length; i++) {
+                audioTracks[i].enabled = (i === idx);
+              }
+              _refreshPanel();
+            });
           });
-          settingItems = [{
-            html    : '\ud83c\udfb5 Audio',
-            tooltip : (detectedLangs[0] ? detectedLangs[0].name : ''),
-            width   : 200,
-            selector: audioItems,
-            onSelect: function(item) {
-              return item.tooltip || item.html;
-            },
-          }];
+          panel.querySelectorAll('[data-tm-vjs-audio]').forEach(el => {
+            el.addEventListener('click', function() {
+              const idx = parseInt(this.dataset.tmVjsAudio);
+              if (!window._tmVjs) return;
+              const list = window._tmVjs.audioTrackList();
+              for (let i = 0; i < list.length; i++) list[i].enabled = (i === idx);
+              _refreshPanel();
+            });
+          });
+
+          // ── Subtitle click handlers ───────────────────────────────
+          panel.querySelectorAll('[data-tm-sub]').forEach(el => {
+            el.addEventListener('click', function() {
+              const idx = parseInt(this.dataset.tmSub);
+              if (!textTracks) return;
+              for (let i = 0; i < textTracks.length; i++) {
+                if (textTracks[i].kind !== 'subtitles' && textTracks[i].kind !== 'captions') continue;
+                textTracks[i].mode = (i === idx) ? 'showing' : 'hidden';
+              }
+              _refreshPanel();
+            });
+          });
         }
 
-        var art = new Artplayer({
-          container: '#artplayer-container',
-          url: url,
-          poster: poster || '',
-          volume: 1,
-          isLive: false,
-          muted: false,
-          autoplay: false,
-          pip: true,
-          autoSize: false,
-          autoMini: false,
-          screenshot: true,
-          setting: true,
-          settings: settingItems,
-          loop: false,
-          flip: true,
-          playbackRate: true,
-          aspectRatio: true,
-          fullscreen: true,
-          fullscreenWeb: true,
-          miniProgressBar: true,
-          mutex: true,
-          backdrop: true,
-          playsInline: true,
-          autoPlayback: true,
-          airplay: true,
-          theme: '#7c3aed',
-          lang: navigator.language.slice(0,2),
+        // Toggle panel on gear click
+        gearBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          _refreshPanel();
+          panel.classList.toggle('open');
         });
-      };
-      document.head.appendChild(artScript);
+
+        // Close panel on outside click
+        document.addEventListener('click', function(e) {
+          if (!panel.contains(e.target) && e.target !== gearBtn) {
+            panel.classList.remove('open');
+          }
+        });
+      }
+
+      // Wait for video to be ready before building panel
+      function _tryBuildPanel(attempts) {
+        const vEl = _getVideoEl();
+        if (vEl) {
+          _buildSettingsPanel(vEl);
+        } else if (attempts > 0) {
+          setTimeout(() => _tryBuildPanel(attempts - 1), 300);
+        }
+      }
+      _tryBuildPanel(10);
+    };
+    document.head.appendChild(videoJsScript);
+
+    if (player_css) {
+      var videoJsStylesheet = document.createElement('link');
+      videoJsStylesheet.href = player_css;
+      videoJsStylesheet.rel = 'stylesheet';
+      document.head.appendChild(videoJsStylesheet);
     }
   }
+}
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
