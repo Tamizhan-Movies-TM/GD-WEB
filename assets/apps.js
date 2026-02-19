@@ -563,23 +563,26 @@ strong {
       </div>
 	  </div>
 	</div>
-</footer>`;
+</footer>
+<script>
+	let btt = document.getElementById("back-to-top");
+	window.onscroll = function () {
+		scrollFunction();
+	};
+	function scrollFunction() {
+		if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+			btt.style.display = "block";
+		} else {
+			btt.style.display = "none";
+		}
+	}
+	btt.addEventListener("click", backToTop);
+	function backToTop() {
+		document.body.scrollTop = 0;
+		document.documentElement.scrollTop = 0;
+	}
+</script>`;
 $('body').html(html);
-
-// ✅ FIX: Back-to-top logic moved OUT of innerHTML (scripts inside innerHTML are ignored by modern browsers)
-// This function is now called safely after DOM injection
-function initBackToTop() {
-    const btt = document.getElementById('back-to-top');
-    if (!btt) return;
-    window.onscroll = function () {
-        btt.style.display = (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) ? 'block' : 'none';
-    };
-    btt.addEventListener('click', function() {
-        document.body.scrollTop = 0;
-        document.documentElement.scrollTop = 0;
-    });
-}
-initBackToTop();
 
 // Initialize login modal functionality
 initializeLoginModal();
