@@ -2389,68 +2389,21 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     const detectedLangs = detectLangs(name);
     const hasMultiAudio = !UI.disable_player && detectedLangs.length > 1;
 
-    // ── Artplayer CSS / audio-bar CSS (injected once) ─────────────────────────
-    if (!document.getElementById('art-multi-audio-css')) {
+    // ── Artplayer CSS (injected once) ────────────────────────────────────────
+    if (!document.getElementById('art-player-css-custom')) {
       const st = document.createElement('style');
-      st.id = 'art-multi-audio-css';
+      st.id = 'art-player-css-custom';
       st.textContent = `
         #art-player-wrap { border-radius:10px; overflow:hidden; background:#000; }
-        /* Artplayer default overrides */
-        .art-video-player { border-radius:10px 10px 0 0; min-height:200px; }
-        /* Audio language bar */
-        #art-audio-bar {
-          background:#0d0d1a;
-          border:1px solid rgba(255,255,255,0.07);
-          border-top:2.5px solid #7c3aed;
-          padding:10px 14px 12px;
-          border-radius:0 0 10px 10px;
-          display:none;
-        }
-        #art-audio-bar.show { display:block; }
-        .aab-title {
-          font-size:9px; font-weight:800; letter-spacing:2px;
-          text-transform:uppercase; color:#a78bfa;
-          margin-bottom:8px; display:flex; align-items:center; gap:5px;
-        }
-        .aab-btns { display:flex; flex-wrap:wrap; gap:6px; }
-        .aab-btn {
-          display:inline-flex; align-items:center; gap:5px;
-          padding:6px 16px; border-radius:50px;
-          border:1.5px solid rgba(255,255,255,0.15);
-          background:rgba(255,255,255,0.05);
-          color:rgba(255,255,255,0.8); font-size:13px; font-weight:500;
-          cursor:pointer; transition:all .15s; white-space:nowrap;
-        }
-        .aab-btn:hover { background:rgba(124,58,237,.3); border-color:#7c3aed; color:#fff; }
-        .aab-btn.active {
-          background:linear-gradient(135deg,#7c3aed,#4338ca);
-          border-color:#7c3aed; color:#fff;
-          box-shadow:0 2px 12px rgba(124,58,237,.55);
-        }
-        .aab-flag { font-size:16px; line-height:1; }
-        .aab-hint { font-size:10px; color:rgba(255,255,255,.28); margin-top:6px; }
+        .art-video-player { border-radius:10px; min-height:200px; }
       `;
       document.head.appendChild(st);
-    }
-
-    // ── Build audio bar HTML ──────────────────────────────────────────────────
-    var audioBarHtml = '';
-    if (hasMultiAudio) {
-      var btnHtml = detectedLangs.map(function(l, i) {
-        return '<button class="aab-btn'+(i===0?' active':'')+'" data-idx="'+i+'" data-key="'+l.keys[0]+'">' +
-               '<span class="aab-flag">'+l.flag+'</span>'+l.name+'</button>';
-      }).join('');
-      audioBarHtml = '<div id="art-audio-bar" class="show">' +
-        '<div class="aab-title"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg> Audio Language</div>' +
-        '<div class="aab-btns">'+btnHtml+'</div>' +
-        '<div class="aab-hint">Click a language to switch audio track</div>' +
-        '</div>';
     }
 
     // ── Player HTML ───────────────────────────────────────────────────────────
     var playerHtml = '';
     if (!UI.disable_player) {
-      playerHtml = '<div id="art-player-wrap"><div id="artplayer-container" style="width:100%;height:100%;min-height:270px;"></div>' + audioBarHtml + '</div>';
+      playerHtml = '<div id="art-player-wrap"><div id="artplayer-container" style="width:100%;height:100%;min-height:270px;"></div></div>';
     }
 
     // ── Page content ──────────────────────────────────────────────────────────
@@ -2528,9 +2481,47 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       artScript.src = 'https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.js';
       artScript.onload = function() {
 
-        // ── Build quality/audio controls ────────────────────────────────────
-        // Artplayer supports custom controls — we add an Audio button that
-        // shows a popup menu to switch audio tracks
+        // ── Build Artplayer setting items for audio track switching ────────────
+        // Uses Artplayer's native `setting` panel (gear icon inside player)
+        // Each detected language becomes a menu item in Audio Track setting
+        var settingItems = [];
+        if (hasMultiAudio) {
+          var audioItems = detectedLangs.map(function(lang, i) {
+            return {
+              html: lang.flag + ' ' + lang.name,
+              default: i === 0,
+              onClick: function(item) {
+                // Switch native HTML5 AudioTrack by index/key
+                var video = art.video;
+                if (video.audioTracks && video.audioTracks.length > 0) {
+                  var tracks = video.audioTracks;
+                  var matched = false;
+                  for (var t = 0; t < tracks.length; t++) {
+                    var lbl = (tracks[t].label||'').toLowerCase();
+                    var lng = (tracks[t].language||'').toLowerCase();
+                    var hit = lbl.indexOf(lang.keys[0]) !== -1 || lng.indexOf(lang.keys[0].slice(0,3)) === 0;
+                    if (!matched && hit) { tracks[t].enabled = true; matched = true; }
+                    else { tracks[t].enabled = false; }
+                  }
+                  if (!matched) {
+                    for (var t2 = 0; t2 < tracks.length; t2++) tracks[t2].enabled = (t2 === i);
+                  }
+                }
+                art.notice.show = lang.flag + ' ' + lang.name + ' Audio';
+              }
+            };
+          });
+
+          settingItems = [{
+            html: '🎵 Audio Track',
+            width: 200,
+            selector: audioItems,
+            onSelect: function(item) {
+              return item.html;
+            }
+          }];
+        }
+
         var art = new Artplayer({
           container: '#artplayer-container',
           url: url,
@@ -2544,6 +2535,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
           autoMini: false,
           screenshot: true,
           setting: true,
+          settings: settingItems,
           loop: false,
           flip: true,
           playbackRate: true,
@@ -2559,42 +2551,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
           theme: '#7c3aed',
           lang: navigator.language.slice(0,2),
         });
-
-        // ── Wire up audio language buttons ──────────────────────────────────
-        if (hasMultiAudio) {
-          var btns = document.querySelectorAll('.aab-btn');
-
-          art.on('ready', function() {
-            var video = art.video;
-
-            btns.forEach(function(btn) {
-              btn.addEventListener('click', function() {
-                var idx = parseInt(btn.getAttribute('data-idx'));
-                var key = btn.getAttribute('data-key');
-
-                // Update active state
-                btns.forEach(function(b) { b.classList.remove('active'); });
-                btn.classList.add('active');
-
-                // Switch audio track via native AudioTrackList API
-                if (video.audioTracks && video.audioTracks.length > 0) {
-                  var tracks = video.audioTracks;
-                  var matched = false;
-                  for (var t = 0; t < tracks.length; t++) {
-                    var lbl = (tracks[t].label||'').toLowerCase();
-                    var lng = (tracks[t].language||'').toLowerCase();
-                    var hit = lbl.indexOf(key) !== -1 || lng.indexOf(key.slice(0,3)) === 0;
-                    if (!matched && hit) { tracks[t].enabled = true; matched = true; }
-                    else { tracks[t].enabled = false; }
-                  }
-                  if (!matched) {
-                    for (var t2 = 0; t2 < tracks.length; t2++) tracks[t2].enabled = (t2 === idx);
-                  }
-                }
-              });
-            });
-          });
-        }
       };
       document.head.appendChild(artScript);
     }
