@@ -2921,7 +2921,7 @@ function generateGDFlixLink(fileId) {
         })
         .catch(error => {
             logError('GDFlix Error:', error);
-            // ✅ FIX: Removed alert() — UI feedback handled by button state in click handler below
+            alert('Failed to generate GDFlix link: ' + error.message);
             reject(error);
         });
     });
@@ -3038,24 +3038,24 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
             let userMessage = 'Failed to generate GKYFILEHOST link';
             
             if (error.message.includes('Failed to login')) {
-                userMessage += ' — Login to GKYFILEHOST failed. Check credentials in Cloudflare Secrets.';
+                userMessage += '\n\n⚠️ Login to GKYFILEHOST failed.\n\nPossible solutions:\n' +
+                             '1. Check your GKYFILEHOST account credentials\n' +
+                             '2. Make sure your account is active\n' +
+                             '3. Check Cloudflare Worker logs for details';
             } else if (error.message.includes('HTTP error! status: 500')) {
-                userMessage += ' — Server error (500). Check Cloudflare Worker logs.';
+                userMessage += '\n\nServer error (500).\n\nPlease check:\n' +
+                             '1. Cloudflare Worker logs for details\n' +
+                             '2. GKYFILEHOST credentials are correct\n' +
+                             '3. The file ID is valid';
             } else if (error.message.includes('HTTP error! status: 400')) {
-                userMessage += ' — Bad request (400). The file ID might be invalid.';
+                userMessage += '\n\nBad request (400). The file ID might be invalid.';
             } else if (error.message.includes('Failed to fetch')) {
-                userMessage += ' — Network error. Check your internet connection.';
+                userMessage += '\n\nNetwork error. Check your internet connection.';
             } else {
-                userMessage += ': ' + error.message;
+                userMessage += ':\n\n' + error.message;
             }
             
-            // ✅ FIX: Show error in a toast/banner instead of blocking alert()
-            const toastDiv = document.createElement('div');
-            toastDiv.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#dc3545;color:white;padding:12px 20px;border-radius:8px;z-index:9999;max-width:90%;text-align:center;font-size:14px;';
-            toastDiv.textContent = userMessage;
-            document.body.appendChild(toastDiv);
-            setTimeout(() => { if (toastDiv.parentNode) toastDiv.parentNode.removeChild(toastDiv); }, 6000);
-            
+            alert(userMessage);
             reject(error);
         });
     });
@@ -3119,11 +3119,7 @@ $(document).on('click', '.gdflix-btn', function() {
             button.prop('disabled', false).html(originalHtml);
         })
         .catch((error) => {
-            // ✅ FIX: Show error state briefly so user knows it failed (was silent before)
-            button.html('<i class="fas fa-times fa-fw"></i> Failed');
-            setTimeout(() => {
-                button.prop('disabled', false).html(originalHtml);
-            }, 2500);
+            button.prop('disabled', false).html(originalHtml);
             logError('GDFlix error:', error);
         });
 });
