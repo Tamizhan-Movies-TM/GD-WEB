@@ -2344,63 +2344,91 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	  let player_js = '';
 	  let player_css = '';
 
-    // ── Multi-Audio Track Selector CSS (injected once) ───────────────────────
+    // ── Multi-Audio Track Selector CSS ───────────────────────────────────────
     if (!document.getElementById('multi-audio-style')) {
       const audioStyle = document.createElement('style');
       audioStyle.id = 'multi-audio-style';
       audioStyle.textContent = `
-        #audio-track-panel {
-          background: rgba(20,20,35,0.95);
-          border: 1px solid rgba(255,255,255,0.15);
-          border-radius: 10px;
-          padding: 10px 14px;
-          margin-top: 8px;
+        #audio-lang-bar {
           display: none;
+          flex-direction: column;
+          background: linear-gradient(135deg,rgba(15,15,30,0.97) 0%,rgba(20,25,50,0.97) 100%);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-top: 2px solid #7c3aed;
+          border-radius: 0 0 10px 10px;
+          padding: 10px 12px 10px;
+          gap: 6px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.4);
         }
-        #audio-track-panel.visible { display: block; }
-        #audio-track-panel .audio-panel-title {
-          font-size: 12px;
-          color: rgba(255,255,255,0.5);
+        #audio-lang-bar.alb-visible { display: flex; }
+        #audio-lang-bar-label {
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
           text-transform: uppercase;
-          letter-spacing: 1px;
-          margin-bottom: 8px;
+          color: #a78bfa;
+          display: flex;
+          align-items: center;
+          gap: 5px;
         }
-        .audio-track-btn {
+        #audio-lang-bar-label svg { width:13px; height:13px; }
+        #audio-lang-buttons {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+        .alb-btn {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          background: rgba(255,255,255,0.07);
-          border: 1px solid rgba(255,255,255,0.15);
-          color: #fff;
-          border-radius: 6px;
-          padding: 5px 12px;
-          font-size: 13px;
-          cursor: pointer;
-          margin: 3px;
-          transition: background 0.2s, border-color 0.2s;
-        }
-        .audio-track-btn:hover { background: rgba(255,255,255,0.15); }
-        .audio-track-btn.active {
-          background: #007bff;
-          border-color: #007bff;
-        }
-        #audio-track-toggle {
-          background: rgba(255,255,255,0.1);
-          border: 1px solid rgba(255,255,255,0.2);
-          color: #fff;
-          border-radius: 6px;
-          padding: 4px 12px;
+          gap: 5px;
+          padding: 5px 13px;
+          border-radius: 20px;
+          border: 1.5px solid rgba(255,255,255,0.15);
+          background: rgba(255,255,255,0.06);
+          color: rgba(255,255,255,0.85);
           font-size: 12px;
+          font-weight: 500;
           cursor: pointer;
-          margin-top: 6px;
-          display: none;
-          align-items: center;
-          gap: 6px;
-          transition: background 0.2s;
+          transition: all 0.18s;
+          white-space: nowrap;
+          letter-spacing: 0.3px;
         }
-        #audio-track-toggle:hover { background: rgba(255,255,255,0.2); }
-        #audio-track-toggle.show { display: inline-flex; }
-        .audio-lang-flag { font-size: 16px; }
+        .alb-btn:hover {
+          background: rgba(124,58,237,0.25);
+          border-color: #7c3aed;
+          color: #fff;
+          transform: translateY(-1px);
+        }
+        .alb-btn.alb-active {
+          background: linear-gradient(135deg,#7c3aed,#4f46e5);
+          border-color: #7c3aed;
+          color: #fff;
+          box-shadow: 0 2px 10px rgba(124,58,237,0.45);
+        }
+        .alb-btn .alb-flag { font-size: 14px; line-height:1; }
+        .alb-no-support {
+          font-size: 11px;
+          color: rgba(255,255,255,0.45);
+          padding: 2px 0;
+        }
+        #audio-lang-bar-hint {
+          font-size: 10px;
+          color: rgba(255,255,255,0.3);
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          margin-top: 2px;
+        }
+        /* Wrap player + bar together */
+        #video-player-wrap {
+          border-radius: 10px;
+          overflow: hidden;
+          border: 1px solid rgba(255,255,255,0.08);
+        }
+        #video-player-wrap > .h-100 {
+          border-radius: 10px 10px 0 0 !important;
+          border: none !important;
+        }
       `;
       document.head.appendChild(audioStyle);
     }
@@ -2440,19 +2468,25 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     </div>
     <div class="card-body row g-3">
       <div class="col-lg-4 col-md-12">
-        <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-          ${player}
-        </div>
-        ${!UI.disable_player ? `
-        <button id="audio-track-toggle" title="Switch Audio Track">
-          <i class="fas fa-volume-up"></i> Audio Track
-        </button>
-        <div id="audio-track-panel">
-          <div class="audio-panel-title"><i class="fas fa-headphones"></i>&nbsp; Select Audio Track</div>
-          <div id="audio-track-buttons">
-            <span style="color:rgba(255,255,255,0.4); font-size:12px;">Detecting tracks…</span>
+        <div id="video-player-wrap">
+          <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
+            ${player}
           </div>
-        </div>` : ''}
+          ${!UI.disable_player ? `
+          <div id="audio-lang-bar">
+            <div id="audio-lang-bar-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              Audio Language
+            </div>
+            <div id="audio-lang-buttons">
+              <span class="alb-no-support">Loading…</span>
+            </div>
+            <div id="audio-lang-bar-hint">
+              <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Click a language to switch audio track
+            </div>
+          </div>` : ''}
+        </div>
       </div>
       <div class="col-lg-8 col-md-12">
         <table class="table table-dark">
@@ -2597,46 +2631,70 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       'und':'🔊 Unknown','unk':'🔊 Unknown',
     };
 
+    // Also try to parse language from track label text (e.g. "Tamil", "English")
+    const _labelKeywords = [
+      ['tamil','🇮🇳 Tamil'],['telugu','🇮🇳 Telugu'],['hindi','🇮🇳 Hindi'],
+      ['malayalam','🇮🇳 Malayalam'],['kannada','🇮🇳 Kannada'],
+      ['english','🇬🇧 English'],['japanese','🇯🇵 Japanese'],
+      ['korean','🇰🇷 Korean'],['french','🇫🇷 French'],['spanish','🇪🇸 Spanish'],
+    ];
+
     function _langLabel(track, idx) {
-      const lang  = (track.language || '').toLowerCase();
-      const label = (track.label   || '').trim();
-      if (label && label.toLowerCase() !== 'und') return label;
-      return _langMap[lang] || _langMap[lang.slice(0,2)] || ('Track ' + (idx + 1));
+      const lang  = (track.language || '').toLowerCase().trim();
+      const rawLabel = (track.label || '').trim();
+      const labelL = rawLabel.toLowerCase();
+
+      // Check label text for known language keywords first
+      for (const [kw, display] of _labelKeywords) {
+        if (labelL.includes(kw)) return display;
+      }
+      // Then check language code
+      if (lang && lang !== 'und') {
+        const mapped = _langMap[lang] || _langMap[lang.slice(0,2)];
+        if (mapped) return mapped;
+      }
+      // Use raw label if reasonable
+      if (rawLabel && rawLabel.toLowerCase() !== 'und') return rawLabel;
+      return 'Track ' + (idx + 1);
     }
 
-    function buildAudioTrackUI(videoEl) {
-      const toggle = document.getElementById('audio-track-toggle');
-      const panel  = document.getElementById('audio-track-panel');
-      const btnBox = document.getElementById('audio-track-buttons');
-      if (!toggle || !panel || !btnBox || !videoEl) return;
+    function renderAudioBar(videoEl) {
+      const bar    = document.getElementById('audio-lang-bar');
+      const btnBox = document.getElementById('audio-lang-buttons');
+      const hint   = document.getElementById('audio-lang-bar-hint');
+      if (!bar || !btnBox || !videoEl) return;
 
       const tracks = videoEl.audioTracks;
+
+      // No AudioTrackList support
       if (!tracks) {
-        // Browser doesn't support AudioTrackList
-        btnBox.innerHTML = '<span style="color:rgba(255,255,255,0.45);font-size:12px;">ℹ️ Your browser does not support audio track switching. Use VLC or MX Player for multi-audio files.</span>';
-        toggle.classList.add('show');
-        return;
-      }
-      if (tracks.length <= 1) {
-        toggle.classList.remove('show');
+        bar.classList.add('alb-visible');
+        btnBox.innerHTML = '<span class="alb-no-support">⚠️ Your browser does not support in-browser audio track switching for this file. Use VLC, MX Player, or XPlayer for multi-audio playback.</span>';
+        if (hint) hint.style.display = 'none';
         return;
       }
 
-      toggle.classList.add('show');
+      // Single track — hide bar entirely
+      if (tracks.length <= 1) {
+        bar.classList.remove('alb-visible');
+        return;
+      }
+
+      bar.classList.add('alb-visible');
       btnBox.innerHTML = '';
 
       for (let i = 0; i < tracks.length; i++) {
         const track = tracks[i];
         const label = _langLabel(track, i);
         const btn = document.createElement('button');
-        btn.className = 'audio-track-btn' + (track.enabled ? ' active' : '');
-        btn.textContent = label;
-        btn.dataset.idx = String(i);
-        btn.addEventListener('click', (function(idx) {
+        btn.className = 'alb-btn' + (track.enabled ? ' alb-active' : '');
+        btn.innerHTML = `<span class="alb-flag">${label.split(' ')[0]}</span><span>${label.split(' ').slice(1).join(' ') || label}</span>`;
+        btn.title = 'Switch to ' + label;
+        btn.addEventListener('click', (function(idx2) {
           return function() {
-            for (let j = 0; j < tracks.length; j++) tracks[j].enabled = (j === idx);
-            btnBox.querySelectorAll('.audio-track-btn').forEach(function(b, j) {
-              b.classList.toggle('active', j === idx);
+            for (let j = 0; j < tracks.length; j++) tracks[j].enabled = (j === idx2);
+            btnBox.querySelectorAll('.alb-btn').forEach(function(b, j) {
+              b.classList.toggle('alb-active', j === idx2);
             });
           };
         })(i));
@@ -2644,30 +2702,23 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       }
     }
 
-    function initMultiAudioPanel(videoEl) {
-      const toggle = document.getElementById('audio-track-toggle');
-      const panel  = document.getElementById('audio-track-panel');
-      if (!toggle || !panel || !videoEl) return;
-
-      toggle.addEventListener('click', function() {
-        buildAudioTrackUI(videoEl);   // refresh track list each click
-        panel.classList.toggle('visible');
-      });
-
-      // Auto-build after metadata loaded
-      videoEl.addEventListener('loadedmetadata', function() {
-        buildAudioTrackUI(videoEl);
-      });
-      if (videoEl.readyState >= 1) buildAudioTrackUI(videoEl);
+    function initAudioBar(videoEl) {
+      if (!videoEl) return;
+      videoEl.addEventListener('loadedmetadata', function() { renderAudioBar(videoEl); });
+      if (videoEl.readyState >= 1) renderAudioBar(videoEl);
+      // Retry after a short delay in case tracks load slightly late
+      setTimeout(function() { renderAudioBar(videoEl); }, 2000);
     }
 
-    // Delay slightly so the player library has time to render its video element
+    // Wait for player library to finish rendering
     setTimeout(function() {
       var vidEl = document.getElementById('player') ||
                   document.getElementById('vplayer') ||
-                  document.querySelector('.h-100 video') ||
+                  document.querySelector('#video-player-wrap video') ||
                   document.querySelector('video');
-      if (vidEl) initMultiAudioPanel(vidEl);
+      if (vidEl) {
+        initAudioBar(vidEl);
+      }
     }, 900);
   }
 }
