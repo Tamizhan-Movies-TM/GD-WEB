@@ -2484,41 +2484,51 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         // ── Build Artplayer setting items for audio track switching ────────────
         // Uses Artplayer's native `setting` panel (gear icon inside player)
         // Each detected language becomes a menu item in Audio Track setting
+        // Capture lang keys/labels for safe closure use
+        var _langKeys   = detectedLangs.map(function(l){ return l.keys[0]; });
+        var _langLabels = detectedLangs.map(function(l){ return l.flag+' '+l.name; });
+
+        // Audio switch function — called after art is defined
+        function _switchAudio(artInst, idx) {
+          var video  = artInst.video;
+          var key    = _langKeys[idx] || '';
+          if (video && video.audioTracks && video.audioTracks.length > 0) {
+            var tracks  = video.audioTracks;
+            var matched = false;
+            for (var t = 0; t < tracks.length; t++) {
+              var lbl = (tracks[t].label    || '').toLowerCase();
+              var lng = (tracks[t].language || '').toLowerCase();
+              var hit = lbl.indexOf(key) !== -1 || lng.indexOf(key.slice(0,3)) === 0;
+              if (!matched && hit) { tracks[t].enabled = true;  matched = true; }
+              else                 { tracks[t].enabled = false; }
+            }
+            if (!matched) {
+              for (var t2 = 0; t2 < tracks.length; t2++) tracks[t2].enabled = (t2 === idx);
+            }
+          }
+          artInst.notice.show = _langLabels[idx] + ' Audio';
+        }
+
         var settingItems = [];
         if (hasMultiAudio) {
           var audioItems = detectedLangs.map(function(lang, i) {
             return {
-              html: lang.flag + ' ' + lang.name,
-              default: i === 0,
-              onClick: function(item) {
-                // Switch native HTML5 AudioTrack by index/key
-                var video = art.video;
-                if (video.audioTracks && video.audioTracks.length > 0) {
-                  var tracks = video.audioTracks;
-                  var matched = false;
-                  for (var t = 0; t < tracks.length; t++) {
-                    var lbl = (tracks[t].label||'').toLowerCase();
-                    var lng = (tracks[t].language||'').toLowerCase();
-                    var hit = lbl.indexOf(lang.keys[0]) !== -1 || lng.indexOf(lang.keys[0].slice(0,3)) === 0;
-                    if (!matched && hit) { tracks[t].enabled = true; matched = true; }
-                    else { tracks[t].enabled = false; }
-                  }
-                  if (!matched) {
-                    for (var t2 = 0; t2 < tracks.length; t2++) tracks[t2].enabled = (t2 === i);
-                  }
-                }
-                art.notice.show = lang.flag + ' ' + lang.name + ' Audio';
-              }
+              html    : lang.flag + ' ' + lang.name,
+              tooltip : lang.name,
+              default : i === 0,
+              onClick : (function(capturedIdx){
+                return function(item) { _switchAudio(art, capturedIdx); return item; };
+              })(i),
             };
           });
-
           settingItems = [{
-            html: '🎵 Audio Track',
-            width: 200,
+            html    : '\ud83c\udfb5 Audio',
+            tooltip : (detectedLangs[0] ? detectedLangs[0].name : ''),
+            width   : 200,
             selector: audioItems,
             onSelect: function(item) {
-              return item.html;
-            }
+              return item.tooltip || item.html;
+            },
           }];
         }
 
