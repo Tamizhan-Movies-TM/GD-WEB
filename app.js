@@ -2331,382 +2331,274 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 }
 
 
-  // Document display video  mkv|mp4|webm|avi| 
-   function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-	 // Define all player icons
-    const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
-    const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
-	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-	  let player = '';
-	  let player_js = '';
-	  let player_css = '';
+  // Document display video  mkv|mp4|webm|avi|
+  function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+    const vlc_icon     = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height:32px;width:32px;margin-right:5px;">`;
+    const mxplayer_icon= `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height:32px;width:32px;margin-right:5px;">`;
+    const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/xplayer-icon.png" alt="XPlayer" style="height:32px;width:32px;margin-right:5px;">`;
+    const playit_icon  = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height:32px;width:32px;margin-right:5px;">`;
+    const copyFileBox  = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // MULTI-AUDIO: Parse language names from filename
-  // Supports formats like: [Tamil + Telugu + Hindi + English]
-  //                        [Tamil+Telugu+Hindi]   Tamil.Telugu.Hindi
-  // Returns array of display labels, e.g. ["🇮🇳 Tamil","🇮🇳 Telugu","🇮🇳 Hindi","🇬🇧 English"]
-  // ─────────────────────────────────────────────────────────────────────────
-  // ── Language alias table: maps every common abbreviation/variation → display ──
-  // Covers Tamil movie release naming conventions (Tam, Tam+Tel, Org Aud, etc.)
-  const _LANG_ALIASES = [
-    // Tamil
-    { patterns: ['tamil','tam','tamilhq','tam.','tam_','tam+'],       label: '🇮🇳 Tamil',      key: 'tamil' },
-    // Telugu
-    { patterns: ['telugu','tel','te.','tel.','tel_'],                  label: '🇮🇳 Telugu',     key: 'telugu' },
-    // Hindi
-    { patterns: ['hindi','hin','hin.','hin_','hind'],                  label: '🇮🇳 Hindi',      key: 'hindi' },
-    // Malayalam
-    { patterns: ['malayalam','mal','mal.','mal_'],                     label: '🇮🇳 Malayalam',  key: 'malayalam' },
-    // Kannada
-    { patterns: ['kannada','kan','kan.','kan_'],                       label: '🇮🇳 Kannada',    key: 'kannada' },
-    // English
-    { patterns: ['english','eng','eng.','eng_','en.'],                 label: '🇬🇧 English',    key: 'english' },
-    // Japanese
-    { patterns: ['japanese','jpn','jap','jp.'],                        label: '🇯🇵 Japanese',   key: 'japanese' },
-    // Korean
-    { patterns: ['korean','kor','ko.'],                                label: '🇰🇷 Korean',     key: 'korean' },
-    // French
-    { patterns: ['french','fra','fre','fr.'],                          label: '🇫🇷 French',     key: 'french' },
-    // Spanish
-    { patterns: ['spanish','spa','esp','es.'],                         label: '🇪🇸 Spanish',    key: 'spanish' },
-    // Arabic
-    { patterns: ['arabic','ara','arab'],                               label: '🇸🇦 Arabic',     key: 'arabic' },
-    // Chinese
-    { patterns: ['chinese','chi','zho','mandarin','cantonese'],        label: '🇨🇳 Chinese',    key: 'chinese' },
-    // German
-    { patterns: ['german','ger','deu'],                                label: '🇩🇪 German',     key: 'german' },
-    // Russian
-    { patterns: ['russian','rus'],                                     label: '🇷🇺 Russian',    key: 'russian' },
-    // Portuguese
-    { patterns: ['portuguese','por','pt.'],                            label: '🇵🇹 Portuguese', key: 'portuguese' },
-    // Italian
-    { patterns: ['italian','ita','it.'],                               label: '🇮🇹 Italian',    key: 'italian' },
-    // Thai
-    { patterns: ['thai','tha'],                                        label: '🇹🇭 Thai',       key: 'thai' },
-    // Turkish
-    { patterns: ['turkish','tur','trk'],                               label: '🇹🇷 Turkish',    key: 'turkish' },
-  ];
+    // ── Parse language names from filename ────────────────────────────────────
+    // Handles: [Tamil+Telugu+Hindi+English]  Tam_Hin_Eng  Tamil.Telugu.Hindi  etc.
+    const LANG_MAP = [
+      { keys:['tamil','tam'],        flag:'🇮🇳', name:'Tamil'     },
+      { keys:['telugu','tel'],       flag:'🇮🇳', name:'Telugu'    },
+      { keys:['hindi','hin'],        flag:'🇮🇳', name:'Hindi'     },
+      { keys:['malayalam','mal'],    flag:'🇮🇳', name:'Malayalam' },
+      { keys:['kannada','kan'],      flag:'🇮🇳', name:'Kannada'   },
+      { keys:['english','eng'],      flag:'🇬🇧', name:'English'   },
+      { keys:['japanese','jpn','jap'],flag:'🇯🇵',name:'Japanese'  },
+      { keys:['korean','kor'],       flag:'🇰🇷', name:'Korean'    },
+      { keys:['french','fra','fre'], flag:'🇫🇷', name:'French'    },
+      { keys:['spanish','spa'],      flag:'🇪🇸', name:'Spanish'   },
+      { keys:['arabic','ara'],       flag:'🇸🇦', name:'Arabic'    },
+      { keys:['chinese','chi','zho'],flag:'🇨🇳', name:'Chinese'   },
+      { keys:['german','ger'],       flag:'🇩🇪', name:'German'    },
+      { keys:['russian','rus'],      flag:'🇷🇺', name:'Russian'   },
+    ];
 
-  function parseLanguagesFromName(fname) {
-    const lower = fname.toLowerCase();
-    const langs = [];
-
-    // ── Step 1: try to find a bracket section [Tamil + Telugu + Hindi + English] ──
-    // Also handles parentheses: (Tamil+Telugu+Hindi)
-    const bracketRx = /[\[\(]([^\]\)]{3,80})[\]\)]/g;
-    const segments = [];
-    let m;
-    while ((m = bracketRx.exec(lower)) !== null) segments.push(m[1]);
-    // If no useful bracket found, use full filename
-    if (segments.length === 0) segments.push(lower);
-
-    // ── Step 2: for each segment, tokenise and match ──────────────────────────
-    // Tokenise: split on space, +, |, &, comma, dot, underscore, hyphen (but keep tokens)
-    for (const seg of segments) {
-      // Normalise separators to space
-      const normalised = seg.replace(/[\+\|\&,\._\-]+/g, ' ');
-      // Also try matching raw segment for compound tokens like "tamhinen" 
-      const tokens = normalised.split(/\s+/).map(t => t.trim()).filter(t => t.length >= 2);
-
-      for (const token of tokens) {
-        for (const entry of _LANG_ALIASES) {
-          if (langs.find(l => l.key === entry.key)) continue; // already added
-          for (const pat of entry.patterns) {
-            // Exact match OR token starts with pattern (e.g. "tam" matches "tam", "tamil")
-            if (token === pat.replace(/[.\+_]$/,'') || token.startsWith(pat.replace(/[.\+_]$/,''))) {
-              langs.push({ key: entry.key, label: entry.label });
-              break;
+    function detectLangs(fname) {
+      const s = fname.toLowerCase().replace(/[\[\]\(\)]/g,' ');
+      // normalise all separators to space
+      const words = s.replace(/[\+\|\&,\._\-]+/g,' ').split(/\s+/).filter(w=>w.length>=2);
+      const found = [];
+      for (const entry of LANG_MAP) {
+        if (found.find(f=>f.name===entry.name)) continue;
+        for (const key of entry.keys) {
+          if (words.some(w => w===key || w.startsWith(key))) {
+            found.push(entry); break;
+          }
+        }
+      }
+      // fallback: raw word boundary scan
+      if (found.length < 2) {
+        for (const entry of LANG_MAP) {
+          if (found.find(f=>f.name===entry.name)) continue;
+          for (const key of entry.keys) {
+            if (key.length < 3) continue;
+            if (new RegExp('(?:^|[^a-z])'+key+'(?:[^a-z]|$)').test(s)) {
+              found.push(entry); break;
             }
           }
         }
       }
+      return found;
     }
 
-    // ── Step 3: fallback — scan raw filename for known full words/abbrevs ────
-    // This catches cases like "Tam_Hin_Eng" where step 2 might miss on edge cases
-    if (langs.length < 2) {
-      for (const entry of _LANG_ALIASES) {
-        if (langs.find(l => l.key === entry.key)) continue;
-        for (const pat of entry.patterns) {
-          const cleanPat = pat.replace(/[.\+_]$/,'');
-          if (cleanPat.length < 2) continue;
-          // Use word-boundary-like check: preceded/followed by non-alpha
-          const rx = new RegExp('(?:^|[^a-z])' + cleanPat + '(?:[^a-z]|$)');
-          if (rx.test(lower)) {
-            langs.push({ key: entry.key, label: entry.label });
-            break;
-          }
+    const detectedLangs = detectLangs(name);
+    const hasMultiAudio = !UI.disable_player && detectedLangs.length > 1;
+
+    // ── Artplayer CSS / audio-bar CSS (injected once) ─────────────────────────
+    if (!document.getElementById('art-multi-audio-css')) {
+      const st = document.createElement('style');
+      st.id = 'art-multi-audio-css';
+      st.textContent = `
+        #art-player-wrap { border-radius:10px; overflow:hidden; background:#000; }
+        /* Artplayer default overrides */
+        .art-video-player { border-radius:10px 10px 0 0; min-height:200px; }
+        /* Audio language bar */
+        #art-audio-bar {
+          background:#0d0d1a;
+          border:1px solid rgba(255,255,255,0.07);
+          border-top:2.5px solid #7c3aed;
+          padding:10px 14px 12px;
+          border-radius:0 0 10px 10px;
+          display:none;
         }
-      }
+        #art-audio-bar.show { display:block; }
+        .aab-title {
+          font-size:9px; font-weight:800; letter-spacing:2px;
+          text-transform:uppercase; color:#a78bfa;
+          margin-bottom:8px; display:flex; align-items:center; gap:5px;
+        }
+        .aab-btns { display:flex; flex-wrap:wrap; gap:6px; }
+        .aab-btn {
+          display:inline-flex; align-items:center; gap:5px;
+          padding:6px 16px; border-radius:50px;
+          border:1.5px solid rgba(255,255,255,0.15);
+          background:rgba(255,255,255,0.05);
+          color:rgba(255,255,255,0.8); font-size:13px; font-weight:500;
+          cursor:pointer; transition:all .15s; white-space:nowrap;
+        }
+        .aab-btn:hover { background:rgba(124,58,237,.3); border-color:#7c3aed; color:#fff; }
+        .aab-btn.active {
+          background:linear-gradient(135deg,#7c3aed,#4338ca);
+          border-color:#7c3aed; color:#fff;
+          box-shadow:0 2px 12px rgba(124,58,237,.55);
+        }
+        .aab-flag { font-size:16px; line-height:1; }
+        .aab-hint { font-size:10px; color:rgba(255,255,255,.28); margin-top:6px; }
+      `;
+      document.head.appendChild(st);
     }
 
-    return langs;
-  }
+    // ── Build audio bar HTML ──────────────────────────────────────────────────
+    var audioBarHtml = '';
+    if (hasMultiAudio) {
+      var btnHtml = detectedLangs.map(function(l, i) {
+        return '<button class="aab-btn'+(i===0?' active':'')+'" data-idx="'+i+'" data-key="'+l.keys[0]+'">' +
+               '<span class="aab-flag">'+l.flag+'</span>'+l.name+'</button>';
+      }).join('');
+      audioBarHtml = '<div id="art-audio-bar" class="show">' +
+        '<div class="aab-title"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg> Audio Language</div>' +
+        '<div class="aab-btns">'+btnHtml+'</div>' +
+        '<div class="aab-hint">Click a language to switch audio track</div>' +
+        '</div>';
+    }
 
-  const _detectedLangs = !UI.disable_player ? parseLanguagesFromName(name) : [];
+    // ── Player HTML ───────────────────────────────────────────────────────────
+    var playerHtml = '';
+    if (!UI.disable_player) {
+      playerHtml = '<div id="art-player-wrap"><div id="artplayer-container" style="width:100%;height:100%;min-height:270px;"></div>' + audioBarHtml + '</div>';
+    }
 
-  // ── Inject CSS once ───────────────────────────────────────────────────────
-  if (!document.getElementById('alb-css')) {
-    const _s = document.createElement('style');
-    _s.id = 'alb-css';
-    _s.textContent = `
-      .alb-outer { border-radius: 8px; overflow: hidden; }
-      .alb-outer .h-100 { border-radius: 8px 8px 0 0 !important; }
-      #alb-bar {
-        background: #0f0f1e;
-        border: 1px solid rgba(255,255,255,0.08);
-        border-top: 2.5px solid #7c3aed;
-        padding: 9px 12px 11px;
-        border-radius: 0 0 8px 8px;
-      }
-      .alb-head {
-        font-size: 9px; font-weight: 800; letter-spacing: 2px;
-        text-transform: uppercase; color: #a78bfa;
-        margin-bottom: 7px; display: flex; align-items: center; gap: 5px;
-      }
-      .alb-row { display: flex; flex-wrap: wrap; gap: 6px; }
-      .alb-b {
-        padding: 5px 14px; border-radius: 50px;
-        border: 1.5px solid rgba(255,255,255,0.15);
-        background: rgba(255,255,255,0.04);
-        color: rgba(255,255,255,0.78); font-size: 12.5px; font-weight: 500;
-        cursor: pointer; transition: all .15s; white-space: nowrap; line-height: 1.3;
-      }
-      .alb-b:hover { background:rgba(124,58,237,.28); border-color:#7c3aed; color:#fff; }
-      .alb-b.alb-sel {
-        background: linear-gradient(135deg,#7c3aed,#4338ca);
-        border-color:#7c3aed; color:#fff;
-        box-shadow: 0 2px 10px rgba(124,58,237,.5);
-      }
-      .alb-note { font-size:10px; color:rgba(255,255,255,.28); margin-top:6px; }
-    `;
-    document.head.appendChild(_s);
-  }
-
-	  if (!UI.disable_player) {
-		 if (player_config.player == "plyr") {
-			player = `<video id="player" playsinline controls data-poster="${poster}">
-      <source src="${url}" type="video/mp4" />
-      <source src="${url}" type="video/webm" />
-        </video>`
-			player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
-			player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
-		} else if (player_config.player == "videojs") {
-			player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
-      <source src="${url}" type="video/mp4" />
-      <source src="${url}" type="video/webm" />
-      <source src="${url}" type="video/avi" />
-    </video>`
-			player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
-			player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
-		} else if (player_config.player == "dplayer") {
-			player = `<div id="player-container"></div>`
-			player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js'
-			player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css'
-		} else if (player_config.player == "jwplayer") {
-			player = `<div id="player"></div>`
-			player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
-			player_css = ''
-		}
-	}
-
-  // ── Build audio language bar HTML — buttons rendered directly in HTML ───────
-  // Buttons are rendered statically so they appear immediately without waiting
-  // for player JS to load. Click handlers are attached after DOM is ready.
-  var _albBtnsHtml = '';
-  if (!UI.disable_player && _detectedLangs.length > 1) {
-    _detectedLangs.forEach(function(lang, i) {
-      _albBtnsHtml += '<button class="alb-b' + (i === 0 ? ' alb-sel' : '') + '" data-alb-idx="' + i + '" data-alb-key="' + lang.key + '">' + lang.label + '</button>';
-    });
-  }
-  var _albHtml = (_albBtnsHtml) ? (
-    '<div id="alb-bar">' +
-      '<div class="alb-head">' +
-        '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>' +
-        ' Audio Language' +
-      '</div>' +
-      '<div class="alb-row" id="alb-btns">' + _albBtnsHtml + '</div>' +
-      '<div class="alb-note">Select your preferred language audio track</div>' +
-    '</div>'
-  ) : '';
-
- // Add the container and card elements
-  var content = `
-  <div class="card">
-    <div class="card-header ${UI.file_view_alert_class}">
-      <i class="fas fa-file-alt fa-fw"></i>File Information
-    </div>
-    <div class="card-body row g-3">
-      <div class="col-lg-4 col-md-12">
-        <div class="alb-outer">
-          <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-            ${player}
-          </div>
-          ${_albHtml}
+    // ── Page content ──────────────────────────────────────────────────────────
+    var content = `
+    <div class="card">
+      <div class="card-header ${UI.file_view_alert_class}">
+        <i class="fas fa-file-alt fa-fw"></i>File Information
+      </div>
+      <div class="card-body row g-3">
+        <div class="col-lg-4 col-md-12">
+          ${playerHtml}
+        </div>
+        <div class="col-lg-8 col-md-12">
+          <table class="table table-dark">
+            <tbody>
+              <tr>
+                <th><i class="fa-regular fa-folder-closed fa-fw"></i><span class="tth">Name</span></th>
+                <td>${escapeHtml(name)}</td>
+              </tr>
+              <tr>
+                <th><i class="fa-regular fa-clock fa-fw"></i><span class="tth">Datetime</span></th>
+                <td>${createdTime}</td>
+              </tr>
+              <tr>
+                <th><i class="fa-solid fa-tag fa-fw"></i><span class="tth">Type</span></th>
+                <td>${formatMimeType(mimeType)}</td>
+              </tr>
+              <tr>
+                <th><i class="fa-solid fa-box-archive fa-fw"></i><span class="tth">Size</span></th>
+                <td>${size}</td>
+              </tr>
+            </tbody>
+          </table>
+          ${UI.disable_video_download ? '' : `
+          <div class="col-md-12">
+            <div class="text-center">
+              <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+              <div class="btn-group text-center">
+                ${UI.display_drive_link ? `<button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ''}
+                ${isUserLoggedIn()
+                  ? `<a href="${url}" type="button" class="btn btn-success" download><i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱</a>`
+                  : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}"><i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱</a>`}
+                <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span class="sr-only"></span>
+                </button>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
+                  <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
+                  <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
+                  <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
+                </div>
+              </div>
+            </div>
+          </div>`}
         </div>
       </div>
-      <div class="col-lg-8 col-md-12">
-        <table class="table table-dark">
-          <tbody>
-            <tr>
-              <th>
-                <i class="fa-regular fa-folder-closed fa-fw"></i>
-                <span class="tth">Name</span>
-              </th>
-              <td>${escapeHtml(name)}</td>
-            </tr>
-            <tr>
-              <th>
-                <i class="fa-regular fa-clock fa-fw"></i>
-                <span class="tth">Datetime</span>
-              </th>
-              <td>${createdTime}</td>
-            </tr>
-            <tr>
-              <th>
-                <i class="fa-solid fa-tag fa-fw"></i>
-                <span class="tth">Type</span>
-              </th>
-              <td>${formatMimeType(mimeType)}</td>
-            </tr>
-            <tr>
-              <th>
-                <i class="fa-solid fa-box-archive fa-fw"></i>
-                  <span class="tth">Size</span>
-                    </th>
-                    <td>${size}</td>
-                    </td>
-					     </tr>
-				     </tbody>
-			    </table>
-        ${UI.disable_video_download ? `` : `
-      <div class="col-md-12">
-        <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-          <div class="btn-group text-center"> 
-            ${UI.display_drive_link ? ` 
-           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
-          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          ${isUserLoggedIn() 
-            ? `<a href="${url}" type="button" class="btn btn-success" download>
-                 <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-               </a>`
-            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
-          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
-           </a>`
-          }
-            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split" 
-                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="sr-only"></span>
-            </button>
-            <div class="dropdown-menu">
-              <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a> 
-             </div>
-           </div> 
-         </div>`}
-       </div>
-      </div>`; 
+    </div>`;
+
     $("#content").html(content);
 
-  // ── Attach audio language button click handlers ────────────────────────────
-  // Buttons are already in DOM; we wire up the click logic here.
-  if (!UI.disable_player && _detectedLangs.length > 1) {
-    document.querySelectorAll('.alb-b').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var idx = parseInt(btn.getAttribute('data-alb-idx'));
-        var key = btn.getAttribute('data-alb-key');
+    // ── Load Artplayer and init ───────────────────────────────────────────────
+    if (!UI.disable_player) {
+      // Load Artplayer CSS
+      if (!document.getElementById('artplayer-css')) {
+        var artCss = document.createElement('link');
+        artCss.id  = 'artplayer-css';
+        artCss.rel = 'stylesheet';
+        artCss.href= 'https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.css';
+        document.head.appendChild(artCss);
+      }
 
-        // Highlight active button
-        document.querySelectorAll('.alb-b').forEach(function(b) { b.classList.remove('alb-sel'); });
-        btn.classList.add('alb-sel');
+      // Load Artplayer JS
+      var artScript = document.createElement('script');
+      artScript.src = 'https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.js';
+      artScript.onload = function() {
 
-        // ── Try native HTML5 AudioTrackList (Chrome/Edge) ──────────────────
-        var vEl = document.querySelector('#vplayer') || document.querySelector('video');
-        if (vEl && vEl.audioTracks && vEl.audioTracks.length > 0) {
-          var tracks = vEl.audioTracks;
-          var matched = false;
-          // First pass: match by language code or label
-          for (var t = 0; t < tracks.length; t++) {
-            var tLbl = (tracks[t].label || '').toLowerCase();
-            var tLng = (tracks[t].language || '').toLowerCase();
-            var hit  = tLbl.indexOf(key) !== -1 || tLng.indexOf(key.slice(0,3)) === 0;
-            if (!matched && hit) { tracks[t].enabled = true; matched = true; }
-            else { tracks[t].enabled = false; }
-          }
-          // Second pass: fall back to positional index
-          if (!matched) {
-            for (var t2 = 0; t2 < tracks.length; t2++) tracks[t2].enabled = (t2 === idx);
-          }
+        // ── Build quality/audio controls ────────────────────────────────────
+        // Artplayer supports custom controls — we add an Audio button that
+        // shows a popup menu to switch audio tracks
+        var art = new Artplayer({
+          container: '#artplayer-container',
+          url: url,
+          poster: poster || '',
+          volume: 1,
+          isLive: false,
+          muted: false,
+          autoplay: false,
+          pip: true,
+          autoSize: false,
+          autoMini: false,
+          screenshot: true,
+          setting: true,
+          loop: false,
+          flip: true,
+          playbackRate: true,
+          aspectRatio: true,
+          fullscreen: true,
+          fullscreenWeb: true,
+          miniProgressBar: true,
+          mutex: true,
+          backdrop: true,
+          playsInline: true,
+          autoPlayback: true,
+          airplay: true,
+          theme: '#7c3aed',
+          lang: navigator.language.slice(0,2),
+        });
+
+        // ── Wire up audio language buttons ──────────────────────────────────
+        if (hasMultiAudio) {
+          var btns = document.querySelectorAll('.aab-btn');
+
+          art.on('ready', function() {
+            var video = art.video;
+
+            btns.forEach(function(btn) {
+              btn.addEventListener('click', function() {
+                var idx = parseInt(btn.getAttribute('data-idx'));
+                var key = btn.getAttribute('data-key');
+
+                // Update active state
+                btns.forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+
+                // Switch audio track via native AudioTrackList API
+                if (video.audioTracks && video.audioTracks.length > 0) {
+                  var tracks = video.audioTracks;
+                  var matched = false;
+                  for (var t = 0; t < tracks.length; t++) {
+                    var lbl = (tracks[t].label||'').toLowerCase();
+                    var lng = (tracks[t].language||'').toLowerCase();
+                    var hit = lbl.indexOf(key) !== -1 || lng.indexOf(key.slice(0,3)) === 0;
+                    if (!matched && hit) { tracks[t].enabled = true; matched = true; }
+                    else { tracks[t].enabled = false; }
+                  }
+                  if (!matched) {
+                    for (var t2 = 0; t2 < tracks.length; t2++) tracks[t2].enabled = (t2 === idx);
+                  }
+                }
+              });
+            });
+          });
         }
-      });
-    });
+      };
+      document.head.appendChild(artScript);
+    }
   }
-
-  // GDFlix handler is registered once at module level (see bottom of file)
-
-  // Load Video.js and initialize the player
-	if (!UI.disable_player && player_js) {
-	var videoJsScript = document.createElement('script');
-	videoJsScript.src = player_js;
-	videoJsScript.onload = function() {
-		// Video.js is loaded, initialize the player
-		if (player_config.player == "plyr") {
-			const player = new Plyr('#player');
-		} else if (player_config.player == "videojs") {
-      var vjsPlayer = videojs('vplayer');
-		} else if (player_config.player == "dplayer") {
-			const dp = new DPlayer({
-				container: document.getElementById('player-container'),
-				screenshot: true,
-				video: {
-					url: url,
-					pic: poster,
-					thumbnails: poster,
-				},
-			});
-		} else if (player_config.player == "jwplayer") {
-			jwplayer("player").setup({
-				file: url,
-				type: mimeType,
-				autostart: false,
-				image: poster,
-				width: "100%",
-				aspectratio: "16:9",
-				title: name,
-				description: "Powered by Google Drive Index",
-				tracks: [{
-					file: url,
-					kind: "captions",
-					label: "Default",
-					"default": true,
-				}],
-				captions: {
-					color: "#f3f378",
-					fontSize: 14,
-					backgroundOpacity: 50,
-					edgeStyle: "raised",
-				},
-			});
-		}
-	};
-	document.head.appendChild(videoJsScript);
-
-	if (player_css) {
-	var videoJsStylesheet = document.createElement('link');
-	videoJsStylesheet.href = player_css;
-	videoJsStylesheet.rel = 'stylesheet';
-	document.head.appendChild(videoJsStylesheet);
-	}
-	}
-}
-
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
