@@ -58,17 +58,12 @@ function _getIcon(ext, mimeType, iconLink) {
 function isUserLoggedIn() {
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
-        const trimmed = cookie.trim();
-        // ✅ FIX: Use indexOf to split on FIRST '=' only — base64 session tokens contain multiple '='
-        const eqIdx = trimmed.indexOf('=');
-        if (eqIdx < 1) continue;
-        const name = trimmed.substring(0, eqIdx);
-        const value = trimmed.substring(eqIdx + 1);
+        const [name, value] = cookie.trim().split('=');
         if (name === 'session') {
             const sessionValue = value ? value.trim() : '';
             // Check if session has a valid value
             if (sessionValue && sessionValue !== 'null' && sessionValue !== '' && sessionValue !== 'undefined') {
-                log('User is logged in, session:', sessionValue.substring(0, 20) + '...');
+                log('User is logged in, session:', sessionValue);
                 return true;
             }
         }
