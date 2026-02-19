@@ -45,21 +45,25 @@ function _getIcon(ext, mimeType, iconLink) {
 // =====================================================================
 
 // Check if user is logged in by verifying session cookie
+// PERF: Result cached for the lifetime of the page — cookie only parsed once
+let _loginCache = null;
 function isUserLoggedIn() {
+    if (_loginCache !== null) return _loginCache;
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
+        const eq = cookie.indexOf('=');
+        if (eq === -1) continue;
+        const name = cookie.substring(0, eq).trim();
         if (name === 'session') {
-            const sessionValue = value ? value.trim() : '';
-            // Check if session has a valid value
-            if (sessionValue && sessionValue !== 'null' && sessionValue !== '' && sessionValue !== 'undefined') {
+            const sessionValue = cookie.substring(eq + 1).trim();
+            if (sessionValue && sessionValue !== 'null' && sessionValue !== 'undefined') {
                 log('User is logged in, session:', sessionValue);
-                return true;
+                return (_loginCache = true);
             }
         }
     }
     log('User is not logged in');
-    return false;
+    return (_loginCache = false);
 }
 
 // ============================================
@@ -865,48 +869,57 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 		page_token: params['page_token'] || '',
 		page_index: params['page_index'] || 0
 	};
-	$('#update').show();
-	document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Connecting...</div>`;
-	if (fallback) {
-		path = "/0:fallback"
-	}
+	// PERF: Only show "Connecting..." if request takes >300ms — avoids flash on fast connections
+	var _connectingTimer = setTimeout(function() {
+		var upd = document.getElementById('update');
+		if (upd) { upd.style.display = ''; upd.innerHTML = "<div class='alert alert-info' role='alert'> Connecting...</div>"; }
+	}, 300);
+
+	if (fallback) { path = "/0:fallback"; }
+
+	// PERF: Retry delay reduced 2000ms → 500ms (saves up to 4s wasted wait time)
+	const RETRY_DELAY = 500;
+	// PERF: Hard 8s timeout per request via AbortController
+	const REQUEST_TIMEOUT = 8000;
 
 	function performRequest(remainingRetries) {
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
 		fetch(fallback ? "/0:fallback" : path, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(requestData)
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(requestData),
+				signal: controller.signal
 			})
 			.then(function(response) {
+				clearTimeout(timeoutId);
 				if (response.status === 500) {
 					document.getElementById('list').innerHTML = `<div class="text-center">
 					<div class="card-body text-center">
-					  <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>500.</b> That’s an error.</div>
+					  <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>500.</b> That's an error.</div>
 					</div>
-					<p>The requested URL was not found on this server. That’s all we know.</p>
+					<p>The requested URL was not found on this server. That's all we know.</p>
 					<div class="card-text text-center">
 					  <div class="btn-group text-center">
 						<a href="/" type="button" class="btn btn-success">Homepage</a>
 					  </div>
 					</div><br>
 				  </div>`;
+					clearTimeout(_connectingTimer);
 					$('#update').hide();
-					return 500
+					return 500;
 				}
-				if (!response.ok) {
-					throw new Error('Request failed');
-				}
+				if (!response.ok) throw new Error('Request failed');
 				return response.json();
 			})
 			.then(function(res) {
+				clearTimeout(_connectingTimer);
 				if (res && res.error && res.error.code === 401) {
-					// Password verification failed
 					askPassword(path);
 				} else if (res && res.data === null) {
 					document.getElementById('spinner').remove();
-					document.getElementById('list').innerHTML = `<div class='alert alert-danger' role='alert'> Server didn't send any data.</div>`;
+					document.getElementById('list').innerHTML = "<div class='alert alert-danger' role='alert'> Server didn't send any data.</div>";
 					$('#update').hide();
 				} else if (res && res.data) {
 					resultCallback(res, path, requestData);
@@ -914,21 +927,25 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 				}
 			})
 			.catch(async function(error) {
+				clearTimeout(timeoutId);
 				if (remainingRetries > 0) {
-					document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Retrying...</div>`;
-					await sleep(2000);
+					var upd = document.getElementById('update');
+					if (upd) { upd.style.display = ''; upd.innerHTML = "<div class='alert alert-info' role='alert'> Retrying...</div>"; }
+					await sleep(RETRY_DELAY);
 					performRequest(remainingRetries - 1);
 				} else {
-					document.getElementById('update').innerHTML = `<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div>`;
-					document.getElementById('list').innerHTML = `<div class='alert alert-danger' role='alert'> We were unable to get data from the server. ` + error + `</div>`;
+					clearTimeout(_connectingTimer);
+					var upd = document.getElementById('update');
+					if (upd) upd.innerHTML = "<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div>";
+					var lst = document.getElementById('list');
+					if (lst) lst.innerHTML = "<div class='alert alert-danger' role='alert'> We were unable to get data from the server. " + error + "</div>";
 					$('#update').hide();
 				}
 			});
 	}
-	log("Performing Request again")
+	log("Performing Request");
 	performRequest(retries);
 }
-
 
 /**
  * Search POST request
@@ -942,24 +959,34 @@ function requestSearch(params, resultCallback, retries = 3) {
 		page_index: params['page_index'] || 0
 	};
 
+	// PERF: Defer "Connecting..." banner 300ms so fast responses show nothing
+	var _connectingTimer = setTimeout(function() {
+		$('#update').html("<div class='alert alert-info' role='alert'> Connecting...</div>");
+	}, 300);
+
+	const RETRY_DELAY = 500;
+	const REQUEST_TIMEOUT = 8000;
+
 	function performRequest(retries) {
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
 		fetch(`/${window.current_drive_order}:search`, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(p)
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(p),
+				signal: controller.signal
 			})
 			.then(function(response) {
-				if (!response.ok) {
-					throw new Error('Request failed');
-				}
+				clearTimeout(timeoutId);
+				if (!response.ok) throw new Error('Request failed');
 				return response.json();
 			})
 			.then(function(res) {
+				clearTimeout(_connectingTimer);
 				if (res && res.data === null) {
 					$('#spinner').remove();
-					$('#list').html(`<div class='alert alert-danger' role='alert'> Server didn't send any data.</div>`);
+					$('#list').html("<div class='alert alert-danger' role='alert'> Server didn't send any data.</div>");
 					$('#update').remove();
 				}
 				if (res && res.data) {
@@ -968,22 +995,22 @@ function requestSearch(params, resultCallback, retries = 3) {
 				}
 			})
 			.catch(async function(error) {
+				clearTimeout(timeoutId);
 				if (retries > 0) {
-					await sleep(2000);
-					$('#update').html(`<div class='alert alert-info' role='alert'> Retrying...</div>`);
+					await sleep(RETRY_DELAY);
+					$('#update').html("<div class='alert alert-info' role='alert'> Retrying...</div>");
 					performRequest(retries - 1);
 				} else {
-					$('#update').html(`<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong. 3 Failures</div>`);
-					$('#list').html(`<div class='alert alert-danger' role='alert'> We were unable to get data from the server.</div>`);
+					clearTimeout(_connectingTimer);
+					$('#update').html("<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong. 3 Failures</div>");
+					$('#list').html("<div class='alert alert-danger' role='alert'> We were unable to get data from the server.</div>");
 					$('#spinner').remove();
 				}
 			});
 	}
 
-	$('#update').html(`<div class='alert alert-info' role='alert'> Connecting...</div>`);
 	performRequest(retries);
 }
-
 
 // Render file list
 function list(path, id = '', fallback = false) {
@@ -1297,7 +1324,7 @@ function append_files_to_fallback_list(path, files) {
 
 		// When it is page 1, remove the horizontal loading bar
 		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+	if ($list.data('curPageIndex') == 0) { $list[0].innerHTML = html; } else { $list[0].insertAdjacentHTML('beforeend', html); }
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
 			if (total_files == 0) {
@@ -1426,7 +1453,7 @@ function append_files_to_list(path, files) {
 
 	// When it is page 1, remove the horizontal loading bar
 	// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+	if ($list.data('curPageIndex') == 0) { $list[0].innerHTML = html; } else { $list[0].insertAdjacentHTML('beforeend', html); }
 	// When it is the last page, count and display the total number of items
 	if (is_lastpage_loaded) {
 		total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1658,7 +1685,7 @@ function append_search_result_to_list(files) {
 		}
 		// When it is page 1, remove the horizontal loading bar
 		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+	if ($list.data('curPageIndex') == 0) { $list[0].innerHTML = html; } else { $list[0].insertAdjacentHTML('beforeend', html); }
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
 			total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1819,11 +1846,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     }
                     
                     retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 500));
                 } catch (error) {
                     logError('Get2Short error:', error);
                     retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 500));
                 }
             }
             
@@ -1854,11 +1881,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     }
                     
                     retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 500));
                 } catch (error) {
                     logError('Nowshort error:', error);
                     retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 500));
                 }
             }
             
@@ -2645,13 +2672,18 @@ const _jakartaFmt = new Intl.DateTimeFormat('en-CA', {
 	year: 'numeric', month: '2-digit', day: '2-digit',
 	hour: '2-digit', minute: '2-digit', hour12: false
 });
+// PERF: Memoized utc2jakarta — same timestamp string is only formatted once
+const _utc2jakartaCache = new Map();
 function utc2jakarta(utc_datetime) {
 	if (!utc_datetime) return '';
+	if (_utc2jakartaCache.has(utc_datetime)) return _utc2jakartaCache.get(utc_datetime);
 	try {
 		const p = {};
 		_jakartaFmt.formatToParts(new Date(utc_datetime))
 			.forEach(function(x) { p[x.type] = x.value; });
-		return p.day + '-' + p.month + '-' + p.year + ' ' + p.hour + ':' + p.minute;
+		const result = p.day + '-' + p.month + '-' + p.year + ' ' + p.hour + ':' + p.minute;
+		_utc2jakartaCache.set(utc_datetime, result);
+		return result;
 	} catch(e) { return utc_datetime; }
 }
 
@@ -2683,23 +2715,28 @@ function formatMimeType(mime) {
 }
 
 // bytes adaptive conversion to KB, MB, GB
+// PERF: Memoized formatFileSize — file sizes repeat frequently across large folders
+const _fmtSizeCache = new Map();
 function formatFileSize(bytes) {
+	if (_fmtSizeCache.has(bytes)) return _fmtSizeCache.get(bytes);
+	let result;
 	if (bytes >= 1099511627776) {
-		bytes = (bytes / 1099511627776).toFixed(2) + ' TB';
+		result = (bytes / 1099511627776).toFixed(2) + ' TB';
 	} else if (bytes >= 1073741824) {
-		bytes = (bytes / 1073741824).toFixed(2) + ' GB';
+		result = (bytes / 1073741824).toFixed(2) + ' GB';
 	} else if (bytes >= 1048576) {
-		bytes = (bytes / 1048576).toFixed(2) + ' MB';
+		result = (bytes / 1048576).toFixed(2) + ' MB';
 	} else if (bytes >= 1024) {
-		bytes = (bytes / 1024).toFixed(2) + ' KB';
+		result = (bytes / 1024).toFixed(2) + ' KB';
 	} else if (bytes > 1) {
-		bytes = bytes + ' bytes';
+		result = bytes + ' bytes';
 	} else if (bytes === 1) {
-		bytes = bytes + ' byte';
+		result = bytes + ' byte';
 	} else {
-		bytes = '';
+		result = '';
 	}
-	return bytes;
+	_fmtSizeCache.set(bytes, result);
+	return result;
 }
 
 
