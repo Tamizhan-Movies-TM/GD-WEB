@@ -1295,25 +1295,14 @@ function append_files_to_fallback_list(path, files) {
 			}
 		}
 
-		// When it is page 1, clear the spinner and render; on later pages append.
-		// FIX: use == (loose) not === (strict) — server sends curPageIndex as integer 0, not string '0'
-		if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
-
+		// When it is page 1, remove the horizontal loading bar
+		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
+	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
-			const total_size  = formatFileSize(totalsize) || '0 Bytes';
-			const total_items = $list.find('.countitems').length;
-			const total_files = $list.find('.size_items').length;
-			if (total_items === 0) {
-				$('#count').removeClass('d-none').find('.number').text("0 item");
-			} else if (total_items === 1) {
-				$('#count').removeClass('d-none').find('.number').text(total_items + " item");
-			} else {
-				$('#count').removeClass('d-none').find('.number').text(total_items + " items");
-			}
-			if (total_files === 0) {
+			if (total_files == 0) {
 				$('#count').removeClass('d-none').find('.totalsize').text("0 file");
-			} else if (total_files === 1) {
+			} else if (total_files == 1) {
 				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
 			} else {
 				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
@@ -1435,8 +1424,9 @@ function append_files_to_list(path, files) {
 		}
 	}
 
-	// FIX: use == (loose) not === (strict) — server sends curPageIndex as integer 0, not string '0'
-	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+	// When it is page 1, remove the horizontal loading bar
+	// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
+	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
 	// When it is the last page, count and display the total number of items
 	if (is_lastpage_loaded) {
 		total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1666,8 +1656,9 @@ function append_search_result_to_list(files) {
 		if (is_file && UI.allow_selecting_files) {
 			document.getElementById('select_items').style.display = 'block';
 		}
-		// FIX: use == (loose) not === (strict) — server sends curPageIndex as integer 0, not string '0'
-	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+		// When it is page 1, remove the horizontal loading bar
+		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
+	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
 			total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -2159,7 +2150,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
           ${isUserLoggedIn() 
-            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
                </a>`
             : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
@@ -2271,7 +2262,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
           ${isUserLoggedIn() 
-            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
                </a>`
             : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
@@ -2432,7 +2423,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
           ${isUserLoggedIn() 
-            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
                </a>`
             : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
@@ -2566,7 +2557,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
                             ${isUserLoggedIn() 
-            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
                </a>`
             : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
