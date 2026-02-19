@@ -1072,20 +1072,20 @@ function list(path, id = '', fallback = false) {
 
 						window.scroll_status.loading_lock = true;
 
-						$(`<div id="spinner" class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status"><span class="sr-only"></span></div></div>`)
+						$(`<div id="spinner" class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`)
 							.insertBefore('#readme_md');
 
 						let $list = $('#list');
 						if (fallback) {
 							log('fallback inside handleSuccessResult');
-						requestListPath(path, {
+							requestListPath(path, {
 									id: id,
 									password: prevReqParams['password'],
 									page_token: $list.data('nextPageToken'),
 									page_index: $list.data('curPageIndex') + 1
 								},
 								handleSuccessResult,
-								null, 5, true);
+								null, 5, id, fallback = true);
 						} else {
 							requestListPath(path, {
 									password: prevReqParams['password'],
@@ -1114,7 +1114,7 @@ function list(path, id = '', fallback = false) {
 				password: password
 			},
 			handleSuccessResult,
-			null, null, true);
+			null, null, fallback = true);
 	} else {
 		log("handling this")
 		requestListPath(path, {
@@ -1127,8 +1127,8 @@ function list(path, id = '', fallback = false) {
 
 	const copyBtn = document.getElementById("handle-multiple-items-copy");
 
-	// Add a click event listener to the copy button (guard: only if element exists)
-	if (copyBtn) copyBtn.addEventListener("click", () => {
+	// Add a click event listener to the copy button
+	copyBtn.addEventListener("click", () => {
 		// Get all the checked checkboxes
 		const checkedItems = document.querySelectorAll('input[type="checkbox"]:checked');
 
@@ -1295,14 +1295,25 @@ function append_files_to_fallback_list(path, files) {
 			}
 		}
 
-		// When it is page 1, remove the horizontal loading bar
-		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
+		// When it is page 1, clear the spinner and render; on later pages append.
+		// FIX: use == (loose) not === (strict) — server sends curPageIndex as integer 0, not string '0'
+		if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
-			if (total_files == 0) {
+			const total_size  = formatFileSize(totalsize) || '0 Bytes';
+			const total_items = $list.find('.countitems').length;
+			const total_files = $list.find('.size_items').length;
+			if (total_items === 0) {
+				$('#count').removeClass('d-none').find('.number').text("0 item");
+			} else if (total_items === 1) {
+				$('#count').removeClass('d-none').find('.number').text(total_items + " item");
+			} else {
+				$('#count').removeClass('d-none').find('.number').text(total_items + " items");
+			}
+			if (total_files === 0) {
 				$('#count').removeClass('d-none').find('.totalsize').text("0 file");
-			} else if (total_files == 1) {
+			} else if (total_files === 1) {
 				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
 			} else {
 				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
@@ -1424,9 +1435,8 @@ function append_files_to_list(path, files) {
 		}
 	}
 
-	// When it is page 1, remove the horizontal loading bar
-	// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
+	// FIX: use == (loose) not === (strict) — server sends curPageIndex as integer 0, not string '0'
+	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 	// When it is the last page, count and display the total number of items
 	if (is_lastpage_loaded) {
 		total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1656,9 +1666,8 @@ function append_search_result_to_list(files) {
 		if (is_file && UI.allow_selecting_files) {
 			document.getElementById('select_items').style.display = 'block';
 		}
-		// When it is page 1, remove the horizontal loading bar
-		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
+		// FIX: use == (loose) not === (strict) — server sends curPageIndex as integer 0, not string '0'
+	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
 			total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -2137,6 +2146,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
                 <span class="tth">Size</span>
                 </th>
                 <td>${size}</td>
+               </td>
 						</tr>
 					</tbody>
 				</table>
@@ -2248,7 +2258,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                  <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
-					   </tr>
+                  </td>
+						   </tr>
 					 </tbody>
 				 </table>
        ${UI.disable_video_download ? `` : `
@@ -2338,9 +2349,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
     const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
 	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-	  let player = '';
-	  let player_js = '';
-	  let player_css = '';
+	  let player
 	  if (!UI.disable_player) {
 		 if (player_config.player == "plyr") {
 			player = `<video id="player" playsinline controls data-poster="${poster}">
@@ -2375,12 +2384,12 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       <i class="fas fa-file-alt fa-fw"></i>File Information
     </div>
     <div class="card-body row g-3">
-      ${!UI.disable_player ? `<div class="col-lg-4 col-md-12">
+      <div class="col-lg-4 col-md-12">
         <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
           ${player}
         </div>
-      </div>` : ''}
-      <div class="${UI.disable_player ? 'col-12' : 'col-lg-8 col-md-12'}">
+      </div>
+      <div class="col-lg-8 col-md-12">
         <table class="table table-dark">
           <tbody>
             <tr>
@@ -2410,6 +2419,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                   <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
+                    </td>
 						     </tr>
 					     </tbody>
 				    </table>
@@ -2447,8 +2457,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
   // GDFlix handler is registered once at module level (see bottom of file)
 
-  // Load player script and stylesheet only when player is enabled
-  if (!UI.disable_player && player_js) {
+  // Load Video.js and initialize the player
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
 	videoJsScript.onload = function() {
@@ -2494,13 +2503,10 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	};
 	document.head.appendChild(videoJsScript);
 
-	if (player_css) {
-		var videoJsStylesheet = document.createElement('link');
-		videoJsStylesheet.href = player_css;
-		videoJsStylesheet.rel = 'stylesheet';
-		document.head.appendChild(videoJsStylesheet);
-	}
-  } // end if (!UI.disable_player && player_js)
+	var videoJsStylesheet = document.createElement('link');
+	videoJsStylesheet.href = player_css;
+	videoJsStylesheet.rel = 'stylesheet';
+	document.head.appendChild(videoJsStylesheet);
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
