@@ -2344,94 +2344,90 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	  let player_js = '';
 	  let player_css = '';
 
-    // ── Multi-Audio Track Selector CSS ───────────────────────────────────────
-    if (!document.getElementById('multi-audio-style')) {
-      const audioStyle = document.createElement('style');
-      audioStyle.id = 'multi-audio-style';
-      audioStyle.textContent = `
-        #audio-lang-bar {
-          display: none;
-          flex-direction: column;
-          background: linear-gradient(135deg,rgba(15,15,30,0.97) 0%,rgba(20,25,50,0.97) 100%);
-          border: 1px solid rgba(255,255,255,0.1);
-          border-top: 2px solid #7c3aed;
-          border-radius: 0 0 10px 10px;
-          padding: 10px 12px 10px;
-          gap: 6px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  // ─────────────────────────────────────────────────────────────────────────
+  // MULTI-AUDIO: Parse language names from filename
+  // Supports formats like: [Tamil + Telugu + Hindi + English]
+  //                        [Tamil+Telugu+Hindi]   Tamil.Telugu.Hindi
+  // Returns array of display labels, e.g. ["🇮🇳 Tamil","🇮🇳 Telugu","🇮🇳 Hindi","🇬🇧 English"]
+  // ─────────────────────────────────────────────────────────────────────────
+  const _LANG_DISPLAY = {
+    'tamil':    '🇮🇳 Tamil',
+    'telugu':   '🇮🇳 Telugu',
+    'hindi':    '🇮🇳 Hindi',
+    'malayalam':'🇮🇳 Malayalam',
+    'kannada':  '🇮🇳 Kannada',
+    'english':  '🇬🇧 English',
+    'japanese': '🇯🇵 Japanese',
+    'korean':   '🇰🇷 Korean',
+    'french':   '🇫🇷 French',
+    'spanish':  '🇪🇸 Spanish',
+    'arabic':   '🇸🇦 Arabic',
+    'chinese':  '🇨🇳 Chinese',
+    'german':   '🇩🇪 German',
+    'russian':  '🇷🇺 Russian',
+    'portuguese':'🇵🇹 Portuguese',
+    'italian':  '🇮🇹 Italian',
+    'thai':     '🇹🇭 Thai',
+    'turkish':  '🇹🇷 Turkish',
+  };
+
+  function parseLanguagesFromName(fname) {
+    // Try to extract content from square brackets first: [Tamil + Telugu + Hindi + English]
+    const bracketMatch = fname.match(/\[([^\]]*(?:tamil|telugu|hindi|english|malayalam|kannada|japanese|korean|french|spanish|arabic|chinese|german|russian)[^\]]*)\]/i);
+    const src = bracketMatch ? bracketMatch[1] : fname;
+    // Split on + or | or & or comma (common separators)
+    const parts = src.split(/[\+\|\&,]+/).map(s => s.trim().toLowerCase()).filter(Boolean);
+    const langs = [];
+    for (const part of parts) {
+      for (const [key, label] of Object.entries(_LANG_DISPLAY)) {
+        if (part === key || part.startsWith(key) || part.endsWith(key)) {
+          if (!langs.find(l => l.label === label)) langs.push({ key, label });
+          break;
         }
-        #audio-lang-bar.alb-visible { display: flex; }
-        #audio-lang-bar-label {
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 1.5px;
-          text-transform: uppercase;
-          color: #a78bfa;
-          display: flex;
-          align-items: center;
-          gap: 5px;
-        }
-        #audio-lang-bar-label svg { width:13px; height:13px; }
-        #audio-lang-buttons {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-        }
-        .alb-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          padding: 5px 13px;
-          border-radius: 20px;
-          border: 1.5px solid rgba(255,255,255,0.15);
-          background: rgba(255,255,255,0.06);
-          color: rgba(255,255,255,0.85);
-          font-size: 12px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.18s;
-          white-space: nowrap;
-          letter-spacing: 0.3px;
-        }
-        .alb-btn:hover {
-          background: rgba(124,58,237,0.25);
-          border-color: #7c3aed;
-          color: #fff;
-          transform: translateY(-1px);
-        }
-        .alb-btn.alb-active {
-          background: linear-gradient(135deg,#7c3aed,#4f46e5);
-          border-color: #7c3aed;
-          color: #fff;
-          box-shadow: 0 2px 10px rgba(124,58,237,0.45);
-        }
-        .alb-btn .alb-flag { font-size: 14px; line-height:1; }
-        .alb-no-support {
-          font-size: 11px;
-          color: rgba(255,255,255,0.45);
-          padding: 2px 0;
-        }
-        #audio-lang-bar-hint {
-          font-size: 10px;
-          color: rgba(255,255,255,0.3);
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          margin-top: 2px;
-        }
-        /* Wrap player + bar together */
-        #video-player-wrap {
-          border-radius: 10px;
-          overflow: hidden;
-          border: 1px solid rgba(255,255,255,0.08);
-        }
-        #video-player-wrap > .h-100 {
-          border-radius: 10px 10px 0 0 !important;
-          border: none !important;
-        }
-      `;
-      document.head.appendChild(audioStyle);
+      }
     }
+    return langs;
+  }
+
+  const _detectedLangs = !UI.disable_player ? parseLanguagesFromName(name) : [];
+
+  // ── Inject CSS once ───────────────────────────────────────────────────────
+  if (!document.getElementById('alb-css')) {
+    const _s = document.createElement('style');
+    _s.id = 'alb-css';
+    _s.textContent = `
+      .alb-outer { border-radius: 8px; overflow: hidden; }
+      .alb-outer .h-100 { border-radius: 8px 8px 0 0 !important; }
+      #alb-bar {
+        background: #0f0f1e;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-top: 2.5px solid #7c3aed;
+        padding: 9px 12px 11px;
+        border-radius: 0 0 8px 8px;
+      }
+      .alb-head {
+        font-size: 9px; font-weight: 800; letter-spacing: 2px;
+        text-transform: uppercase; color: #a78bfa;
+        margin-bottom: 7px; display: flex; align-items: center; gap: 5px;
+      }
+      .alb-row { display: flex; flex-wrap: wrap; gap: 6px; }
+      .alb-b {
+        padding: 5px 14px; border-radius: 50px;
+        border: 1.5px solid rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.04);
+        color: rgba(255,255,255,0.78); font-size: 12.5px; font-weight: 500;
+        cursor: pointer; transition: all .15s; white-space: nowrap; line-height: 1.3;
+      }
+      .alb-b:hover { background:rgba(124,58,237,.28); border-color:#7c3aed; color:#fff; }
+      .alb-b.alb-sel {
+        background: linear-gradient(135deg,#7c3aed,#4338ca);
+        border-color:#7c3aed; color:#fff;
+        box-shadow: 0 2px 10px rgba(124,58,237,.5);
+      }
+      .alb-note { font-size:10px; color:rgba(255,255,255,.28); margin-top:6px; }
+    `;
+    document.head.appendChild(_s);
+  }
 
 	  if (!UI.disable_player) {
 		 if (player_config.player == "plyr") {
@@ -2460,6 +2456,17 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		}
 	}
 
+  // ── Build the audio language bar HTML (only when langs detected) ──────────
+  const _albHtml = (!UI.disable_player && _detectedLangs.length > 1) ? `
+  <div id="alb-bar">
+    <div class="alb-head">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+      Audio Language
+    </div>
+    <div class="alb-row" id="alb-btns"></div>
+    <div class="alb-note">Select your preferred language audio track</div>
+  </div>` : '';
+
  // Add the container and card elements
   var content = `
   <div class="card">
@@ -2468,24 +2475,11 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     </div>
     <div class="card-body row g-3">
       <div class="col-lg-4 col-md-12">
-        <div id="video-player-wrap">
+        <div class="alb-outer">
           <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
             ${player}
           </div>
-          ${!UI.disable_player ? `
-          <div id="audio-lang-bar">
-            <div id="audio-lang-bar-label">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              Audio Language
-            </div>
-            <div id="audio-lang-buttons">
-              <span class="alb-no-support">Loading…</span>
-            </div>
-            <div id="audio-lang-bar-hint">
-              <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              Click a language to switch audio track
-            </div>
-          </div>` : ''}
+          ${_albHtml}
         </div>
       </div>
       <div class="col-lg-8 col-md-12">
@@ -2519,9 +2513,9 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                     </th>
                     <td>${size}</td>
                     </td>
-						     </tr>
-					     </tbody>
-				    </table>
+					     </tr>
+				     </tbody>
+			    </table>
         ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
@@ -2565,7 +2559,79 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		if (player_config.player == "plyr") {
 			const player = new Plyr('#player');
 		} else if (player_config.player == "videojs") {
-			const player = new videojs('vplayer');
+      // ── Video.js init with AudioTrack support ───────────────────────────
+      var vjsPlayer = videojs('vplayer', {
+        fill: true,
+        controlBar: {
+          children: [
+            'playToggle',
+            'volumePanel',
+            'currentTimeDisplay',
+            'timeDivider',
+            'durationDisplay',
+            'progressControl',
+            'audioTrackButton',   // ← native VJS audio track selector button
+            'fullscreenToggle',
+          ]
+        }
+      });
+
+      // ── Build the below-player filename-based language buttons ──────────
+      if (_detectedLangs.length > 1) {
+        var _albBtns = document.getElementById('alb-btns');
+        if (_albBtns) {
+          var _currentTrackIdx = 0; // track which "virtual" language is selected
+
+          _detectedLangs.forEach(function(lang, i) {
+            var btn = document.createElement('button');
+            btn.className = 'alb-b' + (i === 0 ? ' alb-sel' : '');
+            btn.textContent = lang.label;
+            btn.title = 'Switch to ' + lang.label;
+
+            btn.addEventListener('click', function() {
+              _currentTrackIdx = i;
+              // Mark button active
+              _albBtns.querySelectorAll('.alb-b').forEach(function(b, j) {
+                b.classList.toggle('alb-sel', j === i);
+              });
+
+              // Try native AudioTrackList first (Chrome/Edge with supported streams)
+              var vEl = document.getElementById('vplayer') || document.querySelector('#vplayer video') || document.querySelector('video');
+              if (vEl && vEl.audioTracks && vEl.audioTracks.length > 1) {
+                // Enable matching track, disable others
+                var tracks = vEl.audioTracks;
+                var matched = false;
+                for (var t = 0; t < tracks.length; t++) {
+                  var tLabel = (tracks[t].label || '').toLowerCase();
+                  var tLang  = (tracks[t].language || '').toLowerCase();
+                  var isMatch = tLabel.includes(lang.key) || tLang.startsWith(lang.key.slice(0,3));
+                  if (!matched && isMatch) {
+                    tracks[t].enabled = true;
+                    matched = true;
+                  } else {
+                    tracks[t].enabled = false;
+                  }
+                }
+                // Fallback: enable by index if no label match
+                if (!matched) {
+                  for (var t2 = 0; t2 < tracks.length; t2++) tracks[t2].enabled = (t2 === i);
+                }
+              }
+              // Also update VJS audioTrackButton UI if available
+              try {
+                var vjsAudioTracks = vjsPlayer.audioTracks();
+                if (vjsAudioTracks && vjsAudioTracks.length > 1) {
+                  for (var t3 = 0; t3 < vjsAudioTracks.length; t3++) {
+                    vjsAudioTracks[t3].enabled = (t3 === i);
+                  }
+                }
+              } catch(e) {}
+            });
+
+            _albBtns.appendChild(btn);
+          });
+        }
+      }
 		} else if (player_config.player == "dplayer") {
 			const dp = new DPlayer({
 				container: document.getElementById('player-container'),
@@ -2610,118 +2676,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	document.head.appendChild(videoJsStylesheet);
 	}
 	}
-
-  // ── Multi-Audio Track Support ─────────────────────────────────────────────
-  // Uses the HTML5 AudioTrackList API (Chrome/Edge native support).
-  // Shows a language switcher panel below the player when multiple audio tracks
-  // are detected (common in MKV files with Tamil/Telugu/Hindi/English tracks).
-  // Gracefully hidden when only 1 track exists or browser doesn't support it.
-  if (!UI.disable_player) {
-    const _langMap = {
-      'tam':'🇮🇳 Tamil','ta':'🇮🇳 Tamil',
-      'tel':'🇮🇳 Telugu','te':'🇮🇳 Telugu',
-      'hin':'🇮🇳 Hindi','hi':'🇮🇳 Hindi',
-      'mal':'🇮🇳 Malayalam','ml':'🇮🇳 Malayalam',
-      'kan':'🇮🇳 Kannada','kn':'🇮🇳 Kannada',
-      'eng':'🇬🇧 English','en':'🇬🇧 English',
-      'jpn':'🇯🇵 Japanese','ja':'🇯🇵 Japanese',
-      'kor':'🇰🇷 Korean','ko':'🇰🇷 Korean',
-      'fra':'🇫🇷 French','fr':'🇫🇷 French',
-      'spa':'🇪🇸 Spanish','es':'🇪🇸 Spanish',
-      'und':'🔊 Unknown','unk':'🔊 Unknown',
-    };
-
-    // Also try to parse language from track label text (e.g. "Tamil", "English")
-    const _labelKeywords = [
-      ['tamil','🇮🇳 Tamil'],['telugu','🇮🇳 Telugu'],['hindi','🇮🇳 Hindi'],
-      ['malayalam','🇮🇳 Malayalam'],['kannada','🇮🇳 Kannada'],
-      ['english','🇬🇧 English'],['japanese','🇯🇵 Japanese'],
-      ['korean','🇰🇷 Korean'],['french','🇫🇷 French'],['spanish','🇪🇸 Spanish'],
-    ];
-
-    function _langLabel(track, idx) {
-      const lang  = (track.language || '').toLowerCase().trim();
-      const rawLabel = (track.label || '').trim();
-      const labelL = rawLabel.toLowerCase();
-
-      // Check label text for known language keywords first
-      for (const [kw, display] of _labelKeywords) {
-        if (labelL.includes(kw)) return display;
-      }
-      // Then check language code
-      if (lang && lang !== 'und') {
-        const mapped = _langMap[lang] || _langMap[lang.slice(0,2)];
-        if (mapped) return mapped;
-      }
-      // Use raw label if reasonable
-      if (rawLabel && rawLabel.toLowerCase() !== 'und') return rawLabel;
-      return 'Track ' + (idx + 1);
-    }
-
-    function renderAudioBar(videoEl) {
-      const bar    = document.getElementById('audio-lang-bar');
-      const btnBox = document.getElementById('audio-lang-buttons');
-      const hint   = document.getElementById('audio-lang-bar-hint');
-      if (!bar || !btnBox || !videoEl) return;
-
-      const tracks = videoEl.audioTracks;
-
-      // No AudioTrackList support
-      if (!tracks) {
-        bar.classList.add('alb-visible');
-        btnBox.innerHTML = '<span class="alb-no-support">⚠️ Your browser does not support in-browser audio track switching for this file. Use VLC, MX Player, or XPlayer for multi-audio playback.</span>';
-        if (hint) hint.style.display = 'none';
-        return;
-      }
-
-      // Single track — hide bar entirely
-      if (tracks.length <= 1) {
-        bar.classList.remove('alb-visible');
-        return;
-      }
-
-      bar.classList.add('alb-visible');
-      btnBox.innerHTML = '';
-
-      for (let i = 0; i < tracks.length; i++) {
-        const track = tracks[i];
-        const label = _langLabel(track, i);
-        const btn = document.createElement('button');
-        btn.className = 'alb-btn' + (track.enabled ? ' alb-active' : '');
-        btn.innerHTML = `<span class="alb-flag">${label.split(' ')[0]}</span><span>${label.split(' ').slice(1).join(' ') || label}</span>`;
-        btn.title = 'Switch to ' + label;
-        btn.addEventListener('click', (function(idx2) {
-          return function() {
-            for (let j = 0; j < tracks.length; j++) tracks[j].enabled = (j === idx2);
-            btnBox.querySelectorAll('.alb-btn').forEach(function(b, j) {
-              b.classList.toggle('alb-active', j === idx2);
-            });
-          };
-        })(i));
-        btnBox.appendChild(btn);
-      }
-    }
-
-    function initAudioBar(videoEl) {
-      if (!videoEl) return;
-      videoEl.addEventListener('loadedmetadata', function() { renderAudioBar(videoEl); });
-      if (videoEl.readyState >= 1) renderAudioBar(videoEl);
-      // Retry after a short delay in case tracks load slightly late
-      setTimeout(function() { renderAudioBar(videoEl); }, 2000);
-    }
-
-    // Wait for player library to finish rendering
-    setTimeout(function() {
-      var vidEl = document.getElementById('player') ||
-                  document.getElementById('vplayer') ||
-                  document.querySelector('#video-player-wrap video') ||
-                  document.querySelector('video');
-      if (vidEl) {
-        initAudioBar(vidEl);
-      }
-    }, 900);
-  }
 }
+
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
