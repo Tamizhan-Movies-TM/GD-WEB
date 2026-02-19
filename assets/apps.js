@@ -91,8 +91,27 @@ function escapeHtml(str) {
         .replace(/'/g, '&#x27;');
 }
 
-// Initialize the page
-function init() {
+// ✅ FIX: Centralized download link resolver — replaces the broken UI.downloaddomain + item.link pattern
+// 
+// The old pattern: UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link
+// was broken because:
+//   1. When random_domain_for_dl=true, the server already embeds the full rotated domain inside
+//      item.link (e.g. "https://download1-server3.play-streamz.workers.dev/download?file=...").
+//      Prepending UI.downloaddomain (even an empty string) was misleading and would double-prefix
+//      if downloaddomain were ever set to a real URL.
+//   2. When random_domain_for_dl=false, the server returns a relative path like /download?file=...
+//      and we correctly prepend _origin.
+//
+// New logic: if item.link is already an absolute URL, use it as-is. Otherwise prepend _origin.
+function resolveDownloadLink(itemLink) {
+    if (!itemLink) return '#';
+    // item.link is a full URL when random_domain_for_dl=true (server embedded the domain)
+    if (itemLink.startsWith('http://') || itemLink.startsWith('https://')) {
+        return itemLink;
+    }
+    // item.link is a relative path when random_domain_for_dl=false
+    return _origin + itemLink;
+}
 	document.siteName = $('title').html();
 	var html = `<header>
    <div id="nav">
@@ -1233,7 +1252,7 @@ function append_files_to_fallback_list(path, files) {
 				item['size'] = formatFileSize(item['size']) || '—';
 				is_file = true;
 				const epn = item.name;
-				const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
+				const link = resolveDownloadLink(item.link); // ✅ FIX: use resolveDownloadLink — see helper above
 				let pn = path + epn.replace(_reHash, '%23').replace(_reQ, '%3F');
 				let c = "file";
 				// README is displayed after the last page is loaded, otherwise it will affect the scroll event
@@ -1362,7 +1381,7 @@ function append_files_to_list(path, files) {
 			item['size'] = formatFileSize(item['size']) || '—';
 			is_file = true;
 			const epn = item.name;
-			const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
+			const link = resolveDownloadLink(item.link); // ✅ FIX: use resolveDownloadLink — see helper above
 			let pn = path + epn.replace(_reHash, '%23').replace(_reQ, '%3F');
 			let c = "file";
 			// README is displayed after the last page is loaded, otherwise it will affect the scroll event
@@ -1659,7 +1678,7 @@ function append_search_result_to_list(files) {
 			item['size'] = formatFileSize(item['size']) || '—';
 			item['md5Checksum'] = item['md5Checksum'] || '—';
 			const ext = item.fileExtension;
-			const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
+			const link = resolveDownloadLink(item.link); // ✅ FIX: use resolveDownloadLink — see helper above
 			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="$item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
 
 			html += _getIcon(ext, item.mimeType, item.iconLink);
@@ -1973,7 +1992,7 @@ async function fallback(id, type) {
 					const md5Checksum = obj.md5Checksum || '—';
 					const size = formatFileSize(obj.size) || '—';
 					const encoded_name = encodeURIComponent(name);
-					const url = UI.random_domain_for_dl ? UI.downloaddomain + obj.link : window.location.origin + obj.link;
+					const url = resolveDownloadLink(obj.link); // ✅ FIX: use resolveDownloadLink — see helper above
 					const file_id = obj.fid;
 					var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
 					if (mimeType.includes("video") || video.includes(fileExtension)) {
@@ -2043,7 +2062,7 @@ async function file(path) {
 				const md5Checksum = obj.md5Checksum || '—';
 				const size = formatFileSize(obj.size) || '—';
 				const encoded_name = encodeURIComponent(name);
-				const url = UI.random_domain_for_dl ? UI.downloaddomain + obj.link : window.location.origin + obj.link;
+				const url = resolveDownloadLink(obj.link); // ✅ FIX: use resolveDownloadLink — see helper above
 				const file_id = obj.fid;
 				var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
 				if (mimeType.includes("video") || video.includes(fileExtension)) {
