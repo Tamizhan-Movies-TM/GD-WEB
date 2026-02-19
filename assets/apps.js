@@ -586,10 +586,9 @@ $('body').html(html);
 function initBackToTop() {
     const btt = document.getElementById('back-to-top');
     if (!btt) return;
-    // ✅ FIX: Use addEventListener instead of window.onscroll= to avoid overwriting other scroll handlers
-    window.addEventListener('scroll', function() {
+    window.onscroll = function () {
         btt.style.display = (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) ? 'block' : 'none';
-    }, { passive: true });
+    };
     btt.addEventListener('click', function() {
         document.body.scrollTop = 0;
         document.documentElement.scrollTop = 0;
