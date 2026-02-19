@@ -45,25 +45,21 @@ function _getIcon(ext, mimeType, iconLink) {
 // =====================================================================
 
 // Check if user is logged in by verifying session cookie
-// PERF: Result cached for the lifetime of the page — cookie only parsed once
-let _loginCache = null;
 function isUserLoggedIn() {
-    if (_loginCache !== null) return _loginCache;
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
-        const eq = cookie.indexOf('=');
-        if (eq === -1) continue;
-        const name = cookie.substring(0, eq).trim();
+        const [name, value] = cookie.trim().split('=');
         if (name === 'session') {
-            const sessionValue = cookie.substring(eq + 1).trim();
-            if (sessionValue && sessionValue !== 'null' && sessionValue !== 'undefined') {
+            const sessionValue = value ? value.trim() : '';
+            // Check if session has a valid value
+            if (sessionValue && sessionValue !== 'null' && sessionValue !== '' && sessionValue !== 'undefined') {
                 log('User is logged in, session:', sessionValue);
-                return (_loginCache = true);
+                return true;
             }
         }
     }
     log('User is not logged in');
-    return (_loginCache = false);
+    return false;
 }
 
 // ============================================
@@ -869,57 +865,48 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 		page_token: params['page_token'] || '',
 		page_index: params['page_index'] || 0
 	};
-	// PERF: Only show "Connecting..." if request takes >300ms — avoids flash on fast connections
-	var _connectingTimer = setTimeout(function() {
-		var upd = document.getElementById('update');
-		if (upd) { upd.style.display = ''; upd.innerHTML = "<div class='alert alert-info' role='alert'> Connecting...</div>"; }
-	}, 300);
-
-	if (fallback) { path = "/0:fallback"; }
-
-	// PERF: Retry delay reduced 2000ms → 500ms (saves up to 4s wasted wait time)
-	const RETRY_DELAY = 500;
-	// PERF: Hard 8s timeout per request via AbortController
-	const REQUEST_TIMEOUT = 8000;
+	$('#update').show();
+	document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Connecting...</div>`;
+	if (fallback) {
+		path = "/0:fallback"
+	}
 
 	function performRequest(remainingRetries) {
-		const controller = new AbortController();
-		const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-
 		fetch(fallback ? "/0:fallback" : path, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(requestData),
-				signal: controller.signal
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(requestData)
 			})
 			.then(function(response) {
-				clearTimeout(timeoutId);
 				if (response.status === 500) {
 					document.getElementById('list').innerHTML = `<div class="text-center">
 					<div class="card-body text-center">
-					  <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>500.</b> That's an error.</div>
+					  <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>500.</b> That’s an error.</div>
 					</div>
-					<p>The requested URL was not found on this server. That's all we know.</p>
+					<p>The requested URL was not found on this server. That’s all we know.</p>
 					<div class="card-text text-center">
 					  <div class="btn-group text-center">
 						<a href="/" type="button" class="btn btn-success">Homepage</a>
 					  </div>
 					</div><br>
 				  </div>`;
-					clearTimeout(_connectingTimer);
 					$('#update').hide();
-					return 500;
+					return 500
 				}
-				if (!response.ok) throw new Error('Request failed');
+				if (!response.ok) {
+					throw new Error('Request failed');
+				}
 				return response.json();
 			})
 			.then(function(res) {
-				clearTimeout(_connectingTimer);
 				if (res && res.error && res.error.code === 401) {
+					// Password verification failed
 					askPassword(path);
 				} else if (res && res.data === null) {
 					document.getElementById('spinner').remove();
-					document.getElementById('list').innerHTML = "<div class='alert alert-danger' role='alert'> Server didn't send any data.</div>";
+					document.getElementById('list').innerHTML = `<div class='alert alert-danger' role='alert'> Server didn't send any data.</div>`;
 					$('#update').hide();
 				} else if (res && res.data) {
 					resultCallback(res, path, requestData);
@@ -927,25 +914,21 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
 				}
 			})
 			.catch(async function(error) {
-				clearTimeout(timeoutId);
 				if (remainingRetries > 0) {
-					var upd = document.getElementById('update');
-					if (upd) { upd.style.display = ''; upd.innerHTML = "<div class='alert alert-info' role='alert'> Retrying...</div>"; }
-					await sleep(RETRY_DELAY);
+					document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Retrying...</div>`;
+					await sleep(2000);
 					performRequest(remainingRetries - 1);
 				} else {
-					clearTimeout(_connectingTimer);
-					var upd = document.getElementById('update');
-					if (upd) upd.innerHTML = "<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div>";
-					var lst = document.getElementById('list');
-					if (lst) lst.innerHTML = "<div class='alert alert-danger' role='alert'> We were unable to get data from the server. " + error + "</div>";
+					document.getElementById('update').innerHTML = `<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div>`;
+					document.getElementById('list').innerHTML = `<div class='alert alert-danger' role='alert'> We were unable to get data from the server. ` + error + `</div>`;
 					$('#update').hide();
 				}
 			});
 	}
-	log("Performing Request");
+	log("Performing Request again")
 	performRequest(retries);
 }
+
 
 /**
  * Search POST request
@@ -959,34 +942,24 @@ function requestSearch(params, resultCallback, retries = 3) {
 		page_index: params['page_index'] || 0
 	};
 
-	// PERF: Defer "Connecting..." banner 300ms so fast responses show nothing
-	var _connectingTimer = setTimeout(function() {
-		$('#update').html("<div class='alert alert-info' role='alert'> Connecting...</div>");
-	}, 300);
-
-	const RETRY_DELAY = 500;
-	const REQUEST_TIMEOUT = 8000;
-
 	function performRequest(retries) {
-		const controller = new AbortController();
-		const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-
 		fetch(`/${window.current_drive_order}:search`, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(p),
-				signal: controller.signal
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(p)
 			})
 			.then(function(response) {
-				clearTimeout(timeoutId);
-				if (!response.ok) throw new Error('Request failed');
+				if (!response.ok) {
+					throw new Error('Request failed');
+				}
 				return response.json();
 			})
 			.then(function(res) {
-				clearTimeout(_connectingTimer);
 				if (res && res.data === null) {
 					$('#spinner').remove();
-					$('#list').html("<div class='alert alert-danger' role='alert'> Server didn't send any data.</div>");
+					$('#list').html(`<div class='alert alert-danger' role='alert'> Server didn't send any data.</div>`);
 					$('#update').remove();
 				}
 				if (res && res.data) {
@@ -995,22 +968,22 @@ function requestSearch(params, resultCallback, retries = 3) {
 				}
 			})
 			.catch(async function(error) {
-				clearTimeout(timeoutId);
 				if (retries > 0) {
-					await sleep(RETRY_DELAY);
-					$('#update').html("<div class='alert alert-info' role='alert'> Retrying...</div>");
+					await sleep(2000);
+					$('#update').html(`<div class='alert alert-info' role='alert'> Retrying...</div>`);
 					performRequest(retries - 1);
 				} else {
-					clearTimeout(_connectingTimer);
-					$('#update').html("<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong. 3 Failures</div>");
-					$('#list').html("<div class='alert alert-danger' role='alert'> We were unable to get data from the server.</div>");
+					$('#update').html(`<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong. 3 Failures</div>`);
+					$('#list').html(`<div class='alert alert-danger' role='alert'> We were unable to get data from the server.</div>`);
 					$('#spinner').remove();
 				}
 			});
 	}
 
+	$('#update').html(`<div class='alert alert-info' role='alert'> Connecting...</div>`);
 	performRequest(retries);
 }
+
 
 // Render file list
 function list(path, id = '', fallback = false) {
@@ -1324,7 +1297,7 @@ function append_files_to_fallback_list(path, files) {
 
 		// When it is page 1, remove the horizontal loading bar
 		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') == 0) { $list[0].innerHTML = html; } else { $list[0].insertAdjacentHTML('beforeend', html); }
+	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
 			if (total_files == 0) {
@@ -1453,7 +1426,7 @@ function append_files_to_list(path, files) {
 
 	// When it is page 1, remove the horizontal loading bar
 	// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') == 0) { $list[0].innerHTML = html; } else { $list[0].insertAdjacentHTML('beforeend', html); }
+	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 	// When it is the last page, count and display the total number of items
 	if (is_lastpage_loaded) {
 		total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1685,7 +1658,7 @@ function append_search_result_to_list(files) {
 		}
 		// When it is page 1, remove the horizontal loading bar
 		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') == 0) { $list[0].innerHTML = html; } else { $list[0].insertAdjacentHTML('beforeend', html); }
+	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
 			total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1846,11 +1819,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     }
                     
                     retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 500));
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
                 } catch (error) {
                     logError('Get2Short error:', error);
                     retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 500));
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
                 }
             }
             
@@ -1881,11 +1854,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     }
                     
                     retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 500));
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
                 } catch (error) {
                     logError('Nowshort error:', error);
                     retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 500));
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
                 }
             }
             
@@ -2370,6 +2343,68 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	  let player = '';
 	  let player_js = '';
 	  let player_css = '';
+
+    // ── Multi-Audio Track Selector CSS (injected once) ───────────────────────
+    if (!document.getElementById('multi-audio-style')) {
+      const audioStyle = document.createElement('style');
+      audioStyle.id = 'multi-audio-style';
+      audioStyle.textContent = `
+        #audio-track-panel {
+          background: rgba(20,20,35,0.95);
+          border: 1px solid rgba(255,255,255,0.15);
+          border-radius: 10px;
+          padding: 10px 14px;
+          margin-top: 8px;
+          display: none;
+        }
+        #audio-track-panel.visible { display: block; }
+        #audio-track-panel .audio-panel-title {
+          font-size: 12px;
+          color: rgba(255,255,255,0.5);
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          margin-bottom: 8px;
+        }
+        .audio-track-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: rgba(255,255,255,0.07);
+          border: 1px solid rgba(255,255,255,0.15);
+          color: #fff;
+          border-radius: 6px;
+          padding: 5px 12px;
+          font-size: 13px;
+          cursor: pointer;
+          margin: 3px;
+          transition: background 0.2s, border-color 0.2s;
+        }
+        .audio-track-btn:hover { background: rgba(255,255,255,0.15); }
+        .audio-track-btn.active {
+          background: #007bff;
+          border-color: #007bff;
+        }
+        #audio-track-toggle {
+          background: rgba(255,255,255,0.1);
+          border: 1px solid rgba(255,255,255,0.2);
+          color: #fff;
+          border-radius: 6px;
+          padding: 4px 12px;
+          font-size: 12px;
+          cursor: pointer;
+          margin-top: 6px;
+          display: none;
+          align-items: center;
+          gap: 6px;
+          transition: background 0.2s;
+        }
+        #audio-track-toggle:hover { background: rgba(255,255,255,0.2); }
+        #audio-track-toggle.show { display: inline-flex; }
+        .audio-lang-flag { font-size: 16px; }
+      `;
+      document.head.appendChild(audioStyle);
+    }
+
 	  if (!UI.disable_player) {
 		 if (player_config.player == "plyr") {
 			player = `<video id="player" playsinline controls data-poster="${poster}">
@@ -2408,6 +2443,16 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
           ${player}
         </div>
+        ${!UI.disable_player ? `
+        <button id="audio-track-toggle" title="Switch Audio Track">
+          <i class="fas fa-volume-up"></i> Audio Track
+        </button>
+        <div id="audio-track-panel">
+          <div class="audio-panel-title"><i class="fas fa-headphones"></i>&nbsp; Select Audio Track</div>
+          <div id="audio-track-buttons">
+            <span style="color:rgba(255,255,255,0.4); font-size:12px;">Detecting tracks…</span>
+          </div>
+        </div>` : ''}
       </div>
       <div class="col-lg-8 col-md-12">
         <table class="table table-dark">
@@ -2531,6 +2576,100 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	document.head.appendChild(videoJsStylesheet);
 	}
 	}
+
+  // ── Multi-Audio Track Support ─────────────────────────────────────────────
+  // Uses the HTML5 AudioTrackList API (Chrome/Edge native support).
+  // Shows a language switcher panel below the player when multiple audio tracks
+  // are detected (common in MKV files with Tamil/Telugu/Hindi/English tracks).
+  // Gracefully hidden when only 1 track exists or browser doesn't support it.
+  if (!UI.disable_player) {
+    const _langMap = {
+      'tam':'🇮🇳 Tamil','ta':'🇮🇳 Tamil',
+      'tel':'🇮🇳 Telugu','te':'🇮🇳 Telugu',
+      'hin':'🇮🇳 Hindi','hi':'🇮🇳 Hindi',
+      'mal':'🇮🇳 Malayalam','ml':'🇮🇳 Malayalam',
+      'kan':'🇮🇳 Kannada','kn':'🇮🇳 Kannada',
+      'eng':'🇬🇧 English','en':'🇬🇧 English',
+      'jpn':'🇯🇵 Japanese','ja':'🇯🇵 Japanese',
+      'kor':'🇰🇷 Korean','ko':'🇰🇷 Korean',
+      'fra':'🇫🇷 French','fr':'🇫🇷 French',
+      'spa':'🇪🇸 Spanish','es':'🇪🇸 Spanish',
+      'und':'🔊 Unknown','unk':'🔊 Unknown',
+    };
+
+    function _langLabel(track, idx) {
+      const lang  = (track.language || '').toLowerCase();
+      const label = (track.label   || '').trim();
+      if (label && label.toLowerCase() !== 'und') return label;
+      return _langMap[lang] || _langMap[lang.slice(0,2)] || ('Track ' + (idx + 1));
+    }
+
+    function buildAudioTrackUI(videoEl) {
+      const toggle = document.getElementById('audio-track-toggle');
+      const panel  = document.getElementById('audio-track-panel');
+      const btnBox = document.getElementById('audio-track-buttons');
+      if (!toggle || !panel || !btnBox || !videoEl) return;
+
+      const tracks = videoEl.audioTracks;
+      if (!tracks) {
+        // Browser doesn't support AudioTrackList
+        btnBox.innerHTML = '<span style="color:rgba(255,255,255,0.45);font-size:12px;">ℹ️ Your browser does not support audio track switching. Use VLC or MX Player for multi-audio files.</span>';
+        toggle.classList.add('show');
+        return;
+      }
+      if (tracks.length <= 1) {
+        toggle.classList.remove('show');
+        return;
+      }
+
+      toggle.classList.add('show');
+      btnBox.innerHTML = '';
+
+      for (let i = 0; i < tracks.length; i++) {
+        const track = tracks[i];
+        const label = _langLabel(track, i);
+        const btn = document.createElement('button');
+        btn.className = 'audio-track-btn' + (track.enabled ? ' active' : '');
+        btn.textContent = label;
+        btn.dataset.idx = String(i);
+        btn.addEventListener('click', (function(idx) {
+          return function() {
+            for (let j = 0; j < tracks.length; j++) tracks[j].enabled = (j === idx);
+            btnBox.querySelectorAll('.audio-track-btn').forEach(function(b, j) {
+              b.classList.toggle('active', j === idx);
+            });
+          };
+        })(i));
+        btnBox.appendChild(btn);
+      }
+    }
+
+    function initMultiAudioPanel(videoEl) {
+      const toggle = document.getElementById('audio-track-toggle');
+      const panel  = document.getElementById('audio-track-panel');
+      if (!toggle || !panel || !videoEl) return;
+
+      toggle.addEventListener('click', function() {
+        buildAudioTrackUI(videoEl);   // refresh track list each click
+        panel.classList.toggle('visible');
+      });
+
+      // Auto-build after metadata loaded
+      videoEl.addEventListener('loadedmetadata', function() {
+        buildAudioTrackUI(videoEl);
+      });
+      if (videoEl.readyState >= 1) buildAudioTrackUI(videoEl);
+    }
+
+    // Delay slightly so the player library has time to render its video element
+    setTimeout(function() {
+      var vidEl = document.getElementById('player') ||
+                  document.getElementById('vplayer') ||
+                  document.querySelector('.h-100 video') ||
+                  document.querySelector('video');
+      if (vidEl) initMultiAudioPanel(vidEl);
+    }, 900);
+  }
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
@@ -2672,18 +2811,13 @@ const _jakartaFmt = new Intl.DateTimeFormat('en-CA', {
 	year: 'numeric', month: '2-digit', day: '2-digit',
 	hour: '2-digit', minute: '2-digit', hour12: false
 });
-// PERF: Memoized utc2jakarta — same timestamp string is only formatted once
-const _utc2jakartaCache = new Map();
 function utc2jakarta(utc_datetime) {
 	if (!utc_datetime) return '';
-	if (_utc2jakartaCache.has(utc_datetime)) return _utc2jakartaCache.get(utc_datetime);
 	try {
 		const p = {};
 		_jakartaFmt.formatToParts(new Date(utc_datetime))
 			.forEach(function(x) { p[x.type] = x.value; });
-		const result = p.day + '-' + p.month + '-' + p.year + ' ' + p.hour + ':' + p.minute;
-		_utc2jakartaCache.set(utc_datetime, result);
-		return result;
+		return p.day + '-' + p.month + '-' + p.year + ' ' + p.hour + ':' + p.minute;
 	} catch(e) { return utc_datetime; }
 }
 
@@ -2715,28 +2849,23 @@ function formatMimeType(mime) {
 }
 
 // bytes adaptive conversion to KB, MB, GB
-// PERF: Memoized formatFileSize — file sizes repeat frequently across large folders
-const _fmtSizeCache = new Map();
 function formatFileSize(bytes) {
-	if (_fmtSizeCache.has(bytes)) return _fmtSizeCache.get(bytes);
-	let result;
 	if (bytes >= 1099511627776) {
-		result = (bytes / 1099511627776).toFixed(2) + ' TB';
+		bytes = (bytes / 1099511627776).toFixed(2) + ' TB';
 	} else if (bytes >= 1073741824) {
-		result = (bytes / 1073741824).toFixed(2) + ' GB';
+		bytes = (bytes / 1073741824).toFixed(2) + ' GB';
 	} else if (bytes >= 1048576) {
-		result = (bytes / 1048576).toFixed(2) + ' MB';
+		bytes = (bytes / 1048576).toFixed(2) + ' MB';
 	} else if (bytes >= 1024) {
-		result = (bytes / 1024).toFixed(2) + ' KB';
+		bytes = (bytes / 1024).toFixed(2) + ' KB';
 	} else if (bytes > 1) {
-		result = bytes + ' bytes';
+		bytes = bytes + ' bytes';
 	} else if (bytes === 1) {
-		result = bytes + ' byte';
+		bytes = bytes + ' byte';
 	} else {
-		result = '';
+		bytes = '';
 	}
-	_fmtSizeCache.set(bytes, result);
-	return result;
+	return bytes;
 }
 
 
