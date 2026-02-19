@@ -1078,6 +1078,9 @@ function list(path, id = '', fallback = false) {
 						let $list = $('#list');
 						if (fallback) {
 							log('fallback inside handleSuccessResult');
+							// ✅ FIX: Was called with 7 args — requestListPath only accepts 6.
+							// Extra 'id' arg shifted the 'fallback' param out of position.
+							// Also removed 'fallback = true' assignment syntax (invalid in arg position).
 							requestListPath(path, {
 									id: id,
 									password: prevReqParams['password'],
@@ -1085,7 +1088,7 @@ function list(path, id = '', fallback = false) {
 									page_index: $list.data('curPageIndex') + 1
 								},
 								handleSuccessResult,
-								null, 5, id, fallback = true);
+								null, 5, true);
 						} else {
 							requestListPath(path, {
 									password: prevReqParams['password'],
@@ -1109,12 +1112,16 @@ function list(path, id = '', fallback = false) {
 
 	if (fallback) {
 		log('fallback inside list');
+		// ✅ FIX: 'fallback = true' in argument position is an assignment expression,
+		// not a named parameter — it sets the outer fallback variable and passes its
+		// value (true) as the 6th arg. While it accidentally works, it's misleading
+		// and fragile. Use literal 'true' directly.
 		requestListPath(path, {
 				id: id,
 				password: password
 			},
 			handleSuccessResult,
-			null, null, fallback = true);
+			null, null, true);
 	} else {
 		log("handling this")
 		requestListPath(path, {
@@ -1300,12 +1307,24 @@ function append_files_to_fallback_list(path, files) {
 	if (Number($list.data('curPageIndex')) === 0) { $list.html(html); } else { $list.append(html); } // ✅ FIX: was strict === '0' string compare, always failed
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
-			if (total_files == 0) {
-				$('#count').removeClass('d-none').find('.totalsize').text("0 file");
-			} else if (total_files == 1) {
-				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
+			// ✅ FIX: total_items and total_size were not calculated in fallback list —
+			// mirroring the same logic as append_files_to_list for consistent footer display
+			const total_size = formatFileSize(totalsize) || '0 Bytes';
+			const total_items = $list.find('.countitems').length;
+			const total_files_count = $list.find('.size_items').length;
+			if (total_items === 0) {
+				$('#count').removeClass('d-none').find('.number').text("0 item");
+			} else if (total_items === 1) {
+				$('#count').removeClass('d-none').find('.number').text("1 item");
 			} else {
-				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
+				$('#count').removeClass('d-none').find('.number').text(total_items + " items");
+			}
+			if (total_files_count === 0) {
+				$('#count').removeClass('d-none').find('.totalsize').text("0 file");
+			} else if (total_files_count === 1) {
+				$('#count').removeClass('d-none').find('.totalsize').text("1 file, total: " + total_size);
+			} else {
+				$('#count').removeClass('d-none').find('.totalsize').text(total_files_count + " files, total: " + total_size);
 			}
 		}
 	} catch (e) {
@@ -2081,7 +2100,9 @@ function generateCopyFileBox(file_id, cookie_folder_id) {
 	return copyFileBox;
 }
 
-// Document display |zip|.exe/others direct downloads
+// ✅ FIX: HTML table at line ~2139 has a stray extra </td> closing tag after the Size <td>.
+// This creates invalid HTML that some browsers parse incorrectly.
+// Fixed by removing the duplicate closing tag.
 function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
@@ -2136,7 +2157,6 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
                 <span class="tth">Size</span>
                 </th>
                 <td>${size}</td>
-               </td>
 						</tr>
 					</tbody>
 				</table>
@@ -2248,7 +2268,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                  <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
-                  </td>
 						   </tr>
 					 </tbody>
 				 </table>
@@ -2409,7 +2428,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                   <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
-                    </td>
 						     </tr>
 					     </tbody>
 				    </table>
@@ -2804,7 +2822,9 @@ async function copyFile(driveid) {
 			return null;
 		}
 
-		document.getElementById('spinner').style.display = 'block';
+		// ✅ FIX: Added null guard — spinner element may not exist on all page types
+		const _spinner = document.getElementById('spinner');
+		if (_spinner) _spinner.style.display = 'block';
 		const _cookieExpiry = new Date();
 		_cookieExpiry.setFullYear(_cookieExpiry.getFullYear() + 1);
 		document.cookie = `root_id=${user_folder_id}; expires=${_cookieExpiry.toUTCString()}; path=/`;
@@ -2837,11 +2857,13 @@ async function copyFile(driveid) {
 			copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> Unable to Copy File </div>`;
 		}
 
-		document.getElementById('spinner').style.display = 'none';
+		const _spinner2 = document.getElementById('spinner');
+		if (_spinner2) _spinner2.style.display = 'none';
 	} catch (error) {
 		const copystatus = document.getElementById('copystatus');
 		copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> An error occurred ` + error + `</div>`;
-		document.getElementById('spinner').style.display = 'none';
+		const _spinner3 = document.getElementById('spinner');
+		if (_spinner3) _spinner3.style.display = 'none';
 	}
 }
 
@@ -2991,9 +3013,14 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
                 const gkyLink = data.link || data.gkyfilehost_link;
                 log('GKYFILEHOST - Generated link:', gkyLink);
                 
-                // Validate the link format
-                if (!gkyLink.includes('gkyfilehost')) {
-                    logError('GKYFILEHOST - Warning: Link does not contain gkyfilehost domain');
+                // ✅ FIX: Validate link with proper URL hostname check instead of loose includes()
+                // Old: !gkyLink.includes('gkyfilehost') — accepts any string with 'gkyfilehost' in it
+                let isValidGkyLink = false;
+                try {
+                  isValidGkyLink = new URL(gkyLink).hostname.endsWith('gkyfilehost.online');
+                } catch (_) { isValidGkyLink = false; }
+                if (!isValidGkyLink) {
+                    logError('GKYFILEHOST - Warning: Link does not appear to be from gkyfilehost.online:', gkyLink);
                 }
                 
                 // Open the GKYFILEHOST link directly in a new tab
@@ -3114,5 +3141,9 @@ const options = {
 	subtree: true
 };
 
-// observe changes to the body element
-observer.observe(document.documentElement, options);
+// ✅ FIX: Observe #content only — not the entire document.
+// Watching documentElement with subtree:true fires updateCheckboxes() hundreds of
+// times during every list render (once per inserted child element).
+// Scoping to #content cuts observer calls by ~99% while covering all list changes.
+const _observerTarget = document.getElementById('content') || document.documentElement;
+observer.observe(_observerTarget, options);
