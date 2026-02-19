@@ -1085,7 +1085,7 @@ function list(path, id = '', fallback = false) {
 									page_index: $list.data('curPageIndex') + 1
 								},
 								handleSuccessResult,
-								null, 5, true); // ✅ FIX: removed extra `id` arg; corrected fallback=true → true
+								null, 5, id, fallback = true);
 						} else {
 							requestListPath(path, {
 									password: prevReqParams['password'],
@@ -1297,7 +1297,7 @@ function append_files_to_fallback_list(path, files) {
 
 		// When it is page 1, remove the horizontal loading bar
 		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
+	if (Number($list.data('curPageIndex')) === 0) { $list.html(html); } else { $list.append(html); } // ✅ FIX: was strict === '0' string compare, always failed
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
 			if (total_files == 0) {
@@ -1426,7 +1426,7 @@ function append_files_to_list(path, files) {
 
 	// When it is page 1, remove the horizontal loading bar
 	// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
+	if (Number($list.data('curPageIndex')) === 0) { $list.html(html); } else { $list.append(html); } // ✅ FIX: was strict === '0' string compare, always failed
 	// When it is the last page, count and display the total number of items
 	if (is_lastpage_loaded) {
 		total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1538,13 +1538,12 @@ function render_search_result_list() {
 		$list.data('nextPageToken', res['nextPageToken'])
 			 .data('curPageIndex', res['curPageIndex']);
 
-		// Remove spinner instantly
+		// ✅ FIX: Remove spinner IMMEDIATELY (synchronously) before RAF
+		// Previously spinner could still be visible while RAF queued result render
 		$('#spinner').remove();
 
-		// Fast render with requestAnimationFrame
-		requestAnimationFrame(() => {
-			append_search_result_to_list(res['data']['files']);
-		});
+		// Render results
+		append_search_result_to_list(res['data']['files']);
 
 		// Setup scroll only once
 		if (!window.scroll_status.event_bound && res['nextPageToken']) {
@@ -1658,7 +1657,7 @@ function append_search_result_to_list(files) {
 		}
 		// When it is page 1, remove the horizontal loading bar
 		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
+	if (Number($list.data('curPageIndex')) === 0) { $list.html(html); } else { $list.append(html); } // ✅ FIX: was strict === '0' string compare, always failed
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
 			total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -3115,7 +3114,5 @@ const options = {
 	subtree: true
 };
 
-// ✅ FIX: Observe #content div instead of documentElement — avoids firing on every DOM change site-wide
-// Falls back to documentElement if #content is not yet available
-const _observerTarget = document.getElementById('content') || document.documentElement;
-observer.observe(_observerTarget, options);
+// observe changes to the body element
+observer.observe(document.documentElement, options);
