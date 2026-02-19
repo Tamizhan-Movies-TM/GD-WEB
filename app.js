@@ -2514,16 +2514,25 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		}
 	}
 
-  // ── Build the audio language bar HTML (only when langs detected) ──────────
-  const _albHtml = (!UI.disable_player && _detectedLangs.length > 1) ? `
-  <div id="alb-bar">
-    <div class="alb-head">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
-      Audio Language
-    </div>
-    <div class="alb-row" id="alb-btns"></div>
-    <div class="alb-note">Select your preferred language audio track</div>
-  </div>` : '';
+  // ── Build audio language bar HTML — buttons rendered directly in HTML ───────
+  // Buttons are rendered statically so they appear immediately without waiting
+  // for player JS to load. Click handlers are attached after DOM is ready.
+  var _albBtnsHtml = '';
+  if (!UI.disable_player && _detectedLangs.length > 1) {
+    _detectedLangs.forEach(function(lang, i) {
+      _albBtnsHtml += '<button class="alb-b' + (i === 0 ? ' alb-sel' : '') + '" data-alb-idx="' + i + '" data-alb-key="' + lang.key + '">' + lang.label + '</button>';
+    });
+  }
+  var _albHtml = (_albBtnsHtml) ? (
+    '<div id="alb-bar">' +
+      '<div class="alb-head">' +
+        '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>' +
+        ' Audio Language' +
+      '</div>' +
+      '<div class="alb-row" id="alb-btns">' + _albBtnsHtml + '</div>' +
+      '<div class="alb-note">Select your preferred language audio track</div>' +
+    '</div>'
+  ) : '';
 
  // Add the container and card elements
   var content = `
@@ -2606,6 +2615,40 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       </div>`; 
     $("#content").html(content);
 
+  // ── Attach audio language button click handlers ────────────────────────────
+  // Buttons are already in DOM; we wire up the click logic here.
+  if (!UI.disable_player && _detectedLangs.length > 1) {
+    document.querySelectorAll('.alb-b').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = parseInt(btn.getAttribute('data-alb-idx'));
+        var key = btn.getAttribute('data-alb-key');
+
+        // Highlight active button
+        document.querySelectorAll('.alb-b').forEach(function(b) { b.classList.remove('alb-sel'); });
+        btn.classList.add('alb-sel');
+
+        // ── Try native HTML5 AudioTrackList (Chrome/Edge) ──────────────────
+        var vEl = document.querySelector('#vplayer') || document.querySelector('video');
+        if (vEl && vEl.audioTracks && vEl.audioTracks.length > 0) {
+          var tracks = vEl.audioTracks;
+          var matched = false;
+          // First pass: match by language code or label
+          for (var t = 0; t < tracks.length; t++) {
+            var tLbl = (tracks[t].label || '').toLowerCase();
+            var tLng = (tracks[t].language || '').toLowerCase();
+            var hit  = tLbl.indexOf(key) !== -1 || tLng.indexOf(key.slice(0,3)) === 0;
+            if (!matched && hit) { tracks[t].enabled = true; matched = true; }
+            else { tracks[t].enabled = false; }
+          }
+          // Second pass: fall back to positional index
+          if (!matched) {
+            for (var t2 = 0; t2 < tracks.length; t2++) tracks[t2].enabled = (t2 === idx);
+          }
+        }
+      });
+    });
+  }
+
   // GDFlix handler is registered once at module level (see bottom of file)
 
   // Load Video.js and initialize the player
@@ -2617,79 +2660,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		if (player_config.player == "plyr") {
 			const player = new Plyr('#player');
 		} else if (player_config.player == "videojs") {
-      // ── Video.js init with AudioTrack support ───────────────────────────
-      var vjsPlayer = videojs('vplayer', {
-        fill: true,
-        controlBar: {
-          children: [
-            'playToggle',
-            'volumePanel',
-            'currentTimeDisplay',
-            'timeDivider',
-            'durationDisplay',
-            'progressControl',
-            'audioTrackButton',   // ← native VJS audio track selector button
-            'fullscreenToggle',
-          ]
-        }
-      });
-
-      // ── Build the below-player filename-based language buttons ──────────
-      if (_detectedLangs.length > 1) {
-        var _albBtns = document.getElementById('alb-btns');
-        if (_albBtns) {
-          var _currentTrackIdx = 0; // track which "virtual" language is selected
-
-          _detectedLangs.forEach(function(lang, i) {
-            var btn = document.createElement('button');
-            btn.className = 'alb-b' + (i === 0 ? ' alb-sel' : '');
-            btn.textContent = lang.label;
-            btn.title = 'Switch to ' + lang.label;
-
-            btn.addEventListener('click', function() {
-              _currentTrackIdx = i;
-              // Mark button active
-              _albBtns.querySelectorAll('.alb-b').forEach(function(b, j) {
-                b.classList.toggle('alb-sel', j === i);
-              });
-
-              // Try native AudioTrackList first (Chrome/Edge with supported streams)
-              var vEl = document.getElementById('vplayer') || document.querySelector('#vplayer video') || document.querySelector('video');
-              if (vEl && vEl.audioTracks && vEl.audioTracks.length > 1) {
-                // Enable matching track, disable others
-                var tracks = vEl.audioTracks;
-                var matched = false;
-                for (var t = 0; t < tracks.length; t++) {
-                  var tLabel = (tracks[t].label || '').toLowerCase();
-                  var tLang  = (tracks[t].language || '').toLowerCase();
-                  var isMatch = tLabel.includes(lang.key) || tLang.startsWith(lang.key.slice(0,3));
-                  if (!matched && isMatch) {
-                    tracks[t].enabled = true;
-                    matched = true;
-                  } else {
-                    tracks[t].enabled = false;
-                  }
-                }
-                // Fallback: enable by index if no label match
-                if (!matched) {
-                  for (var t2 = 0; t2 < tracks.length; t2++) tracks[t2].enabled = (t2 === i);
-                }
-              }
-              // Also update VJS audioTrackButton UI if available
-              try {
-                var vjsAudioTracks = vjsPlayer.audioTracks();
-                if (vjsAudioTracks && vjsAudioTracks.length > 1) {
-                  for (var t3 = 0; t3 < vjsAudioTracks.length; t3++) {
-                    vjsAudioTracks[t3].enabled = (t3 === i);
-                  }
-                }
-              } catch(e) {}
-            });
-
-            _albBtns.appendChild(btn);
-          });
-        }
-      }
+      var vjsPlayer = videojs('vplayer');
 		} else if (player_config.player == "dplayer") {
 			const dp = new DPlayer({
 				container: document.getElementById('player-container'),
