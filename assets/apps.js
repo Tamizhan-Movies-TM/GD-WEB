@@ -2371,151 +2371,14 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			player = `<div id="player-container"></div>`
 			player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js'
 			player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css'
-		} else if (player_config.player == "theoplayer") {
-			// ── Parse languages & subs from filename ───────────────────────
-			const _TM_LANG_MAP = {
-				'tam':'Tamil','tel':'Telugu','hin':'Hindi','eng':'English',
-				'mal':'Malayalam','kan':'Kannada','mar':'Marathi','ben':'Bengali',
-				'pun':'Punjabi','ori':'Odia','guj':'Gujarati','asm':'Assamese',
-				'urd':'Urdu','jpn':'Japanese','kor':'Korean','chi':'Chinese',
-				'fre':'French','ger':'German','spa':'Spanish','ita':'Italian',
-				'ta':'Tamil','te':'Telugu','hi':'Hindi','en':'English',
-				'ml':'Malayalam','kn':'Kannada','mr':'Marathi','bn':'Bengali'
-			};
-			function _tmParseLangs(n) {
-				const langs=[],seen=new Set();
-				const segs=n.match(/[\[\(]([A-Za-z_+&, ]{3,60})[\]\)]/g)||[];
-				segs.forEach(seg=>seg.replace(/[\[\]\(\)]/g,'').split(/[_+&, ]+/).forEach(tok=>{
-					const k=tok.toLowerCase();
-					if(_TM_LANG_MAP[k]&&!seen.has(_TM_LANG_MAP[k])){seen.add(_TM_LANG_MAP[k]);langs.push({code:k,label:_TM_LANG_MAP[k]});}
-				}));
-				if(langs.length===0){
-					Object.keys(_TM_LANG_MAP).forEach(k=>{
-						if(new RegExp('\\b'+k+'\\b','i').test(n)&&!seen.has(_TM_LANG_MAP[k])){
-							seen.add(_TM_LANG_MAP[k]);langs.push({code:k,label:_TM_LANG_MAP[k]});
-						}
-					});
-				}
-				return langs;
-			}
-			function _tmParseSubs(n) {
-				const s=[];
-				if(/esub/i.test(n))s.push({code:'en',label:'English (ESub)'});
-				if(/hsub/i.test(n))s.push({code:'hi',label:'Hindi (HSub)'});
-				if(/tsub/i.test(n))s.push({code:'ta',label:'Tamil (TSub)'});
-				if(/msub/i.test(n))s.push({code:'ml',label:'Malayalam (MSub)'});
-				return s;
-			}
-			const _tmLangs = _tmParseLangs(name);
-			const _tmSubs  = _tmParseSubs(name);
-			const _spdOpts = [0.25,0.5,0.75,1,1.25,1.5,1.75,2];
-
-			// Video.js version to use
-			const VJS_VER = player_config.videojs_version || '8.3.0';
-
-			player = `
-<style>
-#tmWrap{position:relative;width:100%;aspect-ratio:16/9;min-height:220px;background:#000;border-radius:10px;overflow:hidden;font-family:'Segoe UI',Arial,sans-serif;}
-#tmWrap video,#tmWrap .video-js{width:100%!important;height:100%!important;position:absolute!important;top:0;left:0;display:block;object-fit:contain;}
-#tmOverlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:4;transition:opacity .25s;}
-#tmOverlay.tmHide{opacity:0;pointer-events:none;}
-#tmBigPlay{width:70px;height:70px;background:rgba(255,160,0,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(255,160,0,.5);transition:transform .15s,box-shadow .15s;}
-#tmBigPlay:hover{transform:scale(1.1);box-shadow:0 6px 32px rgba(255,160,0,.7);}
-#tmCtrl{position:absolute;bottom:0;left:0;right:0;z-index:10;padding:8px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,.94));transition:opacity .3s;}
-#tmCtrl.tmHide{opacity:0;pointer-events:none;}
-#tmPRow{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-#tmSeek{flex:1;height:4px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,.2);border-radius:4px;cursor:pointer;outline:none;}
-#tmSeek::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#ffa000;cursor:pointer;}
-#tmSeek::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#ffa000;border:none;cursor:pointer;}
-#tmTime{color:#ddd;font-size:11px;white-space:nowrap;min-width:100px;text-align:right;}
-#tmBRow{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;}
-.tmCBtn{background:none;border:none;cursor:pointer;padding:5px;color:#fff;display:flex;align-items:center;border-radius:4px;transition:background .15s;flex-shrink:0;}
-.tmCBtn:hover{background:rgba(255,255,255,.12);}
-#tmVolSldr{width:64px;height:3px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,.3);border-radius:4px;cursor:pointer;outline:none;flex-shrink:0;}
-#tmVolSldr::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#ffa000;cursor:pointer;}
-.tmSpacer{flex:1;}
-.tmPill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-radius:18px;cursor:pointer;padding:4px 11px;color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;transition:background .15s,border-color .15s;flex-shrink:0;position:relative;user-select:none;}
-.tmPill:hover,.tmPill.tmOn{background:rgba(255,160,0,.18);border-color:#ffa000;color:#ffa000;}
-.tmDD{display:none;position:absolute;bottom:40px;right:0;background:#0d0d1a;border:1px solid rgba(255,160,0,.5);border-radius:8px;overflow:hidden;min-width:160px;z-index:50;box-shadow:0 8px 28px rgba(0,0,0,.7);}
-.tmDD.tmOpen{display:block;}
-.tmDDH{padding:8px 14px;font-size:10px;font-weight:700;color:#ffa000;border-bottom:1px solid rgba(255,160,0,.25);letter-spacing:.6px;text-transform:uppercase;}
-.tmDDI{display:block;width:100%;text-align:left;padding:9px 14px;font-size:12px;background:none;border:none;color:#bbb;cursor:pointer;transition:background .12s,color .12s;white-space:nowrap;}
-.tmDDI:hover{background:rgba(255,160,0,.1);color:#fff;}
-.tmDDI.tmSel{color:#ffa000;font-weight:700;}
-.tmDDI.tmSel::before{content:'✓ ';}
-#tmBuf{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:6;pointer-events:none;background:rgba(0,0,0,.3);}
-#tmBuf.tmShow{display:flex;}
-#tmBufR{width:44px;height:44px;border:3px solid rgba(255,160,0,.2);border-top-color:#ffa000;border-radius:50%;animation:tmSpin .7s linear infinite;}
-@keyframes tmSpin{to{transform:rotate(360deg);}}
-#tmBadge{position:absolute;top:10px;left:10px;display:flex;gap:5px;flex-wrap:wrap;z-index:5;pointer-events:none;}
-.tmLTag{background:rgba(255,160,0,.9);color:#000;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.2px;}
-#tmAudActive{background:rgba(255,160,0,.25);color:#ffa000;padding:2px 6px;border-radius:8px;font-size:10px;font-weight:700;margin-left:2px;}
-</style>
-<div id="tmWrap">
-  <video id="tmVid" preload="none" playsinline></video>
-  <div id="tmBadge">${_tmLangs.map(l=>`<span class="tmLTag">${escapeHtml(l.label)}</span>`).join('')}</div>
-  <div id="tmBuf"><div id="tmBufR"></div></div>
-  <div id="tmOverlay">
-    <div id="tmBigPlay">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff" style="margin-left:3px"><path d="M8 5v14l11-7z"/></svg>
-    </div>
-  </div>
-  <div id="tmCtrl">
-    <div id="tmPRow">
-      <input id="tmSeek" type="range" value="0" min="0" max="1000" step="1">
-      <span id="tmTime">0:00 / 0:00</span>
-    </div>
-    <div id="tmBRow">
-      <button class="tmCBtn" id="tmPlayBtn" title="Play/Pause (Space)">
-        <svg id="tmPlayIco" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-      </button>
-      <button class="tmCBtn" id="tmMuteBtn" title="Mute (M)">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path id="tmVolP" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
-      </button>
-      <input id="tmVolSldr" type="range" value="100" min="0" max="100" title="Volume">
-      <div class="tmSpacer"></div>
-      <div class="tmPill" id="tmSpdPill">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
-        <span id="tmSpdLbl">1×</span>
-        <div class="tmDD" id="tmSpdDD">
-          <div class="tmDDH">⚡ Speed</div>
-          ${_spdOpts.map(s=>`<button class="tmDDI${s===1?' tmSel':''}" data-spd="${s}">${s}×</button>`).join('')}
-        </div>
-      </div>
-      <div class="tmPill" id="tmAudPill">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-        Audio<span id="tmAudActive"></span>
-        <div class="tmDD" id="tmAudDD">
-          <div class="tmDDH">🎵 Audio Track</div>
-          <div id="tmAudList"><div style="padding:10px 14px;font-size:12px;color:rgba(255,255,255,.4);">Loading…</div></div>
-        </div>
-      </div>
-      <div class="tmPill" id="tmSubPill">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 11H4v-2h8v2zm8 0h-6v-2h6v2zm0-4H4V9h16v2z"/></svg>
-        Sub
-        <div class="tmDD" id="tmSubDD">
-          <div class="tmDDH">💬 Subtitle</div>
-          <div id="tmSubList"></div>
-        </div>
-      </div>
-      <button class="tmCBtn" id="tmPipBtn" title="Picture-in-Picture" style="display:none">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 1.99 2 1.99h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16.01H3V4.99h18v14.02z"/></svg>
-      </button>
-      <button class="tmCBtn" id="tmFsBtn" title="Fullscreen (F)">
-        <svg id="tmFsIco" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-      </button>
-    </div>
-  </div>
-</div>`
-			// Store data for tmWirePlayer
-			window._tmPlayerData = {
-				url, poster, name, mimeType,
-				langs: _tmLangs, subs: _tmSubs,
-				langMap: _TM_LANG_MAP,
-				vjsVer: VJS_VER
-			};
-			player_js  = ''
+		} else if (player_config.player == "jwplayer") {
+			player = `<div id="player"></div>`
+			player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
 			player_css = ''
+		} else if (player_config.player == "bitmovin") {
+			player = `<div id="bitmovin-player" style="width:100%;aspect-ratio:16/9;min-height:200px;background:#000;border-radius:4px;"></div>`
+			player_js = `https://cdn.jsdelivr.net/npm/bitmovin-player@${player_config.bitmovin_version || '8'}/bitmovinplayer.js`
+			player_css = ``
 		}
 	}
 
@@ -2599,15 +2462,12 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
   // GDFlix handler is registered once at module level (see bottom of file)
 
-  // Load Video.js / player and initialize
-	if (!UI.disable_player && player_config.player === "theoplayer") {
-		// Defer to next tick so jQuery .html(content) has painted the DOM
-		setTimeout(function() { tmWirePlayer(); }, 0);
-	} else if (!UI.disable_player && player_js) {
+  // Load Video.js and initialize the player
+	if (!UI.disable_player && player_js) {
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
 	videoJsScript.onload = function() {
-		// player loaded, initialize
+		// Video.js is loaded, initialize the player
 		if (player_config.player == "plyr") {
 			const player = new Plyr('#player');
 		} else if (player_config.player == "videojs") {
@@ -2645,6 +2505,39 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 					edgeStyle: "raised",
 				},
 			});
+		} else if (player_config.player == "bitmovin") {
+			// ── Bitmovin Player Initialization ─────────────────────────────────────
+			// Based on official Bitmovin demo: https://bitmovin.com/demos/multi-audio-tracks/
+			// Docs: https://developer.bitmovin.com/playback/docs/player-web-getting-started
+			var bitmovinConf = {
+				key: player_config.bitmovin_key
+			};
+			var bitmovinSource = {
+				title: name,
+				poster: poster || undefined
+			};
+			// Auto-detect source type from URL or mimeType
+			var srcLower = url.toLowerCase();
+			if (srcLower.includes('.m3u8') || mimeType.includes('mpegurl')) {
+				bitmovinSource.hls = url;
+			} else if (srcLower.includes('.mpd') || mimeType.includes('dash')) {
+				bitmovinSource.dash = url;
+			} else {
+				// Progressive MP4/WebM — works for standard Google Drive files
+				bitmovinSource.progressive = url;
+			}
+			var bPlayer = new bitmovin.player.Player(document.getElementById('bitmovin-player'), bitmovinConf);
+			bPlayer.load(bitmovinSource).then(function() {
+				log('Bitmovin Player loaded successfully');
+			}).catch(function(err) {
+				logError('Bitmovin Player load error:', err);
+				// Graceful fallback to native video element
+				document.getElementById('bitmovin-player').innerHTML =
+					`<video controls style="width:100%;height:100%;min-height:200px;background:#000;" poster="${poster || ''}">
+						<source src="${url}" type="video/mp4">
+						<source src="${url}" type="video/webm">
+					</video>`;
+			});
 		}
 	};
 	document.head.appendChild(videoJsScript);
@@ -2657,362 +2550,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	}
 	}
 }
-
-// =======================================================================
-// TM WIRE PLAYER — Real audio track switching via native browser API
-// Chrome supports audioTracks for MKV files natively
-// =======================================================================
-function tmWirePlayer() {
-  const d = window._tmPlayerData || {};
-  if (!d.url) { console.error('[TM] No URL'); return; }
-
-  const url   = d.url;
-  const langs = d.langs   || [];
-  const subs  = d.subs    || [];
-  const LMAP  = d.langMap || {};
-  const VJS   = d.vjsVer  || '8.3.0';
-
-  const PP  = 'M8 5v14l11-7z';
-  const PA  = 'M6 19h4V5H6v14zm8-14v14h4V5h-4z';
-  const VON = 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z';
-  const VOF = 'M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z';
-  const FSE = 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z';
-  const FSX = 'M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z';
-
-  function ge(id) { return document.getElementById(id); }
-  function sp(el, path) {
-    if (!el) return;
-    const p = el.tagName === 'PATH' ? el : el.querySelector('path');
-    if (p) p.setAttribute('d', path);
-  }
-  function fmt(s) {
-    if (!isFinite(s) || s < 0) return '0:00';
-    const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sc = Math.floor(s%60);
-    return (h?h+':':'')+(h&&m<10?'0':'')+m+':'+(sc<10?'0':'')+sc;
-  }
-  function loadJS(src, cb) {
-    if (document.querySelector('script[src="'+src+'"]')) { if (cb) setTimeout(cb,0); return; }
-    const s = document.createElement('script');
-    s.src = src; s.onload = cb || function(){}; document.head.appendChild(s);
-  }
-  function loadCSS(href) {
-    if (document.querySelector('link[href="'+href+'"]')) return;
-    const l = document.createElement('link'); l.rel='stylesheet'; l.href=href; document.head.appendChild(l);
-  }
-
-  // Load Video.js CSS + JS, then initialise
-  loadCSS('https://vjs.zencdn.net/'+VJS+'/video-js.css');
-  loadJS('https://vjs.zencdn.net/'+VJS+'/video.js', function() {
-
-    if (typeof videojs === 'undefined') { console.error('[TM] videojs failed to load'); return; }
-
-    const vidEl = ge('tmVid');
-    if (!vidEl) { console.error('[TM] #tmVid not found'); return; }
-
-    // Add video-js class so VJS takes control of the element
-    vidEl.classList.add('video-js');
-
-    // Determine MIME type from stored mimeType (most reliable for Google Drive)
-    const mt = (d.mimeType || '').toLowerCase();
-    const nm = (d.name || '').toLowerCase();
-    let srcType = 'video/mp4';
-    if      (mt.includes('matroska') || nm.endsWith('.mkv')) srcType = 'video/x-matroska';
-    else if (mt.includes('webm')     || nm.endsWith('.webm'))srcType = 'video/webm';
-    else if (mt.includes('x-msvideo')|| nm.endsWith('.avi')) srcType = 'video/x-msvideo';
-    else if (mt.includes('quicktime')|| nm.endsWith('.mov')) srcType = 'video/quicktime';
-    else if (mt.includes('mp4')      || nm.endsWith('.mp4')) srcType = 'video/mp4';
-    else if (mt.startsWith('video/'))                        srcType = mt;
-
-    // Initialise Video.js in chromeless mode (we provide custom controls)
-    const vjsOpts = {
-      controls:  false,
-      autoplay:  false,
-      preload:   'metadata',
-      fluid:     false,
-      fill:      true,
-      techOrder: ['html5'],
-      html5: {
-        vhs: { overrideNative: !videojs.browser.IS_SAFARI },
-        nativeAudioTracks: true,
-        nativeVideoTracks: true,
-        nativeTextTracks:  true
-      }
-    };
-    if (d.poster) vjsOpts.poster = d.poster;
-
-    const vjs = videojs('tmVid', vjsOpts);
-
-    // Set source — VJS html5 tech handles MKV/MP4/WebM
-    // For MKV from Google Drive, VJS may not recognise video/x-matroska
-    // Try with detected type; error handler will retry as video/mp4
-    if (srcType === 'video/x-matroska') {
-      // VJS html5 tech accepts matroska when browser supports it
-      vjs.src([
-        { src: url, type: 'video/x-matroska' },
-        { src: url, type: 'video/mp4' }
-      ]);
-    } else {
-      vjs.src({ src: url, type: srcType });
-    }
-
-    window._tmVjs = vjs; // expose for debugging
-
-    // Get underlying <video> element for native API access
-    const nVid = vjs.tech({ IWillNotUseThisInPlugins: true }).el();
-
-    // ── Auto-hide controls ─────────────────────────────────────────
-    const ctrl = ge('tmCtrl'), overlay = ge('tmOverlay'), buf = ge('tmBuf'), wrap = ge('tmWrap');
-    let hideT;
-    function showCtrl() {
-      ctrl && ctrl.classList.remove('tmHide');
-      clearTimeout(hideT);
-      if (!vjs.paused()) hideT = setTimeout(() => ctrl && ctrl.classList.add('tmHide'), 3200);
-    }
-    if (wrap) {
-      wrap.addEventListener('mousemove', showCtrl);
-      wrap.addEventListener('touchstart', showCtrl, {passive:true});
-      wrap.addEventListener('dblclick', () => ge('tmFsBtn') && ge('tmFsBtn').click());
-    }
-
-    // ── Play / Pause ───────────────────────────────────────────────
-    function togglePlay() { vjs.paused() ? vjs.play() : vjs.pause(); }
-    const playBtn = ge('tmPlayBtn'), playIco = ge('tmPlayIco');
-    if (playBtn)  playBtn.addEventListener('click', e => { e.stopPropagation(); togglePlay(); });
-    if (overlay)  overlay.addEventListener('click', togglePlay);
-
-    vjs.on('play',  () => { sp(playIco, PA); overlay && overlay.classList.add('tmHide'); showCtrl(); });
-    vjs.on('pause', () => { sp(playIco, PP); overlay && overlay.classList.remove('tmHide'); ctrl && ctrl.classList.remove('tmHide'); clearTimeout(hideT); });
-    vjs.on('ended', () => { sp(playIco, PP); overlay && overlay.classList.remove('tmHide'); });
-    let _errRetried = false;
-    vjs.on('error', () => {
-      const err = vjs.error();
-      console.warn('[TM] VJS error code:', err && err.code, err && err.message);
-      if (!_errRetried) {
-        _errRetried = true;
-        // Retry with video/mp4 type — VJS html5 tech is more permissive
-        console.log('[TM] Retrying with video/mp4 type...');
-        vjs.src({ src: url, type: 'video/mp4' });
-        vjs.load();
-      }
-    });
-
-    // ── Buffering spinner ──────────────────────────────────────────
-    vjs.on('waiting', () => buf && buf.classList.add('tmShow'));
-    vjs.on('canplay', () => buf && buf.classList.remove('tmShow'));
-    vjs.on('playing', () => buf && buf.classList.remove('tmShow'));
-
-    // ── Seek bar ───────────────────────────────────────────────────
-    const seekBar = ge('tmSeek'), timeLbl = ge('tmTime');
-    vjs.on('timeupdate', () => {
-      const dur = vjs.duration(); if (!dur) return;
-      seekBar.value = (vjs.currentTime() / dur) * 1000;
-      timeLbl.textContent = fmt(vjs.currentTime()) + ' / ' + fmt(dur);
-    });
-    vjs.on('durationchange', () => { const dur=vjs.duration(); if(dur&&timeLbl) timeLbl.textContent='0:00 / '+fmt(dur); });
-    // Buffered highlight
-    vjs.on('progress', () => {
-      const dur=vjs.duration(), buf2=vjs.bufferedPercent()*100, ct=(vjs.currentTime()/dur)*100||0;
-      seekBar.style.background=`linear-gradient(to right,#ffa000 0%,#ffa000 ${ct}%,rgba(255,160,0,.35) ${ct}%,rgba(255,160,0,.35) ${buf2}%,rgba(255,255,255,.18) ${buf2}%,rgba(255,255,255,.18) 100%)`;
-    });
-    seekBar.addEventListener('input', () => { const dur=vjs.duration(); if(dur) vjs.currentTime((seekBar.value/1000)*dur); });
-
-    // ── Volume ─────────────────────────────────────────────────────
-    const volSldr = ge('tmVolSldr'), volPath = ge('tmVolP');
-    function syncVol() { sp(volPath, vjs.muted()||vjs.volume()===0 ? VOF : VON); }
-    volSldr.addEventListener('input', () => { vjs.volume(volSldr.value/100); vjs.muted(vjs.volume()===0); syncVol(); });
-    const muteBtn = ge('tmMuteBtn');
-    if (muteBtn) muteBtn.addEventListener('click', () => { vjs.muted(!vjs.muted()); volSldr.value=vjs.muted()?0:vjs.volume()*100; syncVol(); });
-
-    // ── Fullscreen ─────────────────────────────────────────────────
-    const fsBtn = ge('tmFsBtn'), fsIco = ge('tmFsIco');
-    if (fsBtn) fsBtn.addEventListener('click', () => {
-      const el = wrap;
-      if (!document.fullscreenElement) (el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el);
-      else (document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document);
-    });
-    document.addEventListener('fullscreenchange', () => sp(fsIco, document.fullscreenElement ? FSX : FSE));
-
-    // ── PiP ────────────────────────────────────────────────────────
-    const pipBtn = ge('tmPipBtn');
-    if (pipBtn && document.pictureInPictureEnabled) {
-      pipBtn.style.display = 'flex';
-      pipBtn.addEventListener('click', () => {
-        document.pictureInPictureElement ? document.exitPictureInPicture() : nVid.requestPictureInPicture && nVid.requestPictureInPicture();
-      });
-    }
-
-    // ── Dropdowns ──────────────────────────────────────────────────
-    function closeAllDD() {
-      document.querySelectorAll('.tmDD').forEach(dd => dd.classList.remove('tmOpen'));
-      document.querySelectorAll('.tmPill').forEach(p => p.classList.remove('tmOn'));
-    }
-    function togDD(ddId, pill) {
-      const dd = ge(ddId), open = dd && dd.classList.contains('tmOpen');
-      closeAllDD();
-      if (!open && dd) { dd.classList.add('tmOpen'); pill && pill.classList.add('tmOn'); }
-    }
-    document.addEventListener('click', e => {
-      if (!e.target.closest('.tmPill') && !e.target.closest('.tmDD')) closeAllDD();
-    });
-
-    // ── Speed ──────────────────────────────────────────────────────
-    const spdPill = ge('tmSpdPill'), spdLbl = ge('tmSpdLbl');
-    if (spdPill) spdPill.addEventListener('click', e => { e.stopPropagation(); togDD('tmSpdDD', spdPill); });
-    document.querySelectorAll('[data-spd]').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        const sp2 = parseFloat(btn.dataset.spd);
-        vjs.playbackRate(sp2);
-        if (spdLbl) spdLbl.textContent = sp2 + '×';
-        document.querySelectorAll('[data-spd]').forEach(b => b.classList.toggle('tmSel', parseFloat(b.dataset.spd) === sp2));
-        closeAllDD();
-      });
-    });
-
-    // ── AUDIO TRACKS — native HTMLVideoElement.audioTracks ─────────
-    // Chrome exposes audioTracks for MKV natively via the underlying <video>
-    const audPill  = ge('tmAudPill'), audList = ge('tmAudList'), audActive = ge('tmAudActive');
-    if (audPill) audPill.addEventListener('click', e => { e.stopPropagation(); togDD('tmAudDD', audPill); });
-
-    function buildAudioMenu() {
-      if (!audList) return;
-      audList.innerHTML = '';
-
-      // Access native audioTracks via the underlying tech element
-      const nativeTracks = nVid && nVid.audioTracks ? Array.from(nVid.audioTracks) : [];
-
-      if (nativeTracks.length > 1) {
-        // ✅ Real tracks — Chrome MKV multi-audio support
-        const btns = [];
-        nativeTracks.forEach((track, i) => {
-          const rawLbl = track.label || track.language || '';
-          const label  = LMAP[rawLbl.toLowerCase()] || rawLbl || ('Track '+(i+1));
-          const btn = document.createElement('button');
-          btn.className = 'tmDDI' + (track.enabled ? ' tmSel' : '');
-          btn.textContent = label;
-          btn.dataset.lang = label;
-          if (track.enabled && audActive) audActive.textContent = label;
-          btn.addEventListener('click', e => {
-            e.stopPropagation();
-            const wasPlaying = !vjs.paused(), savedTime = vjs.currentTime();
-            nativeTracks.forEach((t, j) => t.enabled = (j === i));
-            btns.forEach((b, j) => b.classList.toggle('tmSel', j === i));
-            if (audActive) audActive.textContent = label;
-            // Force decoder flush by tiny seek
-            setTimeout(() => {
-              vjs.currentTime(savedTime + 0.001);
-              if (wasPlaying) vjs.play();
-            }, 50);
-            closeAllDD();
-          });
-          audList.appendChild(btn);
-          btns.push(btn);
-        });
-        if (nVid.audioTracks.onaddtrack !== undefined) nVid.audioTracks.onaddtrack = buildAudioMenu;
-      } else if (langs.length > 0) {
-        // ⚠️ Multiple langs in filename but browser can't switch (single stream)
-        const note = document.createElement('div');
-        note.style.cssText = 'padding:6px 14px 8px;font-size:10px;color:rgba(255,160,0,.75);border-bottom:1px solid rgba(255,160,0,.15);display:flex;align-items:center;gap:5px;';
-        note.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> Use MX Player or VLC to switch audio';
-        audList.appendChild(note);
-        langs.forEach((l, i) => {
-          const btn = document.createElement('button');
-          btn.className = 'tmDDI' + (i === 0 ? ' tmSel' : '');
-          btn.textContent = l.label;
-          btn.addEventListener('click', e => {
-            e.stopPropagation();
-            audList.querySelectorAll('.tmDDI').forEach((b, j) => b.classList.toggle('tmSel', j === i));
-            if (audActive) audActive.textContent = l.label;
-            closeAllDD();
-          });
-          audList.appendChild(btn);
-        });
-        if (audActive && langs[0]) audActive.textContent = langs[0].label;
-      } else {
-        const empty = document.createElement('div');
-        empty.style.cssText = 'padding:12px 14px;font-size:12px;color:rgba(255,255,255,.4);text-align:center;';
-        empty.textContent = 'Single audio track';
-        audList.appendChild(empty);
-      }
-    }
-
-    buildAudioMenu();
-    vjs.on('loadedmetadata', buildAudioMenu);
-    // Extra attempt 600ms after metadata (Chrome loads tracks slightly late)
-    vjs.on('loadedmetadata', () => setTimeout(buildAudioMenu, 600));
-
-    // ── SUBTITLES ──────────────────────────────────────────────────
-    const subPill = ge('tmSubPill'), subList = ge('tmSubList');
-    if (subPill) subPill.addEventListener('click', e => { e.stopPropagation(); togDD('tmSubDD', subPill); });
-
-    function buildSubMenu() {
-      if (!subList) return;
-      subList.innerHTML = '';
-      const offBtn = document.createElement('button');
-      offBtn.className = 'tmDDI tmSel'; offBtn.textContent = 'Off';
-      offBtn.addEventListener('click', e => {
-        e.stopPropagation();
-        const tt = vjs.textTracks(); for(let i=0;i<tt.length;i++) tt[i].mode='disabled';
-        subList.querySelectorAll('.tmDDI').forEach((b,j) => b.classList.toggle('tmSel', j===0));
-        closeAllDD();
-      });
-      subList.appendChild(offBtn);
-
-      const tt = vjs.textTracks ? vjs.textTracks() : null;
-      const count = tt ? tt.length : 0;
-      let added = 0;
-      for (let i=0; i<count; i++) {
-        const t = tt[i];
-        if (t.kind !== 'subtitles' && t.kind !== 'captions') continue;
-        (function(track, idx) {
-          const rawLbl = track.label || track.language || '';
-          const label  = LMAP[rawLbl.toLowerCase()] || rawLbl || ('Sub '+(idx+1));
-          const btn = document.createElement('button'); btn.className='tmDDI'; btn.textContent=label;
-          btn.addEventListener('click', e => {
-            e.stopPropagation();
-            for(let j=0;j<count;j++) if(tt[j].kind==='subtitles'||tt[j].kind==='captions') tt[j].mode=tt[j]===track?'showing':'disabled';
-            subList.querySelectorAll('.tmDDI').forEach((b,j) => b.classList.toggle('tmSel', j===idx+1));
-            closeAllDD();
-          });
-          subList.appendChild(btn);
-        })(tt[i], added++);
-      }
-
-      if (added === 0 && subs.length > 0) {
-        subs.forEach((s, i) => {
-          const btn = document.createElement('button'); btn.className='tmDDI';
-          btn.innerHTML = (s.label||s) + '<small style="opacity:.4;font-size:10px;margin-left:4px;">(embedded)</small>';
-          btn.addEventListener('click', e => {
-            e.stopPropagation();
-            subList.querySelectorAll('.tmDDI').forEach((b,j) => b.classList.toggle('tmSel', j===i+1));
-            closeAllDD();
-          });
-          subList.appendChild(btn);
-        });
-      } else if (added === 0) {
-        const empty=document.createElement('div'); empty.style.cssText='padding:12px 14px;font-size:12px;color:rgba(255,255,255,.4);text-align:center;'; empty.textContent='No subtitles available';
-        subList.appendChild(empty);
-      }
-    }
-    vjs.on('loadedmetadata', buildSubMenu);
-    buildSubMenu();
-
-    // ── Keyboard shortcuts ─────────────────────────────────────────
-    document.addEventListener('keydown', e => {
-      if (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
-      if (!ge('tmWrap')) return;
-      if (e.code==='Space')     { e.preventDefault(); togglePlay(); }
-      if (e.code==='ArrowLeft') { e.preventDefault(); vjs.currentTime(Math.max(0,vjs.currentTime()-10)); }
-      if (e.code==='ArrowRight'){ e.preventDefault(); vjs.currentTime(Math.min(vjs.duration()||0,vjs.currentTime()+10)); }
-      if (e.code==='ArrowUp')   { e.preventDefault(); const v=Math.min(1,vjs.volume()+.1); vjs.volume(v); if(volSldr)volSldr.value=v*100; syncVol(); }
-      if (e.code==='ArrowDown') { e.preventDefault(); const v=Math.max(0,vjs.volume()-.1); vjs.volume(v); if(volSldr)volSldr.value=v*100; syncVol(); }
-      if (e.code==='KeyF' && fsBtn)   fsBtn.click();
-      if (e.code==='KeyM' && muteBtn) muteBtn.click();
-    });
-
-  }); // end loadJS
-}
-
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
