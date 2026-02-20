@@ -2414,12 +2414,9 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			const VJS_VER = player_config.videojs_version || '8.3.0';
 
 			player = `
-<link rel="stylesheet" href="https://vjs.zencdn.net/${VJS_VER}/video-js.css">
 <style>
 #tmWrap{position:relative;width:100%;aspect-ratio:16/9;min-height:220px;background:#000;border-radius:10px;overflow:hidden;font-family:'Segoe UI',Arial,sans-serif;}
-#tmWrap .video-js{width:100%;height:100%;border-radius:10px;}
-#tmWrap .vjs-big-play-button{display:none!important;}
-#tmWrap .vjs-control-bar{display:none!important;}
+#tmWrap video,#tmWrap .video-js{width:100%!important;height:100%!important;position:absolute!important;top:0;left:0;display:block;object-fit:contain;}
 #tmOverlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:4;transition:opacity .25s;}
 #tmOverlay.tmHide{opacity:0;pointer-events:none;}
 #tmBigPlay{width:70px;height:70px;background:rgba(255,160,0,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(255,160,0,.5);transition:transform .15s,box-shadow .15s;}
@@ -2455,8 +2452,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 #tmAudActive{background:rgba(255,160,0,.25);color:#ffa000;padding:2px 6px;border-radius:8px;font-size:10px;font-weight:700;margin-left:2px;}
 </style>
 <div id="tmWrap">
-  <video id="tmVid" class="video-js" preload="auto" ${poster?`poster="${poster}"`:''}
-    playsinline crossorigin="anonymous"></video>
+  <video id="tmVid" preload="none" playsinline></video>
   <div id="tmBadge">${_tmLangs.map(l=>`<span class="tmLTag">${escapeHtml(l.label)}</span>`).join('')}</div>
   <div id="tmBuf"><div id="tmBufR"></div></div>
   <div id="tmOverlay">
@@ -2663,24 +2659,19 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 }
 
 // =======================================================================
-// TM WIRE PLAYER — runs after DOM is painted, wires up all controls
-// HTML is already embedded in the page by file_video() above
-// =======================================================================
-// =======================================================================
-// TM WIRE PLAYER — Video.js + VHS engine for real audio track switching
-// Runs after DOM is ready (called via setTimeout from file_video)
+// TM WIRE PLAYER — Real audio track switching via native browser API
+// Chrome supports audioTracks for MKV files natively
 // =======================================================================
 function tmWirePlayer() {
-  const d   = window._tmPlayerData || {};
-  if (!d.url) return;
+  const d = window._tmPlayerData || {};
+  if (!d.url) { console.error('[TM] No URL'); return; }
 
-  const url     = d.url;
-  const langs   = d.langs   || [];
-  const subs    = d.subs    || [];
-  const LMAP    = d.langMap || {};
-  const vjsVer  = d.vjsVer  || '8.3.0';
+  const url   = d.url;
+  const langs = d.langs   || [];
+  const subs  = d.subs    || [];
+  const LMAP  = d.langMap || {};
+  const VJS   = d.vjsVer  || '8.3.0';
 
-  // SVG path constants
   const PP  = 'M8 5v14l11-7z';
   const PA  = 'M6 19h4V5H6v14zm8-14v14h4V5h-4z';
   const VON = 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z';
@@ -2688,317 +2679,340 @@ function tmWirePlayer() {
   const FSE = 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z';
   const FSX = 'M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z';
 
-  function ge(id){ return document.getElementById(id); }
-  function sp(el, d){ if(!el) return; const p=el.querySelector?el.querySelector('path'):el; if(p) p.setAttribute('d',d); }
-  function fmt(s){
-    if(!isFinite(s)||s<0) return '0:00';
-    const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=Math.floor(s%60);
+  function ge(id) { return document.getElementById(id); }
+  function sp(el, path) {
+    if (!el) return;
+    const p = el.tagName === 'PATH' ? el : el.querySelector('path');
+    if (p) p.setAttribute('d', path);
+  }
+  function fmt(s) {
+    if (!isFinite(s) || s < 0) return '0:00';
+    const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sc = Math.floor(s%60);
     return (h?h+':':'')+(h&&m<10?'0':'')+m+':'+(sc<10?'0':'')+sc;
   }
-  function loadJS(src, cb){
-    if(document.querySelector('script[src="'+src+'"]')){
-      if(typeof cb==='function') cb(); return;
-    }
-    const s=document.createElement('script'); s.src=src;
-    s.onload=cb||function(){}; s.onerror=function(){ console.error('[TM] Failed:',src); };
-    document.head.appendChild(s);
+  function loadJS(src, cb) {
+    if (document.querySelector('script[src="'+src+'"]')) { if (cb) setTimeout(cb,0); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = cb || function(){}; document.head.appendChild(s);
+  }
+  function loadCSS(href) {
+    if (document.querySelector('link[href="'+href+'"]')) return;
+    const l = document.createElement('link'); l.rel='stylesheet'; l.href=href; document.head.appendChild(l);
   }
 
-  // ── Load Video.js then initialise ──────────────────────────────────
-  const VJS_CDN = 'https://vjs.zencdn.net/'+vjsVer+'/video.js';
-  const VHS_CDN = 'https://cdn.jsdelivr.net/npm/videojs-contrib-eme@5.2.0/dist/videojs-contrib-eme.min.js';
+  // Load Video.js CSS + JS, then initialise
+  loadCSS('https://vjs.zencdn.net/'+VJS+'/video-js.css');
+  loadJS('https://vjs.zencdn.net/'+VJS+'/video.js', function() {
 
-  loadJS(VJS_CDN, function() {
-    if(typeof videojs === 'undefined'){ console.error('[TM] videojs not loaded'); return; }
+    if (typeof videojs === 'undefined') { console.error('[TM] videojs failed to load'); return; }
 
-    const vjsEl = ge('tmVid');
-    if(!vjsEl){ console.error('[TM] #tmVid not found'); return; }
+    const vidEl = ge('tmVid');
+    if (!vidEl) { console.error('[TM] #tmVid not found'); return; }
 
-    // Initialise Video.js in chromeless mode (we provide our own controls)
-    const vjs = videojs('tmVid', {
-      controls: false,
-      autoplay: false,
-      preload: 'auto',
-      fluid: true,
+    // Add video-js class so VJS takes control of the element
+    vidEl.classList.add('video-js');
+
+    // Determine MIME type from stored mimeType (most reliable for Google Drive)
+    const mt = (d.mimeType || '').toLowerCase();
+    const nm = (d.name || '').toLowerCase();
+    let srcType = 'video/mp4';
+    if      (mt.includes('matroska') || nm.endsWith('.mkv')) srcType = 'video/x-matroska';
+    else if (mt.includes('webm')     || nm.endsWith('.webm'))srcType = 'video/webm';
+    else if (mt.includes('x-msvideo')|| nm.endsWith('.avi')) srcType = 'video/x-msvideo';
+    else if (mt.includes('quicktime')|| nm.endsWith('.mov')) srcType = 'video/quicktime';
+    else if (mt.includes('mp4')      || nm.endsWith('.mp4')) srcType = 'video/mp4';
+    else if (mt.startsWith('video/'))                        srcType = mt;
+
+    // Initialise Video.js in chromeless mode (we provide custom controls)
+    const vjsOpts = {
+      controls:  false,
+      autoplay:  false,
+      preload:   'metadata',
+      fluid:     false,
+      fill:      true,
       techOrder: ['html5'],
       html5: {
-        vhs: {
-          overrideNative: true,
-          enableLowInitialPlaylist: true,
-          handleManifestRedirects: true
-        },
-        nativeAudioTracks: false,
-        nativeVideoTracks: false,
-        nativeTextTracks: false
+        vhs: { overrideNative: !videojs.browser.IS_SAFARI },
+        nativeAudioTracks: true,
+        nativeVideoTracks: true,
+        nativeTextTracks:  true
       }
-    });
+    };
+    if (d.poster) vjsOpts.poster = d.poster;
 
-    // Set source
-    vjs.src({ src: url, type: d.mimeType || 'video/mp4' });
+    const vjs = videojs('tmVid', vjsOpts);
 
-    const vid = vjsEl; // underlying <video> element
-
-    // Expose vjs globally for debugging
-    window._tmVjs = vjs;
-
-    // ── auto-hide controls ─────────────────────────────────────────
-    const ctrl=ge('tmCtrl'), overlay=ge('tmOverlay'), buf=ge('tmBuf');
-    let hideT;
-    function showCtrl(){
-      if(ctrl) ctrl.classList.remove('tmHide');
-      clearTimeout(hideT);
-      if(!vjs.paused()) hideT=setTimeout(()=>ctrl&&ctrl.classList.add('tmHide'),3500);
+    // Set source — VJS html5 tech handles MKV/MP4/WebM
+    // For MKV from Google Drive, VJS may not recognise video/x-matroska
+    // Try with detected type; error handler will retry as video/mp4
+    if (srcType === 'video/x-matroska') {
+      // VJS html5 tech accepts matroska when browser supports it
+      vjs.src([
+        { src: url, type: 'video/x-matroska' },
+        { src: url, type: 'video/mp4' }
+      ]);
+    } else {
+      vjs.src({ src: url, type: srcType });
     }
-    const wrap=ge('tmWrap');
-    if(wrap){
+
+    window._tmVjs = vjs; // expose for debugging
+
+    // Get underlying <video> element for native API access
+    const nVid = vjs.tech({ IWillNotUseThisInPlugins: true }).el();
+
+    // ── Auto-hide controls ─────────────────────────────────────────
+    const ctrl = ge('tmCtrl'), overlay = ge('tmOverlay'), buf = ge('tmBuf'), wrap = ge('tmWrap');
+    let hideT;
+    function showCtrl() {
+      ctrl && ctrl.classList.remove('tmHide');
+      clearTimeout(hideT);
+      if (!vjs.paused()) hideT = setTimeout(() => ctrl && ctrl.classList.add('tmHide'), 3200);
+    }
+    if (wrap) {
       wrap.addEventListener('mousemove', showCtrl);
       wrap.addEventListener('touchstart', showCtrl, {passive:true});
-      wrap.addEventListener('mouseleave',()=>{ if(!vjs.paused()) hideT=setTimeout(()=>ctrl&&ctrl.classList.add('tmHide'),1200); });
+      wrap.addEventListener('dblclick', () => ge('tmFsBtn') && ge('tmFsBtn').click());
     }
 
     // ── Play / Pause ───────────────────────────────────────────────
-    function togglePlay(){ vjs.paused() ? vjs.play() : vjs.pause(); }
-    const playBtn=ge('tmPlayBtn'), playIco=ge('tmPlayIco');
-    if(playBtn) playBtn.addEventListener('click', togglePlay);
-    if(overlay) overlay.addEventListener('click', togglePlay);
-    if(wrap)    wrap.addEventListener('dblclick', function(e){ if(e.target===vjsEl||e.target===wrap) ge('tmFsBtn')&&ge('tmFsBtn').click(); });
+    function togglePlay() { vjs.paused() ? vjs.play() : vjs.pause(); }
+    const playBtn = ge('tmPlayBtn'), playIco = ge('tmPlayIco');
+    if (playBtn)  playBtn.addEventListener('click', e => { e.stopPropagation(); togglePlay(); });
+    if (overlay)  overlay.addEventListener('click', togglePlay);
 
-    vjs.on('play',  ()=>{ sp(playIco,PA); overlay&&overlay.classList.add('tmHide'); showCtrl(); });
-    vjs.on('pause', ()=>{ sp(playIco,PP); overlay&&overlay.classList.remove('tmHide'); if(ctrl){ctrl.classList.remove('tmHide'); clearTimeout(hideT);} });
-    vjs.on('ended', ()=>{ sp(playIco,PP); overlay&&overlay.classList.remove('tmHide'); });
+    vjs.on('play',  () => { sp(playIco, PA); overlay && overlay.classList.add('tmHide'); showCtrl(); });
+    vjs.on('pause', () => { sp(playIco, PP); overlay && overlay.classList.remove('tmHide'); ctrl && ctrl.classList.remove('tmHide'); clearTimeout(hideT); });
+    vjs.on('ended', () => { sp(playIco, PP); overlay && overlay.classList.remove('tmHide'); });
+    let _errRetried = false;
+    vjs.on('error', () => {
+      const err = vjs.error();
+      console.warn('[TM] VJS error code:', err && err.code, err && err.message);
+      if (!_errRetried) {
+        _errRetried = true;
+        // Retry with video/mp4 type — VJS html5 tech is more permissive
+        console.log('[TM] Retrying with video/mp4 type...');
+        vjs.src({ src: url, type: 'video/mp4' });
+        vjs.load();
+      }
+    });
 
-    // ── Buffering ──────────────────────────────────────────────────
-    vjs.on('waiting', ()=>buf&&buf.classList.add('tmShow'));
-    vjs.on('canplay', ()=>buf&&buf.classList.remove('tmShow'));
-    vjs.on('playing', ()=>buf&&buf.classList.remove('tmShow'));
+    // ── Buffering spinner ──────────────────────────────────────────
+    vjs.on('waiting', () => buf && buf.classList.add('tmShow'));
+    vjs.on('canplay', () => buf && buf.classList.remove('tmShow'));
+    vjs.on('playing', () => buf && buf.classList.remove('tmShow'));
 
     // ── Seek bar ───────────────────────────────────────────────────
-    const seekBar=ge('tmSeek'), timeLbl=ge('tmTime');
-    vjs.on('timeupdate', ()=>{
-      const dur=vjs.duration();
-      if(!dur) return;
-      seekBar.value=(vjs.currentTime()/dur)*1000;
-      timeLbl.textContent=fmt(vjs.currentTime())+' / '+fmt(dur);
+    const seekBar = ge('tmSeek'), timeLbl = ge('tmTime');
+    vjs.on('timeupdate', () => {
+      const dur = vjs.duration(); if (!dur) return;
+      seekBar.value = (vjs.currentTime() / dur) * 1000;
+      timeLbl.textContent = fmt(vjs.currentTime()) + ' / ' + fmt(dur);
     });
-    vjs.on('durationchange', ()=>{
-      const dur=vjs.duration();
-      if(dur&&timeLbl) timeLbl.textContent='0:00 / '+fmt(dur);
+    vjs.on('durationchange', () => { const dur=vjs.duration(); if(dur&&timeLbl) timeLbl.textContent='0:00 / '+fmt(dur); });
+    // Buffered highlight
+    vjs.on('progress', () => {
+      const dur=vjs.duration(), buf2=vjs.bufferedPercent()*100, ct=(vjs.currentTime()/dur)*100||0;
+      seekBar.style.background=`linear-gradient(to right,#ffa000 0%,#ffa000 ${ct}%,rgba(255,160,0,.35) ${ct}%,rgba(255,160,0,.35) ${buf2}%,rgba(255,255,255,.18) ${buf2}%,rgba(255,255,255,.18) 100%)`;
     });
-    let seeking=false;
-    seekBar.addEventListener('mousedown', ()=>seeking=true);
-    seekBar.addEventListener('mouseup',   ()=>seeking=false);
-    seekBar.addEventListener('input', ()=>{
-      const dur=vjs.duration();
-      if(dur) vjs.currentTime((seekBar.value/1000)*dur);
-    });
+    seekBar.addEventListener('input', () => { const dur=vjs.duration(); if(dur) vjs.currentTime((seekBar.value/1000)*dur); });
 
     // ── Volume ─────────────────────────────────────────────────────
-    const volSldr=ge('tmVolSldr'), volPath=ge('tmVolP');
-    function syncVol(){ sp(volPath, vjs.muted()||vjs.volume()===0 ? VOF : VON); }
-    volSldr.addEventListener('input',()=>{
-      vjs.volume(volSldr.value/100);
-      vjs.muted(vjs.volume()===0);
-      syncVol();
-    });
-    const muteBtn=ge('tmMuteBtn');
-    if(muteBtn) muteBtn.addEventListener('click',()=>{
-      vjs.muted(!vjs.muted());
-      volSldr.value=vjs.muted()?0:vjs.volume()*100;
-      syncVol();
-    });
+    const volSldr = ge('tmVolSldr'), volPath = ge('tmVolP');
+    function syncVol() { sp(volPath, vjs.muted()||vjs.volume()===0 ? VOF : VON); }
+    volSldr.addEventListener('input', () => { vjs.volume(volSldr.value/100); vjs.muted(vjs.volume()===0); syncVol(); });
+    const muteBtn = ge('tmMuteBtn');
+    if (muteBtn) muteBtn.addEventListener('click', () => { vjs.muted(!vjs.muted()); volSldr.value=vjs.muted()?0:vjs.volume()*100; syncVol(); });
 
     // ── Fullscreen ─────────────────────────────────────────────────
-    const fsBtn=ge('tmFsBtn'), fsIco=ge('tmFsIco');
-    if(fsBtn) fsBtn.addEventListener('click',()=>{
-      const el=ge('tmWrap');
-      if(!document.fullscreenElement)(el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el);
+    const fsBtn = ge('tmFsBtn'), fsIco = ge('tmFsIco');
+    if (fsBtn) fsBtn.addEventListener('click', () => {
+      const el = wrap;
+      if (!document.fullscreenElement) (el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el);
       else (document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document);
     });
-    document.addEventListener('fullscreenchange',()=>sp(fsIco,document.fullscreenElement?FSX:FSE));
+    document.addEventListener('fullscreenchange', () => sp(fsIco, document.fullscreenElement ? FSX : FSE));
 
-    // ── Picture-in-Picture ─────────────────────────────────────────
-    const pipBtn=ge('tmPipBtn');
-    if(pipBtn && document.pictureInPictureEnabled){
-      pipBtn.style.display='flex';
-      pipBtn.addEventListener('click',()=>{
-        document.pictureInPictureElement?document.exitPictureInPicture():vjsEl.requestPictureInPicture&&vjsEl.requestPictureInPicture();
+    // ── PiP ────────────────────────────────────────────────────────
+    const pipBtn = ge('tmPipBtn');
+    if (pipBtn && document.pictureInPictureEnabled) {
+      pipBtn.style.display = 'flex';
+      pipBtn.addEventListener('click', () => {
+        document.pictureInPictureElement ? document.exitPictureInPicture() : nVid.requestPictureInPicture && nVid.requestPictureInPicture();
       });
     }
 
-    // ── Dropdown helpers ───────────────────────────────────────────
-    function closeAllDD(){
-      document.querySelectorAll('.tmDD').forEach(dd=>dd.classList.remove('tmOpen'));
-      document.querySelectorAll('.tmPill').forEach(p=>p.classList.remove('tmOn'));
+    // ── Dropdowns ──────────────────────────────────────────────────
+    function closeAllDD() {
+      document.querySelectorAll('.tmDD').forEach(dd => dd.classList.remove('tmOpen'));
+      document.querySelectorAll('.tmPill').forEach(p => p.classList.remove('tmOn'));
     }
-    function togDD(ddId, pill){
-      const dd=ge(ddId), open=dd&&dd.classList.contains('tmOpen');
+    function togDD(ddId, pill) {
+      const dd = ge(ddId), open = dd && dd.classList.contains('tmOpen');
       closeAllDD();
-      if(!open&&dd){ dd.classList.add('tmOpen'); pill.classList.add('tmOn'); }
+      if (!open && dd) { dd.classList.add('tmOpen'); pill && pill.classList.add('tmOn'); }
     }
-    document.addEventListener('click',e=>{
-      if(!e.target.closest('.tmPill')&&!e.target.closest('.tmDD')) closeAllDD();
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.tmPill') && !e.target.closest('.tmDD')) closeAllDD();
     });
 
     // ── Speed ──────────────────────────────────────────────────────
-    const spdPill=ge('tmSpdPill'), spdLbl=ge('tmSpdLbl');
-    if(spdPill) spdPill.addEventListener('click',e=>{ e.stopPropagation(); togDD('tmSpdDD',spdPill); });
-    document.querySelectorAll('[data-spd]').forEach(btn=>{
-      btn.addEventListener('click',e=>{
+    const spdPill = ge('tmSpdPill'), spdLbl = ge('tmSpdLbl');
+    if (spdPill) spdPill.addEventListener('click', e => { e.stopPropagation(); togDD('tmSpdDD', spdPill); });
+    document.querySelectorAll('[data-spd]').forEach(btn => {
+      btn.addEventListener('click', e => {
         e.stopPropagation();
-        const sp=parseFloat(btn.dataset.spd);
-        vjs.playbackRate(sp);
-        if(spdLbl) spdLbl.textContent=sp+'×';
-        document.querySelectorAll('[data-spd]').forEach(b=>b.classList.toggle('tmSel',parseFloat(b.dataset.spd)===sp));
+        const sp2 = parseFloat(btn.dataset.spd);
+        vjs.playbackRate(sp2);
+        if (spdLbl) spdLbl.textContent = sp2 + '×';
+        document.querySelectorAll('[data-spd]').forEach(b => b.classList.toggle('tmSel', parseFloat(b.dataset.spd) === sp2));
         closeAllDD();
       });
     });
 
-    // ── REAL AUDIO TRACKS via Video.js audioTracks() API ──────────
-    const audPill=ge('tmAudPill'), audList=ge('tmAudList'), audActive=ge('tmAudActive');
-    if(audPill) audPill.addEventListener('click',e=>{ e.stopPropagation(); togDD('tmAudDD',audPill); });
+    // ── AUDIO TRACKS — native HTMLVideoElement.audioTracks ─────────
+    // Chrome exposes audioTracks for MKV natively via the underlying <video>
+    const audPill  = ge('tmAudPill'), audList = ge('tmAudList'), audActive = ge('tmAudActive');
+    if (audPill) audPill.addEventListener('click', e => { e.stopPropagation(); togDD('tmAudDD', audPill); });
 
-    function buildAudioMenu(){
-      if(!audList) return;
-      audList.innerHTML='';
+    function buildAudioMenu() {
+      if (!audList) return;
+      audList.innerHTML = '';
 
-      // Video.js exposes audioTracks() — works with VHS for MKV multi-track
-      const vjsTracks = vjs.audioTracks ? vjs.audioTracks() : null;
-      const trackCount = vjsTracks ? vjsTracks.length : 0;
+      // Access native audioTracks via the underlying tech element
+      const nativeTracks = nVid && nVid.audioTracks ? Array.from(nVid.audioTracks) : [];
 
-      if(trackCount > 0){
-        // REAL tracks from Video.js — fully functional switching
-        for(let i=0;i<trackCount;i++){
-          (function(track,idx){
-            const rawLbl = track.label || track.language || '';
-            const label = LMAP[rawLbl.toLowerCase()] || rawLbl || ('Track '+(idx+1));
-            const btn=document.createElement('button');
-            btn.className='tmDDI'+(track.enabled?' tmSel':'');
-            btn.textContent=label;
-            if(track.enabled && audActive) audActive.textContent=label;
-            btn.addEventListener('click',e=>{
-              e.stopPropagation();
-              // Disable all, enable selected
-              for(let j=0;j<trackCount;j++) vjsTracks[j].enabled=(j===idx);
-              audList.querySelectorAll('.tmDDI').forEach((b,j)=>b.classList.toggle('tmSel',j===idx));
-              if(audActive) audActive.textContent=label;
-              closeAllDD();
-            });
-            audList.appendChild(btn);
-          })(vjsTracks[i], i);
-        }
-        // Listen for future track adds (some containers lazy-load)
-        if(vjsTracks.addEventListener){
-          vjsTracks.addEventListener('addtrack',()=>buildAudioMenu());
-        }
-
-      } else if(langs.length > 0){
-        // Fallback: show filename-detected languages as labels
-        // Real switching not possible for single-stream direct MP4/MKV via HTTP
-        const note=document.createElement('div');
-        note.style.cssText='padding:8px 14px;font-size:11px;color:rgba(255,160,0,.7);border-bottom:1px solid rgba(255,160,0,.15);';
-        note.textContent='ℹ Audio tracks detected in file';
-        audList.appendChild(note);
-        langs.forEach((l,i)=>{
-          const btn=document.createElement('button');
-          btn.className='tmDDI'+(i===0?' tmSel':'');
-          btn.innerHTML=escapeHtml(l.label)+'<small style="opacity:.4;font-size:10px;margin-left:5px;">(use MX/VLC for switching)</small>';
-          btn.addEventListener('click',e=>{
+      if (nativeTracks.length > 1) {
+        // ✅ Real tracks — Chrome MKV multi-audio support
+        const btns = [];
+        nativeTracks.forEach((track, i) => {
+          const rawLbl = track.label || track.language || '';
+          const label  = LMAP[rawLbl.toLowerCase()] || rawLbl || ('Track '+(i+1));
+          const btn = document.createElement('button');
+          btn.className = 'tmDDI' + (track.enabled ? ' tmSel' : '');
+          btn.textContent = label;
+          btn.dataset.lang = label;
+          if (track.enabled && audActive) audActive.textContent = label;
+          btn.addEventListener('click', e => {
             e.stopPropagation();
-            audList.querySelectorAll('.tmDDI').forEach((b,j)=>b.classList.toggle('tmSel',j-1===i));
-            if(audActive) audActive.textContent=l.label;
+            const wasPlaying = !vjs.paused(), savedTime = vjs.currentTime();
+            nativeTracks.forEach((t, j) => t.enabled = (j === i));
+            btns.forEach((b, j) => b.classList.toggle('tmSel', j === i));
+            if (audActive) audActive.textContent = label;
+            // Force decoder flush by tiny seek
+            setTimeout(() => {
+              vjs.currentTime(savedTime + 0.001);
+              if (wasPlaying) vjs.play();
+            }, 50);
+            closeAllDD();
+          });
+          audList.appendChild(btn);
+          btns.push(btn);
+        });
+        if (nVid.audioTracks.onaddtrack !== undefined) nVid.audioTracks.onaddtrack = buildAudioMenu;
+      } else if (langs.length > 0) {
+        // ⚠️ Multiple langs in filename but browser can't switch (single stream)
+        const note = document.createElement('div');
+        note.style.cssText = 'padding:6px 14px 8px;font-size:10px;color:rgba(255,160,0,.75);border-bottom:1px solid rgba(255,160,0,.15);display:flex;align-items:center;gap:5px;';
+        note.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> Use MX Player or VLC to switch audio';
+        audList.appendChild(note);
+        langs.forEach((l, i) => {
+          const btn = document.createElement('button');
+          btn.className = 'tmDDI' + (i === 0 ? ' tmSel' : '');
+          btn.textContent = l.label;
+          btn.addEventListener('click', e => {
+            e.stopPropagation();
+            audList.querySelectorAll('.tmDDI').forEach((b, j) => b.classList.toggle('tmSel', j === i));
+            if (audActive) audActive.textContent = l.label;
             closeAllDD();
           });
           audList.appendChild(btn);
         });
+        if (audActive && langs[0]) audActive.textContent = langs[0].label;
       } else {
-        const e=document.createElement('div');
-        e.style.cssText='padding:10px 14px;font-size:12px;color:rgba(255,255,255,.4);';
-        e.textContent='Single audio track';
-        audList.appendChild(e);
+        const empty = document.createElement('div');
+        empty.style.cssText = 'padding:12px 14px;font-size:12px;color:rgba(255,255,255,.4);text-align:center;';
+        empty.textContent = 'Single audio track';
+        audList.appendChild(empty);
       }
     }
 
-    // Build once video metadata is ready, and again on each track change
+    buildAudioMenu();
     vjs.on('loadedmetadata', buildAudioMenu);
-    vjs.on('audioTrackChange', buildAudioMenu);
-    buildAudioMenu(); // immediate attempt
+    // Extra attempt 600ms after metadata (Chrome loads tracks slightly late)
+    vjs.on('loadedmetadata', () => setTimeout(buildAudioMenu, 600));
 
-    // ── SUBTITLES via Video.js textTracks() ────────────────────────
-    const subPill=ge('tmSubPill'), subList=ge('tmSubList');
-    if(subPill) subPill.addEventListener('click',e=>{ e.stopPropagation(); togDD('tmSubDD',subPill); });
+    // ── SUBTITLES ──────────────────────────────────────────────────
+    const subPill = ge('tmSubPill'), subList = ge('tmSubList');
+    if (subPill) subPill.addEventListener('click', e => { e.stopPropagation(); togDD('tmSubDD', subPill); });
 
-    function buildSubMenu(){
-      if(!subList) return;
-      subList.innerHTML='';
-
-      const offBtn=document.createElement('button');
-      offBtn.className='tmDDI tmSel'; offBtn.textContent='Off';
-      offBtn.addEventListener('click',e=>{
+    function buildSubMenu() {
+      if (!subList) return;
+      subList.innerHTML = '';
+      const offBtn = document.createElement('button');
+      offBtn.className = 'tmDDI tmSel'; offBtn.textContent = 'Off';
+      offBtn.addEventListener('click', e => {
         e.stopPropagation();
-        const tt=vjs.textTracks();
-        for(let i=0;i<tt.length;i++) if(tt[i].kind==='subtitles'||tt[i].kind==='captions') tt[i].mode='disabled';
-        subList.querySelectorAll('.tmDDI').forEach((b,j)=>b.classList.toggle('tmSel',j===0));
+        const tt = vjs.textTracks(); for(let i=0;i<tt.length;i++) tt[i].mode='disabled';
+        subList.querySelectorAll('.tmDDI').forEach((b,j) => b.classList.toggle('tmSel', j===0));
         closeAllDD();
       });
       subList.appendChild(offBtn);
 
-      const vjsText = vjs.textTracks ? vjs.textTracks() : null;
-      const textCount = vjsText ? vjsText.length : 0;
-      let added=0;
-
-      for(let i=0;i<textCount;i++){
-        const t=vjsText[i];
-        if(t.kind!=='subtitles'&&t.kind!=='captions') continue;
-        (function(track,localIdx){
-          const rawLbl=track.label||track.language||'';
-          const label=LMAP[rawLbl.toLowerCase()]||rawLbl||('Sub '+(localIdx+1));
-          const btn=document.createElement('button');
-          btn.className='tmDDI'; btn.textContent=label;
-          btn.addEventListener('click',e=>{
+      const tt = vjs.textTracks ? vjs.textTracks() : null;
+      const count = tt ? tt.length : 0;
+      let added = 0;
+      for (let i=0; i<count; i++) {
+        const t = tt[i];
+        if (t.kind !== 'subtitles' && t.kind !== 'captions') continue;
+        (function(track, idx) {
+          const rawLbl = track.label || track.language || '';
+          const label  = LMAP[rawLbl.toLowerCase()] || rawLbl || ('Sub '+(idx+1));
+          const btn = document.createElement('button'); btn.className='tmDDI'; btn.textContent=label;
+          btn.addEventListener('click', e => {
             e.stopPropagation();
-            for(let j=0;j<textCount;j++){
-              const tx=vjsText[j];
-              if(tx.kind==='subtitles'||tx.kind==='captions') tx.mode=(tx===track?'showing':'disabled');
-            }
-            subList.querySelectorAll('.tmDDI').forEach((b,j)=>b.classList.toggle('tmSel',j===localIdx+1));
+            for(let j=0;j<count;j++) if(tt[j].kind==='subtitles'||tt[j].kind==='captions') tt[j].mode=tt[j]===track?'showing':'disabled';
+            subList.querySelectorAll('.tmDDI').forEach((b,j) => b.classList.toggle('tmSel', j===idx+1));
             closeAllDD();
           });
           subList.appendChild(btn);
-          added++;
-        })(vjsText[i], added);
+        })(tt[i], added++);
       }
 
-      if(added===0 && subs.length>0){
-        subs.forEach((s,i)=>{
-          const btn=document.createElement('button'); btn.className='tmDDI';
-          btn.innerHTML=escapeHtml(s.label)+'<small style="opacity:.4;font-size:10px;margin-left:5px;">(embedded)</small>';
-          btn.addEventListener('click',e=>{ e.stopPropagation(); subList.querySelectorAll('.tmDDI').forEach((b,j)=>b.classList.toggle('tmSel',j===i+1)); closeAllDD(); });
+      if (added === 0 && subs.length > 0) {
+        subs.forEach((s, i) => {
+          const btn = document.createElement('button'); btn.className='tmDDI';
+          btn.innerHTML = (s.label||s) + '<small style="opacity:.4;font-size:10px;margin-left:4px;">(embedded)</small>';
+          btn.addEventListener('click', e => {
+            e.stopPropagation();
+            subList.querySelectorAll('.tmDDI').forEach((b,j) => b.classList.toggle('tmSel', j===i+1));
+            closeAllDD();
+          });
           subList.appendChild(btn);
         });
-      } else if(added===0){
-        const e=document.createElement('div');
-        e.style.cssText='padding:10px 14px;font-size:12px;color:rgba(255,255,255,.4);';
-        e.textContent='No subtitles available';
-        subList.appendChild(e);
+      } else if (added === 0) {
+        const empty=document.createElement('div'); empty.style.cssText='padding:12px 14px;font-size:12px;color:rgba(255,255,255,.4);text-align:center;'; empty.textContent='No subtitles available';
+        subList.appendChild(empty);
       }
     }
     vjs.on('loadedmetadata', buildSubMenu);
     buildSubMenu();
 
     // ── Keyboard shortcuts ─────────────────────────────────────────
-    document.addEventListener('keydown',e=>{
-      if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
-      if(e.code==='Space')     { e.preventDefault(); togglePlay(); }
-      if(e.code==='ArrowLeft') { e.preventDefault(); vjs.currentTime(Math.max(0,vjs.currentTime()-10)); }
-      if(e.code==='ArrowRight'){ e.preventDefault(); vjs.currentTime(Math.min(vjs.duration()||0,vjs.currentTime()+10)); }
-      if(e.code==='ArrowUp')   { e.preventDefault(); const v=Math.min(1,vjs.volume()+.1); vjs.volume(v); if(volSldr){volSldr.value=v*100;} syncVol(); }
-      if(e.code==='ArrowDown') { e.preventDefault(); const v=Math.max(0,vjs.volume()-.1); vjs.volume(v); if(volSldr){volSldr.value=v*100;} syncVol(); }
-      if(e.code==='KeyF'&&fsBtn) fsBtn.click();
-      if(e.code==='KeyM'&&muteBtn) muteBtn.click();
+    document.addEventListener('keydown', e => {
+      if (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+      if (!ge('tmWrap')) return;
+      if (e.code==='Space')     { e.preventDefault(); togglePlay(); }
+      if (e.code==='ArrowLeft') { e.preventDefault(); vjs.currentTime(Math.max(0,vjs.currentTime()-10)); }
+      if (e.code==='ArrowRight'){ e.preventDefault(); vjs.currentTime(Math.min(vjs.duration()||0,vjs.currentTime()+10)); }
+      if (e.code==='ArrowUp')   { e.preventDefault(); const v=Math.min(1,vjs.volume()+.1); vjs.volume(v); if(volSldr)volSldr.value=v*100; syncVol(); }
+      if (e.code==='ArrowDown') { e.preventDefault(); const v=Math.max(0,vjs.volume()-.1); vjs.volume(v); if(volSldr)volSldr.value=v*100; syncVol(); }
+      if (e.code==='KeyF' && fsBtn)   fsBtn.click();
+      if (e.code==='KeyM' && muteBtn) muteBtn.click();
     });
 
-  }); // end loadJS VJS_CDN
+  }); // end loadJS
 }
+
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
