@@ -76,6 +76,20 @@ function escapeHtml(str) {
         .replace(/'/g, '&#x27;');
 }
 
+// ============================================
+// UTILITY: Legacy clipboard copy fallback
+// ============================================
+function _legacyCopy(text) {
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+    document.body.appendChild(el);
+    el.select();
+    try { document.execCommand('copy'); } catch (_) {}
+    document.body.removeChild(el);
+    alert('Selected items copied to clipboard!');
+}
+
 // Initialize the page
 function init() {
 	document.siteName = $('title').html();
@@ -825,10 +839,10 @@ function nav(path) {
 	var search_text = model.is_search_page ? (model.q || '') : '';
 	var search_bar = `
 </ul>
-<form class="d-flex" method="get" action="/${cur}:search">
+<form class="d-flex" id="search_bar_form" method="get" action="/${cur}:search">
 <div class="input-group">
 	<input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${search_text}" style="border-right:0;" required>
-	<button class="btn ${UI.search_button_class}" onclick="if($('#search_bar_form>input').val()) $('#search_bar_form').submit();" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;"><i class="fas fa-search" style="margin: 0"></i></button>
+	<button class="btn ${UI.search_button_class}" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;"><i class="fas fa-search" style="margin: 0"></i></button>
 </div>
 </form>
 </div>
@@ -1150,24 +1164,16 @@ function list(path, id = '', fallback = false) {
 		// Join the selected items' data with a newline character
 		const dataToCopy = selectedItemsData.join("\n");
 
-		// Create a temporary input element
-		const tempInput = document.createElement("textarea");
-		tempInput.value = dataToCopy;
-
-		// Add the temporary input element to the document
-		document.body.appendChild(tempInput);
-
-		// Select the text inside the temporary input element
-		tempInput.select();
-
-		// Copy the selected text to the clipboard
-		document.execCommand("copy");
-
-		// Remove the temporary input element from the document
-		document.body.removeChild(tempInput);
-
-		// Alert the user that the data has been copied
-		alert("Selected items copied to clipboard!");
+		// Use modern Clipboard API with fallback
+		if (navigator.clipboard?.writeText) {
+			navigator.clipboard.writeText(dataToCopy).then(() => {
+				alert("Selected items copied to clipboard!");
+			}).catch(() => {
+				_legacyCopy(dataToCopy);
+			});
+		} else {
+			_legacyCopy(dataToCopy);
+		}
 	});
 }
 
@@ -1295,17 +1301,19 @@ function append_files_to_fallback_list(path, files) {
 			}
 		}
 
-		// When it is page 1, remove the horizontal loading bar
+	// When it is page 1, remove the horizontal loading bar
 		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
 	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
-			if (total_files == 0) {
+			const total_size_str = formatFileSize(totalsize) || '0 Bytes';
+			const total_files_count = $list.find('.size_items').length;
+			if (total_files_count == 0) {
 				$('#count').removeClass('d-none').find('.totalsize').text("0 file");
-			} else if (total_files == 1) {
-				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
+			} else if (total_files_count == 1) {
+				$('#count').removeClass('d-none').find('.totalsize').text(total_files_count + " file, total: " + total_size_str);
 			} else {
-				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
+				$('#count').removeClass('d-none').find('.totalsize').text(total_files_count + " files, total: " + total_size_str);
 			}
 		}
 	} catch (e) {
@@ -1646,7 +1654,7 @@ function append_search_result_to_list(files) {
 			item['md5Checksum'] = item['md5Checksum'] || '—';
 			const ext = item.fileExtension;
 			const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
-			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="$item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
+			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
 
 			html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -2450,255 +2458,60 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
   // GDFlix handler is registered once at module level (see bottom of file)
 
-  // ── Settings Panel CSS (injected once) ──────────────────────────────
-  if (!document.getElementById('tm-settings-css')) {
-    const _css = document.createElement('style');
-    _css.id = 'tm-settings-css';
-    _css.textContent = `
-      #tm-gear-btn {
-        position: absolute; bottom: 48px; right: 8px; z-index: 300;
-        background: rgba(0,0,0,.65); border: none; border-radius: 50%;
-        width: 34px; height: 34px; cursor: pointer; display: flex;
-        align-items: center; justify-content: center;
-        color: #fff; font-size: 18px; transition: background .2s;
-      }
-      #tm-gear-btn:hover { background: rgba(30,30,30,.9); }
-      #tm-settings-panel {
-        display: none; position: absolute; bottom: 88px; right: 8px;
-        z-index: 400; background: rgba(15,15,25,.95);
-        border: 1px solid rgba(255,255,255,.12); border-radius: 12px;
-        min-width: 230px; color: #fff; font-size: 13px;
-        box-shadow: 0 4px 24px rgba(0,0,0,.7);
-        backdrop-filter: blur(10px); overflow: hidden;
-      }
-      #tm-settings-panel.open { display: block; animation: tmPanelIn .15s ease; }
-      @keyframes tmPanelIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-      .tm-section-title {
-        padding: 10px 14px 6px; font-size: 11px; letter-spacing: 1px;
-        color: rgba(255,255,255,.45); text-transform: uppercase; font-weight: 600;
-      }
-      .tm-track-item {
-        display: flex; align-items: center; gap: 8px;
-        padding: 8px 14px; cursor: pointer; transition: background .15s;
-      }
-      .tm-track-item:hover { background: rgba(255,255,255,.07); }
-      .tm-track-item.active { color: #4ade80; }
-      .tm-track-dot {
-        width: 7px; height: 7px; border-radius: 50%;
-        background: rgba(255,255,255,.2); flex-shrink: 0;
-      }
-      .tm-track-item.active .tm-track-dot { background: #4ade80; }
-      .tm-divider { height: 1px; background: rgba(255,255,255,.08); margin: 4px 0; }
-      .tm-section-empty { padding: 6px 14px 10px; color: rgba(255,255,255,.3); font-style: italic; }
-      .tm-panel-header {
-        padding: 12px 14px 8px; font-weight: 700; font-size: 13px;
-        border-bottom: 1px solid rgba(255,255,255,.08);
-        display: flex; align-items: center; gap: 6px;
-      }
-    `;
-    document.head.appendChild(_css);
-  }
+  // Load Video.js and initialize the player
+	if (!UI.disable_player && player_js) {
+	var videoJsScript = document.createElement('script');
+	videoJsScript.src = player_js;
+	videoJsScript.onload = function() {
+		// Video.js is loaded, initialize the player
+		if (player_config.player == "plyr") {
+			const player = new Plyr('#player');
+		} else if (player_config.player == "videojs") {
+			const player = new videojs('vplayer');
+		} else if (player_config.player == "dplayer") {
+			const dp = new DPlayer({
+				container: document.getElementById('player-container'),
+				screenshot: true,
+				video: {
+					url: url,
+					pic: poster,
+					thumbnails: poster,
+				},
+			});
+		} else if (player_config.player == "jwplayer") {
+			jwplayer("player").setup({
+				file: url,
+				type: mimeType,
+				autostart: false,
+				image: poster,
+				width: "100%",
+				aspectratio: "16:9",
+				title: name,
+				description: "Powered by Google Drive Index",
+				tracks: [{
+					file: url,
+					kind: "captions",
+					label: "Default",
+					"default": true,
+				}],
+				captions: {
+					color: "#f3f378",
+					fontSize: 14,
+					backgroundOpacity: 50,
+					edgeStyle: "raised",
+				},
+			});
+		}
+	};
+	document.head.appendChild(videoJsScript);
 
-  // ── Load player script then init + attach settings panel ────────────
-  if (!UI.disable_player && player_js) {
-    var videoJsScript = document.createElement('script');
-    videoJsScript.src = player_js;
-    videoJsScript.onload = function() {
-
-      // ── Player init ────────────────────────────────────────────────
-      let _vjsPlayer = null; // reference for Video.js
-      if (player_config.player == "plyr") {
-        window._tmPlyr = new Plyr('#player', {
-          controls: ['play-large','play','progress','current-time','mute','volume','captions','settings','fullscreen'],
-          settings: ['captions','quality','speed'],
-        });
-      } else if (player_config.player == "videojs") {
-        _vjsPlayer = videojs('vplayer');
-        window._tmVjs = _vjsPlayer;
-      } else if (player_config.player == "dplayer") {
-        window._tmDp = new DPlayer({
-          container: document.getElementById('player-container'),
-          screenshot: true,
-          video: { url: url, pic: poster, thumbnails: poster },
-        });
-      } else if (player_config.player == "jwplayer") {
-        jwplayer("player").setup({
-          file: url, type: mimeType, autostart: false, image: poster,
-          width: "100%", aspectratio: "16:9", title: name,
-          description: "Powered by Google Drive Index",
-          tracks: [{ file: url, kind: "captions", label: "Default", "default": true }],
-          captions: { color: "#f3f378", fontSize: 14, backgroundOpacity: 50, edgeStyle: "raised" },
-        });
-      }
-
-      // ── Build Settings Panel ────────────────────────────────────────
-      // Find the raw <video> element regardless of player wrapper
-      function _getVideoEl() {
-        return document.querySelector('#player video, #vplayer, #player-container video, video');
-      }
-
-      function _buildSettingsPanel(videoEl) {
-        // Remove any previous panel
-        const old = document.getElementById('tm-settings-panel');
-        if (old) old.remove();
-        const oldBtn = document.getElementById('tm-gear-btn');
-        if (oldBtn) oldBtn.remove();
-
-        // Find the player wrapper to position relative to
-        const wrapper = document.querySelector('.col-lg-4 .border, .col-lg-4 .h-100') ||
-                        document.querySelector('#player-container') ||
-                        (videoEl ? videoEl.parentElement : null);
-        if (!wrapper) return;
-        if (getComputedStyle(wrapper).position === 'static') wrapper.style.position = 'relative';
-
-        // ── Gear Button ──
-        const gearBtn = document.createElement('button');
-        gearBtn.id = 'tm-gear-btn';
-        gearBtn.title = 'Settings';
-        gearBtn.innerHTML = '⚙️';
-        wrapper.appendChild(gearBtn);
-
-        // ── Panel ──
-        const panel = document.createElement('div');
-        panel.id = 'tm-settings-panel';
-        wrapper.appendChild(panel);
-
-        function _refreshPanel() {
-          let html = `<div class="tm-panel-header">⚙️ Player Settings</div>`;
-
-          // ── AUDIO TRACKS ─────────────────────────────────────────
-          const audioTracks = videoEl ? videoEl.audioTracks : null;
-          html += `<div class="tm-section-title">🎵 Audio</div>`;
-          if (audioTracks && audioTracks.length > 0) {
-            for (let i = 0; i < audioTracks.length; i++) {
-              const t = audioTracks[i];
-              const lang = t.language || t.label || ('Track ' + (i + 1));
-              const active = t.enabled;
-              html += `<div class="tm-track-item ${active ? 'active' : ''}" data-tm-audio="${i}">
-                <div class="tm-track-dot"></div>
-                <span>${lang}${active ? ' <small style="opacity:.6">(current)</small>' : ''}</span>
-              </div>`;
-            }
-          } else {
-            // Try Video.js audioTrackList
-            let vjsTracks = null;
-            if (window._tmVjs) {
-              try { vjsTracks = window._tmVjs.audioTrackList(); } catch(e) {}
-            }
-            if (vjsTracks && vjsTracks.length > 0) {
-              for (let i = 0; i < vjsTracks.length; i++) {
-                const t = vjsTracks[i];
-                const active = t.enabled;
-                const lang = t.language || t.label || ('Track ' + (i + 1));
-                html += `<div class="tm-track-item ${active ? 'active' : ''}" data-tm-vjs-audio="${i}">
-                  <div class="tm-track-dot"></div>
-                  <span>${lang}${active ? ' <small style="opacity:.6">(current)</small>' : ''}</span>
-                </div>`;
-              }
-            } else {
-              html += `<div class="tm-section-empty">Auto (single audio)</div>`;
-            }
-          }
-
-          html += `<div class="tm-divider"></div>`;
-
-          // ── SUBTITLES / TEXT TRACKS ───────────────────────────────
-          html += `<div class="tm-section-title">💬 Subtitles</div>`;
-          const textTracks = videoEl ? videoEl.textTracks : null;
-          let subFound = false;
-          // "Off" option
-          const anySubOn = textTracks && Array.from(textTracks).some(t => t.mode === 'showing' && (t.kind === 'subtitles' || t.kind === 'captions'));
-          html += `<div class="tm-track-item ${!anySubOn ? 'active' : ''}" data-tm-sub="-1">
-            <div class="tm-track-dot"></div><span>Off</span>
-          </div>`;
-          if (textTracks && textTracks.length > 0) {
-            for (let i = 0; i < textTracks.length; i++) {
-              const t = textTracks[i];
-              if (t.kind !== 'subtitles' && t.kind !== 'captions') continue;
-              subFound = true;
-              const active = t.mode === 'showing';
-              const lang = t.label || t.language || ('Sub ' + (i + 1));
-              html += `<div class="tm-track-item ${active ? 'active' : ''}" data-tm-sub="${i}">
-                <div class="tm-track-dot"></div>
-                <span>${lang}${active ? ' <small style="opacity:.6">(on)</small>' : ''}</span>
-              </div>`;
-            }
-          }
-          if (!subFound) {
-            html += `<div class="tm-section-empty">No subtitles found</div>`;
-          }
-
-          panel.innerHTML = html;
-
-          // ── Audio click handlers ──────────────────────────────────
-          panel.querySelectorAll('[data-tm-audio]').forEach(el => {
-            el.addEventListener('click', function() {
-              const idx = parseInt(this.dataset.tmAudio);
-              for (let i = 0; i < audioTracks.length; i++) {
-                audioTracks[i].enabled = (i === idx);
-              }
-              _refreshPanel();
-            });
-          });
-          panel.querySelectorAll('[data-tm-vjs-audio]').forEach(el => {
-            el.addEventListener('click', function() {
-              const idx = parseInt(this.dataset.tmVjsAudio);
-              if (!window._tmVjs) return;
-              const list = window._tmVjs.audioTrackList();
-              for (let i = 0; i < list.length; i++) list[i].enabled = (i === idx);
-              _refreshPanel();
-            });
-          });
-
-          // ── Subtitle click handlers ───────────────────────────────
-          panel.querySelectorAll('[data-tm-sub]').forEach(el => {
-            el.addEventListener('click', function() {
-              const idx = parseInt(this.dataset.tmSub);
-              if (!textTracks) return;
-              for (let i = 0; i < textTracks.length; i++) {
-                if (textTracks[i].kind !== 'subtitles' && textTracks[i].kind !== 'captions') continue;
-                textTracks[i].mode = (i === idx) ? 'showing' : 'hidden';
-              }
-              _refreshPanel();
-            });
-          });
-        }
-
-        // Toggle panel on gear click
-        gearBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          _refreshPanel();
-          panel.classList.toggle('open');
-        });
-
-        // Close panel on outside click
-        document.addEventListener('click', function(e) {
-          if (!panel.contains(e.target) && e.target !== gearBtn) {
-            panel.classList.remove('open');
-          }
-        });
-      }
-
-      // Wait for video to be ready before building panel
-      function _tryBuildPanel(attempts) {
-        const vEl = _getVideoEl();
-        if (vEl) {
-          _buildSettingsPanel(vEl);
-        } else if (attempts > 0) {
-          setTimeout(() => _tryBuildPanel(attempts - 1), 300);
-        }
-      }
-      _tryBuildPanel(10);
-    };
-    document.head.appendChild(videoJsScript);
-
-    if (player_css) {
-      var videoJsStylesheet = document.createElement('link');
-      videoJsStylesheet.href = player_css;
-      videoJsStylesheet.rel = 'stylesheet';
-      document.head.appendChild(videoJsStylesheet);
-    }
-  }
+	if (player_css) {
+	var videoJsStylesheet = document.createElement('link');
+	videoJsStylesheet.href = player_css;
+	videoJsStylesheet.rel = 'stylesheet';
+	document.head.appendChild(videoJsStylesheet);
+	}
+	}
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
