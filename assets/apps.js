@@ -76,6 +76,20 @@ function escapeHtml(str) {
         .replace(/'/g, '&#x27;');
 }
 
+// ============================================
+// UTILITY: Legacy clipboard copy fallback
+// ============================================
+function _legacyCopy(text) {
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+    document.body.appendChild(el);
+    el.select();
+    try { document.execCommand('copy'); } catch (_) {}
+    document.body.removeChild(el);
+    alert('Selected items copied to clipboard!');
+}
+
 // Initialize the page
 function init() {
 	document.siteName = $('title').html();
@@ -825,10 +839,10 @@ function nav(path) {
 	var search_text = model.is_search_page ? (model.q || '') : '';
 	var search_bar = `
 </ul>
-<form class="d-flex" method="get" action="/${cur}:search">
+<form class="d-flex" id="search_bar_form" method="get" action="/${cur}:search">
 <div class="input-group">
 	<input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${search_text}" style="border-right:0;" required>
-	<button class="btn ${UI.search_button_class}" onclick="if($('#search_bar_form>input').val()) $('#search_bar_form').submit();" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;"><i class="fas fa-search" style="margin: 0"></i></button>
+	<button class="btn ${UI.search_button_class}" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;"><i class="fas fa-search" style="margin: 0"></i></button>
 </div>
 </form>
 </div>
@@ -1072,7 +1086,7 @@ function list(path, id = '', fallback = false) {
 
 						window.scroll_status.loading_lock = true;
 
-						$(`<div id="spinner" class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`)
+						$(`<div id="spinner" class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status"><span class="sr-only"></span></div></div>`)
 							.insertBefore('#readme_md');
 
 						let $list = $('#list');
@@ -1085,7 +1099,7 @@ function list(path, id = '', fallback = false) {
 									page_index: $list.data('curPageIndex') + 1
 								},
 								handleSuccessResult,
-								null, 5, true); // ✅ FIX: removed extra `id` arg; corrected fallback=true → true
+								null, 5, true);
 						} else {
 							requestListPath(path, {
 									password: prevReqParams['password'],
@@ -1114,7 +1128,7 @@ function list(path, id = '', fallback = false) {
 				password: password
 			},
 			handleSuccessResult,
-			null, null, fallback = true);
+			null, null, true);
 	} else {
 		log("handling this")
 		requestListPath(path, {
@@ -1128,7 +1142,7 @@ function list(path, id = '', fallback = false) {
 	const copyBtn = document.getElementById("handle-multiple-items-copy");
 
 	// Add a click event listener to the copy button
-	copyBtn.addEventListener("click", () => {
+	if (copyBtn) copyBtn.addEventListener("click", () => {
 		// Get all the checked checkboxes
 		const checkedItems = document.querySelectorAll('input[type="checkbox"]:checked');
 
@@ -1150,24 +1164,16 @@ function list(path, id = '', fallback = false) {
 		// Join the selected items' data with a newline character
 		const dataToCopy = selectedItemsData.join("\n");
 
-		// Create a temporary input element
-		const tempInput = document.createElement("textarea");
-		tempInput.value = dataToCopy;
-
-		// Add the temporary input element to the document
-		document.body.appendChild(tempInput);
-
-		// Select the text inside the temporary input element
-		tempInput.select();
-
-		// Copy the selected text to the clipboard
-		document.execCommand("copy");
-
-		// Remove the temporary input element from the document
-		document.body.removeChild(tempInput);
-
-		// Alert the user that the data has been copied
-		alert("Selected items copied to clipboard!");
+		// Use modern Clipboard API with fallback
+		if (navigator.clipboard?.writeText) {
+			navigator.clipboard.writeText(dataToCopy).then(() => {
+				alert("Selected items copied to clipboard!");
+			}).catch(() => {
+				_legacyCopy(dataToCopy);
+			});
+		} else {
+			_legacyCopy(dataToCopy);
+		}
 	});
 }
 
@@ -1295,17 +1301,19 @@ function append_files_to_fallback_list(path, files) {
 			}
 		}
 
-		// When it is page 1, remove the horizontal loading bar
+	// When it is page 1, remove the horizontal loading bar
 		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
+	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
-			if (total_files == 0) {
+			const total_size_str = formatFileSize(totalsize) || '0 Bytes';
+			const total_files_count = $list.find('.size_items').length;
+			if (total_files_count == 0) {
 				$('#count').removeClass('d-none').find('.totalsize').text("0 file");
-			} else if (total_files == 1) {
-				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
+			} else if (total_files_count == 1) {
+				$('#count').removeClass('d-none').find('.totalsize').text(total_files_count + " file, total: " + total_size_str);
 			} else {
-				$('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
+				$('#count').removeClass('d-none').find('.totalsize').text(total_files_count + " files, total: " + total_size_str);
 			}
 		}
 	} catch (e) {
@@ -1426,7 +1434,7 @@ function append_files_to_list(path, files) {
 
 	// When it is page 1, remove the horizontal loading bar
 	// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
+	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 	// When it is the last page, count and display the total number of items
 	if (is_lastpage_loaded) {
 		total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1646,7 +1654,7 @@ function append_search_result_to_list(files) {
 			item['md5Checksum'] = item['md5Checksum'] || '—';
 			const ext = item.fileExtension;
 			const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
-			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="$item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
+			html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
 
 			html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1658,7 +1666,7 @@ function append_search_result_to_list(files) {
 		}
 		// When it is page 1, remove the horizontal loading bar
 		// PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-	if ($list.data('curPageIndex') === '0') { $list.html(html); } else { $list.append(html); }
+	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
 			total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -2150,7 +2158,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
           ${isUserLoggedIn() 
-            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
                </a>`
             : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
@@ -2262,7 +2270,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
           ${isUserLoggedIn() 
-            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
                </a>`
             : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
@@ -2340,7 +2348,9 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`; 
     const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
 	  const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-	  let player
+	  let player = '';
+	  let player_js = '';
+	  let player_css = '';
 	  if (!UI.disable_player) {
 		 if (player_config.player == "plyr") {
 			player = `<video id="player" playsinline controls data-poster="${poster}">
@@ -2364,6 +2374,55 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 		} else if (player_config.player == "jwplayer") {
 			player = `<div id="player"></div>`
 			player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
+			player_css = ''
+		} else if (player_config.player == "theoplayer") {
+			player = `<div id="theo-player-wrapper" style="position:relative;width:100%;background:#000;border-radius:8px;overflow:hidden;aspect-ratio:16/9;">
+  <video id="theo-video" style="width:100%;height:100%;display:block;" preload="auto" playsinline>
+    <source src="${url}" type="video/mp4" />
+    <source src="${url}" type="video/webm" />
+  </video>
+  <div id="theo-ui" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;background:transparent;transition:opacity .3s;">
+    <div id="theo-overlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;">
+      <div id="theo-play-big" style="width:72px;height:72px;background:rgba(255,160,0,.85);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .2s;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+    </div>
+    <div id="theo-controls" style="position:relative;z-index:10;padding:8px 12px 10px;background:linear-gradient(transparent,rgba(0,0,0,.85));display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input id="theo-seek" type="range" value="0" min="0" max="100" step="0.1" style="flex:1;height:4px;cursor:pointer;accent-color:#ffa000;border-radius:4px;">
+        <span id="theo-time" style="color:#fff;font-size:12px;white-space:nowrap;min-width:90px;text-align:right;">0:00 / 0:00</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button id="theo-play-btn" title="Play/Pause" style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;display:flex;align-items:center;">
+          <svg id="theo-play-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button id="theo-mute-btn" title="Mute" style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;display:flex;align-items:center;">
+          <svg id="theo-vol-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+        </button>
+        <input id="theo-vol" type="range" value="100" min="0" max="100" style="width:70px;height:3px;cursor:pointer;accent-color:#ffa000;">
+        <div style="flex:1;"></div>
+        <div style="position:relative;">
+          <button id="theo-audio-btn" title="Audio Track" style="background:none;border:none;cursor:pointer;padding:4px 8px;color:#fff;display:flex;align-items:center;gap:4px;font-size:12px;border:1px solid rgba(255,255,255,.4);border-radius:4px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            Audio
+          </button>
+          <div id="theo-audio-menu" style="display:none;position:absolute;bottom:36px;right:0;background:#1a1a2e;border:1px solid #ffa000;border-radius:6px;overflow:hidden;min-width:140px;z-index:20;"></div>
+        </div>
+        <div style="position:relative;">
+          <button id="theo-sub-btn" title="Subtitles" style="background:none;border:none;cursor:pointer;padding:4px 8px;color:#fff;display:flex;align-items:center;gap:4px;font-size:12px;border:1px solid rgba(255,255,255,.4);border-radius:4px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 11H4v-2h8v2zm8 0h-6v-2h6v2zm0-4H4V9h16v2z"/></svg>
+            Subtitle
+          </button>
+          <div id="theo-sub-menu" style="display:none;position:absolute;bottom:36px;right:0;background:#1a1a2e;border:1px solid #ffa000;border-radius:6px;overflow:hidden;min-width:140px;z-index:20;"></div>
+        </div>
+        <button id="theo-fs-btn" title="Fullscreen" style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;display:flex;align-items:center;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>`
+			player_js = ''
 			player_css = ''
 		}
 	}
@@ -2423,7 +2482,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
           ${isUserLoggedIn() 
-            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
                </a>`
             : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
@@ -2449,6 +2508,9 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   // GDFlix handler is registered once at module level (see bottom of file)
 
   // Load Video.js and initialize the player
+	if (!UI.disable_player && player_config.player == "theoplayer") {
+		initTheoPlayer();
+	} else if (!UI.disable_player && player_js) {
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
 	videoJsScript.onload = function() {
@@ -2457,6 +2519,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			const player = new Plyr('#player');
 		} else if (player_config.player == "videojs") {
 			const player = new videojs('vplayer');
+		} else if (player_config.player == "theoplayer") {
+			initTheoPlayer();
 		} else if (player_config.player == "dplayer") {
 			const dp = new DPlayer({
 				container: document.getElementById('player-container'),
@@ -2494,10 +2558,196 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	};
 	document.head.appendChild(videoJsScript);
 
+	if (player_css) {
 	var videoJsStylesheet = document.createElement('link');
 	videoJsStylesheet.href = player_css;
 	videoJsStylesheet.rel = 'stylesheet';
 	document.head.appendChild(videoJsStylesheet);
+	}
+	}
+}
+
+// ============================================
+// THEOplayer-style Custom Player
+// Multi-audio track + Multi-language subtitle support
+// ============================================
+function initTheoPlayer() {
+  const vid = document.getElementById('theo-video');
+  if (!vid) return;
+
+  const playBtn = document.getElementById('theo-play-btn');
+  const playIcon = document.getElementById('theo-play-icon');
+  const playBig = document.getElementById('theo-play-big');
+  const overlay = document.getElementById('theo-overlay');
+  const muteBtn = document.getElementById('theo-mute-btn');
+  const volIcon = document.getElementById('theo-vol-icon');
+  const volSlider = document.getElementById('theo-vol');
+  const seekBar = document.getElementById('theo-seek');
+  const timeDisplay = document.getElementById('theo-time');
+  const fsBtn = document.getElementById('theo-fs-btn');
+  const audioBtn = document.getElementById('theo-audio-btn');
+  const audioMenu = document.getElementById('theo-audio-menu');
+  const subBtn = document.getElementById('theo-sub-btn');
+  const subMenu = document.getElementById('theo-sub-menu');
+  const wrapper = document.getElementById('theo-player-wrapper');
+  const controls = document.getElementById('theo-controls');
+  const ui = document.getElementById('theo-ui');
+
+  // SVG paths
+  const PLAY_PATH = 'M8 5v14l11-7z';
+  const PAUSE_PATH = 'M6 19h4V5H6v14zm8-14v14h4V5h-4z';
+  const VOL_ON_PATH = 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z';
+  const VOL_OFF_PATH = 'M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z';
+  const FS_ENTER_PATH = 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z';
+  const FS_EXIT_PATH = 'M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z';
+
+  function setPlayIcon(playing) {
+    const path = playing ? PAUSE_PATH : PLAY_PATH;
+    playIcon.querySelector('path').setAttribute('d', path);
+    if (playing) {
+      playBig.style.opacity = '0';
+      overlay.style.pointerEvents = 'none';
+    } else {
+      playBig.style.opacity = '1';
+      overlay.style.pointerEvents = 'auto';
+      playBig.querySelector('svg path').setAttribute('d', PLAY_PATH);
+    }
+  }
+
+  function fmtTime(s) {
+    if (!isFinite(s)) return '0:00';
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60);
+    return (h ? h + ':' : '') + (h && m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+  }
+
+  // Auto-hide controls
+  let hideTimer;
+  function showControls() {
+    controls.style.opacity = '1';
+    clearTimeout(hideTimer);
+    if (!vid.paused) hideTimer = setTimeout(() => { controls.style.opacity = '0'; }, 3000);
+  }
+  wrapper.addEventListener('mousemove', showControls);
+  wrapper.addEventListener('touchstart', showControls);
+
+  // Play/Pause
+  function togglePlay() {
+    if (vid.paused) vid.play(); else vid.pause();
+  }
+  playBtn.addEventListener('click', togglePlay);
+  overlay.addEventListener('click', togglePlay);
+  vid.addEventListener('play', () => setPlayIcon(true));
+  vid.addEventListener('pause', () => setPlayIcon(false));
+  vid.addEventListener('ended', () => setPlayIcon(false));
+
+  // Progress
+  vid.addEventListener('timeupdate', () => {
+    if (!vid.duration) return;
+    seekBar.value = (vid.currentTime / vid.duration) * 100;
+    timeDisplay.textContent = fmtTime(vid.currentTime) + ' / ' + fmtTime(vid.duration);
+  });
+  seekBar.addEventListener('input', () => {
+    if (vid.duration) vid.currentTime = (seekBar.value / 100) * vid.duration;
+  });
+
+  // Volume
+  volSlider.addEventListener('input', () => {
+    vid.volume = volSlider.value / 100;
+    vid.muted = vid.volume === 0;
+    volIcon.querySelector('path').setAttribute('d', vid.muted ? VOL_OFF_PATH : VOL_ON_PATH);
+  });
+  muteBtn.addEventListener('click', () => {
+    vid.muted = !vid.muted;
+    volSlider.value = vid.muted ? 0 : vid.volume * 100;
+    volIcon.querySelector('path').setAttribute('d', vid.muted ? VOL_OFF_PATH : VOL_ON_PATH);
+  });
+
+  // Fullscreen
+  fsBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      wrapper.requestFullscreen && wrapper.requestFullscreen();
+      fsBtn.querySelector('path').setAttribute('d', FS_EXIT_PATH);
+    } else {
+      document.exitFullscreen && document.exitFullscreen();
+      fsBtn.querySelector('path').setAttribute('d', FS_ENTER_PATH);
+    }
+  });
+
+  // Menu toggle helper
+  function buildMenu(menu, items, onSelect) {
+    menu.innerHTML = '';
+    const header = document.createElement('div');
+    header.textContent = menu === audioMenu ? 'Audio Track' : 'Language';
+    header.style.cssText = 'padding:8px 14px;font-size:13px;font-weight:700;color:#ffa000;border-bottom:1px solid rgba(255,160,0,.3);';
+    menu.appendChild(header);
+    items.forEach((item, i) => {
+      const btn = document.createElement('button');
+      btn.textContent = item.label;
+      btn.dataset.idx = i;
+      btn.style.cssText = 'display:block;width:100%;text-align:left;padding:8px 14px;font-size:13px;background:none;border:none;color:#fff;cursor:pointer;transition:background .15s;';
+      btn.addEventListener('mouseover', () => btn.style.background = 'rgba(255,160,0,.15)');
+      btn.addEventListener('mouseout', () => btn.style.background = 'none');
+      btn.addEventListener('click', () => { onSelect(i, item, btn); menu.style.display = 'none'; });
+      if (item.active) { btn.style.color = '#ffa000'; btn.textContent = '✓ ' + item.label; }
+      menu.appendChild(btn);
+    });
+    if (items.length === 0) {
+      const empty = document.createElement('div');
+      empty.textContent = 'None available';
+      empty.style.cssText = 'padding:8px 14px;font-size:13px;color:rgba(255,255,255,.5);';
+      menu.appendChild(empty);
+    }
+  }
+
+  function toggleMenu(menu, other) {
+    other.style.display = 'none';
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // Audio Tracks
+  audioBtn.addEventListener('click', () => {
+    const tracks = vid.audioTracks ? Array.from(vid.audioTracks) : [];
+    const items = tracks.map((t, i) => ({
+      label: t.label || t.language || ('Track ' + (i + 1)),
+      active: t.enabled
+    }));
+    buildMenu(audioMenu, items, (i) => {
+      if (vid.audioTracks) {
+        for (let j = 0; j < vid.audioTracks.length; j++) {
+          vid.audioTracks[j].enabled = (j === i);
+        }
+      }
+    });
+    toggleMenu(audioMenu, subMenu);
+  });
+
+  // Subtitle Tracks
+  subBtn.addEventListener('click', () => {
+    const tracks = vid.textTracks ? Array.from(vid.textTracks) : [];
+    const items = [{ label: 'Off', active: tracks.every(t => t.mode === 'disabled') },
+      ...tracks.map((t, i) => ({
+        label: t.label || t.language || ('Sub ' + (i + 1)),
+        active: t.mode === 'showing'
+      }))];
+    buildMenu(subMenu, items, (i, item) => {
+      if (i === 0) {
+        Array.from(vid.textTracks || []).forEach(t => t.mode = 'disabled');
+      } else {
+        Array.from(vid.textTracks || []).forEach((t, j) => { t.mode = (j === i - 1) ? 'showing' : 'disabled'; });
+      }
+    });
+    toggleMenu(subMenu, audioMenu);
+  });
+
+  // Close menus on outside click
+  document.addEventListener('click', (e) => {
+    if (!audioBtn.contains(e.target) && !audioMenu.contains(e.target)) audioMenu.style.display = 'none';
+    if (!subBtn.contains(e.target) && !subMenu.contains(e.target)) subMenu.style.display = 'none';
+  });
+
+  // Init controls state
+  setPlayIcon(false);
+  controls.style.opacity = '1';
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
@@ -2557,7 +2807,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
                             ${isUserLoggedIn() 
-            ? `<a href="${url}" type="button" class="btn btn-success" target="_blank" rel="noopener noreferrer">
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
                </a>`
             : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
@@ -3115,7 +3365,5 @@ const options = {
 	subtree: true
 };
 
-// ✅ FIX: Observe #content div instead of documentElement — avoids firing on every DOM change site-wide
-// Falls back to documentElement if #content is not yet available
-const _observerTarget = document.getElementById('content') || document.documentElement;
-observer.observe(_observerTarget, options);
+// observe changes to the body element
+observer.observe(document.documentElement, options);
