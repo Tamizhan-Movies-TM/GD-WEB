@@ -2509,29 +2509,169 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			// ── Bitmovin Player Initialization ─────────────────────────────────────
 			// Based on official Bitmovin demo: https://bitmovin.com/demos/multi-audio-tracks/
 			// Docs: https://developer.bitmovin.com/playback/docs/player-web-getting-started
+
+			// ── Parse audio languages from filename ─────────────────────────────────
+			// Many files are named like: MovieName.[Tam_Tel_Hin_Eng].mkv
+			// We extract those tags and build manual audio track labels for the UI.
+			var detectedAudioTracks = [];
+			var langMatch = name.match(/\[([^\]]*(?:tam|tel|hin|eng|mal|kan|ben|mar|pun|fra|spa|ger|jpn|kor|chi|ara|rus)[^\]]*)\]/i);
+			if (langMatch) {
+				var langStr = langMatch[1];
+				var langParts = langStr.split(/[_\-,|&+]/);
+				var langLabels = {
+					'tam': 'Tamil', 'tel': 'Telugu', 'hin': 'Hindi', 'eng': 'English',
+					'mal': 'Malayalam', 'kan': 'Kannada', 'ben': 'Bengali', 'mar': 'Marathi',
+					'pun': 'Punjabi', 'fra': 'French', 'spa': 'Spanish', 'ger': 'German',
+					'jpn': 'Japanese', 'kor': 'Korean', 'chi': 'Chinese', 'ara': 'Arabic',
+					'rus': 'Russian'
+				};
+				langParts.forEach(function(p, idx) {
+					var key = p.trim().toLowerCase().substring(0, 3);
+					if (langLabels[key]) {
+						detectedAudioTracks.push({ id: 'track_' + idx, label: langLabels[key], lang: key });
+					}
+				});
+			}
+
+			// ── Parse subtitles from filename ──────────────────────────────────────
+			// Detect ESub / HSub tags: e.g. "ESub", "HSub", "Esubs"
+			var detectedSubs = [];
+			if (/esub/i.test(name)) detectedSubs.push({ id: 'sub_eng', label: 'English', lang: 'en' });
+			if (/hsub/i.test(name)) detectedSubs.push({ id: 'sub_hin', label: 'Hindi', lang: 'hi' });
+
+			// ── Bitmovin player config ──────────────────────────────────────────────
 			var bitmovinConf = {
-				key: player_config.bitmovin_key
+				key: player_config.bitmovin_key,
+				ui: false  // we build custom UI below for full control
 			};
+
+			// ── Source config ───────────────────────────────────────────────────────
 			var bitmovinSource = {
 				title: name,
 				poster: poster || undefined
 			};
-			// Auto-detect source type from URL or mimeType
 			var srcLower = url.toLowerCase();
 			if (srcLower.includes('.m3u8') || mimeType.includes('mpegurl')) {
 				bitmovinSource.hls = url;
 			} else if (srcLower.includes('.mpd') || mimeType.includes('dash')) {
 				bitmovinSource.dash = url;
 			} else {
-				// Progressive MP4/WebM — works for standard Google Drive files
 				bitmovinSource.progressive = url;
 			}
+
+			// ── Build custom UI with UIManager ─────────────────────────────────────
 			var bPlayer = new bitmovin.player.Player(document.getElementById('bitmovin-player'), bitmovinConf);
+
+			// Load UIManager from jsDelivr (bundled separately from engine)
+			var uiScript = document.createElement('script');
+			uiScript.src = 'https://cdn.jsdelivr.net/npm/bitmovin-player-ui@3/dist/js/bitmovinplayer-ui.min.js';
+			uiScript.onload = function() {
+				var uiCss = document.createElement('link');
+				uiCss.rel = 'stylesheet';
+				uiCss.href = 'https://cdn.jsdelivr.net/npm/bitmovin-player-ui@3/dist/css/bitmovinplayer-ui.min.css';
+				document.head.appendChild(uiCss);
+
+				// Build a full UI with settings panel (speed, quality, audio, subtitles)
+				if (typeof bitmovin !== 'undefined' && bitmovin.playerui) {
+					var UIManager = bitmovin.playerui.UIFactory.buildDefaultUI(bPlayer);
+				}
+			};
+			document.head.appendChild(uiScript);
+
 			bPlayer.load(bitmovinSource).then(function() {
 				log('Bitmovin Player loaded successfully');
+
+				// ── Inject detected audio tracks into the player after load ────────
+				// For progressive streams, Bitmovin exposes embedded tracks automatically
+				// if the container has them. We also show a custom info overlay if none found.
+				var availableTracks = bPlayer.getAvailableAudio ? bPlayer.getAvailableAudio() : [];
+				log('Bitmovin available audio tracks:', availableTracks);
+
+				// ── Build custom Track Selector overlay (shown when tracks exist) ──
+				if (detectedAudioTracks.length > 0 || availableTracks.length > 1 || detectedSubs.length > 0) {
+					var trackPanel = document.createElement('div');
+					trackPanel.id = 'bm-track-panel';
+					trackPanel.style.cssText = [
+						'position:absolute', 'bottom:52px', 'right:8px',
+						'background:rgba(0,0,0,0.85)', 'border-radius:8px',
+						'padding:10px 14px', 'color:#fff', 'font-size:13px',
+						'z-index:100', 'display:none', 'min-width:180px',
+						'box-shadow:0 4px 16px rgba(0,0,0,0.6)', 'backdrop-filter:blur(4px)'
+					].join(';');
+
+					var panelHtml = '';
+
+					// Audio tracks section
+					var tracksToShow = availableTracks.length > 0 ? availableTracks : detectedAudioTracks;
+					if (tracksToShow.length > 0) {
+						panelHtml += '<div style="font-weight:700;margin-bottom:6px;color:#aaa;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">🎵 Audio Track</div>';
+						tracksToShow.forEach(function(t, i) {
+							var label = t.label || (t.lang ? t.lang.toUpperCase() : 'Track ' + (i+1));
+							panelHtml += `<div class="bm-track-item" data-track-id="${t.id || t.id}" style="padding:5px 8px;border-radius:5px;cursor:pointer;margin-bottom:3px;transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background=''" onclick="(function(){
+								if(window._bPlayer && window._bPlayer.setAudio) window._bPlayer.setAudio('${t.id || i}');
+								document.querySelectorAll('.bm-track-item').forEach(function(el){el.style.fontWeight='';el.querySelector&&el.querySelector('.bm-check')&&(el.querySelector('.bm-check').style.opacity='0')});
+								this.style.fontWeight='700'; this.querySelector('.bm-check').style.opacity='1';
+							}).call(this)">
+								<span class="bm-check" style="opacity:${i===0?'1':'0'};margin-right:6px;">✓</span>${label}
+							</div>`;
+						});
+					}
+
+					// Subtitles section
+					if (detectedSubs.length > 0) {
+						panelHtml += '<div style="font-weight:700;margin:10px 0 6px;color:#aaa;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">💬 Subtitles</div>';
+						panelHtml += `<div style="padding:5px 8px;border-radius:5px;font-style:italic;color:#aaa;">`;
+						detectedSubs.forEach(function(s){ panelHtml += s.label + ' '; });
+						panelHtml += `(Embedded)</div>`;
+					}
+
+					// Speed section
+					panelHtml += '<div style="font-weight:700;margin:10px 0 6px;color:#aaa;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">⚡ Speed</div>';
+					[0.5, 0.75, 1, 1.25, 1.5, 2].forEach(function(s) {
+						panelHtml += `<div style="padding:5px 8px;border-radius:5px;cursor:pointer;margin-bottom:3px;font-weight:${s===1?'700':''};transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background=''" onclick="if(window._bPlayer)window._bPlayer.setPlaybackSpeed(${s});document.querySelectorAll('[data-speed]').forEach(function(el){el.style.fontWeight=''});this.style.fontWeight='700';">
+							${s===1?'✓ ':''} ${s}x
+						</div>`;
+					});
+
+					trackPanel.innerHTML = panelHtml;
+
+					var playerEl = document.getElementById('bitmovin-player');
+					playerEl.style.position = 'relative';
+					playerEl.appendChild(trackPanel);
+
+					// Settings toggle button injected into the player chrome
+					var settingsBtn = document.createElement('button');
+					settingsBtn.title = 'Audio / Subtitles / Speed';
+					settingsBtn.style.cssText = [
+						'position:absolute', 'bottom:10px', 'right:46px',
+						'background:rgba(0,0,0,0.6)', 'border:none', 'border-radius:5px',
+						'color:#fff', 'font-size:18px', 'width:32px', 'height:32px',
+						'cursor:pointer', 'z-index:101', 'display:flex',
+						'align-items:center', 'justify-content:center',
+						'transition:background .2s'
+					].join(';');
+					settingsBtn.innerHTML = '⚙';
+					settingsBtn.onmouseover = function(){ this.style.background='rgba(255,255,255,0.2)'; };
+					settingsBtn.onmouseout  = function(){ this.style.background='rgba(0,0,0,0.6)'; };
+					settingsBtn.onclick = function(e) {
+						e.stopPropagation();
+						var p = document.getElementById('bm-track-panel');
+						p.style.display = p.style.display === 'none' ? 'block' : 'none';
+					};
+					playerEl.appendChild(settingsBtn);
+
+					// Close panel when clicking elsewhere
+					document.addEventListener('click', function() {
+						var p = document.getElementById('bm-track-panel');
+						if (p) p.style.display = 'none';
+					});
+				}
+
+				// Store player reference for onclick handlers
+				window._bPlayer = bPlayer;
+
 			}).catch(function(err) {
 				logError('Bitmovin Player load error:', err);
-				// Graceful fallback to native video element
 				document.getElementById('bitmovin-player').innerHTML =
 					`<video controls style="width:100%;height:100%;min-height:200px;background:#000;" poster="${poster || ''}">
 						<source src="${url}" type="video/mp4">
