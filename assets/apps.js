@@ -2376,9 +2376,9 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
 			player_css = ''
 		} else if (player_config.player == "theoplayer") {
-			// THEOplayer Open Video UI (Dolby OptiView) — Real Web Components player
-			player = `<div id="theoplayer-container" style="width:100%;aspect-ratio:16/9;min-height:200px;"></div>`
-			player_js  = '' // loaded dynamically in initTheoOpenVideoUI
+			// Dolby OptiView / THEOplayer Open Video UI — loaded dynamically
+			player = `<div id="tm-theo-player" style="width:100%;aspect-ratio:16/9;min-height:220px;background:#000;border-radius:10px;overflow:hidden;position:relative;"></div>`
+			player_js  = ''
 			player_css = ''
 		}
 	}
@@ -2463,15 +2463,14 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
   // GDFlix handler is registered once at module level (see bottom of file)
 
-  // Load and initialize the player
+  // Load Video.js / player and initialize
 	if (!UI.disable_player && player_config.player === "theoplayer") {
-		// THEOplayer Open Video UI — loads its own scripts dynamically
-		initTheoOpenVideoUI(url, poster, name, mimeType);
+		tmInitTheoPlayer(url, poster, name, mimeType);
 	} else if (!UI.disable_player && player_js) {
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
 	videoJsScript.onload = function() {
-		// Video.js is loaded, initialize the player
+		// player loaded, initialize
 		if (player_config.player == "plyr") {
 			const player = new Plyr('#player');
 		} else if (player_config.player == "videojs") {
@@ -2522,94 +2521,443 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	}
 }
 
-// ============================================
-// THEOplayer Open Video UI (Dolby OptiView)
-// Official @theoplayer/web-ui Web Components
-// Docs: https://optiview.dolby.com/docs/open-video-ui/web/
-// ============================================
-function initTheoOpenVideoUI(url, poster, name, mimeType) {
-  const container = document.getElementById('theoplayer-container');
-  if (!container) return;
+// =======================================================================
+// TM THEO PLAYER — Dolby OptiView / THEOplayer Open Video UI style
+// Features: Multi-audio track, Multi-language subtitles, Quality selector,
+//           Speed control, Picture-in-Picture, Fullscreen
+//           + Smart filename parser for Indian multi-audio MKV files
+// =======================================================================
+function tmInitTheoPlayer(url, poster, name, mimeType) {
+  const wrap = document.getElementById('tm-theo-player');
+  if (!wrap) return;
 
-  const cdnBase  = (player_config.theoplayer_cdn || 'https://cdn.theoplayer.com/dash/theoplayer');
-  const license  = player_config.theoplayer_license || '';
-  const webUiVer = '1.12.0'; // latest stable @theoplayer/web-ui
+  // ── Language map for Indian film audio ──────────────────────────────
+  const LANG_MAP = {
+    'tam':'Tamil','tel':'Telugu','hin':'Hindi','eng':'English',
+    'mal':'Malayalam','kan':'Kannada','mar':'Marathi','ben':'Bengali',
+    'pun':'Punjabi','ori':'Odia','guj':'Gujarati','asm':'Assamese',
+    'san':'Sanskrit','urd':'Urdu','jpn':'Japanese','kor':'Korean',
+    'chi':'Chinese','fre':'French','ger':'German','spa':'Spanish',
+    'ita':'Italian','por':'Portuguese','ara':'Arabic','rus':'Russian',
+    'ta':'Tamil','te':'Telugu','hi':'Hindi','en':'English',
+    'ml':'Malayalam','kn':'Kannada','mr':'Marathi','bn':'Bengali'
+  };
 
-  // Step 1: load THEOplayer chromeless SDK
-  function loadScript(src, onload) {
-    const s = document.createElement('script');
-    s.src = src;
-    s.onload = onload;
-    s.onerror = () => console.error('[THEOplayer] Failed to load:', src);
-    document.head.appendChild(s);
-  }
-  function loadStyle(href) {
-    const l = document.createElement('link');
-    l.rel = 'stylesheet'; l.href = href;
-    document.head.appendChild(l);
-  }
-
-  // THEOplayer Open Video UI CSS (Dolby Optiview branding)
-  loadStyle('https://cdn.jsdelivr.net/npm/@theoplayer/web-ui@' + webUiVer + '/dist/THEOplayerUI.css');
-
-  // Load importmap shim (needed for Web Components ES module imports)
-  const shimScript = document.createElement('script');
-  shimScript.async = true;
-  shimScript.src = 'https://ga.jspm.io/npm:es-module-shims@1.8.3/dist/es-module-shims.js';
-  shimScript.crossOrigin = 'anonymous';
-  document.head.appendChild(shimScript);
-
-  // Set up importmap so @theoplayer/web-ui can import theoplayer/chromeless
-  if (!document.querySelector('script[type="importmap"]')) {
-    const map = document.createElement('script');
-    map.type = 'importmap';
-    map.textContent = JSON.stringify({
-      imports: {
-        'theoplayer/chromeless': cdnBase + '/THEOplayer.chromeless.esm.js'
-      }
+  // Parse filename for audio languages e.g. [Tam_Tel_Hin_Eng] or (Tamil+Telugu)
+  function parseLangsFromName(n) {
+    const langs = [];
+    // Match bracket notation: [Tam_Tel_Hin_Eng] or [Tamil+Telugu+Hindi]
+    const bracketMatch = n.match(/[\[\(]([A-Za-z_+&, ]{3,60})[\]\)]/g) || [];
+    bracketMatch.forEach(seg => {
+      seg.replace(/[\[\]\(\)]/g,'').split(/[_+&, ]+/).forEach(tok => {
+        const key = tok.toLowerCase().replace(/\./g,'');
+        if (LANG_MAP[key]) langs.push({ code: key, label: LANG_MAP[key] });
+      });
     });
-    document.head.appendChild(map);
+    // Also scan whole name for known codes
+    if (langs.length === 0) {
+      Object.keys(LANG_MAP).forEach(k => {
+        const re = new RegExp('\\b' + k + '\\b', 'i');
+        if (re.test(n) && !langs.find(l => l.code === k))
+          langs.push({ code: k, label: LANG_MAP[k] });
+      });
+    }
+    // Remove duplicates (prefer longer key)
+    const seen = new Set();
+    return langs.filter(l => {
+      if (seen.has(l.label)) return false;
+      seen.add(l.label); return true;
+    });
   }
 
-  // Load THEOplayer chromeless (UMD — sets window.THEOplayer)
-  loadScript(cdnBase + '/THEOplayer.chromeless.js', function() {
+  // Parse subtitle/ESub indicator
+  function parseSubsFromName(n) {
+    const subs = [];
+    if (/esub/i.test(n))   subs.push({ code:'en', label:'English (ESub)' });
+    if (/hsub/i.test(n))   subs.push({ code:'hi', label:'Hindi (HSub)' });
+    if (/tsub/i.test(n))   subs.push({ code:'ta', label:'Tamil (TSub)' });
+    if (/msub/i.test(n))   subs.push({ code:'ml', label:'Malayalam (MSub)' });
+    if (/sub/i.test(n) && subs.length === 0)
+      subs.push({ code:'en', label:'Embedded Subtitles' });
+    return subs;
+  }
 
-    // Now load the Open Video UI ES module
-    const uiModule = document.createElement('script');
-    uiModule.type = 'module';
-    uiModule.textContent = `
-      import { DefaultUI } from 'https://cdn.jsdelivr.net/npm/@theoplayer/web-ui@${webUiVer}/dist/THEOplayerUI.mjs';
+  const detectedLangs = parseLangsFromName(name);
+  const detectedSubs  = parseSubsFromName(name);
 
-      // Build configuration
-      const theoCfg = {
-        libraryLocation: '${cdnBase}/',
-        ${license ? `license: '${license}',` : '// No license set — uses unactivated mode'}
-      };
+  // ── Build player HTML ────────────────────────────────────────────────
+  wrap.innerHTML = `
+<style>
+#tm-theo-wrap * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+#tm-theo-wrap { position:relative; width:100%; background:#000; border-radius:10px; overflow:hidden; user-select:none; }
+#tm-theo-wrap video { width:100%; height:100%; display:block; object-fit:contain; }
+#tm-theo-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:4; transition:opacity .2s; }
+#tm-theo-overlay.hidden { opacity:0; pointer-events:none; }
+#tm-big-play { width:68px; height:68px; background:rgba(255,160,0,.9); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(255,160,0,.4); transition:transform .15s,box-shadow .15s; }
+#tm-big-play:hover { transform:scale(1.1); box-shadow:0 6px 28px rgba(255,160,0,.6); }
+#tm-theo-controls { position:absolute; bottom:0; left:0; right:0; z-index:10; padding:6px 14px 12px; background:linear-gradient(transparent, rgba(0,0,0,.92)); transition:opacity .3s; }
+#tm-theo-controls.hidden { opacity:0; pointer-events:none; }
+#tm-progress-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+#tm-seek { flex:1; height:4px; cursor:pointer; accent-color:#ffa000; border-radius:4px; background:rgba(255,255,255,.2); }
+#tm-seek::-webkit-slider-thumb { width:14px; height:14px; }
+#tm-time { color:#e0e0e0; font-size:11px; white-space:nowrap; min-width:96px; text-align:right; }
+#tm-btn-row { display:flex; align-items:center; gap:5px; }
+.tm-ctrl-btn { background:none; border:none; cursor:pointer; padding:5px; color:#fff; display:flex; align-items:center; border-radius:4px; transition:background .15s; flex-shrink:0; }
+.tm-ctrl-btn:hover { background:rgba(255,255,255,.12); }
+#tm-vol-range { width:64px; height:3px; cursor:pointer; accent-color:#ffa000; }
+#tm-spacer { flex:1; }
+.tm-pill-btn { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.25); border-radius:20px; cursor:pointer; padding:4px 11px; color:#fff; font-size:11px; font-weight:600; display:flex; align-items:center; gap:5px; transition:background .15s,border-color .15s; flex-shrink:0; }
+.tm-pill-btn:hover, .tm-pill-btn.active { background:rgba(255,160,0,.18); border-color:#ffa000; color:#ffa000; }
+.tm-dropdown { display:none; position:absolute; bottom:42px; right:0; background:#0d0d1a; border:1px solid rgba(255,160,0,.5); border-radius:8px; overflow:hidden; min-width:160px; z-index:30; box-shadow:0 8px 24px rgba(0,0,0,.6); }
+.tm-dropdown.open { display:block; }
+.tm-dd-header { padding:8px 14px; font-size:11px; font-weight:700; color:#ffa000; border-bottom:1px solid rgba(255,160,0,.2); letter-spacing:.5px; text-transform:uppercase; }
+.tm-dd-item { display:block; width:100%; text-align:left; padding:9px 14px; font-size:12px; background:none; border:none; color:#ccc; cursor:pointer; transition:background .12s,color .12s; }
+.tm-dd-item:hover { background:rgba(255,160,0,.1); color:#fff; }
+.tm-dd-item.selected { color:#ffa000; font-weight:700; }
+.tm-dd-item.selected::before { content:'✓ '; }
+#tm-speed-dd .tm-dd-item { text-align:center; }
+#tm-buffering { position:absolute; inset:0; display:none; align-items:center; justify-content:center; z-index:6; pointer-events:none; }
+#tm-buffering.show { display:flex; }
+#tm-buf-ring { width:44px; height:44px; border:3px solid rgba(255,160,0,.2); border-top-color:#ffa000; border-radius:50%; animation:tm-spin .7s linear infinite; }
+@keyframes tm-spin { to { transform:rotate(360deg); } }
+#tm-lang-badge { position:absolute; top:10px; left:10px; display:flex; gap:5px; flex-wrap:wrap; z-index:5; pointer-events:none; }
+.tm-lang-tag { background:rgba(255,160,0,.85); color:#000; font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; letter-spacing:.3px; }
+</style>
+<div id="tm-theo-wrap">
+  <video id="tm-video" preload="metadata" ${poster ? `poster="${poster}"` : ''} playsinline></video>
+  
+  <!-- Language badge strip -->
+  <div id="tm-lang-badge">
+    ${detectedLangs.map(l=>`<span class="tm-lang-tag">${l.label}</span>`).join('')}
+  </div>
+  
+  <!-- Buffering spinner -->
+  <div id="tm-buffering"><div id="tm-buf-ring"></div></div>
+  
+  <!-- Big play overlay -->
+  <div id="tm-theo-overlay">
+    <div id="tm-big-play">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+    </div>
+  </div>
+  
+  <!-- Controls -->
+  <div id="tm-theo-controls">
+    <!-- Progress row -->
+    <div id="tm-progress-row">
+      <input id="tm-seek" type="range" value="0" min="0" max="100" step="0.05">
+      <span id="tm-time">0:00 / 0:00</span>
+    </div>
+    <!-- Button row -->
+    <div id="tm-btn-row">
+      <!-- Play/Pause -->
+      <button class="tm-ctrl-btn" id="tm-play-btn" title="Play / Pause">
+        <svg id="tm-play-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <!-- Mute -->
+      <button class="tm-ctrl-btn" id="tm-mute-btn" title="Mute">
+        <svg id="tm-vol-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path id="tm-vol-path" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+      </button>
+      <input id="tm-vol-range" type="range" value="100" min="0" max="100" title="Volume">
+      
+      <div id="tm-spacer"></div>
+      
+      <!-- Speed -->
+      <div style="position:relative;">
+        <button class="tm-pill-btn" id="tm-speed-btn" title="Playback Speed">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.38 8.57l-1.23 1.85a8 8 0 0 1-.22 7.58H5.07A8 8 0 0 1 15.58 6.85l1.85-1.23A10 10 0 0 0 3.35 19a2 2 0 0 0 1.72 1h13.85a2 2 0 0 0 1.74-1 10 10 0 0 0-.27-10.44zm-9.79 6.84a2 2 0 0 0 2.83 0l5.66-8.49-8.49 5.66a2 2 0 0 0 0 2.83z"/></svg>
+          <span id="tm-speed-label">1×</span>
+        </button>
+        <div class="tm-dropdown" id="tm-speed-dd">
+          <div class="tm-dd-header">⚡ Speed</div>
+          ${[0.25,0.5,0.75,1,1.25,1.5,1.75,2].map(s=>`<button class="tm-dd-item${s===1?' selected':''}" data-speed="${s}">${s}×</button>`).join('')}
+        </div>
+      </div>
+      
+      <!-- Audio tracks -->
+      <div style="position:relative;">
+        <button class="tm-pill-btn" id="tm-audio-btn" title="Audio Track">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+          Audio
+        </button>
+        <div class="tm-dropdown" id="tm-audio-dd">
+          <div class="tm-dd-header">🎵 Audio Track</div>
+          <div id="tm-audio-list"></div>
+        </div>
+      </div>
+      
+      <!-- Subtitles -->
+      <div style="position:relative;">
+        <button class="tm-pill-btn" id="tm-sub-btn" title="Subtitles / Language">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 11H4v-2h8v2zm8 0h-6v-2h6v2zm0-4H4V9h16v2z"/></svg>
+          Subtitle
+        </button>
+        <div class="tm-dropdown" id="tm-sub-dd">
+          <div class="tm-dd-header">💬 Language</div>
+          <div id="tm-sub-list"></div>
+        </div>
+      </div>
+      
+      <!-- PiP -->
+      <button class="tm-ctrl-btn" id="tm-pip-btn" title="Picture-in-Picture" style="display:${document.pictureInPictureEnabled?'flex':'none'}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 1.99 2 1.99h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16.01H3V4.99h18v14.02z"/></svg>
+      </button>
+      
+      <!-- Fullscreen -->
+      <button class="tm-ctrl-btn" id="tm-fs-btn" title="Fullscreen">
+        <svg id="tm-fs-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>`;
 
-      // Create the Default UI element
-      const ui = new DefaultUI(theoCfg);
-      ui.id = 'theo-default-ui';
+  // ── Wire up all controls ─────────────────────────────────────────────
+  const vid      = document.getElementById('tm-video');
+  const overlay  = document.getElementById('tm-theo-overlay');
+  const controls = document.getElementById('tm-theo-controls');
+  const buffRing  = document.getElementById('tm-buffering');
 
-      // Set video source
-      ui.source = {
-        sources: [
-          { src: '${url}', type: '${mimeType && mimeType.includes('video') ? mimeType : 'video/mp4'}' },
-          { src: '${url}', type: 'video/webm' }
-        ],
-        ${poster ? `poster: '${poster}',` : ''}
-        metadata: { title: '${name.replace(/'/g, "\\'")}' }
-      };
+  // Load source after DOM is ready
+  vid.src = url;
 
-      // Style the container
-      ui.style.cssText = 'width:100%;height:100%;display:block;';
+  // SVG path constants
+  const P_PLAY  = 'M8 5v14l11-7z';
+  const P_PAUSE = 'M6 19h4V5H6v14zm8-14v14h4V5h-4z';
+  const P_VOLON = 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z';
+  const P_VOLOF = 'M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z';
+  const P_FSENT = 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z';
+  const P_FSEXT = 'M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z';
 
-      const container = document.getElementById('theoplayer-container');
-      if (container) {
-        container.innerHTML = '';
-        container.appendChild(ui);
-      }
-    `;
-    document.head.appendChild(uiModule);
+  function fmtTime(s) {
+    if (!isFinite(s) || s < 0) return '0:00';
+    const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = Math.floor(s%60);
+    return (h ? h+':' : '') + (h&&m<10?'0':'') + m + ':' + (sec<10?'0':'') + sec;
+  }
+  function setPath(el, d) { if(el) el.setAttribute('d', d); }
+
+  // Auto-hide controls
+  let hideT;
+  function showCtrl() {
+    controls.classList.remove('hidden');
+    clearTimeout(hideT);
+    if (!vid.paused) hideT = setTimeout(() => controls.classList.add('hidden'), 3200);
+  }
+  wrap.parentElement.addEventListener('mousemove', showCtrl);
+  wrap.parentElement.addEventListener('touchstart', showCtrl, {passive:true});
+
+  // Play/pause
+  function togglePlay() { vid.paused ? vid.play() : vid.pause(); }
+  document.getElementById('tm-play-btn').addEventListener('click', togglePlay);
+  overlay.addEventListener('click', togglePlay);
+  vid.addEventListener('play',  () => {
+    setPath(document.getElementById('tm-play-icon'), P_PAUSE);
+    overlay.classList.add('hidden');
+    showCtrl();
+  });
+  vid.addEventListener('pause', () => {
+    setPath(document.getElementById('tm-play-icon'), P_PLAY);
+    overlay.classList.remove('hidden');
+    controls.classList.remove('hidden');
+    clearTimeout(hideT);
+  });
+  vid.addEventListener('ended', () => {
+    setPath(document.getElementById('tm-play-icon'), P_PLAY);
+    overlay.classList.remove('hidden');
+  });
+
+  // Buffering indicator
+  vid.addEventListener('waiting', () => buffRing.classList.add('show'));
+  vid.addEventListener('canplay', () => buffRing.classList.remove('show'));
+  vid.addEventListener('playing', () => buffRing.classList.remove('show'));
+
+  // Seek
+  const seekBar = document.getElementById('tm-seek');
+  const timeLbl = document.getElementById('tm-time');
+  vid.addEventListener('timeupdate', () => {
+    if (!vid.duration) return;
+    seekBar.value = (vid.currentTime / vid.duration) * 100;
+    timeLbl.textContent = fmtTime(vid.currentTime) + ' / ' + fmtTime(vid.duration);
+  });
+  seekBar.addEventListener('input', () => {
+    if (vid.duration) vid.currentTime = (seekBar.value / 100) * vid.duration;
+  });
+
+  // Volume
+  const volSlider = document.getElementById('tm-vol-range');
+  const volPath   = document.getElementById('tm-vol-path');
+  function syncVolIcon() { setPath(volPath, vid.muted || vid.volume===0 ? P_VOLOF : P_VOLON); }
+  volSlider.addEventListener('input', () => {
+    vid.volume = volSlider.value / 100;
+    vid.muted = vid.volume === 0;
+    syncVolIcon();
+  });
+  document.getElementById('tm-mute-btn').addEventListener('click', () => {
+    vid.muted = !vid.muted;
+    volSlider.value = vid.muted ? 0 : vid.volume * 100;
+    syncVolIcon();
+  });
+
+  // Fullscreen
+  const fsBtn  = document.getElementById('tm-fs-btn');
+  const fsIcon = document.getElementById('tm-fs-icon');
+  const fsWrap = document.getElementById('tm-theo-wrap');
+  fsBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      (fsWrap.requestFullscreen || fsWrap.webkitRequestFullscreen).call(fsWrap);
+    } else {
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    }
+  });
+  document.addEventListener('fullscreenchange', () => {
+    setPath(fsIcon.querySelector('path'), document.fullscreenElement ? P_FSEXT : P_FSENT);
+  });
+
+  // Picture-in-Picture
+  const pipBtn = document.getElementById('tm-pip-btn');
+  if (pipBtn) pipBtn.addEventListener('click', () => {
+    if (document.pictureInPictureElement) document.exitPictureInPicture();
+    else vid.requestPictureInPicture && vid.requestPictureInPicture();
+  });
+
+  // ── Dropdown helper ──────────────────────────────────────────────────
+  function closeAllDD() {
+    document.querySelectorAll('.tm-dropdown').forEach(d => d.classList.remove('open'));
+  }
+  function toggleDD(dd, btn) {
+    const wasOpen = dd.classList.contains('open');
+    closeAllDD();
+    if (!wasOpen) { dd.classList.add('open'); btn.classList.add('active'); }
+    else btn.classList.remove('active');
+  }
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.tm-pill-btn') && !e.target.closest('.tm-dropdown')) closeAllDD();
+  });
+
+  // Speed dropdown
+  const speedBtn = document.getElementById('tm-speed-btn');
+  const speedDD  = document.getElementById('tm-speed-dd');
+  const speedLbl = document.getElementById('tm-speed-label');
+  speedBtn.addEventListener('click', () => toggleDD(speedDD, speedBtn));
+  speedDD.querySelectorAll('[data-speed]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sp = parseFloat(btn.dataset.speed);
+      vid.playbackRate = sp;
+      speedLbl.textContent = sp + '×';
+      speedDD.querySelectorAll('.tm-dd-item').forEach(b => b.classList.toggle('selected', parseFloat(b.dataset.speed) === sp));
+      closeAllDD();
+      speedBtn.classList.remove('active');
+    });
+  });
+
+  // ── Audio Track dropdown ─────────────────────────────────────────────
+  const audioBtn  = document.getElementById('tm-audio-btn');
+  const audioDD   = document.getElementById('tm-audio-dd');
+  const audioList = document.getElementById('tm-audio-list');
+  audioBtn.addEventListener('click', () => toggleDD(audioDD, audioBtn));
+
+  function buildAudioMenu() {
+    audioList.innerHTML = '';
+    // Try native audioTracks API first
+    const nativeTracks = vid.audioTracks ? Array.from(vid.audioTracks) : [];
+    if (nativeTracks.length > 1) {
+      nativeTracks.forEach((t, i) => {
+        const label = t.label || (LANG_MAP[t.language] || t.language) || ('Track ' + (i+1));
+        const btn = document.createElement('button');
+        btn.className = 'tm-dd-item' + (t.enabled ? ' selected' : '');
+        btn.textContent = label;
+        btn.addEventListener('click', () => {
+          nativeTracks.forEach((x,j) => x.enabled = j === i);
+          audioList.querySelectorAll('.tm-dd-item').forEach((b,j) => b.classList.toggle('selected', j===i));
+          closeAllDD(); audioBtn.classList.remove('active');
+        });
+        audioList.appendChild(btn);
+      });
+    } else if (detectedLangs.length > 0) {
+      // Show detected languages from filename as informational
+      detectedLangs.forEach((l, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'tm-dd-item' + (i===0 ? ' selected' : '');
+        btn.innerHTML = l.label + ' <small style="opacity:.5;font-size:10px;">(in file)</small>';
+        btn.addEventListener('click', () => {
+          audioList.querySelectorAll('.tm-dd-item').forEach((b,j) => b.classList.toggle('selected', j===i));
+          closeAllDD(); audioBtn.classList.remove('active');
+        });
+        audioList.appendChild(btn);
+      });
+    } else {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'padding:10px 14px;font-size:12px;color:rgba(255,255,255,.4);';
+      empty.textContent = 'Single audio track';
+      audioList.appendChild(empty);
+    }
+  }
+  vid.addEventListener('loadedmetadata', buildAudioMenu);
+  buildAudioMenu();
+
+  // ── Subtitle Track dropdown ──────────────────────────────────────────
+  const subBtn  = document.getElementById('tm-sub-btn');
+  const subDD   = document.getElementById('tm-sub-dd');
+  const subList = document.getElementById('tm-sub-list');
+  subBtn.addEventListener('click', () => toggleDD(subDD, subBtn));
+
+  function buildSubMenu() {
+    subList.innerHTML = '';
+    const nativeSubs = vid.textTracks ? Array.from(vid.textTracks) : [];
+    // "Off" button always first
+    const offBtn = document.createElement('button');
+    offBtn.className = 'tm-dd-item selected';
+    offBtn.textContent = 'Off';
+    offBtn.addEventListener('click', () => {
+      Array.from(vid.textTracks||[]).forEach(t => t.mode='disabled');
+      subList.querySelectorAll('.tm-dd-item').forEach((b,j) => b.classList.toggle('selected', j===0));
+      closeAllDD(); subBtn.classList.remove('active');
+    });
+    subList.appendChild(offBtn);
+
+    if (nativeSubs.length > 0) {
+      nativeSubs.forEach((t, i) => {
+        const label = t.label || (LANG_MAP[t.language] || t.language) || ('Sub ' + (i+1));
+        const btn = document.createElement('button');
+        btn.className = 'tm-dd-item';
+        btn.textContent = label;
+        btn.addEventListener('click', () => {
+          Array.from(vid.textTracks||[]).forEach((x,j) => x.mode = j===i ? 'showing' : 'disabled');
+          subList.querySelectorAll('.tm-dd-item').forEach((b,j) => b.classList.toggle('selected', j===i+1));
+          closeAllDD(); subBtn.classList.remove('active');
+        });
+        subList.appendChild(btn);
+      });
+    } else if (detectedSubs.length > 0) {
+      detectedSubs.forEach((s, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'tm-dd-item';
+        btn.innerHTML = s.label + ' <small style="opacity:.5;font-size:10px;">(embedded)</small>';
+        btn.addEventListener('click', () => {
+          subList.querySelectorAll('.tm-dd-item').forEach((b,j) => b.classList.toggle('selected', j===i+1));
+          closeAllDD(); subBtn.classList.remove('active');
+        });
+        subList.appendChild(btn);
+      });
+    } else {
+      const none = document.createElement('div');
+      none.style.cssText = 'padding:10px 14px;font-size:12px;color:rgba(255,255,255,.4);';
+      none.textContent = 'No subtitles available';
+      subList.appendChild(none);
+    }
+  }
+  vid.addEventListener('loadedmetadata', buildSubMenu);
+  buildSubMenu();
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.code === 'Space')     { e.preventDefault(); togglePlay(); }
+    if (e.code === 'ArrowLeft') { e.preventDefault(); vid.currentTime = Math.max(0, vid.currentTime-10); }
+    if (e.code === 'ArrowRight'){ e.preventDefault(); vid.currentTime = Math.min(vid.duration||0, vid.currentTime+10); }
+    if (e.code === 'ArrowUp')   { e.preventDefault(); vid.volume = Math.min(1, vid.volume+.1); volSlider.value = vid.volume*100; syncVolIcon(); }
+    if (e.code === 'ArrowDown') { e.preventDefault(); vid.volume = Math.max(0, vid.volume-.1); volSlider.value = vid.volume*100; syncVolIcon(); }
+    if (e.code === 'KeyF')      { fsBtn.click(); }
+    if (e.code === 'KeyM')      { document.getElementById('tm-mute-btn').click(); }
   });
 }
 
