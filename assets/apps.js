@@ -2506,177 +2506,182 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 				},
 			});
 		} else if (player_config.player == "bitmovin") {
-			// ── Bitmovin Player Initialization ─────────────────────────────────────
-			// Based on official Bitmovin demo: https://bitmovin.com/demos/multi-audio-tracks/
+			// ── Bitmovin Player Initialization ──────────────────────────────────────
 			// Docs: https://developer.bitmovin.com/playback/docs/player-web-getting-started
 
-			// ── Parse audio languages from filename ─────────────────────────────────
-			// Many files are named like: MovieName.[Tam_Tel_Hin_Eng].mkv
-			// We extract those tags and build manual audio track labels for the UI.
-			var detectedAudioTracks = [];
-			var langMatch = name.match(/\[([^\]]*(?:tam|tel|hin|eng|mal|kan|ben|mar|pun|fra|spa|ger|jpn|kor|chi|ara|rus)[^\]]*)\]/i);
-			if (langMatch) {
-				var langStr = langMatch[1];
-				var langParts = langStr.split(/[_\-,|&+]/);
-				var langLabels = {
-					'tam': 'Tamil', 'tel': 'Telugu', 'hin': 'Hindi', 'eng': 'English',
-					'mal': 'Malayalam', 'kan': 'Kannada', 'ben': 'Bengali', 'mar': 'Marathi',
-					'pun': 'Punjabi', 'fra': 'French', 'spa': 'Spanish', 'ger': 'German',
-					'jpn': 'Japanese', 'kor': 'Korean', 'chi': 'Chinese', 'ara': 'Arabic',
-					'rus': 'Russian'
-				};
-				langParts.forEach(function(p, idx) {
-					var key = p.trim().toLowerCase().substring(0, 3);
-					if (langLabels[key]) {
-						detectedAudioTracks.push({ id: 'track_' + idx, label: langLabels[key], lang: key });
-					}
+			// ── Language map ────────────────────────────────────────────────────────
+			var _ll = {'tam':'Tamil','tel':'Telugu','hin':'Hindi','eng':'English',
+				'mal':'Malayalam','kan':'Kannada','ben':'Bengali','mar':'Marathi',
+				'pun':'Punjabi','fra':'French','spa':'Spanish','ger':'German',
+				'jpn':'Japanese','kor':'Korean','chi':'Chinese','ara':'Arabic','rus':'Russian'};
+
+			// ── Parse audio languages from filename e.g. [Tam_Tel_Hin_Eng] ─────────
+			var _bmAudio = [];
+			// Try bracket pattern first
+			var _bm_lm = name.match(/[\[\(]([^\]\)]*(?:tam|tel|hin|eng|mal|kan|ben|mar|pun|fra|spa|ger|jpn|kor|chi|ara|rus)[^\]\)]*?)[\]\)]/i);
+			if (_bm_lm) {
+				_bm_lm[1].split(/[_\-,|&+ ]+/).forEach(function(p,i){
+					var k = p.trim().toLowerCase().substring(0,3);
+					if (_ll[k]) _bmAudio.push({id:'t'+i, label:_ll[k]});
+				});
+			}
+			// Fallback: scan all dot/space separated tokens in filename
+			if (_bmAudio.length === 0) {
+				name.split(/[\.\s_\-\[\]\(\)]+/).forEach(function(p,i){
+					var k = p.trim().toLowerCase().substring(0,3);
+					if (_ll[k]) _bmAudio.push({id:'t'+i, label:_ll[k]});
 				});
 			}
 
-			// ── Parse subtitles from filename ──────────────────────────────────────
-			// Detect ESub / HSub tags: e.g. "ESub", "HSub", "Esubs"
-			var detectedSubs = [];
-			if (/esub/i.test(name)) detectedSubs.push({ id: 'sub_eng', label: 'English', lang: 'en' });
-			if (/hsub/i.test(name)) detectedSubs.push({ id: 'sub_hin', label: 'Hindi', lang: 'hi' });
+			// ── Parse subtitle tags: ESub / HSub / TSub ────────────────────────────
+			var _bmSubs = [];
+			if (/esub/i.test(name)) _bmSubs.push('English');
+			if (/hsub/i.test(name)) _bmSubs.push('Hindi');
+			if (/tsub/i.test(name)) _bmSubs.push('Tamil');
 
-			// ── Bitmovin player config ──────────────────────────────────────────────
-			var bitmovinConf = {
-				key: player_config.bitmovin_key,
-				ui: false  // we build custom UI below for full control
-			};
+			// ── Source ─────────────────────────────────────────────────────────────
+			var _bmSrc = {title: name, poster: poster || undefined};
+			var _bsl = url.toLowerCase();
+			if (_bsl.includes('.m3u8') || mimeType.includes('mpegurl'))   _bmSrc.hls  = url;
+			else if (_bsl.includes('.mpd') || mimeType.includes('dash'))   _bmSrc.dash = url;
+			else                                                            _bmSrc.progressive = url;
 
-			// ── Source config ───────────────────────────────────────────────────────
-			var bitmovinSource = {
-				title: name,
-				poster: poster || undefined
-			};
-			var srcLower = url.toLowerCase();
-			if (srcLower.includes('.m3u8') || mimeType.includes('mpegurl')) {
-				bitmovinSource.hls = url;
-			} else if (srcLower.includes('.mpd') || mimeType.includes('dash')) {
-				bitmovinSource.dash = url;
-			} else {
-				bitmovinSource.progressive = url;
+			// ── Create Bitmovin player (default UI from CDN) ───────────────────────
+			var _bmp = new bitmovin.player.Player(
+				document.getElementById('bitmovin-player'),
+				{key: player_config.bitmovin_key}
+			);
+			window._bPlayer = _bmp;
+
+			// ── Build the ⚙ settings panel (always shown) ─────────────────────────
+			function _bmBuildPanel(realTracks) {
+				var pel = document.getElementById('bitmovin-player');
+				if (!pel) return;
+				pel.style.position = 'relative';
+
+				// Use real demuxed tracks if available, else filename-detected
+				var tracks = (realTracks && realTracks.length > 0) ? realTracks : _bmAudio;
+
+				// ── Panel HTML ─────────────────────────────────────────────────────
+				var h = '<div style="font-size:11px;font-weight:800;color:#facc15;'
+					  + 'margin-bottom:10px;letter-spacing:1.5px;text-transform:uppercase;">⚙ Settings</div>';
+
+				if (tracks.length > 0) {
+					h += '<div style="color:#9ca3af;font-size:10px;font-weight:700;'
+					   + 'text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">🎵 Audio Track</div>';
+					tracks.forEach(function(t, i) {
+						var lbl = t.label || (t.language ? t.language.toUpperCase() : 'Track '+(i+1));
+						var tid = (t.id !== undefined && t.id !== null) ? t.id : i;
+						h += '<div class="bms-opt" data-bm-audio="'+tid+'" '
+						   + 'style="padding:6px 10px;border-radius:6px;cursor:pointer;'
+						   + 'display:flex;align-items:center;gap:8px;margin-bottom:3px;">'
+						   + '<span class="bms-chk" style="color:#facc15;min-width:12px;'
+						   + 'opacity:'+(i===0?'1':'0')+';">✓</span>'
+						   + '<span>'+lbl+'</span></div>';
+					});
+				}
+
+				if (_bmSubs.length > 0) {
+					h += '<div style="color:#9ca3af;font-size:10px;font-weight:700;'
+					   + 'text-transform:uppercase;letter-spacing:.8px;margin:10px 0 6px;">💬 Subtitles</div>';
+					_bmSubs.forEach(function(s){
+						h += '<div style="padding:6px 10px;color:#d1d5db;font-style:italic;">'+s+' (Embedded)</div>';
+					});
+				}
+
+				h += '<div style="color:#9ca3af;font-size:10px;font-weight:700;'
+				   + 'text-transform:uppercase;letter-spacing:.8px;margin:10px 0 6px;">⚡ Speed</div>';
+				[0.5, 0.75, 1, 1.25, 1.5, 2].forEach(function(s){
+					h += '<div class="bms-opt" data-bm-speed="'+s+'" '
+					   + 'style="padding:6px 10px;border-radius:6px;cursor:pointer;'
+					   + 'display:flex;align-items:center;gap:8px;margin-bottom:3px;">'
+					   + '<span class="bms-chk" style="color:#facc15;min-width:12px;'
+					   + 'opacity:'+(s===1?'1':'0')+';">✓</span>'
+					   + '<span>'+s+'×</span></div>';
+				});
+
+				// ── Panel element ──────────────────────────────────────────────────
+				var panel = document.createElement('div');
+				panel.id = 'bm-panel';
+				panel.innerHTML = h;
+				panel.style.cssText = 'display:none;position:absolute;bottom:56px;right:8px;'
+					+ 'background:rgba(8,8,18,0.97);border:1px solid rgba(255,255,255,0.12);'
+					+ 'border-radius:10px;padding:14px;color:#fff;font-size:13px;'
+					+ 'z-index:9999;min-width:195px;max-height:360px;overflow-y:auto;'
+					+ 'box-shadow:0 8px 32px rgba(0,0,0,0.9);backdrop-filter:blur(8px);';
+				pel.appendChild(panel);
+
+				// ── Event delegation for clicks ────────────────────────────────────
+				panel.addEventListener('click', function(e){
+					e.stopPropagation();
+					var opt = e.target.closest ? e.target.closest('.bms-opt') : null;
+					if (!opt) return;
+					// Audio
+					if (opt.dataset.bmAudio !== undefined) {
+						panel.querySelectorAll('[data-bm-audio] .bms-chk').forEach(function(c){ c.style.opacity='0'; });
+						opt.querySelector('.bms-chk').style.opacity='1';
+						if (window._bPlayer && window._bPlayer.setAudio) {
+							try { window._bPlayer.setAudio(opt.dataset.bmAudio); } catch(ex){}
+						}
+					}
+					// Speed
+					if (opt.dataset.bmSpeed !== undefined) {
+						panel.querySelectorAll('[data-bm-speed] .bms-chk').forEach(function(c){ c.style.opacity='0'; });
+						opt.querySelector('.bms-chk').style.opacity='1';
+						if (window._bPlayer && window._bPlayer.setPlaybackSpeed) {
+							try { window._bPlayer.setPlaybackSpeed(parseFloat(opt.dataset.bmSpeed)); } catch(ex){}
+						}
+					}
+				});
+
+				// Hover highlight
+				panel.addEventListener('mouseover', function(e){
+					var o = e.target.closest ? e.target.closest('.bms-opt') : null;
+					if (o) o.style.background='rgba(255,255,255,0.07)';
+				});
+				panel.addEventListener('mouseout', function(e){
+					var o = e.target.closest ? e.target.closest('.bms-opt') : null;
+					if (o) o.style.background='';
+				});
+
+				// ── ⚙ Toggle button ────────────────────────────────────────────────
+				var btn = document.createElement('button');
+				btn.id = 'bm-settings-btn';
+				btn.title = 'Audio / Subtitles / Speed';
+				btn.innerHTML = '⚙';
+				btn.style.cssText = 'position:absolute;bottom:12px;right:50px;'
+					+ 'background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.25);'
+					+ 'border-radius:6px;color:#fff;font-size:15px;width:30px;height:30px;'
+					+ 'cursor:pointer;z-index:9998;display:flex;align-items:center;'
+					+ 'justify-content:center;transition:all .2s;padding:0;line-height:1;';
+				btn.onmouseover = function(){ this.style.background='rgba(250,204,21,0.25)'; this.style.borderColor='#facc15'; };
+				btn.onmouseout  = function(){ this.style.background='rgba(0,0,0,0.7)';       this.style.borderColor='rgba(255,255,255,0.25)'; };
+				btn.onclick = function(e){
+					e.stopPropagation();
+					panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
+				};
+				pel.appendChild(btn);
+
+				// Close on outside click
+				document.addEventListener('click', function(){ panel.style.display = 'none'; });
 			}
 
-			// ── Build custom UI with UIManager ─────────────────────────────────────
-			var bPlayer = new bitmovin.player.Player(document.getElementById('bitmovin-player'), bitmovinConf);
-
-			// Load UIManager from jsDelivr (bundled separately from engine)
-			var uiScript = document.createElement('script');
-			uiScript.src = 'https://cdn.jsdelivr.net/npm/bitmovin-player-ui@3/dist/js/bitmovinplayer-ui.min.js';
-			uiScript.onload = function() {
-				var uiCss = document.createElement('link');
-				uiCss.rel = 'stylesheet';
-				uiCss.href = 'https://cdn.jsdelivr.net/npm/bitmovin-player-ui@3/dist/css/bitmovinplayer-ui.min.css';
-				document.head.appendChild(uiCss);
-
-				// Build a full UI with settings panel (speed, quality, audio, subtitles)
-				if (typeof bitmovin !== 'undefined' && bitmovin.playerui) {
-					var UIManager = bitmovin.playerui.UIFactory.buildDefaultUI(bPlayer);
-				}
-			};
-			document.head.appendChild(uiScript);
-
-			bPlayer.load(bitmovinSource).then(function() {
-				log('Bitmovin Player loaded successfully');
-
-				// ── Inject detected audio tracks into the player after load ────────
-				// For progressive streams, Bitmovin exposes embedded tracks automatically
-				// if the container has them. We also show a custom info overlay if none found.
-				var availableTracks = bPlayer.getAvailableAudio ? bPlayer.getAvailableAudio() : [];
-				log('Bitmovin available audio tracks:', availableTracks);
-
-				// ── Build custom Track Selector overlay (shown when tracks exist) ──
-				if (detectedAudioTracks.length > 0 || availableTracks.length > 1 || detectedSubs.length > 0) {
-					var trackPanel = document.createElement('div');
-					trackPanel.id = 'bm-track-panel';
-					trackPanel.style.cssText = [
-						'position:absolute', 'bottom:52px', 'right:8px',
-						'background:rgba(0,0,0,0.85)', 'border-radius:8px',
-						'padding:10px 14px', 'color:#fff', 'font-size:13px',
-						'z-index:100', 'display:none', 'min-width:180px',
-						'box-shadow:0 4px 16px rgba(0,0,0,0.6)', 'backdrop-filter:blur(4px)'
-					].join(';');
-
-					var panelHtml = '';
-
-					// Audio tracks section
-					var tracksToShow = availableTracks.length > 0 ? availableTracks : detectedAudioTracks;
-					if (tracksToShow.length > 0) {
-						panelHtml += '<div style="font-weight:700;margin-bottom:6px;color:#aaa;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">🎵 Audio Track</div>';
-						tracksToShow.forEach(function(t, i) {
-							var label = t.label || (t.lang ? t.lang.toUpperCase() : 'Track ' + (i+1));
-							panelHtml += `<div class="bm-track-item" data-track-id="${t.id || t.id}" style="padding:5px 8px;border-radius:5px;cursor:pointer;margin-bottom:3px;transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background=''" onclick="(function(){
-								if(window._bPlayer && window._bPlayer.setAudio) window._bPlayer.setAudio('${t.id || i}');
-								document.querySelectorAll('.bm-track-item').forEach(function(el){el.style.fontWeight='';el.querySelector&&el.querySelector('.bm-check')&&(el.querySelector('.bm-check').style.opacity='0')});
-								this.style.fontWeight='700'; this.querySelector('.bm-check').style.opacity='1';
-							}).call(this)">
-								<span class="bm-check" style="opacity:${i===0?'1':'0'};margin-right:6px;">✓</span>${label}
-							</div>`;
-						});
-					}
-
-					// Subtitles section
-					if (detectedSubs.length > 0) {
-						panelHtml += '<div style="font-weight:700;margin:10px 0 6px;color:#aaa;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">💬 Subtitles</div>';
-						panelHtml += `<div style="padding:5px 8px;border-radius:5px;font-style:italic;color:#aaa;">`;
-						detectedSubs.forEach(function(s){ panelHtml += s.label + ' '; });
-						panelHtml += `(Embedded)</div>`;
-					}
-
-					// Speed section
-					panelHtml += '<div style="font-weight:700;margin:10px 0 6px;color:#aaa;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">⚡ Speed</div>';
-					[0.5, 0.75, 1, 1.25, 1.5, 2].forEach(function(s) {
-						panelHtml += `<div style="padding:5px 8px;border-radius:5px;cursor:pointer;margin-bottom:3px;font-weight:${s===1?'700':''};transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background=''" onclick="if(window._bPlayer)window._bPlayer.setPlaybackSpeed(${s});document.querySelectorAll('[data-speed]').forEach(function(el){el.style.fontWeight=''});this.style.fontWeight='700';">
-							${s===1?'✓ ':''} ${s}x
-						</div>`;
-					});
-
-					trackPanel.innerHTML = panelHtml;
-
-					var playerEl = document.getElementById('bitmovin-player');
-					playerEl.style.position = 'relative';
-					playerEl.appendChild(trackPanel);
-
-					// Settings toggle button injected into the player chrome
-					var settingsBtn = document.createElement('button');
-					settingsBtn.title = 'Audio / Subtitles / Speed';
-					settingsBtn.style.cssText = [
-						'position:absolute', 'bottom:10px', 'right:46px',
-						'background:rgba(0,0,0,0.6)', 'border:none', 'border-radius:5px',
-						'color:#fff', 'font-size:18px', 'width:32px', 'height:32px',
-						'cursor:pointer', 'z-index:101', 'display:flex',
-						'align-items:center', 'justify-content:center',
-						'transition:background .2s'
-					].join(';');
-					settingsBtn.innerHTML = '⚙';
-					settingsBtn.onmouseover = function(){ this.style.background='rgba(255,255,255,0.2)'; };
-					settingsBtn.onmouseout  = function(){ this.style.background='rgba(0,0,0,0.6)'; };
-					settingsBtn.onclick = function(e) {
-						e.stopPropagation();
-						var p = document.getElementById('bm-track-panel');
-						p.style.display = p.style.display === 'none' ? 'block' : 'none';
-					};
-					playerEl.appendChild(settingsBtn);
-
-					// Close panel when clicking elsewhere
-					document.addEventListener('click', function() {
-						var p = document.getElementById('bm-track-panel');
-						if (p) p.style.display = 'none';
-					});
-				}
-
-				// Store player reference for onclick handlers
-				window._bPlayer = bPlayer;
-
+			// ── Load and initialize ────────────────────────────────────────────────
+			_bmp.load(_bmSrc).then(function() {
+				log('Bitmovin loaded');
+				// Wait 800ms for browser to demux embedded multi-audio tracks
+				setTimeout(function(){
+					var rt = [];
+					try { rt = _bmp.getAvailableAudio() || []; } catch(ex){}
+					log('Bitmovin audio tracks found:', rt.length);
+					_bmBuildPanel(rt);
+				}, 800);
 			}).catch(function(err) {
-				logError('Bitmovin Player load error:', err);
-				document.getElementById('bitmovin-player').innerHTML =
-					`<video controls style="width:100%;height:100%;min-height:200px;background:#000;" poster="${poster || ''}">
-						<source src="${url}" type="video/mp4">
-						<source src="${url}" type="video/webm">
-					</video>`;
+				logError('Bitmovin error:', err);
+				var fb = document.getElementById('bitmovin-player');
+				if (fb) fb.innerHTML = '<video controls style="width:100%;height:100%;min-height:200px;background:#000;" poster="'+(poster||'')+'">'
+					+'<source src="'+url+'" type="video/mp4">'
+					+'<source src="'+url+'" type="video/webm"></video>';
 			});
 		}
 	};
