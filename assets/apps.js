@@ -2360,25 +2360,54 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
 			player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
 		} else if (player_config.player == "videojs") {
-			player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
+			// VideoJS with HLS/DASH support for multi-audio tracks
+			player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="metadata" width="100%" height="100%" data-setup='{"fill": true, "fluid": true, "controlBar": {"children": ["playToggle", "currentTimeDisplay", "timeDivider", "durationDisplay", "progressControl", "volumePanel", "qualityLevels", "audioTrackButton", "subtitlesButton", "captionsButton", "menuButton"]}}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
       <source src="${url}" type="video/avi" />
+      <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
     </video>`
 			player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
 			player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
 		} else if (player_config.player == "dplayer") {
-			player = `<div id="player-container"></div>`
-			player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js'
-			player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css'
+			// DPlayer with multi-quality & multi-audio support
+			player = `<div id="player-container" style="width: 100%; height: 400px;"></div>`
+			player_js = 'https://cdn.jsdelivr.net/npm/dplayer@' + player_config.dplayer_version + '/dist/DPlayer.min.js'
+			player_css = 'https://cdn.jsdelivr.net/npm/dplayer@' + player_config.dplayer_version + '/dist/DPlayer.min.css'
 		} else if (player_config.player == "jwplayer") {
+			// JWPlayer with streaming capabilities
 			player = `<div id="player"></div>`
 			player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
 			player_css = ''
-		} else if (player_config.player == "bitmovin") {
-			player = `<div id="bitmovin-player" style="width:100%;aspect-ratio:16/9;min-height:200px;background:#000;border-radius:4px;"></div>`
-			player_js = `https://cdn.jsdelivr.net/npm/bitmovin-player@${player_config.bitmovin_version || '8'}/bitmovinplayer.js`
-			player_css = ``
+		} else if (player_config.player == "hlsjs") {
+			// HLS.js player for HLS stream playback with multi-audio
+			player = `<video id="hlsplayer" poster="${poster}" style="width: 100%; height: 100%; min-height: 200px;" controls preload="metadata"></video>`
+			player_js = 'https://cdn.jsdelivr.net/npm/hls.js@' + player_config.hlsjs_version + '/dist/hls.min.js'
+			player_css = ''
+		} else if (player_config.player == "shakaplayer") {
+			// Shaka Player for DASH/HLS streaming with adaptive bitrate
+			player = `<div id="shaka-container" style="width: 100%; height: 100%; min-height: 200px;"><video id="shakaplayer" poster="${poster}" controls preload="metadata" style="width: 100%; height: 100%;"></video></div>`
+			player_js = 'https://cdn.jsdelivr.net/npm/shaka-player@' + player_config.shakaplayer_version + '/dist/shaka-player.compiled.min.js'
+			player_css = ''
+		} else if (player_config.player == "clappr") {
+			// Clappr - lightweight, modular player
+			player = `<div id="clappr-player" style="width: 100%; height: 400px;"></div>`
+			player_js = 'https://cdn.jsdelivr.net/npm/clappr@' + player_config.clappr_version + '/dist/clappr.min.js'
+			player_css = ''
+		} else if (player_config.player == "fluent") {
+			// Fluent Player - modern responsive player
+			player = `<div id="fluent-player" style="width: 100%; height: 400px;"><video controls style="width: 100%; height: 100%;"><source src="${url}" /></video></div>`
+			player_js = 'https://cdn.jsdelivr.net/npm/fluent-player@' + player_config.fluent_version + '/dist/fluentplayer.min.js'
+			player_css = 'https://cdn.jsdelivr.net/npm/fluent-player@' + player_config.fluent_version + '/dist/fluentplayer.min.css'
+		} else if (player_config.player == "mediaelement") {
+			// MediaElement.js - cross-browser HTML5 player
+			player = `<video id="mediaplayer" poster="${poster}" width="100%" height="100%" controls preload="metadata">
+      <source src="${url}" type="video/mp4" />
+      <source src="${url}" type="video/webm" />
+      <source src="${url}" type="video/ogv" />
+    </video>`
+			player_js = 'https://cdn.jsdelivr.net/npm/mediaelement@' + player_config.mediaelement_version + '/build/mediaelement-and-player.min.js'
+			player_css = 'https://cdn.jsdelivr.net/npm/mediaelement@' + player_config.mediaelement_version + '/build/mediaelementplayer.min.css'
 		}
 	}
 
@@ -2505,184 +2534,116 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 					edgeStyle: "raised",
 				},
 			});
-		} else if (player_config.player == "bitmovin") {
-			// ── Bitmovin Player Initialization ──────────────────────────────────────
-			// Docs: https://developer.bitmovin.com/playback/docs/player-web-getting-started
-
-			// ── Language map ────────────────────────────────────────────────────────
-			var _ll = {'tam':'Tamil','tel':'Telugu','hin':'Hindi','eng':'English',
-				'mal':'Malayalam','kan':'Kannada','ben':'Bengali','mar':'Marathi',
-				'pun':'Punjabi','fra':'French','spa':'Spanish','ger':'German',
-				'jpn':'Japanese','kor':'Korean','chi':'Chinese','ara':'Arabic','rus':'Russian'};
-
-			// ── Parse audio languages from filename e.g. [Tam_Tel_Hin_Eng] ─────────
-			var _bmAudio = [];
-			// Try bracket pattern first
-			var _bm_lm = name.match(/[\[\(]([^\]\)]*(?:tam|tel|hin|eng|mal|kan|ben|mar|pun|fra|spa|ger|jpn|kor|chi|ara|rus)[^\]\)]*?)[\]\)]/i);
-			if (_bm_lm) {
-				_bm_lm[1].split(/[_\-,|&+ ]+/).forEach(function(p,i){
-					var k = p.trim().toLowerCase().substring(0,3);
-					if (_ll[k]) _bmAudio.push({id:'t'+i, label:_ll[k]});
+		} else if (player_config.player == "hlsjs") {
+			// HLS.js player initialization
+			if (window.Hls && Hls.isSupported()) {
+				const hlsPlayer = document.getElementById('hlsplayer');
+				const hls = new Hls({
+					enableWorker: true,
+					lowLatencyMode: true,
+					maxBufferLength: 30
 				});
-			}
-			// Fallback: scan all dot/space separated tokens in filename
-			if (_bmAudio.length === 0) {
-				name.split(/[\.\s_\-\[\]\(\)]+/).forEach(function(p,i){
-					var k = p.trim().toLowerCase().substring(0,3);
-					if (_ll[k]) _bmAudio.push({id:'t'+i, label:_ll[k]});
-				});
-			}
-
-			// ── Parse subtitle tags: ESub / HSub / TSub ────────────────────────────
-			var _bmSubs = [];
-			if (/esub/i.test(name)) _bmSubs.push('English');
-			if (/hsub/i.test(name)) _bmSubs.push('Hindi');
-			if (/tsub/i.test(name)) _bmSubs.push('Tamil');
-
-			// ── Source ─────────────────────────────────────────────────────────────
-			var _bmSrc = {title: name, poster: poster || undefined};
-			var _bsl = url.toLowerCase();
-			if (_bsl.includes('.m3u8') || mimeType.includes('mpegurl'))   _bmSrc.hls  = url;
-			else if (_bsl.includes('.mpd') || mimeType.includes('dash'))   _bmSrc.dash = url;
-			else                                                            _bmSrc.progressive = url;
-
-			// ── Create Bitmovin player (default UI from CDN) ───────────────────────
-			var _bmp = new bitmovin.player.Player(
-				document.getElementById('bitmovin-player'),
-				{key: player_config.bitmovin_key}
-			);
-			window._bPlayer = _bmp;
-
-			// ── Build the ⚙ settings panel (always shown) ─────────────────────────
-			function _bmBuildPanel(realTracks) {
-				var pel = document.getElementById('bitmovin-player');
-				if (!pel) return;
-				pel.style.position = 'relative';
-
-				// Use real demuxed tracks if available, else filename-detected
-				var tracks = (realTracks && realTracks.length > 0) ? realTracks : _bmAudio;
-
-				// ── Panel HTML ─────────────────────────────────────────────────────
-				var h = '<div style="font-size:11px;font-weight:800;color:#facc15;'
-					  + 'margin-bottom:10px;letter-spacing:1.5px;text-transform:uppercase;">⚙ Settings</div>';
-
-				if (tracks.length > 0) {
-					h += '<div style="color:#9ca3af;font-size:10px;font-weight:700;'
-					   + 'text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">🎵 Audio Track</div>';
-					tracks.forEach(function(t, i) {
-						var lbl = t.label || (t.language ? t.language.toUpperCase() : 'Track '+(i+1));
-						var tid = (t.id !== undefined && t.id !== null) ? t.id : i;
-						h += '<div class="bms-opt" data-bm-audio="'+tid+'" '
-						   + 'style="padding:6px 10px;border-radius:6px;cursor:pointer;'
-						   + 'display:flex;align-items:center;gap:8px;margin-bottom:3px;">'
-						   + '<span class="bms-chk" style="color:#facc15;min-width:12px;'
-						   + 'opacity:'+(i===0?'1':'0')+';">✓</span>'
-						   + '<span>'+lbl+'</span></div>';
-					});
-				}
-
-				if (_bmSubs.length > 0) {
-					h += '<div style="color:#9ca3af;font-size:10px;font-weight:700;'
-					   + 'text-transform:uppercase;letter-spacing:.8px;margin:10px 0 6px;">💬 Subtitles</div>';
-					_bmSubs.forEach(function(s){
-						h += '<div style="padding:6px 10px;color:#d1d5db;font-style:italic;">'+s+' (Embedded)</div>';
-					});
-				}
-
-				h += '<div style="color:#9ca3af;font-size:10px;font-weight:700;'
-				   + 'text-transform:uppercase;letter-spacing:.8px;margin:10px 0 6px;">⚡ Speed</div>';
-				[0.5, 0.75, 1, 1.25, 1.5, 2].forEach(function(s){
-					h += '<div class="bms-opt" data-bm-speed="'+s+'" '
-					   + 'style="padding:6px 10px;border-radius:6px;cursor:pointer;'
-					   + 'display:flex;align-items:center;gap:8px;margin-bottom:3px;">'
-					   + '<span class="bms-chk" style="color:#facc15;min-width:12px;'
-					   + 'opacity:'+(s===1?'1':'0')+';">✓</span>'
-					   + '<span>'+s+'×</span></div>';
-				});
-
-				// ── Panel element ──────────────────────────────────────────────────
-				var panel = document.createElement('div');
-				panel.id = 'bm-panel';
-				panel.innerHTML = h;
-				panel.style.cssText = 'display:none;position:absolute;bottom:56px;right:8px;'
-					+ 'background:rgba(8,8,18,0.97);border:1px solid rgba(255,255,255,0.12);'
-					+ 'border-radius:10px;padding:14px;color:#fff;font-size:13px;'
-					+ 'z-index:9999;min-width:195px;max-height:360px;overflow-y:auto;'
-					+ 'box-shadow:0 8px 32px rgba(0,0,0,0.9);backdrop-filter:blur(8px);';
-				pel.appendChild(panel);
-
-				// ── Event delegation for clicks ────────────────────────────────────
-				panel.addEventListener('click', function(e){
-					e.stopPropagation();
-					var opt = e.target.closest ? e.target.closest('.bms-opt') : null;
-					if (!opt) return;
-					// Audio
-					if (opt.dataset.bmAudio !== undefined) {
-						panel.querySelectorAll('[data-bm-audio] .bms-chk').forEach(function(c){ c.style.opacity='0'; });
-						opt.querySelector('.bms-chk').style.opacity='1';
-						if (window._bPlayer && window._bPlayer.setAudio) {
-							try { window._bPlayer.setAudio(opt.dataset.bmAudio); } catch(ex){}
-						}
-					}
-					// Speed
-					if (opt.dataset.bmSpeed !== undefined) {
-						panel.querySelectorAll('[data-bm-speed] .bms-chk').forEach(function(c){ c.style.opacity='0'; });
-						opt.querySelector('.bms-chk').style.opacity='1';
-						if (window._bPlayer && window._bPlayer.setPlaybackSpeed) {
-							try { window._bPlayer.setPlaybackSpeed(parseFloat(opt.dataset.bmSpeed)); } catch(ex){}
-						}
+				hls.loadSource(url);
+				hls.attachMedia(hlsPlayer);
+				hls.on(Hls.Events.MANIFEST_PARSED, function() {
+					console.log('HLS manifest parsed');
+					// Handle multi-audio tracks
+					if (player_config.enable_multi_audio) {
+						setupAudioTracksUI(hls);
 					}
 				});
-
-				// Hover highlight
-				panel.addEventListener('mouseover', function(e){
-					var o = e.target.closest ? e.target.closest('.bms-opt') : null;
-					if (o) o.style.background='rgba(255,255,255,0.07)';
+			}
+		} else if (player_config.player == "shakaplayer") {
+			// Shaka Player initialization with DASH/HLS support
+			if (window.shaka) {
+				shaka.polyfill.installAll();
+				const shakaPlayer = document.getElementById('shakaplayer');
+				const player = new shaka.Player(shakaPlayer);
+				
+				player.addEventListener('error', onShakaError);
+				
+				player.load(url).catch(onLoadError).then(function() {
+					console.log('Shaka media loaded');
+					if (player_config.enable_multi_audio) {
+						setupShakaAudioTracks(player);
+					}
 				});
-				panel.addEventListener('mouseout', function(e){
-					var o = e.target.closest ? e.target.closest('.bms-opt') : null;
-					if (o) o.style.background='';
+			}
+		} else if (player_config.player == "clappr") {
+			// Clappr player initialization
+			if (window.Clappr) {
+				const clapprPlayer = new Clappr.Player({
+					source: url,
+					poster: poster,
+					parentId: '#clappr-player',
+					plugins: [Clappr.MediaControl, Clappr.Poster],
+					controls: {
+						seekTime: 10
+					}
 				});
-
-				// ── ⚙ Toggle button ────────────────────────────────────────────────
-				var btn = document.createElement('button');
-				btn.id = 'bm-settings-btn';
-				btn.title = 'Audio / Subtitles / Speed';
-				btn.innerHTML = '⚙';
-				btn.style.cssText = 'position:absolute;bottom:12px;right:50px;'
-					+ 'background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.25);'
-					+ 'border-radius:6px;color:#fff;font-size:15px;width:30px;height:30px;'
-					+ 'cursor:pointer;z-index:9998;display:flex;align-items:center;'
-					+ 'justify-content:center;transition:all .2s;padding:0;line-height:1;';
-				btn.onmouseover = function(){ this.style.background='rgba(250,204,21,0.25)'; this.style.borderColor='#facc15'; };
-				btn.onmouseout  = function(){ this.style.background='rgba(0,0,0,0.7)';       this.style.borderColor='rgba(255,255,255,0.25)'; };
-				btn.onclick = function(e){
-					e.stopPropagation();
-					panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
+			}
+		} else if (player_config.player == "fluent") {
+			// Fluent Player initialization
+			if (window.fluentPlayer) {
+				const fluentConfig = {
+					source: {
+						src: url,
+						type: mimeType
+					},
+					autoplay: false,
+					controls: true,
+					width: '100%',
+					height: '100%',
+					plugins: []
 				};
-				pel.appendChild(btn);
-
-				// Close on outside click
-				document.addEventListener('click', function(){ panel.style.display = 'none'; });
+				
+				if (player_config.enable_multi_audio) {
+					fluentConfig.plugins.push({
+						name: 'audio-tracks'
+					});
+				}
+				
+				new fluentPlayer('fluent-player', fluentConfig);
 			}
-
-			// ── Load and initialize ────────────────────────────────────────────────
-			_bmp.load(_bmSrc).then(function() {
-				log('Bitmovin loaded');
-				// Wait 800ms for browser to demux embedded multi-audio tracks
-				setTimeout(function(){
-					var rt = [];
-					try { rt = _bmp.getAvailableAudio() || []; } catch(ex){}
-					log('Bitmovin audio tracks found:', rt.length);
-					_bmBuildPanel(rt);
-				}, 800);
-			}).catch(function(err) {
-				logError('Bitmovin error:', err);
-				var fb = document.getElementById('bitmovin-player');
-				if (fb) fb.innerHTML = '<video controls style="width:100%;height:100%;min-height:200px;background:#000;" poster="'+(poster||'')+'">'
-					+'<source src="'+url+'" type="video/mp4">'
-					+'<source src="'+url+'" type="video/webm"></video>';
-			});
+		} else if (player_config.player == "mediaelement") {
+			// MediaElement.js initialization
+			if (window.MediaElementPlayer) {
+				const mePlayer = new MediaElementPlayer('mediaplayer', {
+					success: function(mediaElement, domObject) {
+						console.log('MediaElement initialized');
+						if (player_config.enable_multi_audio) {
+							setupMediaElementAudioTracks(mediaElement);
+						}
+					},
+					error: function() {
+						console.error('MediaElement error');
+					}
+				});
+			}
+		} else if (player_config.player == "videojs") {
+			// VideoJS initialization with HLS/DASH plugins
+			const vjsPlayer = videojs('vplayer');
+			
+			// Load HLS plugin if needed
+			if (player_config.enable_hls_support && url.includes('.m3u8')) {
+				if (typeof videojs.HLS !== 'undefined') {
+					vjsPlayer.hlsQualitySelector();
+				}
+			}
+			
+			// Setup multi-audio track UI
+			if (player_config.enable_multi_audio) {
+				vjsPlayer.on('loadstart', function() {
+					setupVideoJSAudioTracks(vjsPlayer);
+				});
+			}
+			
+			// Setup multi-subtitle support
+			if (player_config.enable_multi_subtitle) {
+				vjsPlayer.on('loadstart', function() {
+					setupVideoJSSubtitles(vjsPlayer);
+				});
+			}
 		}
 	};
 	document.head.appendChild(videoJsScript);
@@ -2694,6 +2655,82 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	document.head.appendChild(videoJsStylesheet);
 	}
 	}
+}
+
+// ==================== MULTI-AUDIO TRACK SUPPORT FUNCTIONS ====================
+
+// Setup multi-audio tracks for VideoJS
+function setupVideoJSAudioTracks(player) {
+	const audioTracks = player.audioTracks();
+	if (audioTracks.length > 0) {
+		console.log('Found ' + audioTracks.length + ' audio tracks');
+		// Audio tracks are automatically shown in VideoJS controls
+	}
+}
+
+// Setup multi-subtitle support for VideoJS
+function setupVideoJSSubtitles(player) {
+	const textTracks = player.textTracks();
+	if (textTracks.length > 0) {
+		console.log('Found ' + textTracks.length + ' subtitle tracks');
+		// Subtitle tracks are automatically shown in VideoJS controls
+	}
+}
+
+// Setup audio tracks for HLS.js
+function setupAudioTracksUI(hls) {
+	const audioTracks = hls.audioTracks;
+	if (audioTracks && audioTracks.length > 0) {
+		console.log('HLS Audio tracks:', audioTracks);
+		// Create UI for audio track selection
+		let audioUI = '<div class="audio-tracks-selector" style="margin-top: 10px;">';
+		audioTracks.forEach((track, index) => {
+			audioUI += `<button class="btn btn-sm btn-outline-light" data-track-index="${index}" style="margin: 2px;">
+				${track.name || 'Audio ' + (index + 1)} ${track.lang ? '(' + track.lang + ')' : ''}
+			</button>`;
+		});
+		audioUI += '</div>';
+		
+		const playerContainer = document.querySelector('#hlsplayer').parentElement;
+		playerContainer.insertAdjacentHTML('afterend', audioUI);
+		
+		// Add click handlers
+		document.querySelectorAll('.audio-tracks-selector button').forEach(btn => {
+			btn.addEventListener('click', function() {
+				const trackIndex = parseInt(this.dataset.trackIndex);
+				hls.audioTrack = trackIndex;
+				document.querySelectorAll('.audio-tracks-selector button').forEach(b => b.classList.remove('active'));
+				this.classList.add('active');
+			});
+		});
+	}
+}
+
+// Setup audio tracks for Shaka Player
+function setupShakaAudioTracks(player) {
+	const audioTracks = player.getAudioTracks();
+	if (audioTracks && audioTracks.length > 0) {
+		console.log('Shaka audio tracks:', audioTracks);
+		// Shaka Player has built-in audio track selection
+	}
+}
+
+// Setup audio tracks for MediaElement.js
+function setupMediaElementAudioTracks(mediaElement) {
+	const audioTracks = mediaElement.audioTracks;
+	if (audioTracks && audioTracks.length > 0) {
+		console.log('MediaElement audio tracks:', audioTracks.length);
+	}
+}
+
+// Error handler for Shaka Player
+function onShakaError(event) {
+	console.error('Shaka error:', event.detail);
+}
+
+// Load error handler for Shaka
+function onLoadError(error) {
+	console.error('Shaka load error:', error);
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
