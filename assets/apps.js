@@ -2376,53 +2376,9 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
 			player_css = ''
 		} else if (player_config.player == "theoplayer") {
-			player = `<div id="theo-player-wrapper" style="position:relative;width:100%;background:#000;border-radius:8px;overflow:hidden;aspect-ratio:16/9;">
-  <video id="theo-video" style="width:100%;height:100%;display:block;" preload="auto" playsinline>
-    <source src="${url}" type="video/mp4" />
-    <source src="${url}" type="video/webm" />
-  </video>
-  <div id="theo-ui" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;background:transparent;transition:opacity .3s;">
-    <div id="theo-overlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;">
-      <div id="theo-play-big" style="width:72px;height:72px;background:rgba(255,160,0,.85);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .2s;">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
-      </div>
-    </div>
-    <div id="theo-controls" style="position:relative;z-index:10;padding:8px 12px 10px;background:linear-gradient(transparent,rgba(0,0,0,.85));display:flex;flex-direction:column;gap:6px;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <input id="theo-seek" type="range" value="0" min="0" max="100" step="0.1" style="flex:1;height:4px;cursor:pointer;accent-color:#ffa000;border-radius:4px;">
-        <span id="theo-time" style="color:#fff;font-size:12px;white-space:nowrap;min-width:90px;text-align:right;">0:00 / 0:00</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <button id="theo-play-btn" title="Play/Pause" style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;display:flex;align-items:center;">
-          <svg id="theo-play-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-        </button>
-        <button id="theo-mute-btn" title="Mute" style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;display:flex;align-items:center;">
-          <svg id="theo-vol-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
-        </button>
-        <input id="theo-vol" type="range" value="100" min="0" max="100" style="width:70px;height:3px;cursor:pointer;accent-color:#ffa000;">
-        <div style="flex:1;"></div>
-        <div style="position:relative;">
-          <button id="theo-audio-btn" title="Audio Track" style="background:none;border:none;cursor:pointer;padding:4px 8px;color:#fff;display:flex;align-items:center;gap:4px;font-size:12px;border:1px solid rgba(255,255,255,.4);border-radius:4px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-            Audio
-          </button>
-          <div id="theo-audio-menu" style="display:none;position:absolute;bottom:36px;right:0;background:#1a1a2e;border:1px solid #ffa000;border-radius:6px;overflow:hidden;min-width:140px;z-index:20;"></div>
-        </div>
-        <div style="position:relative;">
-          <button id="theo-sub-btn" title="Subtitles" style="background:none;border:none;cursor:pointer;padding:4px 8px;color:#fff;display:flex;align-items:center;gap:4px;font-size:12px;border:1px solid rgba(255,255,255,.4);border-radius:4px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 11H4v-2h8v2zm8 0h-6v-2h6v2zm0-4H4V9h16v2z"/></svg>
-            Subtitle
-          </button>
-          <div id="theo-sub-menu" style="display:none;position:absolute;bottom:36px;right:0;background:#1a1a2e;border:1px solid #ffa000;border-radius:6px;overflow:hidden;min-width:140px;z-index:20;"></div>
-        </div>
-        <button id="theo-fs-btn" title="Fullscreen" style="background:none;border:none;cursor:pointer;padding:4px;color:#fff;display:flex;align-items:center;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>`
-			player_js = ''
+			// THEOplayer Open Video UI (Dolby OptiView) — Real Web Components player
+			player = `<div id="theoplayer-container" style="width:100%;aspect-ratio:16/9;min-height:200px;"></div>`
+			player_js  = '' // loaded dynamically in initTheoOpenVideoUI
 			player_css = ''
 		}
 	}
@@ -2507,9 +2463,10 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
   // GDFlix handler is registered once at module level (see bottom of file)
 
-  // Load Video.js and initialize the player
-	if (!UI.disable_player && player_config.player == "theoplayer") {
-		initTheoPlayer();
+  // Load and initialize the player
+	if (!UI.disable_player && player_config.player === "theoplayer") {
+		// THEOplayer Open Video UI — loads its own scripts dynamically
+		initTheoOpenVideoUI(url, poster, name, mimeType);
 	} else if (!UI.disable_player && player_js) {
 	var videoJsScript = document.createElement('script');
 	videoJsScript.src = player_js;
@@ -2519,8 +2476,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			const player = new Plyr('#player');
 		} else if (player_config.player == "videojs") {
 			const player = new videojs('vplayer');
-		} else if (player_config.player == "theoplayer") {
-			initTheoPlayer();
 		} else if (player_config.player == "dplayer") {
 			const dp = new DPlayer({
 				container: document.getElementById('player-container'),
@@ -2568,186 +2523,94 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 }
 
 // ============================================
-// THEOplayer-style Custom Player
-// Multi-audio track + Multi-language subtitle support
+// THEOplayer Open Video UI (Dolby OptiView)
+// Official @theoplayer/web-ui Web Components
+// Docs: https://optiview.dolby.com/docs/open-video-ui/web/
 // ============================================
-function initTheoPlayer() {
-  const vid = document.getElementById('theo-video');
-  if (!vid) return;
+function initTheoOpenVideoUI(url, poster, name, mimeType) {
+  const container = document.getElementById('theoplayer-container');
+  if (!container) return;
 
-  const playBtn = document.getElementById('theo-play-btn');
-  const playIcon = document.getElementById('theo-play-icon');
-  const playBig = document.getElementById('theo-play-big');
-  const overlay = document.getElementById('theo-overlay');
-  const muteBtn = document.getElementById('theo-mute-btn');
-  const volIcon = document.getElementById('theo-vol-icon');
-  const volSlider = document.getElementById('theo-vol');
-  const seekBar = document.getElementById('theo-seek');
-  const timeDisplay = document.getElementById('theo-time');
-  const fsBtn = document.getElementById('theo-fs-btn');
-  const audioBtn = document.getElementById('theo-audio-btn');
-  const audioMenu = document.getElementById('theo-audio-menu');
-  const subBtn = document.getElementById('theo-sub-btn');
-  const subMenu = document.getElementById('theo-sub-menu');
-  const wrapper = document.getElementById('theo-player-wrapper');
-  const controls = document.getElementById('theo-controls');
-  const ui = document.getElementById('theo-ui');
+  const cdnBase  = (player_config.theoplayer_cdn || 'https://cdn.theoplayer.com/dash/theoplayer');
+  const license  = player_config.theoplayer_license || '';
+  const webUiVer = '1.12.0'; // latest stable @theoplayer/web-ui
 
-  // SVG paths
-  const PLAY_PATH = 'M8 5v14l11-7z';
-  const PAUSE_PATH = 'M6 19h4V5H6v14zm8-14v14h4V5h-4z';
-  const VOL_ON_PATH = 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z';
-  const VOL_OFF_PATH = 'M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z';
-  const FS_ENTER_PATH = 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z';
-  const FS_EXIT_PATH = 'M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z';
-
-  function setPlayIcon(playing) {
-    const path = playing ? PAUSE_PATH : PLAY_PATH;
-    playIcon.querySelector('path').setAttribute('d', path);
-    if (playing) {
-      playBig.style.opacity = '0';
-      overlay.style.pointerEvents = 'none';
-    } else {
-      playBig.style.opacity = '1';
-      overlay.style.pointerEvents = 'auto';
-      playBig.querySelector('svg path').setAttribute('d', PLAY_PATH);
-    }
+  // Step 1: load THEOplayer chromeless SDK
+  function loadScript(src, onload) {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = onload;
+    s.onerror = () => console.error('[THEOplayer] Failed to load:', src);
+    document.head.appendChild(s);
+  }
+  function loadStyle(href) {
+    const l = document.createElement('link');
+    l.rel = 'stylesheet'; l.href = href;
+    document.head.appendChild(l);
   }
 
-  function fmtTime(s) {
-    if (!isFinite(s)) return '0:00';
-    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60);
-    return (h ? h + ':' : '') + (h && m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
-  }
+  // THEOplayer Open Video UI CSS (Dolby Optiview branding)
+  loadStyle('https://cdn.jsdelivr.net/npm/@theoplayer/web-ui@' + webUiVer + '/dist/THEOplayerUI.css');
 
-  // Auto-hide controls
-  let hideTimer;
-  function showControls() {
-    controls.style.opacity = '1';
-    clearTimeout(hideTimer);
-    if (!vid.paused) hideTimer = setTimeout(() => { controls.style.opacity = '0'; }, 3000);
-  }
-  wrapper.addEventListener('mousemove', showControls);
-  wrapper.addEventListener('touchstart', showControls);
+  // Load importmap shim (needed for Web Components ES module imports)
+  const shimScript = document.createElement('script');
+  shimScript.async = true;
+  shimScript.src = 'https://ga.jspm.io/npm:es-module-shims@1.8.3/dist/es-module-shims.js';
+  shimScript.crossOrigin = 'anonymous';
+  document.head.appendChild(shimScript);
 
-  // Play/Pause
-  function togglePlay() {
-    if (vid.paused) vid.play(); else vid.pause();
-  }
-  playBtn.addEventListener('click', togglePlay);
-  overlay.addEventListener('click', togglePlay);
-  vid.addEventListener('play', () => setPlayIcon(true));
-  vid.addEventListener('pause', () => setPlayIcon(false));
-  vid.addEventListener('ended', () => setPlayIcon(false));
-
-  // Progress
-  vid.addEventListener('timeupdate', () => {
-    if (!vid.duration) return;
-    seekBar.value = (vid.currentTime / vid.duration) * 100;
-    timeDisplay.textContent = fmtTime(vid.currentTime) + ' / ' + fmtTime(vid.duration);
-  });
-  seekBar.addEventListener('input', () => {
-    if (vid.duration) vid.currentTime = (seekBar.value / 100) * vid.duration;
-  });
-
-  // Volume
-  volSlider.addEventListener('input', () => {
-    vid.volume = volSlider.value / 100;
-    vid.muted = vid.volume === 0;
-    volIcon.querySelector('path').setAttribute('d', vid.muted ? VOL_OFF_PATH : VOL_ON_PATH);
-  });
-  muteBtn.addEventListener('click', () => {
-    vid.muted = !vid.muted;
-    volSlider.value = vid.muted ? 0 : vid.volume * 100;
-    volIcon.querySelector('path').setAttribute('d', vid.muted ? VOL_OFF_PATH : VOL_ON_PATH);
-  });
-
-  // Fullscreen
-  fsBtn.addEventListener('click', () => {
-    if (!document.fullscreenElement) {
-      wrapper.requestFullscreen && wrapper.requestFullscreen();
-      fsBtn.querySelector('path').setAttribute('d', FS_EXIT_PATH);
-    } else {
-      document.exitFullscreen && document.exitFullscreen();
-      fsBtn.querySelector('path').setAttribute('d', FS_ENTER_PATH);
-    }
-  });
-
-  // Menu toggle helper
-  function buildMenu(menu, items, onSelect) {
-    menu.innerHTML = '';
-    const header = document.createElement('div');
-    header.textContent = menu === audioMenu ? 'Audio Track' : 'Language';
-    header.style.cssText = 'padding:8px 14px;font-size:13px;font-weight:700;color:#ffa000;border-bottom:1px solid rgba(255,160,0,.3);';
-    menu.appendChild(header);
-    items.forEach((item, i) => {
-      const btn = document.createElement('button');
-      btn.textContent = item.label;
-      btn.dataset.idx = i;
-      btn.style.cssText = 'display:block;width:100%;text-align:left;padding:8px 14px;font-size:13px;background:none;border:none;color:#fff;cursor:pointer;transition:background .15s;';
-      btn.addEventListener('mouseover', () => btn.style.background = 'rgba(255,160,0,.15)');
-      btn.addEventListener('mouseout', () => btn.style.background = 'none');
-      btn.addEventListener('click', () => { onSelect(i, item, btn); menu.style.display = 'none'; });
-      if (item.active) { btn.style.color = '#ffa000'; btn.textContent = '✓ ' + item.label; }
-      menu.appendChild(btn);
-    });
-    if (items.length === 0) {
-      const empty = document.createElement('div');
-      empty.textContent = 'None available';
-      empty.style.cssText = 'padding:8px 14px;font-size:13px;color:rgba(255,255,255,.5);';
-      menu.appendChild(empty);
-    }
-  }
-
-  function toggleMenu(menu, other) {
-    other.style.display = 'none';
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-  }
-
-  // Audio Tracks
-  audioBtn.addEventListener('click', () => {
-    const tracks = vid.audioTracks ? Array.from(vid.audioTracks) : [];
-    const items = tracks.map((t, i) => ({
-      label: t.label || t.language || ('Track ' + (i + 1)),
-      active: t.enabled
-    }));
-    buildMenu(audioMenu, items, (i) => {
-      if (vid.audioTracks) {
-        for (let j = 0; j < vid.audioTracks.length; j++) {
-          vid.audioTracks[j].enabled = (j === i);
-        }
+  // Set up importmap so @theoplayer/web-ui can import theoplayer/chromeless
+  if (!document.querySelector('script[type="importmap"]')) {
+    const map = document.createElement('script');
+    map.type = 'importmap';
+    map.textContent = JSON.stringify({
+      imports: {
+        'theoplayer/chromeless': cdnBase + '/THEOplayer.chromeless.esm.js'
       }
     });
-    toggleMenu(audioMenu, subMenu);
-  });
+    document.head.appendChild(map);
+  }
 
-  // Subtitle Tracks
-  subBtn.addEventListener('click', () => {
-    const tracks = vid.textTracks ? Array.from(vid.textTracks) : [];
-    const items = [{ label: 'Off', active: tracks.every(t => t.mode === 'disabled') },
-      ...tracks.map((t, i) => ({
-        label: t.label || t.language || ('Sub ' + (i + 1)),
-        active: t.mode === 'showing'
-      }))];
-    buildMenu(subMenu, items, (i, item) => {
-      if (i === 0) {
-        Array.from(vid.textTracks || []).forEach(t => t.mode = 'disabled');
-      } else {
-        Array.from(vid.textTracks || []).forEach((t, j) => { t.mode = (j === i - 1) ? 'showing' : 'disabled'; });
+  // Load THEOplayer chromeless (UMD — sets window.THEOplayer)
+  loadScript(cdnBase + '/THEOplayer.chromeless.js', function() {
+
+    // Now load the Open Video UI ES module
+    const uiModule = document.createElement('script');
+    uiModule.type = 'module';
+    uiModule.textContent = `
+      import { DefaultUI } from 'https://cdn.jsdelivr.net/npm/@theoplayer/web-ui@${webUiVer}/dist/THEOplayerUI.mjs';
+
+      // Build configuration
+      const theoCfg = {
+        libraryLocation: '${cdnBase}/',
+        ${license ? `license: '${license}',` : '// No license set — uses unactivated mode'}
+      };
+
+      // Create the Default UI element
+      const ui = new DefaultUI(theoCfg);
+      ui.id = 'theo-default-ui';
+
+      // Set video source
+      ui.source = {
+        sources: [
+          { src: '${url}', type: '${mimeType && mimeType.includes('video') ? mimeType : 'video/mp4'}' },
+          { src: '${url}', type: 'video/webm' }
+        ],
+        ${poster ? `poster: '${poster}',` : ''}
+        metadata: { title: '${name.replace(/'/g, "\\'")}' }
+      };
+
+      // Style the container
+      ui.style.cssText = 'width:100%;height:100%;display:block;';
+
+      const container = document.getElementById('theoplayer-container');
+      if (container) {
+        container.innerHTML = '';
+        container.appendChild(ui);
       }
-    });
-    toggleMenu(subMenu, audioMenu);
+    `;
+    document.head.appendChild(uiModule);
   });
-
-  // Close menus on outside click
-  document.addEventListener('click', (e) => {
-    if (!audioBtn.contains(e.target) && !audioMenu.contains(e.target)) audioMenu.style.display = 'none';
-    if (!subBtn.contains(e.target) && !subMenu.contains(e.target)) subMenu.style.display = 'none';
-  });
-
-  // Init controls state
-  setPlayIcon(false);
-  controls.style.opacity = '1';
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
