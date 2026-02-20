@@ -1,5 +1,5 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
-// v2.4.0 — Updated player versions + added Artplayer v5.1.7 & Clappr v0.4.8 + multi-audio track support
+// v2.3.6
 
 // ============================================
 // OPTIMIZATION: Conditional Logging
@@ -2353,7 +2353,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	  let player_css = '';
 	  if (!UI.disable_player) {
 		 if (player_config.player == "plyr") {
-			// Plyr v3.7.8 — lightweight, clean UI with native audio track support
 			player = `<video id="player" playsinline controls data-poster="${poster}">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
@@ -2361,34 +2360,54 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
 			player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
 		} else if (player_config.player == "videojs") {
-			// VideoJS v8.21.0 — with VHS (built-in HLS) for multi-audio track support
-			player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin vjs-big-play-centered rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill":true,"html5":{"vhs":{"overrideNative":true}}}' style="--plyr-captions-text-color:#ffffff;--plyr-captions-background:#000000;min-height:200px;">
+			// VideoJS with HLS/DASH support for multi-audio tracks
+			player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="metadata" width="100%" height="100%" data-setup='{"fill": true, "fluid": true, "controlBar": {"children": ["playToggle", "currentTimeDisplay", "timeDivider", "durationDisplay", "progressControl", "volumePanel", "qualityLevels", "audioTrackButton", "subtitlesButton", "captionsButton", "menuButton"]}}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
       <source src="${url}" type="video/avi" />
+      <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
     </video>`
 			player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
 			player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
 		} else if (player_config.player == "dplayer") {
-			// DPlayer v1.27.1 — anime-style player with hls.js multi-audio support
-			player = `<div id="player-container" style="min-height:200px;"></div>`
+			// DPlayer with multi-quality & multi-audio support
+			player = `<div id="player-container" style="width: 100%; height: 400px;"></div>`
 			player_js = 'https://cdn.jsdelivr.net/npm/dplayer@' + player_config.dplayer_version + '/dist/DPlayer.min.js'
 			player_css = 'https://cdn.jsdelivr.net/npm/dplayer@' + player_config.dplayer_version + '/dist/DPlayer.min.css'
 		} else if (player_config.player == "jwplayer") {
-			// JWPlayer v8.33.0 — enterprise player with native multi-audio track support
+			// JWPlayer with streaming capabilities
 			player = `<div id="player"></div>`
 			player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
 			player_css = ''
-		} else if (player_config.player == "artplayer") {
-			// Artplayer v5.1.7 — modern, feature-rich with HLS multi-audio track support
-			player = `<div id="artplayer-container" style="width:100%;height:100%;min-height:300px;border-radius:0.375rem;overflow:hidden;"></div>`
-			player_js = 'https://cdn.jsdelivr.net/npm/artplayer@' + player_config.artplayer_version + '/dist/artplayer.js'
+		} else if (player_config.player == "hlsjs") {
+			// HLS.js player for HLS stream playback with multi-audio
+			player = `<video id="hlsplayer" poster="${poster}" style="width: 100%; height: 100%; min-height: 200px;" controls preload="metadata"></video>`
+			player_js = 'https://cdn.jsdelivr.net/npm/hls.js@' + player_config.hlsjs_version + '/dist/hls.min.js'
+			player_css = ''
+		} else if (player_config.player == "shakaplayer") {
+			// Shaka Player for DASH/HLS streaming with adaptive bitrate
+			player = `<div id="shaka-container" style="width: 100%; height: 100%; min-height: 200px;"><video id="shakaplayer" poster="${poster}" controls preload="metadata" style="width: 100%; height: 100%;"></video></div>`
+			player_js = 'https://cdn.jsdelivr.net/npm/shaka-player@' + player_config.shakaplayer_version + '/dist/shaka-player.compiled.min.js'
 			player_css = ''
 		} else if (player_config.player == "clappr") {
-			// Clappr v0.4.8 — extensible open-source player, HLS-ready
-			player = `<div id="clappr-container" style="width:100%;min-height:200px;border-radius:0.375rem;overflow:hidden;"></div>`
+			// Clappr - lightweight, modular player
+			player = `<div id="clappr-player" style="width: 100%; height: 400px;"></div>`
 			player_js = 'https://cdn.jsdelivr.net/npm/clappr@' + player_config.clappr_version + '/dist/clappr.min.js'
 			player_css = ''
+		} else if (player_config.player == "fluent") {
+			// Fluent Player - modern responsive player
+			player = `<div id="fluent-player" style="width: 100%; height: 400px;"><video controls style="width: 100%; height: 100%;"><source src="${url}" /></video></div>`
+			player_js = 'https://cdn.jsdelivr.net/npm/fluent-player@' + player_config.fluent_version + '/dist/fluentplayer.min.js'
+			player_css = 'https://cdn.jsdelivr.net/npm/fluent-player@' + player_config.fluent_version + '/dist/fluentplayer.min.css'
+		} else if (player_config.player == "mediaelement") {
+			// MediaElement.js - cross-browser HTML5 player
+			player = `<video id="mediaplayer" poster="${poster}" width="100%" height="100%" controls preload="metadata">
+      <source src="${url}" type="video/mp4" />
+      <source src="${url}" type="video/webm" />
+      <source src="${url}" type="video/ogv" />
+    </video>`
+			player_js = 'https://cdn.jsdelivr.net/npm/mediaelement@' + player_config.mediaelement_version + '/build/mediaelement-and-player.min.js'
+			player_css = 'https://cdn.jsdelivr.net/npm/mediaelement@' + player_config.mediaelement_version + '/build/mediaelementplayer.min.css'
 		}
 	}
 
@@ -2479,75 +2498,20 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	videoJsScript.onload = function() {
 		// Video.js is loaded, initialize the player
 		if (player_config.player == "plyr") {
-			// Plyr v3.7.8 — audio tracks exposed automatically when using HLS via hls.js
-			const plyrInstance = new Plyr('#player', {
-				controls: [
-					'play-large','rewind','play','fast-forward','progress',
-					'current-time','duration','mute','volume','captions',
-					'settings','pip','airplay','fullscreen'
-				],
-				settings: ['captions','quality','speed','loop'],
-				captions: { active: true, update: true },
-				poster: poster,
-			});
+			const player = new Plyr('#player');
 		} else if (player_config.player == "videojs") {
-			// VideoJS v8.21.0 — VHS (HTTP Streaming) is built-in for HLS/DASH.
-			// Multi-audio track support: tracks become selectable automatically for HLS.
-			const vjsPlayer = videojs('vplayer', {
-				fill: true,
-				html5: {
-					vhs: {
-						overrideNative: true,
-						withCredentials: false,
-					},
-					nativeAudioTracks: false,
-					nativeVideoTracks: false,
-				},
-				controlBar: {
-					children: [
-						'playToggle','volumePanel','currentTimeDisplay',
-						'timeDivider','durationDisplay','progressControl',
-						'liveDisplay','seekToLive','remainingTimeDisplay',
-						'customControlSpacer','playbackRateMenuButton',
-						'chaptersButton','descriptionsButton','subsCapsButton',
-						'audioTrackButton', // ← Multi-audio track selector
-						'fullscreenToggle'
-					],
-				},
-			});
-			// Auto-detect and enable audio track selection when tracks are available
-			if (player_config.multi_audio) {
-				vjsPlayer.ready(function() {
-					vjsPlayer.on('loadedmetadata', function() {
-						const tracks = vjsPlayer.audioTracks();
-						if (tracks && tracks.length > 1) {
-							log('[VJS] Multi-audio tracks found:', tracks.length);
-						}
-					});
-				});
-			}
+			const player = new videojs('vplayer');
 		} else if (player_config.player == "dplayer") {
-			// DPlayer v1.27.1 — uses hls.js internally; audio tracks auto-detected for HLS
 			const dp = new DPlayer({
 				container: document.getElementById('player-container'),
 				screenshot: true,
-				hotkey: true,
-				preload: 'metadata',
 				video: {
 					url: url,
 					pic: poster,
 					thumbnails: poster,
-					type: 'auto',
-				},
-				pluginOptions: {
-					hls: {
-						audioStreamController: true,
-						audioTrackController: true,
-					}
 				},
 			});
 		} else if (player_config.player == "jwplayer") {
-			// JWPlayer v8.33.0 — native multi-audio track support built-in
 			jwplayer("player").setup({
 				file: url,
 				type: mimeType,
@@ -2569,99 +2533,117 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 					backgroundOpacity: 50,
 					edgeStyle: "raised",
 				},
-				// Enable multi-audio track menu
-				audioTracks: { enabled: true },
 			});
-		} else if (player_config.player == "artplayer") {
-			// Artplayer v5.1.7 — full HLS multi-audio support via hls.js customType
-			const hlsScript = document.createElement('script');
-			hlsScript.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js';
-			hlsScript.onload = function() {
-				const artInstance = new Artplayer({
-					container: '#artplayer-container',
-					url: url,
-					poster: poster,
-					title: name,
-					volume: 0.8,
-					isLive: false,
-					muted: false,
-					autoplay: false,
-					pip: true,
-					autoSize: true,
-					autoMini: true,
-					screenshot: true,
-					setting: true,
-					loop: false,
-					flip: true,
-					playbackRate: true,
-					aspectRatio: true,
-					fullscreen: true,
-					fullscreenWeb: true,
-					subtitleOffset: true,
-					miniProgressBar: true,
-					mutex: true,
-					backdrop: true,
-					theme: '#23ade5',
-					lang: navigator.language.toLowerCase(),
-					moreVideoAttr: { crossOrigin: 'anonymous' },
-					type: url.includes('.m3u8') ? 'hls' : '',
-					// Multi-audio: Artplayer exposes HLS audio tracks natively
-					customType: {
-						hls: function(video, url, art) {
-							if (Hls.isSupported()) {
-								const hls = new Hls();
-								hls.loadSource(url);
-								hls.attachMedia(video);
-								// Build audio track selector once manifest is loaded
-								hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
-									if (player_config.multi_audio && data.audioTracks && data.audioTracks.length > 1) {
-										const audioTracks = data.audioTracks.map(function(t, i) {
-											return {
-												html: escapeHtml(t.name || ('Audio ' + (i + 1))),
-												url: url,
-												default: i === 0,
-												onSelect: function() {
-													hls.audioTrack = i;
-													return true;
-												},
-											};
-										});
-										// Inject track list into Artplayer settings
-										art.setting.add({
-											width: 200,
-											html: '🎵 Audio Track',
-											selector: audioTracks,
-											onSelect: function(item) {
-												item.onSelect();
-												return item.html;
-											},
-										});
-									}
-								});
-								art.hls = hls;
-								art.on('destroy', function() { hls.destroy(); });
-							} else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-								video.src = url;
-							}
-						},
-					},
+		} else if (player_config.player == "hlsjs") {
+			// HLS.js player initialization
+			if (window.Hls && Hls.isSupported()) {
+				const hlsPlayer = document.getElementById('hlsplayer');
+				const hls = new Hls({
+					enableWorker: true,
+					lowLatencyMode: true,
+					maxBufferLength: 30
 				});
-			};
-			document.head.appendChild(hlsScript);
+				hls.loadSource(url);
+				hls.attachMedia(hlsPlayer);
+				hls.on(Hls.Events.MANIFEST_PARSED, function() {
+					console.log('HLS manifest parsed');
+					// Handle multi-audio tracks
+					if (player_config.enable_multi_audio) {
+						setupAudioTracksUI(hls);
+					}
+				});
+			}
+		} else if (player_config.player == "shakaplayer") {
+			// Shaka Player initialization with DASH/HLS support
+			if (window.shaka) {
+				shaka.polyfill.installAll();
+				const shakaPlayer = document.getElementById('shakaplayer');
+				const player = new shaka.Player(shakaPlayer);
+				
+				player.addEventListener('error', onShakaError);
+				
+				player.load(url).catch(onLoadError).then(function() {
+					console.log('Shaka media loaded');
+					if (player_config.enable_multi_audio) {
+						setupShakaAudioTracks(player);
+					}
+				});
+			}
 		} else if (player_config.player == "clappr") {
-			// Clappr v0.4.8 — open-source, extensible, HLS-ready
-			const clapprInstance = new Clappr.Player({
-				source: url,
-				poster: poster,
-				parentId: '#clappr-container',
-				width: '100%',
-				height: '100%',
-				autoPlay: false,
-				mediacontrol: { seekbar: '#e6461e', buttons: '#66B2FF' },
-				allowUserInteraction: true,
-				hideMediaControl: true,
-				hideVolumeBar: false,
-			});
+			// Clappr player initialization
+			if (window.Clappr) {
+				const clapprPlayer = new Clappr.Player({
+					source: url,
+					poster: poster,
+					parentId: '#clappr-player',
+					plugins: [Clappr.MediaControl, Clappr.Poster],
+					controls: {
+						seekTime: 10
+					}
+				});
+			}
+		} else if (player_config.player == "fluent") {
+			// Fluent Player initialization
+			if (window.fluentPlayer) {
+				const fluentConfig = {
+					source: {
+						src: url,
+						type: mimeType
+					},
+					autoplay: false,
+					controls: true,
+					width: '100%',
+					height: '100%',
+					plugins: []
+				};
+				
+				if (player_config.enable_multi_audio) {
+					fluentConfig.plugins.push({
+						name: 'audio-tracks'
+					});
+				}
+				
+				new fluentPlayer('fluent-player', fluentConfig);
+			}
+		} else if (player_config.player == "mediaelement") {
+			// MediaElement.js initialization
+			if (window.MediaElementPlayer) {
+				const mePlayer = new MediaElementPlayer('mediaplayer', {
+					success: function(mediaElement, domObject) {
+						console.log('MediaElement initialized');
+						if (player_config.enable_multi_audio) {
+							setupMediaElementAudioTracks(mediaElement);
+						}
+					},
+					error: function() {
+						console.error('MediaElement error');
+					}
+				});
+			}
+		} else if (player_config.player == "videojs") {
+			// VideoJS initialization with HLS/DASH plugins
+			const vjsPlayer = videojs('vplayer');
+			
+			// Load HLS plugin if needed
+			if (player_config.enable_hls_support && url.includes('.m3u8')) {
+				if (typeof videojs.HLS !== 'undefined') {
+					vjsPlayer.hlsQualitySelector();
+				}
+			}
+			
+			// Setup multi-audio track UI
+			if (player_config.enable_multi_audio) {
+				vjsPlayer.on('loadstart', function() {
+					setupVideoJSAudioTracks(vjsPlayer);
+				});
+			}
+			
+			// Setup multi-subtitle support
+			if (player_config.enable_multi_subtitle) {
+				vjsPlayer.on('loadstart', function() {
+					setupVideoJSSubtitles(vjsPlayer);
+				});
+			}
 		}
 	};
 	document.head.appendChild(videoJsScript);
@@ -2675,58 +2657,92 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	}
 }
 
+// ==================== MULTI-AUDIO TRACK SUPPORT FUNCTIONS ====================
+
+// Setup multi-audio tracks for VideoJS
+function setupVideoJSAudioTracks(player) {
+	const audioTracks = player.audioTracks();
+	if (audioTracks.length > 0) {
+		console.log('Found ' + audioTracks.length + ' audio tracks');
+		// Audio tracks are automatically shown in VideoJS controls
+	}
+}
+
+// Setup multi-subtitle support for VideoJS
+function setupVideoJSSubtitles(player) {
+	const textTracks = player.textTracks();
+	if (textTracks.length > 0) {
+		console.log('Found ' + textTracks.length + ' subtitle tracks');
+		// Subtitle tracks are automatically shown in VideoJS controls
+	}
+}
+
+// Setup audio tracks for HLS.js
+function setupAudioTracksUI(hls) {
+	const audioTracks = hls.audioTracks;
+	if (audioTracks && audioTracks.length > 0) {
+		console.log('HLS Audio tracks:', audioTracks);
+		// Create UI for audio track selection
+		let audioUI = '<div class="audio-tracks-selector" style="margin-top: 10px;">';
+		audioTracks.forEach((track, index) => {
+			audioUI += `<button class="btn btn-sm btn-outline-light" data-track-index="${index}" style="margin: 2px;">
+				${track.name || 'Audio ' + (index + 1)} ${track.lang ? '(' + track.lang + ')' : ''}
+			</button>`;
+		});
+		audioUI += '</div>';
+		
+		const playerContainer = document.querySelector('#hlsplayer').parentElement;
+		playerContainer.insertAdjacentHTML('afterend', audioUI);
+		
+		// Add click handlers
+		document.querySelectorAll('.audio-tracks-selector button').forEach(btn => {
+			btn.addEventListener('click', function() {
+				const trackIndex = parseInt(this.dataset.trackIndex);
+				hls.audioTrack = trackIndex;
+				document.querySelectorAll('.audio-tracks-selector button').forEach(b => b.classList.remove('active'));
+				this.classList.add('active');
+			});
+		});
+	}
+}
+
+// Setup audio tracks for Shaka Player
+function setupShakaAudioTracks(player) {
+	const audioTracks = player.getAudioTracks();
+	if (audioTracks && audioTracks.length > 0) {
+		console.log('Shaka audio tracks:', audioTracks);
+		// Shaka Player has built-in audio track selection
+	}
+}
+
+// Setup audio tracks for MediaElement.js
+function setupMediaElementAudioTracks(mediaElement) {
+	const audioTracks = mediaElement.audioTracks;
+	if (audioTracks && audioTracks.length > 0) {
+		console.log('MediaElement audio tracks:', audioTracks.length);
+	}
+}
+
+// Error handler for Shaka Player
+function onShakaError(event) {
+	console.error('Shaka error:', event.detail);
+}
+
+// Load error handler for Shaka
+function onLoadError(error) {
+	console.error('Shaka load error:', error);
+}
+
 // File display Audio |mp3|flac|m4a|wav|ogg|
 function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
 	const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
-	// Build audio player markup and CDN URLs based on player_config
-	let player = '';
-	let player_js = '';
-	let player_css = '';
-	if (!UI.disable_player) {
-		if (player_config.player == "plyr") {
-			player = `<audio id="player" playsinline controls>
-				<source src="${url}" type="audio/mpeg" />
-				<source src="${url}" type="audio/ogg" />
-				<source src="${url}" type="audio/wav" />
-			</audio>`;
-			player_js  = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js';
-			player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css';
-		} else if (player_config.player == "videojs") {
-			player = `<video id="vplayer" poster="${UI.audioposter}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill":true}' style="object-fit:cover;min-height:200px;">
-				<source src="${url}" type="audio/mpeg" />
-				<source src="${url}" type="audio/ogg" />
-				<source src="${url}" type="audio/wav" />
-			</video>`;
-			player_js  = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js';
-			player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css';
-		} else if (player_config.player == "dplayer") {
-			player = `<div id="player-container" style="min-height:200px;"></div>`;
-			player_js  = 'https://cdn.jsdelivr.net/npm/dplayer@' + player_config.dplayer_version + '/dist/DPlayer.min.js';
-			player_css = 'https://cdn.jsdelivr.net/npm/dplayer@' + player_config.dplayer_version + '/dist/DPlayer.min.css';
-		} else if (player_config.player == "jwplayer") {
-			player = `<div id="player"></div>`;
-			player_js  = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js';
-			player_css = '';
-		} else if (player_config.player == "artplayer") {
-			player = `<div id="artplayer-container" style="width:100%;height:100%;min-height:200px;border-radius:0.375rem;overflow:hidden;"></div>`;
-			player_js  = 'https://cdn.jsdelivr.net/npm/artplayer@' + player_config.artplayer_version + '/dist/artplayer.js';
-			player_css = '';
-		} else if (player_config.player == "clappr") {
-			player = `<div id="clappr-container" style="width:100%;min-height:200px;border-radius:0.375rem;overflow:hidden;"></div>`;
-			player_js  = 'https://cdn.jsdelivr.net/npm/clappr@' + player_config.clappr_version + '/dist/clappr.min.js';
-			player_css = '';
-		} else {
-			// Fallback: plain VideoJS
-			player = `<video id="aplayer" poster="${UI.audioposter}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill":true}' style="object-fit:cover;min-height:200px;">
-				<source src="${url}" type="audio/mpeg" />
-				<source src="${url}" type="audio/ogg" />
-				<source src="${url}" type="audio/wav" />
-			</video>`;
-			player_js  = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js';
-			player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css';
-		}
-	}
+	// Add the container and card elements
+	var player = `<video id="aplayer" poster="${UI.audioposter}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; object-fit: cover; min-height: 200px;">
+					<source src="${url}" type="audio/mpeg" />
+					<source src="${url}" type="audio/ogg" />
+					<source src="${url}" type="audio/wav" />
+				</video>`;
 
 	const content = `
     <div class="card">
@@ -2807,26 +2823,10 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
         script.onload = () => {
         switch(player_config.player) {
         case "plyr":
-        new Plyr('#player', {
-            controls: ['play','progress','current-time','mute','volume','fullscreen'],
-        });
+        new Plyr('#player');
         break;
         case "videojs":
-        videojs('vplayer', {
-            fill: true,
-            html5: {
-                vhs: { overrideNative: true },
-                nativeAudioTracks: false,
-            },
-            controlBar: {
-                children: [
-                    'playToggle','volumePanel','currentTimeDisplay',
-                    'timeDivider','durationDisplay','progressControl',
-                    'audioTrackButton', // multi-audio
-                    'fullscreenToggle'
-                ],
-            },
-        });
+        videojs('vplayer', {fill: true});
         break;
         case "dplayer":
         new DPlayer({
@@ -2835,8 +2835,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
         video: {
         url: url,
         pic: UI.audioposter,
-        thumbnails: UI.audioposter,
-        type: 'auto',
+        thumbnails: UI.audioposter
                         }
                     });
                     break;
@@ -2848,30 +2847,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                         image: UI.audioposter,
                         width: "100%",
                         aspectratio: "16:9",
-                        title: name,
-                        audioTracks: { enabled: true },
-                    });
-                    break;
-                    case "artplayer":
-                    new Artplayer({
-                        container: '#artplayer-container',
-                        url: url,
-                        poster: UI.audioposter,
-                        title: name,
-                        volume: 0.8,
-                        setting: true,
-                        screenshot: true,
-                        fullscreen: true,
-                        theme: '#23ade5',
-                    });
-                    break;
-                    case "clappr":
-                    new Clappr.Player({
-                        source: url,
-                        poster: UI.audioposter,
-                        parentId: '#clappr-container',
-                        width: '100%',
-                        autoPlay: false,
+                        title: name
                     });
                     break;
             }
