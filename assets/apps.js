@@ -1692,7 +1692,10 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Modified onSearchResultItemClick function - Shows direct link for logged-in users, Get2Short/Nowshort for non-logged users
+// Modified onSearchResultItemClick function
+// Button display logic based on UI.show_get2shot_nowshort config and login status:
+// - If show_get2shot_nowshort is TRUE and user is NOT logged in → Get2Short/Nowshort buttons
+// - Otherwise (logged in OR show_get2shot_nowshort is FALSE) → "Open in Chrome" button
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
@@ -1757,10 +1760,18 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     
     $('#modal-body-space').html(content);
     
-    // Check if user is logged in
-    if (isUserLoggedIn()) {
-        // ===== LOGGED-IN USER: Show Direct Chrome Button =====
-        log('User is logged in - showing direct Chrome button');
+    // Check configuration and login status to determine which buttons to show
+    const userLoggedIn = isUserLoggedIn();
+    const showGet2ShortNowshort = typeof UI !== 'undefined' && UI.show_get2shot_nowshort === true;
+    
+    // Decision logic:
+    // - If show_get2shot_nowshort is true AND user is NOT logged in → Show Get2Short/Nowshort
+    // - Otherwise → Show Chrome button
+    const shouldShowShorteners = showGet2ShortNowshort && !userLoggedIn;
+    
+    if (!shouldShowShorteners) {
+        // ===== Show Direct Chrome Button =====
+        log('Showing direct Chrome button (logged in: ' + userLoggedIn + ', config: ' + showGet2ShortNowshort + ')');
         
         // Create Chrome button HTML with direct URL (exact same as working version)
         const chromeButtonHtml = `
@@ -1778,8 +1789,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
         
     } else {
-        // ===== NON-LOGGED-IN USER: Show Get2Short and Nowshort =====
-        log('User is not logged in - generating Get2Short and Nowshort links');
+        // ===== Show Get2Short and Nowshort =====
+        log('Showing Get2Short and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showGet2ShortNowshort + ')');
         
         // Show content with loading buttons immediately
         const loadingButtons = `
@@ -2360,54 +2371,21 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
 			player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
 		} else if (player_config.player == "videojs") {
-			// VideoJS with HLS/DASH support for multi-audio tracks
-			player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="metadata" width="100%" height="100%" data-setup='{"fill": true, "fluid": true, "controlBar": {"children": ["playToggle", "currentTimeDisplay", "timeDivider", "durationDisplay", "progressControl", "volumePanel", "qualityLevels", "audioTrackButton", "subtitlesButton", "captionsButton", "menuButton"]}}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
+			player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
       <source src="${url}" type="video/avi" />
-      <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
     </video>`
 			player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
 			player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
 		} else if (player_config.player == "dplayer") {
-			// DPlayer with multi-quality & multi-audio support
-			player = `<div id="player-container" style="width: 100%; height: 400px;"></div>`
-			player_js = 'https://cdn.jsdelivr.net/npm/dplayer@' + player_config.dplayer_version + '/dist/DPlayer.min.js'
-			player_css = 'https://cdn.jsdelivr.net/npm/dplayer@' + player_config.dplayer_version + '/dist/DPlayer.min.css'
+			player = `<div id="player-container"></div>`
+			player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js'
+			player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css'
 		} else if (player_config.player == "jwplayer") {
-			// JWPlayer with streaming capabilities
 			player = `<div id="player"></div>`
 			player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
 			player_css = ''
-		} else if (player_config.player == "hlsjs") {
-			// HLS.js player for HLS stream playback with multi-audio
-			player = `<video id="hlsplayer" poster="${poster}" style="width: 100%; height: 100%; min-height: 200px;" controls preload="metadata"></video>`
-			player_js = 'https://cdn.jsdelivr.net/npm/hls.js@' + player_config.hlsjs_version + '/dist/hls.min.js'
-			player_css = ''
-		} else if (player_config.player == "shakaplayer") {
-			// Shaka Player for DASH/HLS streaming with adaptive bitrate
-			player = `<div id="shaka-container" style="width: 100%; height: 100%; min-height: 200px;"><video id="shakaplayer" poster="${poster}" controls preload="metadata" style="width: 100%; height: 100%;"></video></div>`
-			player_js = 'https://cdn.jsdelivr.net/npm/shaka-player@' + player_config.shakaplayer_version + '/dist/shaka-player.compiled.min.js'
-			player_css = ''
-		} else if (player_config.player == "clappr") {
-			// Clappr - lightweight, modular player
-			player = `<div id="clappr-player" style="width: 100%; height: 400px;"></div>`
-			player_js = 'https://cdn.jsdelivr.net/npm/clappr@' + player_config.clappr_version + '/dist/clappr.min.js'
-			player_css = ''
-		} else if (player_config.player == "fluent") {
-			// Fluent Player - modern responsive player
-			player = `<div id="fluent-player" style="width: 100%; height: 400px;"><video controls style="width: 100%; height: 100%;"><source src="${url}" /></video></div>`
-			player_js = 'https://cdn.jsdelivr.net/npm/fluent-player@' + player_config.fluent_version + '/dist/fluentplayer.min.js'
-			player_css = 'https://cdn.jsdelivr.net/npm/fluent-player@' + player_config.fluent_version + '/dist/fluentplayer.min.css'
-		} else if (player_config.player == "mediaelement") {
-			// MediaElement.js - cross-browser HTML5 player
-			player = `<video id="mediaplayer" poster="${poster}" width="100%" height="100%" controls preload="metadata">
-      <source src="${url}" type="video/mp4" />
-      <source src="${url}" type="video/webm" />
-      <source src="${url}" type="video/ogv" />
-    </video>`
-			player_js = 'https://cdn.jsdelivr.net/npm/mediaelement@' + player_config.mediaelement_version + '/build/mediaelement-and-player.min.js'
-			player_css = 'https://cdn.jsdelivr.net/npm/mediaelement@' + player_config.mediaelement_version + '/build/mediaelementplayer.min.css'
 		}
 	}
 
@@ -2534,116 +2512,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 					edgeStyle: "raised",
 				},
 			});
-		} else if (player_config.player == "hlsjs") {
-			// HLS.js player initialization
-			if (window.Hls && Hls.isSupported()) {
-				const hlsPlayer = document.getElementById('hlsplayer');
-				const hls = new Hls({
-					enableWorker: true,
-					lowLatencyMode: true,
-					maxBufferLength: 30
-				});
-				hls.loadSource(url);
-				hls.attachMedia(hlsPlayer);
-				hls.on(Hls.Events.MANIFEST_PARSED, function() {
-					console.log('HLS manifest parsed');
-					// Handle multi-audio tracks
-					if (player_config.enable_multi_audio) {
-						setupAudioTracksUI(hls);
-					}
-				});
-			}
-		} else if (player_config.player == "shakaplayer") {
-			// Shaka Player initialization with DASH/HLS support
-			if (window.shaka) {
-				shaka.polyfill.installAll();
-				const shakaPlayer = document.getElementById('shakaplayer');
-				const player = new shaka.Player(shakaPlayer);
-				
-				player.addEventListener('error', onShakaError);
-				
-				player.load(url).catch(onLoadError).then(function() {
-					console.log('Shaka media loaded');
-					if (player_config.enable_multi_audio) {
-						setupShakaAudioTracks(player);
-					}
-				});
-			}
-		} else if (player_config.player == "clappr") {
-			// Clappr player initialization
-			if (window.Clappr) {
-				const clapprPlayer = new Clappr.Player({
-					source: url,
-					poster: poster,
-					parentId: '#clappr-player',
-					plugins: [Clappr.MediaControl, Clappr.Poster],
-					controls: {
-						seekTime: 10
-					}
-				});
-			}
-		} else if (player_config.player == "fluent") {
-			// Fluent Player initialization
-			if (window.fluentPlayer) {
-				const fluentConfig = {
-					source: {
-						src: url,
-						type: mimeType
-					},
-					autoplay: false,
-					controls: true,
-					width: '100%',
-					height: '100%',
-					plugins: []
-				};
-				
-				if (player_config.enable_multi_audio) {
-					fluentConfig.plugins.push({
-						name: 'audio-tracks'
-					});
-				}
-				
-				new fluentPlayer('fluent-player', fluentConfig);
-			}
-		} else if (player_config.player == "mediaelement") {
-			// MediaElement.js initialization
-			if (window.MediaElementPlayer) {
-				const mePlayer = new MediaElementPlayer('mediaplayer', {
-					success: function(mediaElement, domObject) {
-						console.log('MediaElement initialized');
-						if (player_config.enable_multi_audio) {
-							setupMediaElementAudioTracks(mediaElement);
-						}
-					},
-					error: function() {
-						console.error('MediaElement error');
-					}
-				});
-			}
-		} else if (player_config.player == "videojs") {
-			// VideoJS initialization with HLS/DASH plugins
-			const vjsPlayer = videojs('vplayer');
-			
-			// Load HLS plugin if needed
-			if (player_config.enable_hls_support && url.includes('.m3u8')) {
-				if (typeof videojs.HLS !== 'undefined') {
-					vjsPlayer.hlsQualitySelector();
-				}
-			}
-			
-			// Setup multi-audio track UI
-			if (player_config.enable_multi_audio) {
-				vjsPlayer.on('loadstart', function() {
-					setupVideoJSAudioTracks(vjsPlayer);
-				});
-			}
-			
-			// Setup multi-subtitle support
-			if (player_config.enable_multi_subtitle) {
-				vjsPlayer.on('loadstart', function() {
-					setupVideoJSSubtitles(vjsPlayer);
-				});
-			}
 		}
 	};
 	document.head.appendChild(videoJsScript);
@@ -2655,82 +2523,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 	document.head.appendChild(videoJsStylesheet);
 	}
 	}
-}
-
-// ==================== MULTI-AUDIO TRACK SUPPORT FUNCTIONS ====================
-
-// Setup multi-audio tracks for VideoJS
-function setupVideoJSAudioTracks(player) {
-	const audioTracks = player.audioTracks();
-	if (audioTracks.length > 0) {
-		console.log('Found ' + audioTracks.length + ' audio tracks');
-		// Audio tracks are automatically shown in VideoJS controls
-	}
-}
-
-// Setup multi-subtitle support for VideoJS
-function setupVideoJSSubtitles(player) {
-	const textTracks = player.textTracks();
-	if (textTracks.length > 0) {
-		console.log('Found ' + textTracks.length + ' subtitle tracks');
-		// Subtitle tracks are automatically shown in VideoJS controls
-	}
-}
-
-// Setup audio tracks for HLS.js
-function setupAudioTracksUI(hls) {
-	const audioTracks = hls.audioTracks;
-	if (audioTracks && audioTracks.length > 0) {
-		console.log('HLS Audio tracks:', audioTracks);
-		// Create UI for audio track selection
-		let audioUI = '<div class="audio-tracks-selector" style="margin-top: 10px;">';
-		audioTracks.forEach((track, index) => {
-			audioUI += `<button class="btn btn-sm btn-outline-light" data-track-index="${index}" style="margin: 2px;">
-				${track.name || 'Audio ' + (index + 1)} ${track.lang ? '(' + track.lang + ')' : ''}
-			</button>`;
-		});
-		audioUI += '</div>';
-		
-		const playerContainer = document.querySelector('#hlsplayer').parentElement;
-		playerContainer.insertAdjacentHTML('afterend', audioUI);
-		
-		// Add click handlers
-		document.querySelectorAll('.audio-tracks-selector button').forEach(btn => {
-			btn.addEventListener('click', function() {
-				const trackIndex = parseInt(this.dataset.trackIndex);
-				hls.audioTrack = trackIndex;
-				document.querySelectorAll('.audio-tracks-selector button').forEach(b => b.classList.remove('active'));
-				this.classList.add('active');
-			});
-		});
-	}
-}
-
-// Setup audio tracks for Shaka Player
-function setupShakaAudioTracks(player) {
-	const audioTracks = player.getAudioTracks();
-	if (audioTracks && audioTracks.length > 0) {
-		console.log('Shaka audio tracks:', audioTracks);
-		// Shaka Player has built-in audio track selection
-	}
-}
-
-// Setup audio tracks for MediaElement.js
-function setupMediaElementAudioTracks(mediaElement) {
-	const audioTracks = mediaElement.audioTracks;
-	if (audioTracks && audioTracks.length > 0) {
-		console.log('MediaElement audio tracks:', audioTracks.length);
-	}
-}
-
-// Error handler for Shaka Player
-function onShakaError(event) {
-	console.error('Shaka error:', event.detail);
-}
-
-// Load error handler for Shaka
-function onLoadError(error) {
-	console.error('Shaka load error:', error);
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
