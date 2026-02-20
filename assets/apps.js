@@ -2372,93 +2372,152 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 			player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js'
 			player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css'
 		} else if (player_config.player == "theoplayer") {
-			// ── Parse languages from filename ──────────────────────────────
-			const _TM_LANG_MAP = {'tam':'Tamil','tel':'Telugu','hin':'Hindi','eng':'English','mal':'Malayalam','kan':'Kannada','mar':'Marathi','ben':'Bengali','pun':'Punjabi','ori':'Odia','guj':'Gujarati','asm':'Assamese','urd':'Urdu','jpn':'Japanese','kor':'Korean','chi':'Chinese','fre':'French','ger':'German','spa':'Spanish','ta':'Tamil','te':'Telugu','hi':'Hindi','en':'English','ml':'Malayalam','kn':'Kannada','mr':'Marathi','bn':'Bengali'};
+			// ── Parse languages & subs from filename ───────────────────────
+			const _TM_LANG_MAP = {
+				'tam':'Tamil','tel':'Telugu','hin':'Hindi','eng':'English',
+				'mal':'Malayalam','kan':'Kannada','mar':'Marathi','ben':'Bengali',
+				'pun':'Punjabi','ori':'Odia','guj':'Gujarati','asm':'Assamese',
+				'urd':'Urdu','jpn':'Japanese','kor':'Korean','chi':'Chinese',
+				'fre':'French','ger':'German','spa':'Spanish','ita':'Italian',
+				'ta':'Tamil','te':'Telugu','hi':'Hindi','en':'English',
+				'ml':'Malayalam','kn':'Kannada','mr':'Marathi','bn':'Bengali'
+			};
 			function _tmParseLangs(n) {
 				const langs=[],seen=new Set();
 				const segs=n.match(/[\[\(]([A-Za-z_+&, ]{3,60})[\]\)]/g)||[];
-				segs.forEach(seg=>seg.replace(/[\[\]\(\)]/g,'').split(/[_+&, ]+/).forEach(tok=>{const k=tok.toLowerCase();if(_TM_LANG_MAP[k]&&!seen.has(_TM_LANG_MAP[k])){seen.add(_TM_LANG_MAP[k]);langs.push({code:k,label:_TM_LANG_MAP[k]});}}));
-				if(langs.length===0){Object.keys(_TM_LANG_MAP).forEach(k=>{if(new RegExp('\\b'+k+'\\b','i').test(n)&&!seen.has(_TM_LANG_MAP[k])){seen.add(_TM_LANG_MAP[k]);langs.push({code:k,label:_TM_LANG_MAP[k]});}});}
+				segs.forEach(seg=>seg.replace(/[\[\]\(\)]/g,'').split(/[_+&, ]+/).forEach(tok=>{
+					const k=tok.toLowerCase();
+					if(_TM_LANG_MAP[k]&&!seen.has(_TM_LANG_MAP[k])){seen.add(_TM_LANG_MAP[k]);langs.push({code:k,label:_TM_LANG_MAP[k]});}
+				}));
+				if(langs.length===0){
+					Object.keys(_TM_LANG_MAP).forEach(k=>{
+						if(new RegExp('\\b'+k+'\\b','i').test(n)&&!seen.has(_TM_LANG_MAP[k])){
+							seen.add(_TM_LANG_MAP[k]);langs.push({code:k,label:_TM_LANG_MAP[k]});
+						}
+					});
+				}
 				return langs;
 			}
 			function _tmParseSubs(n) {
 				const s=[];
-				if(/esub/i.test(n))s.push('English (ESub)');
-				if(/hsub/i.test(n))s.push('Hindi (HSub)');
-				if(/tsub/i.test(n))s.push('Tamil (TSub)');
-				if(/msub/i.test(n))s.push('Malayalam (MSub)');
-				if(s.length===0&&/sub/i.test(n))s.push('Embedded Subtitles');
+				if(/esub/i.test(n))s.push({code:'en',label:'English (ESub)'});
+				if(/hsub/i.test(n))s.push({code:'hi',label:'Hindi (HSub)'});
+				if(/tsub/i.test(n))s.push({code:'ta',label:'Tamil (TSub)'});
+				if(/msub/i.test(n))s.push({code:'ml',label:'Malayalam (MSub)'});
 				return s;
 			}
 			const _tmLangs = _tmParseLangs(name);
 			const _tmSubs  = _tmParseSubs(name);
-			const _speedOpts = [0.25,0.5,0.75,1,1.25,1.5,1.75,2];
+			const _spdOpts = [0.25,0.5,0.75,1,1.25,1.5,1.75,2];
+
+			// Video.js version to use
+			const VJS_VER = player_config.videojs_version || '8.3.0';
 
 			player = `
+<link rel="stylesheet" href="https://vjs.zencdn.net/${VJS_VER}/video-js.css">
 <style>
-#tmWrap{position:relative;width:100%;aspect-ratio:16/9;min-height:220px;background:#000;border-radius:10px;overflow:hidden;user-select:none;font-family:'Segoe UI',Arial,sans-serif;}
-#tmWrap video{width:100%;height:100%;display:block;object-fit:contain;cursor:pointer;}
-#tmOverlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:4;transition:opacity .2s;}
+#tmWrap{position:relative;width:100%;aspect-ratio:16/9;min-height:220px;background:#000;border-radius:10px;overflow:hidden;font-family:'Segoe UI',Arial,sans-serif;}
+#tmWrap .video-js{width:100%;height:100%;border-radius:10px;}
+#tmWrap .vjs-big-play-button{display:none!important;}
+#tmWrap .vjs-control-bar{display:none!important;}
+#tmOverlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:4;transition:opacity .25s;}
 #tmOverlay.tmHide{opacity:0;pointer-events:none;}
-#tmBigPlay{width:68px;height:68px;background:rgba(255,160,0,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(255,160,0,.45);transition:transform .15s,box-shadow .15s;}
-#tmBigPlay:hover{transform:scale(1.1);box-shadow:0 6px 32px rgba(255,160,0,.65);}
-#tmCtrl{position:absolute;bottom:0;left:0;right:0;z-index:10;padding:6px 12px 10px;background:linear-gradient(transparent,rgba(0,0,0,.92));transition:opacity .3s;}
+#tmBigPlay{width:70px;height:70px;background:rgba(255,160,0,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(255,160,0,.5);transition:transform .15s,box-shadow .15s;}
+#tmBigPlay:hover{transform:scale(1.1);box-shadow:0 6px 32px rgba(255,160,0,.7);}
+#tmCtrl{position:absolute;bottom:0;left:0;right:0;z-index:10;padding:8px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,.94));transition:opacity .3s;}
 #tmCtrl.tmHide{opacity:0;pointer-events:none;}
-#tmPRow{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
-#tmSeek{flex:1;height:4px;cursor:pointer;accent-color:#ffa000;border-radius:4px;}
-#tmTime{color:#ddd;font-size:11px;white-space:nowrap;min-width:96px;text-align:right;}
-#tmBRow{display:flex;align-items:center;gap:4px;flex-wrap:nowrap;}
+#tmPRow{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+#tmSeek{flex:1;height:4px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,.2);border-radius:4px;cursor:pointer;outline:none;}
+#tmSeek::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#ffa000;cursor:pointer;}
+#tmSeek::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#ffa000;border:none;cursor:pointer;}
+#tmTime{color:#ddd;font-size:11px;white-space:nowrap;min-width:100px;text-align:right;}
+#tmBRow{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;}
 .tmCBtn{background:none;border:none;cursor:pointer;padding:5px;color:#fff;display:flex;align-items:center;border-radius:4px;transition:background .15s;flex-shrink:0;}
 .tmCBtn:hover{background:rgba(255,255,255,.12);}
-#tmVol{width:62px;height:3px;cursor:pointer;accent-color:#ffa000;flex-shrink:0;}
-.tmSp{flex:1;}
-.tmPill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-radius:18px;cursor:pointer;padding:4px 10px;color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px;transition:background .15s,border-color .15s;flex-shrink:0;position:relative;}
+#tmVolSldr{width:64px;height:3px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,.3);border-radius:4px;cursor:pointer;outline:none;flex-shrink:0;}
+#tmVolSldr::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#ffa000;cursor:pointer;}
+.tmSpacer{flex:1;}
+.tmPill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-radius:18px;cursor:pointer;padding:4px 11px;color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;transition:background .15s,border-color .15s;flex-shrink:0;position:relative;user-select:none;}
 .tmPill:hover,.tmPill.tmOn{background:rgba(255,160,0,.18);border-color:#ffa000;color:#ffa000;}
-.tmDD{display:none;position:absolute;bottom:38px;right:0;background:#0d0d1a;border:1px solid rgba(255,160,0,.5);border-radius:8px;overflow:hidden;min-width:155px;z-index:40;box-shadow:0 8px 28px rgba(0,0,0,.7);}
+.tmDD{display:none;position:absolute;bottom:40px;right:0;background:#0d0d1a;border:1px solid rgba(255,160,0,.5);border-radius:8px;overflow:hidden;min-width:160px;z-index:50;box-shadow:0 8px 28px rgba(0,0,0,.7);}
 .tmDD.tmOpen{display:block;}
-.tmDDH{padding:7px 13px;font-size:10px;font-weight:700;color:#ffa000;border-bottom:1px solid rgba(255,160,0,.2);letter-spacing:.6px;text-transform:uppercase;}
-.tmDDI{display:block;width:100%;text-align:left;padding:8px 13px;font-size:12px;background:none;border:none;color:#bbb;cursor:pointer;transition:background .1s,color .1s;}
+.tmDDH{padding:8px 14px;font-size:10px;font-weight:700;color:#ffa000;border-bottom:1px solid rgba(255,160,0,.25);letter-spacing:.6px;text-transform:uppercase;}
+.tmDDI{display:block;width:100%;text-align:left;padding:9px 14px;font-size:12px;background:none;border:none;color:#bbb;cursor:pointer;transition:background .12s,color .12s;white-space:nowrap;}
 .tmDDI:hover{background:rgba(255,160,0,.1);color:#fff;}
 .tmDDI.tmSel{color:#ffa000;font-weight:700;}
 .tmDDI.tmSel::before{content:'✓ ';}
-#tmBuf{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:6;pointer-events:none;}
+#tmBuf{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:6;pointer-events:none;background:rgba(0,0,0,.3);}
 #tmBuf.tmShow{display:flex;}
-#tmBufR{width:42px;height:42px;border:3px solid rgba(255,160,0,.2);border-top-color:#ffa000;border-radius:50%;animation:tmSpin .7s linear infinite;}
+#tmBufR{width:44px;height:44px;border:3px solid rgba(255,160,0,.2);border-top-color:#ffa000;border-radius:50%;animation:tmSpin .7s linear infinite;}
 @keyframes tmSpin{to{transform:rotate(360deg);}}
-#tmBadge{position:absolute;top:9px;left:9px;display:flex;gap:4px;flex-wrap:wrap;z-index:5;pointer-events:none;}
-.tmLTag{background:rgba(255,160,0,.88);color:#000;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;}
+#tmBadge{position:absolute;top:10px;left:10px;display:flex;gap:5px;flex-wrap:wrap;z-index:5;pointer-events:none;}
+.tmLTag{background:rgba(255,160,0,.9);color:#000;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.2px;}
+#tmAudActive{background:rgba(255,160,0,.25);color:#ffa000;padding:2px 6px;border-radius:8px;font-size:10px;font-weight:700;margin-left:2px;}
 </style>
 <div id="tmWrap">
-  <video id="tmVid" preload="metadata" ${poster?`poster="${poster}"`:''}  playsinline></video>
+  <video id="tmVid" class="video-js" preload="auto" ${poster?`poster="${poster}"`:''}
+    playsinline crossorigin="anonymous"></video>
   <div id="tmBadge">${_tmLangs.map(l=>`<span class="tmLTag">${escapeHtml(l.label)}</span>`).join('')}</div>
   <div id="tmBuf"><div id="tmBufR"></div></div>
-  <div id="tmOverlay"><div id="tmBigPlay"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></div></div>
+  <div id="tmOverlay">
+    <div id="tmBigPlay">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff" style="margin-left:3px"><path d="M8 5v14l11-7z"/></svg>
+    </div>
+  </div>
   <div id="tmCtrl">
     <div id="tmPRow">
-      <input id="tmSeek" type="range" value="0" min="0" max="100" step="0.05">
+      <input id="tmSeek" type="range" value="0" min="0" max="1000" step="1">
       <span id="tmTime">0:00 / 0:00</span>
     </div>
     <div id="tmBRow">
-      <button class="tmCBtn" id="tmPlayBtn" title="Play/Pause"><svg id="tmPlayIco" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
-      <button class="tmCBtn" id="tmMuteBtn" title="Mute"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path id="tmVolP" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg></button>
-      <input id="tmVol" type="range" value="100" min="0" max="100" title="Volume">
-      <div class="tmSp"></div>
-      <div class="tmPill" id="tmSpdBtn" title="Speed"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg><span id="tmSpdLbl">1×</span>
-        <div class="tmDD" id="tmSpdDD"><div class="tmDDH">⚡ Speed</div>${_speedOpts.map(s=>`<button class="tmDDI${s===1?' tmSel':''}" data-spd="${s}">${s}×</button>`).join('')}</div>
+      <button class="tmCBtn" id="tmPlayBtn" title="Play/Pause (Space)">
+        <svg id="tmPlayIco" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button class="tmCBtn" id="tmMuteBtn" title="Mute (M)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path id="tmVolP" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+      </button>
+      <input id="tmVolSldr" type="range" value="100" min="0" max="100" title="Volume">
+      <div class="tmSpacer"></div>
+      <div class="tmPill" id="tmSpdPill">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+        <span id="tmSpdLbl">1×</span>
+        <div class="tmDD" id="tmSpdDD">
+          <div class="tmDDH">⚡ Speed</div>
+          ${_spdOpts.map(s=>`<button class="tmDDI${s===1?' tmSel':''}" data-spd="${s}">${s}×</button>`).join('')}
+        </div>
       </div>
-      <div class="tmPill" id="tmAudBtn" title="Audio Track"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>Audio
-        <div class="tmDD" id="tmAudDD"><div class="tmDDH">🎵 Audio Track</div><div id="tmAudList"></div></div>
+      <div class="tmPill" id="tmAudPill">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        Audio<span id="tmAudActive"></span>
+        <div class="tmDD" id="tmAudDD">
+          <div class="tmDDH">🎵 Audio Track</div>
+          <div id="tmAudList"><div style="padding:10px 14px;font-size:12px;color:rgba(255,255,255,.4);">Loading…</div></div>
+        </div>
       </div>
-      <div class="tmPill" id="tmSubBtn" title="Subtitle"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 11H4v-2h8v2zm8 0h-6v-2h6v2zm0-4H4V9h16v2z"/></svg>Sub
-        <div class="tmDD" id="tmSubDD"><div class="tmDDH">💬 Language</div><div id="tmSubList"></div></div>
+      <div class="tmPill" id="tmSubPill">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 11H4v-2h8v2zm8 0h-6v-2h6v2zm0-4H4V9h16v2z"/></svg>
+        Sub
+        <div class="tmDD" id="tmSubDD">
+          <div class="tmDDH">💬 Subtitle</div>
+          <div id="tmSubList"></div>
+        </div>
       </div>
-      <button class="tmCBtn" id="tmPipBtn" title="Picture-in-Picture" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 1.99 2 1.99h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16.01H3V4.99h18v14.02z"/></svg></button>
-      <button class="tmCBtn" id="tmFsBtn" title="Fullscreen"><svg id="tmFsIco" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
+      <button class="tmCBtn" id="tmPipBtn" title="Picture-in-Picture" style="display:none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 1.99 2 1.99h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16.01H3V4.99h18v14.02z"/></svg>
+      </button>
+      <button class="tmCBtn" id="tmFsBtn" title="Fullscreen (F)">
+        <svg id="tmFsIco" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+      </button>
     </div>
   </div>
 </div>`
-			// Store parsed data for use in init function
-			window._tmPlayerData = { url, poster, name, mimeType, langs: _tmLangs, subs: _tmSubs, langMap: _TM_LANG_MAP };
+			// Store data for tmWirePlayer
+			window._tmPlayerData = {
+				url, poster, name, mimeType,
+				langs: _tmLangs, subs: _tmSubs,
+				langMap: _TM_LANG_MAP,
+				vjsVer: VJS_VER
+			};
 			player_js  = ''
 			player_css = ''
 		}
@@ -2607,26 +2666,21 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 // TM WIRE PLAYER — runs after DOM is painted, wires up all controls
 // HTML is already embedded in the page by file_video() above
 // =======================================================================
+// =======================================================================
+// TM WIRE PLAYER — Video.js + VHS engine for real audio track switching
+// Runs after DOM is ready (called via setTimeout from file_video)
+// =======================================================================
 function tmWirePlayer() {
-  const d = window._tmPlayerData || {};
-  const vid = document.getElementById('tmVid');
-  if (!vid) { console.error('[TM Player] #tmVid not found'); return; }
+  const d   = window._tmPlayerData || {};
+  if (!d.url) return;
 
-  const url      = d.url      || '';
-  const langs    = d.langs    || [];
-  const subs     = d.subs     || [];
-  const LANG_MAP = d.langMap  || {};
+  const url     = d.url;
+  const langs   = d.langs   || [];
+  const subs    = d.subs    || [];
+  const LMAP    = d.langMap || {};
+  const vjsVer  = d.vjsVer  || '8.3.0';
 
-  // Set video source
-  vid.src = url;
-
-  // Show PiP button if supported
-  if (document.pictureInPictureEnabled) {
-    const pipBtn = document.getElementById('tmPipBtn');
-    if (pipBtn) pipBtn.style.display = 'flex';
-  }
-
-  // ── SVG path constants ───────────────────────────────────────────────
+  // SVG path constants
   const PP  = 'M8 5v14l11-7z';
   const PA  = 'M6 19h4V5H6v14zm8-14v14h4V5h-4z';
   const VON = 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z';
@@ -2634,171 +2688,316 @@ function tmWirePlayer() {
   const FSE = 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z';
   const FSX = 'M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z';
 
-  function $ (id) { return document.getElementById(id); }
-  function sp(el, d) { if (el) { const p = el.querySelector ? el.querySelector('path') : el; if (p) p.setAttribute('d', d); } }
-  function fmt(s) {
-    if (!isFinite(s)||s<0) return '0:00';
+  function ge(id){ return document.getElementById(id); }
+  function sp(el, d){ if(!el) return; const p=el.querySelector?el.querySelector('path'):el; if(p) p.setAttribute('d',d); }
+  function fmt(s){
+    if(!isFinite(s)||s<0) return '0:00';
     const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=Math.floor(s%60);
     return (h?h+':':'')+(h&&m<10?'0':'')+m+':'+(sc<10?'0':'')+sc;
   }
-
-  // ── Auto-hide controls ───────────────────────────────────────────────
-  const ctrl = $('tmCtrl'), overlay = $('tmOverlay'), buf = $('tmBuf');
-  let hideT;
-  function showCtrl() {
-    ctrl.classList.remove('tmHide');
-    clearTimeout(hideT);
-    if (!vid.paused) hideT = setTimeout(()=>ctrl.classList.add('tmHide'), 3200);
-  }
-  const wrap = document.getElementById('tmWrap');
-  if (wrap) {
-    wrap.addEventListener('mousemove', showCtrl);
-    wrap.addEventListener('touchstart', showCtrl, {passive:true});
-    wrap.addEventListener('mouseleave', ()=>{ if(!vid.paused) hideT=setTimeout(()=>ctrl.classList.add('tmHide'),1000); });
+  function loadJS(src, cb){
+    if(document.querySelector('script[src="'+src+'"]')){
+      if(typeof cb==='function') cb(); return;
+    }
+    const s=document.createElement('script'); s.src=src;
+    s.onload=cb||function(){}; s.onerror=function(){ console.error('[TM] Failed:',src); };
+    document.head.appendChild(s);
   }
 
-  // ── Play / Pause ─────────────────────────────────────────────────────
-  function togglePlay() { vid.paused ? vid.play().catch(()=>{}) : vid.pause(); }
-  const playBtn = $('tmPlayBtn');
-  const playIco = $('tmPlayIco');
-  if (playBtn) playBtn.addEventListener('click', togglePlay);
-  if (overlay) overlay.addEventListener('click', togglePlay);
-  // Click on video itself also plays
-  vid.addEventListener('click', togglePlay);
+  // ── Load Video.js then initialise ──────────────────────────────────
+  const VJS_CDN = 'https://vjs.zencdn.net/'+vjsVer+'/video.js';
+  const VHS_CDN = 'https://cdn.jsdelivr.net/npm/videojs-contrib-eme@5.2.0/dist/videojs-contrib-eme.min.js';
 
-  vid.addEventListener('play', ()=>{ sp(playIco,PA); overlay.classList.add('tmHide'); showCtrl(); });
-  vid.addEventListener('pause',()=>{ sp(playIco,PP); overlay.classList.remove('tmHide'); ctrl.classList.remove('tmHide'); clearTimeout(hideT); });
-  vid.addEventListener('ended',()=>{ sp(playIco,PP); overlay.classList.remove('tmHide'); });
+  loadJS(VJS_CDN, function() {
+    if(typeof videojs === 'undefined'){ console.error('[TM] videojs not loaded'); return; }
 
-  // ── Buffering spinner ─────────────────────────────────────────────────
-  vid.addEventListener('waiting', ()=>buf&&buf.classList.add('tmShow'));
-  vid.addEventListener('canplay', ()=>buf&&buf.classList.remove('tmShow'));
-  vid.addEventListener('playing', ()=>buf&&buf.classList.remove('tmShow'));
+    const vjsEl = ge('tmVid');
+    if(!vjsEl){ console.error('[TM] #tmVid not found'); return; }
 
-  // ── Seek bar ─────────────────────────────────────────────────────────
-  const seekBar=$('tmSeek'), timeLbl=$('tmTime');
-  vid.addEventListener('timeupdate',()=>{
-    if(!vid.duration)return;
-    seekBar.value=(vid.currentTime/vid.duration)*100;
-    timeLbl.textContent=fmt(vid.currentTime)+' / '+fmt(vid.duration);
-  });
-  seekBar.addEventListener('input',()=>{ if(vid.duration) vid.currentTime=(seekBar.value/100)*vid.duration; });
-
-  // ── Volume ───────────────────────────────────────────────────────────
-  const volSldr=$('tmVol'), volPath=$('tmVolP');
-  function syncVol(){ sp(volPath, vid.muted||vid.volume===0?VOF:VON); }
-  volSldr.addEventListener('input',()=>{ vid.volume=volSldr.value/100; vid.muted=vid.volume===0; syncVol(); });
-  const muteBtn=$('tmMuteBtn');
-  if(muteBtn) muteBtn.addEventListener('click',()=>{ vid.muted=!vid.muted; volSldr.value=vid.muted?0:vid.volume*100; syncVol(); });
-
-  // ── Fullscreen ───────────────────────────────────────────────────────
-  const fsBtn=$('tmFsBtn'), fsIco=$('tmFsIco');
-  if(fsBtn) fsBtn.addEventListener('click',()=>{
-    const el=document.getElementById('tmWrap');
-    if(!document.fullscreenElement) (el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el);
-    else (document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document);
-  });
-  document.addEventListener('fullscreenchange',()=>sp(fsIco,document.fullscreenElement?FSX:FSE));
-
-  // ── Picture-in-Picture ───────────────────────────────────────────────
-  const pipBtn=$('tmPipBtn');
-  if(pipBtn) pipBtn.addEventListener('click',()=>{
-    document.pictureInPictureElement?document.exitPictureInPicture():vid.requestPictureInPicture&&vid.requestPictureInPicture();
-  });
-
-  // ── Dropdown helpers ─────────────────────────────────────────────────
-  function closeDD(){ document.querySelectorAll('.tmDD').forEach(d=>d.classList.remove('tmOpen')); document.querySelectorAll('.tmPill').forEach(b=>b.classList.remove('tmOn')); }
-  function togDD(ddId, pill) {
-    const dd=document.getElementById(ddId), wasOpen=dd&&dd.classList.contains('tmOpen');
-    closeDD();
-    if(!wasOpen&&dd){ dd.classList.add('tmOpen'); pill.classList.add('tmOn'); }
-  }
-  document.addEventListener('click',e=>{ if(!e.target.closest('.tmPill')&&!e.target.closest('.tmDD')) closeDD(); });
-
-  // ── Speed ────────────────────────────────────────────────────────────
-  const spdBtn=$('tmSpdBtn'), spdLbl=$('tmSpdLbl');
-  if(spdBtn) spdBtn.addEventListener('click',e=>{ e.stopPropagation(); togDD('tmSpdDD',spdBtn); });
-  document.querySelectorAll('[data-spd]').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      e.stopPropagation();
-      const sp=parseFloat(btn.dataset.spd);
-      vid.playbackRate=sp;
-      spdLbl.textContent=sp+'×';
-      document.querySelectorAll('[data-spd]').forEach(b=>b.classList.toggle('tmSel',parseFloat(b.dataset.spd)===sp));
-      closeDD();
+    // Initialise Video.js in chromeless mode (we provide our own controls)
+    const vjs = videojs('tmVid', {
+      controls: false,
+      autoplay: false,
+      preload: 'auto',
+      fluid: true,
+      techOrder: ['html5'],
+      html5: {
+        vhs: {
+          overrideNative: true,
+          enableLowInitialPlaylist: true,
+          handleManifestRedirects: true
+        },
+        nativeAudioTracks: false,
+        nativeVideoTracks: false,
+        nativeTextTracks: false
+      }
     });
-  });
 
-  // ── Audio Track ──────────────────────────────────────────────────────
-  const audBtn=$('tmAudBtn'), audList=$('tmAudList');
-  if(audBtn) audBtn.addEventListener('click',e=>{ e.stopPropagation(); togDD('tmAudDD',audBtn); });
+    // Set source
+    vjs.src({ src: url, type: d.mimeType || 'video/mp4' });
 
-  function buildAudio(){
-    if(!audList) return;
-    audList.innerHTML='';
-    const nTrk=vid.audioTracks?Array.from(vid.audioTracks):[];
-    if(nTrk.length>1){
-      nTrk.forEach((t,i)=>{
-        const lbl=t.label||(LANG_MAP[t.language]||t.language)||('Track '+(i+1));
-        const b=document.createElement('button'); b.className='tmDDI'+(t.enabled?' tmSel':''); b.textContent=lbl;
-        b.addEventListener('click',e=>{ e.stopPropagation(); nTrk.forEach((x,j)=>x.enabled=j===i); audList.querySelectorAll('.tmDDI').forEach((bb,j)=>bb.classList.toggle('tmSel',j===i)); closeDD(); });
-        audList.appendChild(b);
-      });
-    } else if(langs.length>0){
-      langs.forEach((l,i)=>{
-        const b=document.createElement('button'); b.className='tmDDI'+(i===0?' tmSel':'');
-        b.innerHTML=l.label+'<small style="opacity:.45;font-size:10px;margin-left:5px;">(in file)</small>';
-        b.addEventListener('click',e=>{ e.stopPropagation(); audList.querySelectorAll('.tmDDI').forEach((bb,j)=>bb.classList.toggle('tmSel',j===i)); closeDD(); });
-        audList.appendChild(b);
-      });
-    } else {
-      const e=document.createElement('div'); e.style.cssText='padding:10px 13px;font-size:12px;color:rgba(255,255,255,.4);'; e.textContent='Single audio track'; audList.appendChild(e);
+    const vid = vjsEl; // underlying <video> element
+
+    // Expose vjs globally for debugging
+    window._tmVjs = vjs;
+
+    // ── auto-hide controls ─────────────────────────────────────────
+    const ctrl=ge('tmCtrl'), overlay=ge('tmOverlay'), buf=ge('tmBuf');
+    let hideT;
+    function showCtrl(){
+      if(ctrl) ctrl.classList.remove('tmHide');
+      clearTimeout(hideT);
+      if(!vjs.paused()) hideT=setTimeout(()=>ctrl&&ctrl.classList.add('tmHide'),3500);
     }
-  }
-  vid.addEventListener('loadedmetadata',buildAudio); buildAudio();
-
-  // ── Subtitles ─────────────────────────────────────────────────────────
-  const subBtn=$('tmSubBtn'), subList=$('tmSubList');
-  if(subBtn) subBtn.addEventListener('click',e=>{ e.stopPropagation(); togDD('tmSubDD',subBtn); });
-
-  function buildSubs(){
-    if(!subList) return;
-    subList.innerHTML='';
-    const offB=document.createElement('button'); offB.className='tmDDI tmSel'; offB.textContent='Off';
-    offB.addEventListener('click',e=>{ e.stopPropagation(); Array.from(vid.textTracks||[]).forEach(t=>t.mode='disabled'); subList.querySelectorAll('.tmDDI').forEach((b,j)=>b.classList.toggle('tmSel',j===0)); closeDD(); });
-    subList.appendChild(offB);
-    const nSub=vid.textTracks?Array.from(vid.textTracks):[];
-    if(nSub.length>0){
-      nSub.forEach((t,i)=>{
-        const lbl=t.label||(LANG_MAP[t.language]||t.language)||('Sub '+(i+1));
-        const b=document.createElement('button'); b.className='tmDDI'; b.textContent=lbl;
-        b.addEventListener('click',e=>{ e.stopPropagation(); nSub.forEach((x,j)=>x.mode=j===i?'showing':'disabled'); subList.querySelectorAll('.tmDDI').forEach((bb,j)=>bb.classList.toggle('tmSel',j===i+1)); closeDD(); });
-        subList.appendChild(b);
-      });
-    } else if(subs.length>0){
-      subs.forEach((s,i)=>{
-        const b=document.createElement('button'); b.className='tmDDI';
-        b.innerHTML=s+'<small style="opacity:.45;font-size:10px;margin-left:5px;">(embedded)</small>';
-        b.addEventListener('click',e=>{ e.stopPropagation(); subList.querySelectorAll('.tmDDI').forEach((bb,j)=>bb.classList.toggle('tmSel',j===i+1)); closeDD(); });
-        subList.appendChild(b);
-      });
-    } else {
-      const e=document.createElement('div'); e.style.cssText='padding:10px 13px;font-size:12px;color:rgba(255,255,255,.4);'; e.textContent='No subtitles available'; subList.appendChild(e);
+    const wrap=ge('tmWrap');
+    if(wrap){
+      wrap.addEventListener('mousemove', showCtrl);
+      wrap.addEventListener('touchstart', showCtrl, {passive:true});
+      wrap.addEventListener('mouseleave',()=>{ if(!vjs.paused()) hideT=setTimeout(()=>ctrl&&ctrl.classList.add('tmHide'),1200); });
     }
-  }
-  vid.addEventListener('loadedmetadata',buildSubs); buildSubs();
 
-  // ── Keyboard shortcuts ───────────────────────────────────────────────
-  document.addEventListener('keydown',e=>{
-    if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
-    if(e.code==='Space'){e.preventDefault();togglePlay();}
-    if(e.code==='ArrowLeft'){e.preventDefault();vid.currentTime=Math.max(0,vid.currentTime-10);}
-    if(e.code==='ArrowRight'){e.preventDefault();vid.currentTime=Math.min(vid.duration||0,vid.currentTime+10);}
-    if(e.code==='ArrowUp'){e.preventDefault();vid.volume=Math.min(1,vid.volume+.1);volSldr.value=vid.volume*100;syncVol();}
-    if(e.code==='ArrowDown'){e.preventDefault();vid.volume=Math.max(0,vid.volume-.1);volSldr.value=vid.volume*100;syncVol();}
-    if(e.code==='KeyF'&&fsBtn)fsBtn.click();
-    if(e.code==='KeyM'&&muteBtn)muteBtn.click();
-  });
+    // ── Play / Pause ───────────────────────────────────────────────
+    function togglePlay(){ vjs.paused() ? vjs.play() : vjs.pause(); }
+    const playBtn=ge('tmPlayBtn'), playIco=ge('tmPlayIco');
+    if(playBtn) playBtn.addEventListener('click', togglePlay);
+    if(overlay) overlay.addEventListener('click', togglePlay);
+    if(wrap)    wrap.addEventListener('dblclick', function(e){ if(e.target===vjsEl||e.target===wrap) ge('tmFsBtn')&&ge('tmFsBtn').click(); });
+
+    vjs.on('play',  ()=>{ sp(playIco,PA); overlay&&overlay.classList.add('tmHide'); showCtrl(); });
+    vjs.on('pause', ()=>{ sp(playIco,PP); overlay&&overlay.classList.remove('tmHide'); if(ctrl){ctrl.classList.remove('tmHide'); clearTimeout(hideT);} });
+    vjs.on('ended', ()=>{ sp(playIco,PP); overlay&&overlay.classList.remove('tmHide'); });
+
+    // ── Buffering ──────────────────────────────────────────────────
+    vjs.on('waiting', ()=>buf&&buf.classList.add('tmShow'));
+    vjs.on('canplay', ()=>buf&&buf.classList.remove('tmShow'));
+    vjs.on('playing', ()=>buf&&buf.classList.remove('tmShow'));
+
+    // ── Seek bar ───────────────────────────────────────────────────
+    const seekBar=ge('tmSeek'), timeLbl=ge('tmTime');
+    vjs.on('timeupdate', ()=>{
+      const dur=vjs.duration();
+      if(!dur) return;
+      seekBar.value=(vjs.currentTime()/dur)*1000;
+      timeLbl.textContent=fmt(vjs.currentTime())+' / '+fmt(dur);
+    });
+    vjs.on('durationchange', ()=>{
+      const dur=vjs.duration();
+      if(dur&&timeLbl) timeLbl.textContent='0:00 / '+fmt(dur);
+    });
+    let seeking=false;
+    seekBar.addEventListener('mousedown', ()=>seeking=true);
+    seekBar.addEventListener('mouseup',   ()=>seeking=false);
+    seekBar.addEventListener('input', ()=>{
+      const dur=vjs.duration();
+      if(dur) vjs.currentTime((seekBar.value/1000)*dur);
+    });
+
+    // ── Volume ─────────────────────────────────────────────────────
+    const volSldr=ge('tmVolSldr'), volPath=ge('tmVolP');
+    function syncVol(){ sp(volPath, vjs.muted()||vjs.volume()===0 ? VOF : VON); }
+    volSldr.addEventListener('input',()=>{
+      vjs.volume(volSldr.value/100);
+      vjs.muted(vjs.volume()===0);
+      syncVol();
+    });
+    const muteBtn=ge('tmMuteBtn');
+    if(muteBtn) muteBtn.addEventListener('click',()=>{
+      vjs.muted(!vjs.muted());
+      volSldr.value=vjs.muted()?0:vjs.volume()*100;
+      syncVol();
+    });
+
+    // ── Fullscreen ─────────────────────────────────────────────────
+    const fsBtn=ge('tmFsBtn'), fsIco=ge('tmFsIco');
+    if(fsBtn) fsBtn.addEventListener('click',()=>{
+      const el=ge('tmWrap');
+      if(!document.fullscreenElement)(el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el);
+      else (document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document);
+    });
+    document.addEventListener('fullscreenchange',()=>sp(fsIco,document.fullscreenElement?FSX:FSE));
+
+    // ── Picture-in-Picture ─────────────────────────────────────────
+    const pipBtn=ge('tmPipBtn');
+    if(pipBtn && document.pictureInPictureEnabled){
+      pipBtn.style.display='flex';
+      pipBtn.addEventListener('click',()=>{
+        document.pictureInPictureElement?document.exitPictureInPicture():vjsEl.requestPictureInPicture&&vjsEl.requestPictureInPicture();
+      });
+    }
+
+    // ── Dropdown helpers ───────────────────────────────────────────
+    function closeAllDD(){
+      document.querySelectorAll('.tmDD').forEach(dd=>dd.classList.remove('tmOpen'));
+      document.querySelectorAll('.tmPill').forEach(p=>p.classList.remove('tmOn'));
+    }
+    function togDD(ddId, pill){
+      const dd=ge(ddId), open=dd&&dd.classList.contains('tmOpen');
+      closeAllDD();
+      if(!open&&dd){ dd.classList.add('tmOpen'); pill.classList.add('tmOn'); }
+    }
+    document.addEventListener('click',e=>{
+      if(!e.target.closest('.tmPill')&&!e.target.closest('.tmDD')) closeAllDD();
+    });
+
+    // ── Speed ──────────────────────────────────────────────────────
+    const spdPill=ge('tmSpdPill'), spdLbl=ge('tmSpdLbl');
+    if(spdPill) spdPill.addEventListener('click',e=>{ e.stopPropagation(); togDD('tmSpdDD',spdPill); });
+    document.querySelectorAll('[data-spd]').forEach(btn=>{
+      btn.addEventListener('click',e=>{
+        e.stopPropagation();
+        const sp=parseFloat(btn.dataset.spd);
+        vjs.playbackRate(sp);
+        if(spdLbl) spdLbl.textContent=sp+'×';
+        document.querySelectorAll('[data-spd]').forEach(b=>b.classList.toggle('tmSel',parseFloat(b.dataset.spd)===sp));
+        closeAllDD();
+      });
+    });
+
+    // ── REAL AUDIO TRACKS via Video.js audioTracks() API ──────────
+    const audPill=ge('tmAudPill'), audList=ge('tmAudList'), audActive=ge('tmAudActive');
+    if(audPill) audPill.addEventListener('click',e=>{ e.stopPropagation(); togDD('tmAudDD',audPill); });
+
+    function buildAudioMenu(){
+      if(!audList) return;
+      audList.innerHTML='';
+
+      // Video.js exposes audioTracks() — works with VHS for MKV multi-track
+      const vjsTracks = vjs.audioTracks ? vjs.audioTracks() : null;
+      const trackCount = vjsTracks ? vjsTracks.length : 0;
+
+      if(trackCount > 0){
+        // REAL tracks from Video.js — fully functional switching
+        for(let i=0;i<trackCount;i++){
+          (function(track,idx){
+            const rawLbl = track.label || track.language || '';
+            const label = LMAP[rawLbl.toLowerCase()] || rawLbl || ('Track '+(idx+1));
+            const btn=document.createElement('button');
+            btn.className='tmDDI'+(track.enabled?' tmSel':'');
+            btn.textContent=label;
+            if(track.enabled && audActive) audActive.textContent=label;
+            btn.addEventListener('click',e=>{
+              e.stopPropagation();
+              // Disable all, enable selected
+              for(let j=0;j<trackCount;j++) vjsTracks[j].enabled=(j===idx);
+              audList.querySelectorAll('.tmDDI').forEach((b,j)=>b.classList.toggle('tmSel',j===idx));
+              if(audActive) audActive.textContent=label;
+              closeAllDD();
+            });
+            audList.appendChild(btn);
+          })(vjsTracks[i], i);
+        }
+        // Listen for future track adds (some containers lazy-load)
+        if(vjsTracks.addEventListener){
+          vjsTracks.addEventListener('addtrack',()=>buildAudioMenu());
+        }
+
+      } else if(langs.length > 0){
+        // Fallback: show filename-detected languages as labels
+        // Real switching not possible for single-stream direct MP4/MKV via HTTP
+        const note=document.createElement('div');
+        note.style.cssText='padding:8px 14px;font-size:11px;color:rgba(255,160,0,.7);border-bottom:1px solid rgba(255,160,0,.15);';
+        note.textContent='ℹ Audio tracks detected in file';
+        audList.appendChild(note);
+        langs.forEach((l,i)=>{
+          const btn=document.createElement('button');
+          btn.className='tmDDI'+(i===0?' tmSel':'');
+          btn.innerHTML=escapeHtml(l.label)+'<small style="opacity:.4;font-size:10px;margin-left:5px;">(use MX/VLC for switching)</small>';
+          btn.addEventListener('click',e=>{
+            e.stopPropagation();
+            audList.querySelectorAll('.tmDDI').forEach((b,j)=>b.classList.toggle('tmSel',j-1===i));
+            if(audActive) audActive.textContent=l.label;
+            closeAllDD();
+          });
+          audList.appendChild(btn);
+        });
+      } else {
+        const e=document.createElement('div');
+        e.style.cssText='padding:10px 14px;font-size:12px;color:rgba(255,255,255,.4);';
+        e.textContent='Single audio track';
+        audList.appendChild(e);
+      }
+    }
+
+    // Build once video metadata is ready, and again on each track change
+    vjs.on('loadedmetadata', buildAudioMenu);
+    vjs.on('audioTrackChange', buildAudioMenu);
+    buildAudioMenu(); // immediate attempt
+
+    // ── SUBTITLES via Video.js textTracks() ────────────────────────
+    const subPill=ge('tmSubPill'), subList=ge('tmSubList');
+    if(subPill) subPill.addEventListener('click',e=>{ e.stopPropagation(); togDD('tmSubDD',subPill); });
+
+    function buildSubMenu(){
+      if(!subList) return;
+      subList.innerHTML='';
+
+      const offBtn=document.createElement('button');
+      offBtn.className='tmDDI tmSel'; offBtn.textContent='Off';
+      offBtn.addEventListener('click',e=>{
+        e.stopPropagation();
+        const tt=vjs.textTracks();
+        for(let i=0;i<tt.length;i++) if(tt[i].kind==='subtitles'||tt[i].kind==='captions') tt[i].mode='disabled';
+        subList.querySelectorAll('.tmDDI').forEach((b,j)=>b.classList.toggle('tmSel',j===0));
+        closeAllDD();
+      });
+      subList.appendChild(offBtn);
+
+      const vjsText = vjs.textTracks ? vjs.textTracks() : null;
+      const textCount = vjsText ? vjsText.length : 0;
+      let added=0;
+
+      for(let i=0;i<textCount;i++){
+        const t=vjsText[i];
+        if(t.kind!=='subtitles'&&t.kind!=='captions') continue;
+        (function(track,localIdx){
+          const rawLbl=track.label||track.language||'';
+          const label=LMAP[rawLbl.toLowerCase()]||rawLbl||('Sub '+(localIdx+1));
+          const btn=document.createElement('button');
+          btn.className='tmDDI'; btn.textContent=label;
+          btn.addEventListener('click',e=>{
+            e.stopPropagation();
+            for(let j=0;j<textCount;j++){
+              const tx=vjsText[j];
+              if(tx.kind==='subtitles'||tx.kind==='captions') tx.mode=(tx===track?'showing':'disabled');
+            }
+            subList.querySelectorAll('.tmDDI').forEach((b,j)=>b.classList.toggle('tmSel',j===localIdx+1));
+            closeAllDD();
+          });
+          subList.appendChild(btn);
+          added++;
+        })(vjsText[i], added);
+      }
+
+      if(added===0 && subs.length>0){
+        subs.forEach((s,i)=>{
+          const btn=document.createElement('button'); btn.className='tmDDI';
+          btn.innerHTML=escapeHtml(s.label)+'<small style="opacity:.4;font-size:10px;margin-left:5px;">(embedded)</small>';
+          btn.addEventListener('click',e=>{ e.stopPropagation(); subList.querySelectorAll('.tmDDI').forEach((b,j)=>b.classList.toggle('tmSel',j===i+1)); closeAllDD(); });
+          subList.appendChild(btn);
+        });
+      } else if(added===0){
+        const e=document.createElement('div');
+        e.style.cssText='padding:10px 14px;font-size:12px;color:rgba(255,255,255,.4);';
+        e.textContent='No subtitles available';
+        subList.appendChild(e);
+      }
+    }
+    vjs.on('loadedmetadata', buildSubMenu);
+    buildSubMenu();
+
+    // ── Keyboard shortcuts ─────────────────────────────────────────
+    document.addEventListener('keydown',e=>{
+      if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+      if(e.code==='Space')     { e.preventDefault(); togglePlay(); }
+      if(e.code==='ArrowLeft') { e.preventDefault(); vjs.currentTime(Math.max(0,vjs.currentTime()-10)); }
+      if(e.code==='ArrowRight'){ e.preventDefault(); vjs.currentTime(Math.min(vjs.duration()||0,vjs.currentTime()+10)); }
+      if(e.code==='ArrowUp')   { e.preventDefault(); const v=Math.min(1,vjs.volume()+.1); vjs.volume(v); if(volSldr){volSldr.value=v*100;} syncVol(); }
+      if(e.code==='ArrowDown') { e.preventDefault(); const v=Math.max(0,vjs.volume()-.1); vjs.volume(v); if(volSldr){volSldr.value=v*100;} syncVol(); }
+      if(e.code==='KeyF'&&fsBtn) fsBtn.click();
+      if(e.code==='KeyM'&&muteBtn) muteBtn.click();
+    });
+
+  }); // end loadJS VJS_CDN
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
