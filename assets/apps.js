@@ -1693,9 +1693,9 @@ function append_search_result_to_list(files) {
 }
 
 // Modified onSearchResultItemClick function
-// Button display logic based on UI.show_get2shot_nowshort config and login status:
-// - If show_get2shot_nowshort is TRUE and user is NOT logged in → Get2Short/Nowshort buttons
-// - Otherwise (logged in OR show_get2shot_nowshort is FALSE) → "Open in Chrome" button
+// Button display logic based on UI.show_url_shortener config and login status:
+// - If show_url_shortener is TRUE and user is NOT logged in → Get2Short/Nowshort buttons
+// - Otherwise (logged in OR show_url_shortener is FALSE) → "Open in Chrome" button
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
@@ -1762,16 +1762,16 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     
     // Check configuration and login status to determine which buttons to show
     const userLoggedIn = isUserLoggedIn();
-    const showGet2ShortNowshort = typeof UI !== 'undefined' && UI.show_get2shot_nowshort === true;
+    const showUrlShortener = typeof UI !== 'undefined' && UI.show_url_shortener === true;
     
     // Decision logic:
-    // - If show_get2shot_nowshort is true AND user is NOT logged in → Show Get2Short/Nowshort
+    // - If show_url_shortener is true AND user is NOT logged in → Show Get2Short/Nowshort
     // - Otherwise → Show Chrome button
-    const shouldShowShorteners = showGet2ShortNowshort && !userLoggedIn;
+    const shouldShowShorteners = showUrlShortener && !userLoggedIn;
     
     if (!shouldShowShorteners) {
         // ===== Show Direct Chrome Button =====
-        log('Showing direct Chrome button (logged in: ' + userLoggedIn + ', config: ' + showGet2ShortNowshort + ')');
+        log('Showing direct Chrome button (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
         
         // Create Chrome button HTML with direct URL (exact same as working version)
         const chromeButtonHtml = `
@@ -1790,7 +1790,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         
     } else {
         // ===== Show Get2Short and Nowshort =====
-        log('Showing Get2Short and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showGet2ShortNowshort + ')');
+        log('Showing Get2Short and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
         
         // Show content with loading buttons immediately
         const loadingButtons = `
