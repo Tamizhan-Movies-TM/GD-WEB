@@ -1437,9 +1437,11 @@ function append_files_to_list(path, files) {
 	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 	// When it is the last page, count and display the total number of items
 	if (is_lastpage_loaded) {
-		total_size = formatFileSize(totalsize) || '0 Bytes';
-		total_items = $list.find('.countitems').length;
-		total_files = $list.find('.size_items').length;
+		// ✅ FIX BUG #4 (part 1/2): Declare with const — previously assigned without any
+		// declaration keyword, creating implicit globals that break in strict mode.
+		const total_size = formatFileSize(totalsize) || '0 Bytes';
+		const total_items = $list.find('.countitems').length;
+		const total_files = $list.find('.size_items').length;
 		if (total_items == 0) {
 			$('#count').removeClass('d-none').find('.number').text("0 item");
 		} else if (total_items == 1) {
@@ -1669,9 +1671,10 @@ function append_search_result_to_list(files) {
 	if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 		// When it is the last page, count and display the total number of items
 		if (is_lastpage_loaded) {
-			total_size = formatFileSize(totalsize) || '0 Bytes';
-			total_items = $list.find('.countitems').length;
-			total_files = $list.find('.size_items').length;
+			// ✅ FIX BUG #4 (part 2/2): Declare with const — previously implicit globals.
+			const total_size = formatFileSize(totalsize) || '0 Bytes';
+			const total_items = $list.find('.countitems').length;
+			const total_files = $list.find('.size_items').length;
 			if (total_items == 0) {
 				$('#count').removeClass('d-none').find('.number').text("0 item");
 			} else if (total_items == 1) {
