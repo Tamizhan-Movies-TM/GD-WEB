@@ -1692,7 +1692,10 @@ function append_search_result_to_list(files) {
 	}
 }
 
-// Modified onSearchResultItemClick function - Shows direct link for logged-in users, Get2Short/Nowshort for non-logged users
+// Modified onSearchResultItemClick function
+// Button display logic based on UI.show_url_shortener config and login status:
+// - If show_url_shortener is TRUE and user is NOT logged in → Get2Short/Nowshort buttons
+// - Otherwise (logged in OR show_url_shortener is FALSE) → "Open in Chrome" button
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
     
@@ -1757,10 +1760,18 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     
     $('#modal-body-space').html(content);
     
-    // Check if user is logged in
-    if (isUserLoggedIn()) {
-        // ===== LOGGED-IN USER: Show Direct Chrome Button =====
-        log('User is logged in - showing direct Chrome button');
+    // Check configuration and login status to determine which buttons to show
+    const userLoggedIn = isUserLoggedIn();
+    const showUrlShortener = typeof UI !== 'undefined' && UI.show_url_shortener === true;
+    
+    // Decision logic:
+    // - If show_url_shortener is true AND user is NOT logged in → Show Get2Short/Nowshort
+    // - Otherwise → Show Chrome button
+    const shouldShowShorteners = showUrlShortener && !userLoggedIn;
+    
+    if (!shouldShowShorteners) {
+        // ===== Show Direct Chrome Button =====
+        log('Showing direct Chrome button (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
         
         // Create Chrome button HTML with direct URL (exact same as working version)
         const chromeButtonHtml = `
@@ -1778,8 +1789,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
         
     } else {
-        // ===== NON-LOGGED-IN USER: Show Get2Short and Nowshort =====
-        log('User is not logged in - generating Get2Short and Nowshort links');
+        // ===== Show Get2Short and Nowshort =====
+        log('Showing Get2Short and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
         
         // Show content with loading buttons immediately
         const loadingButtons = `
@@ -2157,7 +2168,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
             ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          ${isUserLoggedIn() 
+          ${isUserLoggedIn() || !UI.enable_gkyfilehost
             ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
                </a>`
@@ -2269,7 +2280,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          ${isUserLoggedIn() 
+          ${isUserLoggedIn() || !UI.enable_gkyfilehost
             ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
                </a>`
@@ -2432,7 +2443,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? ` 
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn" 
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``} 
-          ${isUserLoggedIn() 
+          ${isUserLoggedIn() || !UI.enable_gkyfilehost
             ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
                </a>`
@@ -2570,7 +2581,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                     <div class="text-center">
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
-                            ${isUserLoggedIn() 
+                            ${isUserLoggedIn() || !UI.enable_gkyfilehost
             ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 
                </a>`
