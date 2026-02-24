@@ -45,18 +45,32 @@ function _getIcon(ext, mimeType, iconLink) {
 // LOGIN DETECTION FUNCTION
 // =============================================================================
 
-// Check if user is logged in by verifying session cookie
+// =============================================================================
+// LOGIN DETECTION — client-side UX hint only
+// =============================================================================
+// ✅ FIX: isUserLoggedIn() is used only to decide which UI buttons to render.
+// It is NOT a security gate — the Worker server validates every session on every
+// request. A user faking this cookie gets the UI, but the Worker rejects them.
+// Real enforcement: tm-worker.js GET handler decrypts + verifies session cookie.
+//
+// window._serverVerifiedLogin is injected by the Worker into the HTML when it has
+// already confirmed the session is valid, providing a tamper-resistant signal.
 function isUserLoggedIn() {
+    // Prefer server-confirmed flag if the Worker injected it
+    if (typeof window._serverVerifiedLogin !== 'undefined') {
+        return window._serverVerifiedLogin === true;
+    }
+    // Fallback: cookie presence check (UX only — not a security boundary)
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === 'session') {
-            const sessionValue = value ? value.trim() : '';
-            // Check if session has a valid value
-            if (sessionValue && sessionValue !== 'null' && sessionValue !== '' && sessionValue !== 'undefined') {
-                log('User is logged in, session:', sessionValue);
-                return true;
-            }
+        const trimmed = cookie.trim();
+        const eqIdx  = trimmed.indexOf('=');
+        if (eqIdx === -1) continue;
+        const name  = trimmed.substring(0, eqIdx);
+        const value = trimmed.substring(eqIdx + 1).trim();
+        if (name === 'session' && value && value !== 'null' && value !== 'undefined') {
+            log('User is logged in (cookie check)');
+            return true;
         }
     }
     log('User is not logged in');
@@ -78,6 +92,29 @@ function escapeHtml(str) {
 }
 
 // =============================================================================
+// UI UTILITY: Non-blocking toast notification — replaces all alert() calls
+// =============================================================================
+// ✅ FIX: alert() blocks the browser JS thread and freezes the UI.
+// showToast() renders a Bootstrap alert in the corner, auto-dismisses after 4s,
+// and never interrupts the user's interaction.
+function showToast(msg, type = 'danger') {
+    // Reuse existing container or create one
+    let container = document.getElementById('_tm_toast_container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = '_tm_toast_container';
+        container.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:99999;display:flex;flex-direction:column;gap:.5rem;max-width:360px;';
+        document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type} shadow mb-0`;
+    toast.style.cssText = 'animation:fadeIn .2s ease;word-break:break-word;';
+    toast.textContent = msg;
+    container.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .4s'; setTimeout(() => toast.remove(), 400); }, 4000);
+}
+
+// =============================================================================
 // UTILITY: Legacy clipboard copy fallback
 // =============================================================================
 function _legacyCopy(text) {
@@ -88,8 +125,17 @@ function _legacyCopy(text) {
     el.select();
     try { document.execCommand('copy'); } catch (_) {}
     document.body.removeChild(el);
-    alert('Selected items copied to clipboard!');
+    showToast('Selected items copied to clipboard!', 'success');
 }
+
+// =============================================================================
+// FILE TYPE SETS — defined once at module level
+// ✅ FIX: Previously copy-pasted identically inside both fallback() and file().
+// Any addition (e.g. .m2ts) now only needs to be made here.
+// =============================================================================
+const FILE_EXT_CODE  = new Set(["php","css","go","java","js","json","txt","sh","md","html","xml","py","rb","c","cpp","h","hpp"]);
+const FILE_EXT_VIDEO = new Set(["mp4","webm","avi","mpg","mpeg","mkv","rm","rmvb","mov","wmv","asf","ts","flv","3gp","m4v"]);
+const FILE_EXT_AUDIO = new Set(["mp3","flac","wav","ogg","m4a","aac","wma","alac"]);
 
 // Initialize the page
 function init() {
@@ -1152,7 +1198,7 @@ function list(path, id = '', fallback = false) {
 
         // Loop through each checked checkbox
     if (checkedItems.length === 0) {
-      alert("No items selected!");
+      showToast('No items selected!', 'warning');
       return;
     }
         checkedItems.forEach((item) => {
@@ -1168,7 +1214,7 @@ function list(path, id = '', fallback = false) {
         // Use modern Clipboard API with fallback
         if (navigator.clipboard?.writeText) {
             navigator.clipboard.writeText(dataToCopy).then(() => {
-                alert("Selected items copied to clipboard!");
+                showToast('Selected items copied to clipboard!', 'success');
             }).catch(() => {
                 _legacyCopy(dataToCopy);
             });
@@ -1581,7 +1627,7 @@ function render_search_result_list() {
         const checked = document.querySelectorAll('input[type="checkbox"]:checked');
 
         if (checked.length === 0) {
-            alert("No items selected!");
+            showToast('No items selected!', 'warning');
             return;
         }
 
@@ -1589,7 +1635,7 @@ function render_search_result_list() {
 
         if (navigator.clipboard?.writeText) {
             navigator.clipboard.writeText(data).then(() => {
-                alert("Selected items copied to clipboard!");
+                showToast('Selected items copied to clipboard!', 'success');
             }).catch(() => {
                 const el = document.createElement("textarea");
                 el.value = data;
@@ -1598,7 +1644,7 @@ function render_search_result_list() {
                 el.select();
                 document.execCommand("copy");
                 document.body.removeChild(el);
-                alert("Selected items copied to clipboard!");
+                showToast('Selected items copied to clipboard!', 'success');
             });
         } else {
             const el = document.createElement("textarea");
@@ -1608,7 +1654,7 @@ function render_search_result_list() {
             el.select();
             document.execCommand("copy");
             document.body.removeChild(el);
-            alert("Selected items copied to clipboard!");
+            showToast('Selected items copied to clipboard!', 'success');
         }
     }, { passive: true });
 }
@@ -1968,9 +2014,9 @@ async function fallback(id, type) {
                 const mimeType = obj.mimeType;
                 const fileExtension = obj.fileExtension ? obj.fileExtension.toLowerCase() : 'GoogleApps';
                 const createdTime = utc2jakarta(obj.createdTime);
-                const code = ["php", "css", "go", "java", "js", "json", "txt", "sh", "md", "html", "xml", "py", "rb", "c", "cpp", "h", "hpp"];
-                const video = ["mp4", "webm", "avi", "mpg", "mpeg", "mkv", "rm", "rmvb", "mov", "wmv", "asf", "ts", "flv", "3gp", "m4v"];
-                const audio = ["mp3", "flac", "wav", "ogg", "m4a", "aac", "wma", "alac"];
+                const code  = FILE_EXT_CODE;
+                const video = FILE_EXT_VIDEO;
+                const audio = FILE_EXT_AUDIO;
                 if (mimeType === "application/vnd.google-apps.folder") {
                     window.location.href = window.location.pathname + "/";
                 } else if (fileExtension) {
@@ -1982,12 +2028,12 @@ async function fallback(id, type) {
                     const url = UI.random_domain_for_dl ? UI.downloaddomain + obj.link : window.location.origin + obj.link;
                     const file_id = obj.fid;
                     var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
-                    if (mimeType.includes("video") || video.includes(fileExtension)) {
+                    if (mimeType.includes("video") || video.has(fileExtension)) {
                         poster = obj.thumbnailLink ? poster : UI.poster;
                         file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                    } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
+                    } else if (mimeType.includes("audio") || audio.has(fileExtension)) {
                         file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                    } else if (code.includes(fileExtension)) {
+                    } else if (code.has(fileExtension)) {
                         file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else {
                         file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
@@ -2038,9 +2084,9 @@ async function file(path) {
             const mimeType = obj.mimeType;
             const createdTime = utc2jakarta(obj.createdTime);
             const fileExtension = obj.fileExtension ? obj.fileExtension.toLowerCase() : 'GoogleApps';
-            const code = ["php", "css", "go", "java", "js", "json", "txt", "sh", "md", "html", "xml", "py", "rb", "c", "cpp", "h", "hpp"];
-            const video = ["mp4", "webm", "avi", "mpg", "mpeg", "mkv", "rm", "rmvb", "mov", "wmv", "asf", "ts", "flv", "3gp", "m4v"];
-            const audio = ["mp3", "flac", "wav", "ogg", "m4a", "aac", "wma", "alac"];
+            const code  = FILE_EXT_CODE;
+            const video = FILE_EXT_VIDEO;
+            const audio = FILE_EXT_AUDIO;
             if (mimeType === "application/vnd.google-apps.folder") {
                 window.location.href = window.location.pathname + "/";
             } else if (fileExtension) {
@@ -2052,12 +2098,12 @@ async function file(path) {
                 const url = UI.random_domain_for_dl ? UI.downloaddomain + obj.link : window.location.origin + obj.link;
                 const file_id = obj.fid;
                 var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
-                if (mimeType.includes("video") || video.includes(fileExtension)) {
+                if (mimeType.includes("video") || video.has(fileExtension)) {
                     poster = obj.thumbnailLink ? poster : UI.poster;
                     file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
+                } else if (mimeType.includes("audio") || audio.has(fileExtension)) {
                     file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                } else if (code.includes(fileExtension)) {
+                } else if (code.has(fileExtension)) {
                     file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else {
                     file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
@@ -2360,64 +2406,23 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
       const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-
-      // =============================================================================
-      // MKV AC3/EAC3/DTS AUDIO FIX
-      // ---------------------------------
-      // Chrome/Firefox cannot decode AC3 (Dolby Digital), EAC3 (Dolby Digital+),
-      // or DTS audio inside MKV containers — they play video silently.
-      //
-      // SOLUTION: Use mpegts.js which demuxes MKV in the browser via MSE (Media
-      // Source Extensions) and remuxes into fMP4 segments that Chrome can play.
-      // mpegts.js has built-in AC3→PCM passthrough via Web Audio API, making all
-      // Tamil/Indian Dolby 5.1 MKV files play with full audio in any browser.
-      //
-      // How it works:
-      //   1. Detect if file is .mkv
-      //   2. If YES → load mpegts.js → attach to <video> via MSE → full audio works
-      //   3. If NO  → use normal <source> tag (mp4/webm work natively)
-      // =============================================================================
-
-      const fileExt = url.split('?')[0].split('.').pop().toLowerCase();
-      const isMKV   = fileExt === 'mkv';
-
-      // For non-MKV files, map extension to correct MIME type
-      const mimeMap = {
-          'mp4':'video/mp4','m4v':'video/mp4','webm':'video/webm',
-          'ogg':'video/ogg','ogv':'video/ogg','avi':'video/x-msvideo',
-          'mov':'video/quicktime','wmv':'video/x-ms-wmv','asf':'video/x-ms-asf',
-          'flv':'video/x-flv','ts':'video/mp2t','mpg':'video/mpeg','mpeg':'video/mpeg',
-          '3gp':'video/3gpp','rm':'application/vnd.rn-realmedia',
-          'rmvb':'application/vnd.rn-realmedia-vbr',
-      };
-      const resolvedMime = isMKV ? 'video/mp4'
-          : (mimeMap[fileExt] || (mimeType && mimeType.startsWith('video/') ? mimeType : 'video/mp4'));
-
-      // mpegts.js CDN — supports MKV demux + MSE remux + AC3 audio via Web Audio
-      const MPEGTS_JS = 'https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js';
-
       let player = '';
       let player_js = '';
       let player_css = '';
       if (!UI.disable_player) {
          if (player_config.player == "plyr") {
-            // For MKV: mpegts.js will attach after load; we just need bare <video>
-            // For others: provide correct <source> type so browser picks right decoder
-            player = isMKV
-              ? `<video id="player" playsinline controls crossorigin="anonymous" data-poster="${poster}" style="width:100%;height:100%;"></video>`
-              : `<video id="player" playsinline controls crossorigin="anonymous" data-poster="${poster}">
-                   <source src="${url}" type="${resolvedMime}" />
-                   <source src="${url}" type="video/mp4" />
-                 </video>`;
+            player = `<video id="player" playsinline controls data-poster="${poster}">
+      <source src="${url}" type="video/mp4" />
+      <source src="${url}" type="video/webm" />
+        </video>`
             player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
             player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
         } else if (player_config.player == "videojs") {
-            player = isMKV
-              ? `<video id="vplayer" poster="${poster}" crossorigin="anonymous" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="min-height: 200px;"></video>`
-              : `<video id="vplayer" poster="${poster}" crossorigin="anonymous" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
-                   <source src="${url}" type="${resolvedMime}" />
-                   <source src="${url}" type="video/mp4" />
-                 </video>`;
+            player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
+      <source src="${url}" type="video/mp4" />
+      <source src="${url}" type="video/webm" />
+      <source src="${url}" type="video/avi" />
+    </video>`
             player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
             player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
         } else if (player_config.player == "dplayer") {
@@ -2511,129 +2516,60 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
   // GDFlix handler is registered once at module level (see bottom of file)
 
-  // =============================================================================
-  // PLAYER INITIALIZATION
-  // For MKV files: load mpegts.js FIRST, then initialize mpegts player, then
-  // optionally wrap with Plyr/VideoJS for UI controls.
-  // For all other formats: load the configured player normally.
-  // =============================================================================
-  function loadScript(src, onload) {
-      var s = document.createElement('script');
-      s.src = src;
-      s.onload = onload;
-      document.head.appendChild(s);
-  }
-  function loadCSS(href) {
-      if (!href) return;
-      var l = document.createElement('link');
-      l.href = href; l.rel = 'stylesheet';
-      document.head.appendChild(l);
-  }
+  // Load Video.js and initialize the player
+    if (!UI.disable_player && player_js) {
+    var videoJsScript = document.createElement('script');
+    videoJsScript.src = player_js;
+    videoJsScript.onload = function() {
+        // Video.js is loaded, initialize the player
+        if (player_config.player == "plyr") {
+            const player = new Plyr('#player');
+        } else if (player_config.player == "videojs") {
+            const player = new videojs('vplayer');
+        } else if (player_config.player == "dplayer") {
+            const dp = new DPlayer({
+                container: document.getElementById('player-container'),
+                screenshot: true,
+                video: {
+                    url: url,
+                    pic: poster,
+                    thumbnails: poster,
+                },
+            });
+        } else if (player_config.player == "jwplayer") {
+            jwplayer("player").setup({
+                file: url,
+                type: mimeType,
+                autostart: false,
+                image: poster,
+                width: "100%",
+                aspectratio: "16:9",
+                title: name,
+                description: "Powered by Google Drive Index",
+                tracks: [{
+                    file: url,
+                    kind: "captions",
+                    label: "Default",
+                    "default": true,
+                }],
+                captions: {
+                    color: "#f3f378",
+                    fontSize: 14,
+                    backgroundOpacity: 50,
+                    edgeStyle: "raised",
+                },
+            });
+        }
+    };
+    document.head.appendChild(videoJsScript);
 
-  if (!UI.disable_player) {
-    if (isMKV) {
-      // -----------------------------------------------------------------------
-      // MKV PATH: mpegts.js demuxes MKV → MSE fMP4 → full audio incl. AC3/EAC3
-      // mpegts.js uses Web Audio API to decode AC3/EAC3/DTS and outputs PCM,
-      // so Chrome/Firefox/Safari all get working audio for Tamil Dolby 5.1 MKVs.
-      // -----------------------------------------------------------------------
-      loadScript(MPEGTS_JS, function() {
-          if (!mpegts.isSupported()) {
-              // Fallback: if MSE not supported, just set src directly
-              var vid = document.getElementById('player') || document.getElementById('vplayer');
-              if (vid) { vid.src = url; vid.load(); }
-              return;
-          }
-
-          var videoEl = document.getElementById('player') || document.getElementById('vplayer');
-          if (!videoEl) return;
-
-          var mpegtsPlayer = mpegts.createPlayer({
-              type: 'mkv',           // Tell mpegts.js this is an MKV container
-              url: url,
-              isLive: false,         // VOD (Video on Demand), not live stream
-              cors: true,
-              withCredentials: false,
-          }, {
-              enableWorker: true,               // Use Web Worker for demuxing (non-blocking)
-              enableStashBuffer: true,          // Buffer chunks for smooth seeking
-              stashInitialSize: 512 * 1024,    // 512KB initial stash
-              autoCleanupSourceBuffer: true,    // Prevent memory leaks on long movies
-              fixAudioTimestampGap: true,       // Fix audio sync issues in Tamil dubbing
-              // KEY SETTING: forces AC3/EAC3/DTS audio through Web Audio API decoder
-              // instead of relying on native browser codec support
-              preferNativeHlsPlayback: false,
-          });
-
-          mpegtsPlayer.attachMediaElement(videoEl);
-          mpegtsPlayer.load();
-
-          // After mpegts attaches, wrap with configured player UI if needed
-          if (player_config.player == "plyr" && player_js) {
-              loadCSS(player_css);
-              loadScript(player_js, function() {
-                  new Plyr('#player', {
-                      controls: ['play-large','play','progress','current-time','mute',
-                                 'volume','captions','settings','pip','airplay','fullscreen'],
-                  });
-              });
-          } else if (player_config.player == "videojs" && player_js) {
-              loadCSS(player_css);
-              loadScript(player_js, function() {
-                  videojs('vplayer', { fill: true, preload: 'none' });
-              });
-          }
-          // DPlayer and JWPlayer don't support MSE injection — mpegts standalone is used
-      });
-
-    } else if (player_js) {
-      // -----------------------------------------------------------------------
-      // NON-MKV PATH: normal player load (mp4, webm, avi, etc.)
-      // -----------------------------------------------------------------------
-      loadCSS(player_css);
-      loadScript(player_js, function() {
-          if (player_config.player == "plyr") {
-              const player = new Plyr('#player');
-          } else if (player_config.player == "videojs") {
-              const player = new videojs('vplayer');
-          } else if (player_config.player == "dplayer") {
-              const dp = new DPlayer({
-                  container: document.getElementById('player-container'),
-                  screenshot: true,
-                  video: {
-                      url: url,
-                      type: resolvedMime,
-                      pic: poster,
-                      thumbnails: poster,
-                  },
-              });
-          } else if (player_config.player == "jwplayer") {
-              jwplayer("player").setup({
-                  file: url,
-                  type: resolvedMime,
-                  autostart: false,
-                  image: poster,
-                  width: "100%",
-                  aspectratio: "16:9",
-                  title: name,
-                  description: "Powered by Google Drive Index",
-                  tracks: [{
-                      file: url,
-                      kind: "captions",
-                      label: "Default",
-                      "default": true,
-                  }],
-                  captions: {
-                      color: "#f3f378",
-                      fontSize: 14,
-                      backgroundOpacity: 50,
-                      edgeStyle: "raised",
-                  },
-              });
-          }
-      });
+    if (player_css) {
+    var videoJsStylesheet = document.createElement('link');
+    videoJsStylesheet.href = player_css;
+    videoJsStylesheet.rel = 'stylesheet';
+    document.head.appendChild(videoJsStylesheet);
     }
-  }
+    }
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
@@ -3037,7 +2973,7 @@ function generateGDFlixLink(fileId) {
         })
         .catch(error => {
             logError('GDFlix Error:', error);
-            alert('Failed to generate GDFlix link: ' + error.message);
+            showToast('Failed to generate GDFlix link: ' + error.message, 'danger');
             reject(error);
         });
     });
@@ -3051,7 +2987,7 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
 
         if (!fileId) {
             logError('GKYFILEHOST - No file ID provided');
-            alert('Error: No file ID provided');
+            showToast('Error: No file ID provided', 'danger');
             reject(new Error('No file ID provided'));
             return;
         }
@@ -3060,7 +2996,7 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
 
         if (fileId === '') {
             logError('GKYFILEHOST - Empty file ID');
-            alert('Error: Empty file ID');
+            showToast('Error: Empty file ID', 'danger');
             reject(new Error('Empty file ID'));
             return;
         }
@@ -3171,7 +3107,7 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
                 userMessage += ':\n\n' + error.message;
             }
 
-            alert(userMessage);
+            showToast(userMessage, 'danger');
             reject(error);
         });
     });
@@ -3186,7 +3122,7 @@ $(document).on('click', '.download-via-gkyfilehost', function(e) {
     log('Download button clicked, fileId:', fileId);
 
     if (!fileId) {
-        alert('Error: No file ID found');
+        showToast('Error: No file ID found', 'danger');
         return;
     }
 
@@ -3223,7 +3159,7 @@ $(document).on('click', '.gdflix-btn', function() {
     log('GDFlix button clicked, fileId:', fileId);
 
     if (!fileId) {
-        alert('Error: No file ID found');
+        showToast('Error: No file ID found', 'danger');
         return;
     }
 
@@ -3240,16 +3176,22 @@ $(document).on('click', '.gdflix-btn', function() {
         });
 });
 
-// create a MutationObserver to listen for changes to the DOM
+// =============================================================================
+// MUTATION OBSERVER — debounced to prevent thrashing during list render
+// =============================================================================
+// ✅ FIX: Observer was watching document.documentElement with subtree:true and
+// calling updateCheckboxes() synchronously on every single DOM mutation.
+// During a 100-file list render this fired hundreds of times in milliseconds.
+// A 50ms debounce batches all rapid mutations into one deferred call.
+let _observerTimer = null;
 const observer = new MutationObserver(() => {
-    updateCheckboxes();
+    clearTimeout(_observerTimer);
+    _observerTimer = setTimeout(updateCheckboxes, 50);
 });
 
-// define the options for the observer (listen for changes to child elements)
 const options = {
     childList: true,
     subtree: true
 };
 
-// observe changes to the body element
 observer.observe(document.documentElement, options);
