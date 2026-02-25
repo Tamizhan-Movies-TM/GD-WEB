@@ -648,6 +648,7 @@ function initializeLoginModal() {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
+                credentials: 'include',
                 body: formData.toString()
             });
 
@@ -666,11 +667,11 @@ function initializeLoginModal() {
             showError('Network error. Please try again.');
             logError('Login error:', error);
         } finally {
-            // Always re-enable button
-            const submitBtn = document.getElementById('submitBtn');
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+            // Always re-enable submit button
+            const _btn = document.getElementById('submitBtn');
+            if (_btn) {
+                _btn.disabled = false;
+                _btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
             }
         }
     });
