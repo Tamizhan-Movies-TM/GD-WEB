@@ -45,32 +45,18 @@ function _getIcon(ext, mimeType, iconLink) {
 // LOGIN DETECTION FUNCTION
 // =============================================================================
 
-// =============================================================================
-// LOGIN DETECTION — client-side UX hint only
-// =============================================================================
-// ✅ FIX: isUserLoggedIn() is used only to decide which UI buttons to render.
-// It is NOT a security gate — the Worker server validates every session on every
-// request. A user faking this cookie gets the UI, but the Worker rejects them.
-// Real enforcement: tm-worker.js GET handler decrypts + verifies session cookie.
-//
-// window._serverVerifiedLogin is injected by the Worker into the HTML when it has
-// already confirmed the session is valid, providing a tamper-resistant signal.
+// Check if user is logged in by verifying session cookie
 function isUserLoggedIn() {
-    // Prefer server-confirmed flag if the Worker injected it
-    if (typeof window._serverVerifiedLogin !== 'undefined') {
-        return window._serverVerifiedLogin === true;
-    }
-    // Fallback: cookie presence check (UX only — not a security boundary)
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
-        const trimmed = cookie.trim();
-        const eqIdx  = trimmed.indexOf('=');
-        if (eqIdx === -1) continue;
-        const name  = trimmed.substring(0, eqIdx);
-        const value = trimmed.substring(eqIdx + 1).trim();
-        if (name === 'session' && value && value !== 'null' && value !== 'undefined') {
-            log('User is logged in (cookie check)');
-            return true;
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'session') {
+            const sessionValue = value ? value.trim() : '';
+            // Check if session has a valid value
+            if (sessionValue && sessionValue !== 'null' && sessionValue !== '' && sessionValue !== 'undefined') {
+                log('User is logged in, session:', sessionValue);
+                return true;
+            }
         }
     }
     log('User is not logged in');
@@ -92,29 +78,6 @@ function escapeHtml(str) {
 }
 
 // =============================================================================
-// UI UTILITY: Non-blocking toast notification — replaces all alert() calls
-// =============================================================================
-// ✅ FIX: alert() blocks the browser JS thread and freezes the UI.
-// showToast() renders a Bootstrap alert in the corner, auto-dismisses after 4s,
-// and never interrupts the user's interaction.
-function showToast(msg, type = 'danger') {
-    // Reuse existing container or create one
-    let container = document.getElementById('_tm_toast_container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = '_tm_toast_container';
-        container.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:99999;display:flex;flex-direction:column;gap:.5rem;max-width:360px;';
-        document.body.appendChild(container);
-    }
-    const toast = document.createElement('div');
-    toast.className = `alert alert-${type} shadow mb-0`;
-    toast.style.cssText = 'animation:fadeIn .2s ease;word-break:break-word;';
-    toast.textContent = msg;
-    container.appendChild(toast);
-    setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .4s'; setTimeout(() => toast.remove(), 400); }, 4000);
-}
-
-// =============================================================================
 // UTILITY: Legacy clipboard copy fallback
 // =============================================================================
 function _legacyCopy(text) {
@@ -125,17 +88,8 @@ function _legacyCopy(text) {
     el.select();
     try { document.execCommand('copy'); } catch (_) {}
     document.body.removeChild(el);
-    showToast('Selected items copied to clipboard!', 'success');
+    alert('Selected items copied to clipboard!');
 }
-
-// =============================================================================
-// FILE TYPE SETS — defined once at module level
-// ✅ FIX: Previously copy-pasted identically inside both fallback() and file().
-// Any addition (e.g. .m2ts) now only needs to be made here.
-// =============================================================================
-const FILE_EXT_CODE  = new Set(["php","css","go","java","js","json","txt","sh","md","html","xml","py","rb","c","cpp","h","hpp"]);
-const FILE_EXT_VIDEO = new Set(["mp4","webm","avi","mpg","mpeg","mkv","rm","rmvb","mov","wmv","asf","ts","flv","3gp","m4v"]);
-const FILE_EXT_AUDIO = new Set(["mp3","flac","wav","ogg","m4a","aac","wma","alac"]);
 
 // Initialize the page
 function init() {
@@ -1198,7 +1152,7 @@ function list(path, id = '', fallback = false) {
 
         // Loop through each checked checkbox
     if (checkedItems.length === 0) {
-      showToast('No items selected!', 'warning');
+      alert("No items selected!");
       return;
     }
         checkedItems.forEach((item) => {
@@ -1214,7 +1168,7 @@ function list(path, id = '', fallback = false) {
         // Use modern Clipboard API with fallback
         if (navigator.clipboard?.writeText) {
             navigator.clipboard.writeText(dataToCopy).then(() => {
-                showToast('Selected items copied to clipboard!', 'success');
+                alert("Selected items copied to clipboard!");
             }).catch(() => {
                 _legacyCopy(dataToCopy);
             });
@@ -1627,7 +1581,7 @@ function render_search_result_list() {
         const checked = document.querySelectorAll('input[type="checkbox"]:checked');
 
         if (checked.length === 0) {
-            showToast('No items selected!', 'warning');
+            alert("No items selected!");
             return;
         }
 
@@ -1635,7 +1589,7 @@ function render_search_result_list() {
 
         if (navigator.clipboard?.writeText) {
             navigator.clipboard.writeText(data).then(() => {
-                showToast('Selected items copied to clipboard!', 'success');
+                alert("Selected items copied to clipboard!");
             }).catch(() => {
                 const el = document.createElement("textarea");
                 el.value = data;
@@ -1644,7 +1598,7 @@ function render_search_result_list() {
                 el.select();
                 document.execCommand("copy");
                 document.body.removeChild(el);
-                showToast('Selected items copied to clipboard!', 'success');
+                alert("Selected items copied to clipboard!");
             });
         } else {
             const el = document.createElement("textarea");
@@ -1654,7 +1608,7 @@ function render_search_result_list() {
             el.select();
             document.execCommand("copy");
             document.body.removeChild(el);
-            showToast('Selected items copied to clipboard!', 'success');
+            alert("Selected items copied to clipboard!");
         }
     }, { passive: true });
 }
@@ -1750,9 +1704,25 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
     $('#SearchModelLabel').html(title);
 
-    // Create the direct URL
-    const encodedFileId = encodeURIComponent(file_id);
-    const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
+    // ── PATCH: Request a secure packed fallback URL from the server ──────────
+    // The server generates token.exp.sig (expiry + HMAC + IP lock).
+    // We cannot build this on the client side — the keys live only on the server.
+    let directUrl = null;
+    try {
+        const res = await fetch('/generate-fallback-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: file_id, view: can_preview ? 'true' : 'false' })
+        });
+        if (res.ok) {
+            const data = await res.json();
+            directUrl = data.url || null;
+        }
+    } catch (_) {}
+    // Fallback: if endpoint unavailable, degrade gracefully (no direct URL)
+    if (!directUrl) {
+        directUrl = window.location.origin + '/fallback';
+    }
 
     // Function to get Chrome open URL
     function getChromeOpenUrl(url) {
@@ -2014,9 +1984,9 @@ async function fallback(id, type) {
                 const mimeType = obj.mimeType;
                 const fileExtension = obj.fileExtension ? obj.fileExtension.toLowerCase() : 'GoogleApps';
                 const createdTime = utc2jakarta(obj.createdTime);
-                const code  = FILE_EXT_CODE;
-                const video = FILE_EXT_VIDEO;
-                const audio = FILE_EXT_AUDIO;
+                const code = ["php", "css", "go", "java", "js", "json", "txt", "sh", "md", "html", "xml", "py", "rb", "c", "cpp", "h", "hpp"];
+                const video = ["mp4", "webm", "avi", "mpg", "mpeg", "mkv", "rm", "rmvb", "mov", "wmv", "asf", "ts", "flv", "3gp", "m4v"];
+                const audio = ["mp3", "flac", "wav", "ogg", "m4a", "aac", "wma", "alac"];
                 if (mimeType === "application/vnd.google-apps.folder") {
                     window.location.href = window.location.pathname + "/";
                 } else if (fileExtension) {
@@ -2028,12 +1998,12 @@ async function fallback(id, type) {
                     const url = UI.random_domain_for_dl ? UI.downloaddomain + obj.link : window.location.origin + obj.link;
                     const file_id = obj.fid;
                     var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
-                    if (mimeType.includes("video") || video.has(fileExtension)) {
+                    if (mimeType.includes("video") || video.includes(fileExtension)) {
                         poster = obj.thumbnailLink ? poster : UI.poster;
                         file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                    } else if (mimeType.includes("audio") || audio.has(fileExtension)) {
+                    } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
                         file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                    } else if (code.has(fileExtension)) {
+                    } else if (code.includes(fileExtension)) {
                         file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else {
                         file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
@@ -2084,9 +2054,9 @@ async function file(path) {
             const mimeType = obj.mimeType;
             const createdTime = utc2jakarta(obj.createdTime);
             const fileExtension = obj.fileExtension ? obj.fileExtension.toLowerCase() : 'GoogleApps';
-            const code  = FILE_EXT_CODE;
-            const video = FILE_EXT_VIDEO;
-            const audio = FILE_EXT_AUDIO;
+            const code = ["php", "css", "go", "java", "js", "json", "txt", "sh", "md", "html", "xml", "py", "rb", "c", "cpp", "h", "hpp"];
+            const video = ["mp4", "webm", "avi", "mpg", "mpeg", "mkv", "rm", "rmvb", "mov", "wmv", "asf", "ts", "flv", "3gp", "m4v"];
+            const audio = ["mp3", "flac", "wav", "ogg", "m4a", "aac", "wma", "alac"];
             if (mimeType === "application/vnd.google-apps.folder") {
                 window.location.href = window.location.pathname + "/";
             } else if (fileExtension) {
@@ -2098,12 +2068,12 @@ async function file(path) {
                 const url = UI.random_domain_for_dl ? UI.downloaddomain + obj.link : window.location.origin + obj.link;
                 const file_id = obj.fid;
                 var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
-                if (mimeType.includes("video") || video.has(fileExtension)) {
+                if (mimeType.includes("video") || video.includes(fileExtension)) {
                     poster = obj.thumbnailLink ? poster : UI.poster;
                     file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                } else if (mimeType.includes("audio") || audio.has(fileExtension)) {
+                } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
                     file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                } else if (code.has(fileExtension)) {
+                } else if (code.includes(fileExtension)) {
                     file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else {
                     file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
@@ -2973,7 +2943,7 @@ function generateGDFlixLink(fileId) {
         })
         .catch(error => {
             logError('GDFlix Error:', error);
-            showToast('Failed to generate GDFlix link: ' + error.message, 'danger');
+            alert('Failed to generate GDFlix link: ' + error.message);
             reject(error);
         });
     });
@@ -2987,7 +2957,7 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
 
         if (!fileId) {
             logError('GKYFILEHOST - No file ID provided');
-            showToast('Error: No file ID provided', 'danger');
+            alert('Error: No file ID provided');
             reject(new Error('No file ID provided'));
             return;
         }
@@ -2996,7 +2966,7 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
 
         if (fileId === '') {
             logError('GKYFILEHOST - Empty file ID');
-            showToast('Error: Empty file ID', 'danger');
+            alert('Error: Empty file ID');
             reject(new Error('Empty file ID'));
             return;
         }
@@ -3107,7 +3077,7 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
                 userMessage += ':\n\n' + error.message;
             }
 
-            showToast(userMessage, 'danger');
+            alert(userMessage);
             reject(error);
         });
     });
@@ -3122,7 +3092,7 @@ $(document).on('click', '.download-via-gkyfilehost', function(e) {
     log('Download button clicked, fileId:', fileId);
 
     if (!fileId) {
-        showToast('Error: No file ID found', 'danger');
+        alert('Error: No file ID found');
         return;
     }
 
@@ -3159,7 +3129,7 @@ $(document).on('click', '.gdflix-btn', function() {
     log('GDFlix button clicked, fileId:', fileId);
 
     if (!fileId) {
-        showToast('Error: No file ID found', 'danger');
+        alert('Error: No file ID found');
         return;
     }
 
@@ -3176,22 +3146,16 @@ $(document).on('click', '.gdflix-btn', function() {
         });
 });
 
-// =============================================================================
-// MUTATION OBSERVER — debounced to prevent thrashing during list render
-// =============================================================================
-// ✅ FIX: Observer was watching document.documentElement with subtree:true and
-// calling updateCheckboxes() synchronously on every single DOM mutation.
-// During a 100-file list render this fired hundreds of times in milliseconds.
-// A 50ms debounce batches all rapid mutations into one deferred call.
-let _observerTimer = null;
+// create a MutationObserver to listen for changes to the DOM
 const observer = new MutationObserver(() => {
-    clearTimeout(_observerTimer);
-    _observerTimer = setTimeout(updateCheckboxes, 50);
+    updateCheckboxes();
 });
 
+// define the options for the observer (listen for changes to child elements)
 const options = {
     childList: true,
     subtree: true
 };
 
+// observe changes to the body element
 observer.observe(document.documentElement, options);
