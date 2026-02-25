@@ -236,17 +236,6 @@ function init() {
     display: none;
 }
 
-/* login success glitch text */
-.login-success-text {
-    font: 600 14px Menlo, Roboto Mono, monospace;
-    letter-spacing: 0.05rem;
-    color: rgb(9, 255, 0);
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    width: 100%;
-}
-
 .donate .btn {
     display: flex;
     justify-content: center;
@@ -637,26 +626,6 @@ function initializeLoginModal() {
         }
     });
 
-    // ── Single-side login ──────────────────────────────────────────────────────
-    // Credentials are validated entirely in the browser (no worker round-trip).
-    // Add / edit users below — keep this list in sync with authConfig.users_list
-    // in tm-workers.js so both sides stay consistent.
-    const LOCAL_USERS = [
-        { username: 'karthick36',  password: 'your_password_here' },
-        { username: 'Vencuttt',    password: 'your_password_here' },
-        { username: 'Admin144',    password: 'your_password_here' },
-        { username: 'Elango',      password: 'your_password_here' },
-        { username: 'Muthazhaku',  password: 'your_password_here' }
-    ];
-
-    // Sets the session cookie exactly as the worker would (30-day expiry).
-    function setSessionCookie(username, password) {
-        const LOGIN_DAYS = 30;
-        const sessionValue = btoa(username + ':' + password); // simple base64 token
-        const expires = new Date(Date.now() + LOGIN_DAYS * 86400 * 1000).toUTCString();
-        document.cookie = `session=${sessionValue}; path=/; expires=${expires}; SameSite=Lax`;
-    }
-
     // Handle login form submission
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -669,22 +638,48 @@ function initializeLoginModal() {
             return;
         }
 
-        // Local credential check — no network request needed
-        const matched = LOCAL_USERS.find(
-            u => u.username === username && u.password === password
-        );
+        // Disable button to prevent double submit
+        const submitBtn = document.getElementById('submitBtn');
+        const originalHtml = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin fa-fw"></i> Signing in...';
+        }
 
-        if (matched) {
-            setSessionCookie(username, password);
-            // Success - redirect to home or reload page
-            showError('Login successful! Redirecting...', 'success');
-            setTimeout(() => {
-                const em = document.getElementById('errorMessage');
-                if (em && em._glitchInterval) clearInterval(em._glitchInterval);
-                window.location.href = '/';
-            }, 3500);
-        } else {
-            showError('Invalid username or password');
+        try {
+            const formData = new URLSearchParams();
+            formData.append('username', username);
+            formData.append('password', password);
+
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                credentials: 'include',
+                body: formData.toString()
+            });
+
+            const data = await response.json();
+
+            if (data.ok) {
+                // Success - redirect to home or reload page
+                showError('Login successful! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
+            } else {
+                showError(data.error || 'Invalid username or password');
+            }
+        } catch (error) {
+            showError('Network error. Please try again.');
+            logError('Login error:', error);
+        } finally {
+            // Always re-enable button
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHtml || '<i class="fas fa-sign-in-alt"></i> Sign In';
+            }
         }
     });
 
@@ -694,51 +689,9 @@ function initializeLoginModal() {
         errorMessage.style.display = 'block';
 
         if (type === 'success') {
-            // Phase 1 (0-600ms): full glitch scramble — all chars cycling
-            // Phase 2 (600ms+):  reveal left to right, 1 char every 80ms
-            const glitchChars = '#.^{-!$_:0+@}?%=,;|[4<]>2~*&';
-            const originalText = message;
-            const len = originalText.length;
-            let revealed = 0;
-            let glitchInterval = null;
-            let revealInterval = null;
-
-            const render = () => {
-                let out = '';
-                for (let i = 0; i < len; i++) {
-                    if (originalText[i] === ' ') {
-                        out += '&nbsp;';
-                    } else if (i < revealed) {
-                        out += `<span style="color:rgb(9,255,0)">${originalText[i]}</span>`;
-                    } else {
-                        const gc = glitchChars[Math.floor(Math.random() * glitchChars.length)];
-                        out += `<span style="color:rgba(9,255,0,0.45)">${gc}</span>`;
-                    }
-                }
-                errorMessage.innerHTML = `<span class="login-success-text">${out}</span>`;
-            };
-
-            // Phase 1 — full scramble at 40ms
-            glitchInterval = setInterval(render, 40);
-            errorMessage._glitchInterval = glitchInterval;
-
-            // Phase 2 — start reveal after 600ms, one char per 80ms
-            setTimeout(() => {
-                clearInterval(glitchInterval);
-                revealInterval = setInterval(() => {
-                    if (revealed < len) {
-                        revealed++;
-                        render();
-                    } else {
-                        clearInterval(revealInterval);
-                    }
-                }, 80);
-                errorMessage._glitchInterval = revealInterval;
-            }, 600);
-
-            errorMessage.style.background = 'rgba(0, 255, 0, 0.05)';
-            errorMessage.style.borderColor = 'rgba(9, 255, 0, 0.4)';
-            errorMessage.style.color = 'rgb(9, 255, 0)';
+            errorMessage.style.background = 'rgba(40, 167, 69, 0.1)';
+            errorMessage.style.borderColor = 'rgba(40, 167, 69, 0.3)';
+            errorMessage.style.color = '#28a745';
         } else {
             errorMessage.style.background = 'rgba(220, 53, 69, 0.1)';
             errorMessage.style.borderColor = 'rgba(220, 53, 69, 0.3)';
