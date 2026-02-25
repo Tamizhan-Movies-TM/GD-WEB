@@ -235,6 +235,7 @@ function init() {
     color: #dc3545;
     display: none;
 }
+
 /* login success glitch text */
 .login-success-text {
     font: 600 14px Menlo, Roboto Mono, monospace;
@@ -686,8 +687,8 @@ function initializeLoginModal() {
         errorMessage.style.display = 'block';
 
         if (type === 'success') {
-            // Phase 1 (0–600ms): full glitch scramble — all chars cycling
-            // Phase 2 (600ms+):  reveal left→right, 1 char every 80ms
+            // Phase 1 (0-600ms): full glitch scramble — all chars cycling
+            // Phase 2 (600ms+):  reveal left to right, 1 char every 80ms
             const glitchChars = '#.^{-!$_:0+@}?%=,;|[4<]>2~*&';
             const originalText = message;
             const len = originalText.length;
@@ -701,10 +702,8 @@ function initializeLoginModal() {
                     if (originalText[i] === ' ') {
                         out += '&nbsp;';
                     } else if (i < revealed) {
-                        // Real char — bright green
                         out += `<span style="color:rgb(9,255,0)">${originalText[i]}</span>`;
                     } else {
-                        // Glitch char — dim green, same width
                         const gc = glitchChars[Math.floor(Math.random() * glitchChars.length)];
                         out += `<span style="color:rgba(9,255,0,0.45)">${gc}</span>`;
                     }
