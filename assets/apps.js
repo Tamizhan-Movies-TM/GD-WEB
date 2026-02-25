@@ -637,6 +637,26 @@ function initializeLoginModal() {
         }
     });
 
+    // ── Single-side login ──────────────────────────────────────────────────────
+    // Credentials are validated entirely in the browser (no worker round-trip).
+    // Add / edit users below — keep this list in sync with authConfig.users_list
+    // in tm-workers.js so both sides stay consistent.
+    const LOCAL_USERS = [
+        { username: 'karthick36',  password: 'your_password_here' },
+        { username: 'Vencuttt',    password: 'your_password_here' },
+        { username: 'Admin144',    password: 'your_password_here' },
+        { username: 'Elango',      password: 'your_password_here' },
+        { username: 'Muthazhaku',  password: 'your_password_here' }
+    ];
+
+    // Sets the session cookie exactly as the worker would (30-day expiry).
+    function setSessionCookie(username, password) {
+        const LOGIN_DAYS = 30;
+        const sessionValue = btoa(username + ':' + password); // simple base64 token
+        const expires = new Date(Date.now() + LOGIN_DAYS * 86400 * 1000).toUTCString();
+        document.cookie = `session=${sessionValue}; path=/; expires=${expires}; SameSite=Lax`;
+    }
+
     // Handle login form submission
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -649,35 +669,22 @@ function initializeLoginModal() {
             return;
         }
 
-        try {
-            const formData = new URLSearchParams();
-            formData.append('username', username);
-            formData.append('password', password);
+        // Local credential check — no network request needed
+        const matched = LOCAL_USERS.find(
+            u => u.username === username && u.password === password
+        );
 
-            const response = await fetch('/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: formData.toString()
-            });
-
-            const data = await response.json();
-
-            if (data.ok) {
-                // Success - redirect to home or reload page
-                showError('Login successful! Redirecting...', 'success');
-                setTimeout(() => {
-                    const em = document.getElementById('errorMessage');
-                    if (em && em._glitchInterval) clearInterval(em._glitchInterval);
-                    window.location.href = '/';
-                }, 3500);
-            } else {
-                showError('Invalid username or password');
-            }
-        } catch (error) {
-            showError('Network error. Please try again.');
-            logError('Login error:', error);
+        if (matched) {
+            setSessionCookie(username, password);
+            // Success - redirect to home or reload page
+            showError('Login successful! Redirecting...', 'success');
+            setTimeout(() => {
+                const em = document.getElementById('errorMessage');
+                if (em && em._glitchInterval) clearInterval(em._glitchInterval);
+                window.location.href = '/';
+            }, 3500);
+        } else {
+            showError('Invalid username or password');
         }
     });
 
