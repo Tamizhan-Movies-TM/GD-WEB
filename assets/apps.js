@@ -235,6 +235,16 @@ function init() {
     color: #dc3545;
     display: none;
 }
+/* login success glitch text */
+.login-success-text {
+    font: 600 14px Menlo, Roboto Mono, monospace;
+    letter-spacing: 0.05rem;
+    color: rgb(9, 255, 0);
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
+}
 
 .donate .btn {
     display: flex;
@@ -657,8 +667,10 @@ function initializeLoginModal() {
                 // Success - redirect to home or reload page
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
+                    const em = document.getElementById('errorMessage');
+                    if (em && em._glitchInterval) clearInterval(em._glitchInterval);
                     window.location.href = '/';
-                }, 1000);
+                }, 3500);
             } else {
                 showError('Invalid username or password');
             }
@@ -674,9 +686,53 @@ function initializeLoginModal() {
         errorMessage.style.display = 'block';
 
         if (type === 'success') {
-            errorMessage.style.background = 'rgba(40, 167, 69, 0.1)';
-            errorMessage.style.borderColor = 'rgba(40, 167, 69, 0.3)';
-            errorMessage.style.color = '#28a745';
+            // Phase 1 (0–600ms): full glitch scramble — all chars cycling
+            // Phase 2 (600ms+):  reveal left→right, 1 char every 80ms
+            const glitchChars = '#.^{-!$_:0+@}?%=,;|[4<]>2~*&';
+            const originalText = message;
+            const len = originalText.length;
+            let revealed = 0;
+            let glitchInterval = null;
+            let revealInterval = null;
+
+            const render = () => {
+                let out = '';
+                for (let i = 0; i < len; i++) {
+                    if (originalText[i] === ' ') {
+                        out += '&nbsp;';
+                    } else if (i < revealed) {
+                        // Real char — bright green
+                        out += `<span style="color:rgb(9,255,0)">${originalText[i]}</span>`;
+                    } else {
+                        // Glitch char — dim green, same width
+                        const gc = glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                        out += `<span style="color:rgba(9,255,0,0.45)">${gc}</span>`;
+                    }
+                }
+                errorMessage.innerHTML = `<span class="login-success-text">${out}</span>`;
+            };
+
+            // Phase 1 — full scramble at 40ms
+            glitchInterval = setInterval(render, 40);
+            errorMessage._glitchInterval = glitchInterval;
+
+            // Phase 2 — start reveal after 600ms, one char per 80ms
+            setTimeout(() => {
+                clearInterval(glitchInterval);
+                revealInterval = setInterval(() => {
+                    if (revealed < len) {
+                        revealed++;
+                        render();
+                    } else {
+                        clearInterval(revealInterval);
+                    }
+                }, 80);
+                errorMessage._glitchInterval = revealInterval;
+            }, 600);
+
+            errorMessage.style.background = 'rgba(0, 255, 0, 0.05)';
+            errorMessage.style.borderColor = 'rgba(9, 255, 0, 0.4)';
+            errorMessage.style.color = 'rgb(9, 255, 0)';
         } else {
             errorMessage.style.background = 'rgba(220, 53, 69, 0.1)';
             errorMessage.style.borderColor = 'rgba(220, 53, 69, 0.3)';
