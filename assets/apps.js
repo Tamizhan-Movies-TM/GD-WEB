@@ -657,7 +657,7 @@ function initializeLoginModal() {
                 // Success - redirect to home or reload page
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
-                    window.location.href = '/home';
+                    window.location.href = '/';
                 }, 1000);
             } else {
                 showError('Invalid username or password');
@@ -749,66 +749,12 @@ function getQueryVariable(variable) {
     return (false);
 }
 
-function renderHomeDriveSelector() {
-    var names = window.drive_names;
-    var driveIcons = [
-        `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 87.3 78"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>`,
-        `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 87.3 78"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#5865f2"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#eb459e"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#fee75c"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#57f287"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#eb459e"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#5865f2"/></svg>`
-    ];
-
-    var cardsHtml = `
-    <div class="col-md-12" style="text-align:center; padding: 20px 0 10px;">
-        <h2 style="color: rgba(255,255,255,0.9); font-weight: 700; letter-spacing: 1px;">
-            <i class="fas fa-film fa-fw"></i> Select a Drive
-        </h2>
-        <p style="color: rgba(255,255,255,0.5); font-size: 0.95rem;">Choose which drive you want to browse</p>
-    </div>`;
-
-    for (var i = 0; i < names.length; i++) {
-        var rawName = names[i].replace(/&nbsp;/g, ' ').trim();
-        var icon = driveIcons[i] || driveIcons[0];
-        cardsHtml += `
-        <div class="col-md-6 col-sm-12">
-            <a href="/${i}:/" style="text-decoration: none;">
-                <div class="card drive-selector-card" style="
-                    cursor: pointer;
-                    border-radius: 1rem;
-                    border: 1.5px solid rgba(255,255,255,0.12);
-                    background: rgba(0,0,0,0.55);
-                    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-                    overflow: hidden;
-                    min-height: 180px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 30px 20px;
-                    backdrop-filter: blur(10px);
-                " onmouseover="this.style.transform='scale(1.04)';this.style.boxShadow='0 8px 32px rgba(0,0,0,0.6)';this.style.borderColor='rgba(255,255,255,0.3)';"
-                   onmouseout="this.style.transform='scale(1)';this.style.boxShadow='';this.style.borderColor='rgba(255,255,255,0.12)';">
-                    <div style="text-align: center;">
-                        <div style="margin-bottom: 16px;">${icon}</div>
-                        <h4 style="color: #fff; font-weight: 700; margin: 0; font-size: 1.25rem; letter-spacing: 0.5px;">${rawName}</h4>
-                        <p style="color: rgba(255,255,255,0.5); margin: 8px 0 0; font-size: 0.85rem;">Click to browse files</p>
-                    </div>
-                </div>
-            </a>
-        </div>`;
-    }
-
-    $('#content').html(`<div class="row g-4">${cardsHtml}</div>`);
-}
-
 function render(path) {
     if (path.indexOf("?") > 0) {
         path = path.substr(0, path.indexOf("?"));
     }
     title(path);
     nav(path);
-    // Handle /home - show drive selector page
-    if (path === '/home') {
-        renderHomeDriveSelector();
-        return;
-    }
     // .../0: This
     var reg = /\/\d+:$/g;
     if (path.includes("/fallback")) {
@@ -888,7 +834,7 @@ function nav(path) {
     </li>
     ${isUserLoggedIn()
         ? '<li class="nav-item"><a class="nav-link" href="/logout"><i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>Logout</a></li>'
-        : '<li class="nav-item"><a class="nav-link" href="javascript:void(0)" id="openLoginModal" style="cursor:pointer;"><i class="fa-solid fa-user fa-fw"></i>Login</a></li>'
+        : '<li class="nav-item"><a class="nav-link" href="#" id="openLoginModal" style="cursor: pointer;"><i class="fa-solid fa-user fa-fw"></i>Login</a></li>'
     }`;
 
     var search_text = model.is_search_page ? (model.q || '') : '';
