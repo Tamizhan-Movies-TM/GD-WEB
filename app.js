@@ -668,11 +668,11 @@ function initializeLoginModal() {
                 // Success - redirect to home or reload page
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
-                    // Clear glitch interval before leaving
+                    // Clear glitch intervals before leaving
                     const em = document.getElementById('errorMessage');
                     if (em && em._glitchInterval) clearInterval(em._glitchInterval);
                     window.location.href = '/';
-                }, 1500);
+                }, 3500);
             } else {
                 showError('Invalid username or password');
             }
@@ -688,36 +688,49 @@ function initializeLoginModal() {
         errorMessage.style.display = 'block';
 
         if (type === 'success') {
-            // Glitch reveal — each char replaced IN PLACE, same length always, no wrapping
+            // Phase 1: Full glitch scramble for 600ms (no reveal yet)
+            // Phase 2: Reveal left→right, 1 char every 80ms
+            // Total: ~600ms scramble + (33 chars × 80ms) = ~3.2s → redirect at 3.5s
             const glitchChars = '#.^{-!$_:0+@}?%=,;|[4<]>2~*&';
             const originalText = message;
             const len = originalText.length;
-            let frame = 0;
+            let revealed = 0;
             let glitchInterval = null;
+            let revealInterval = null;
 
-            // Track how many chars are revealed (left→right, 1 char per 2 frames)
-            const renderFrame = () => {
-                frame++;
-                const revealed = Math.min(Math.floor(frame / 2), len);
+            // Render current state: revealed chars = real, rest = glitch
+            const render = () => {
                 let out = '';
                 for (let i = 0; i < len; i++) {
                     if (originalText[i] === ' ') {
-                        out += ' ';
+                        out += '&nbsp;';
                     } else if (i < revealed) {
-                        // Real char — bright green
                         out += `<span style="color:rgb(9,255,0)">${originalText[i]}</span>`;
                     } else {
-                        // Glitch char — same visual width, dim green
                         const gc = glitchChars[Math.floor(Math.random() * glitchChars.length)];
-                        out += `<span style="color:rgba(9,255,0,0.4)">${gc}</span>`;
+                        out += `<span style="color:rgba(9,255,0,0.45)">${gc}</span>`;
                     }
                 }
                 errorMessage.innerHTML = `<span class="login-success-text">${out}</span>`;
             };
 
-            renderFrame();
-            glitchInterval = setInterval(renderFrame, 50);
+            // Phase 1 — full scramble, fast flicker, no reveal
+            glitchInterval = setInterval(render, 40);
             errorMessage._glitchInterval = glitchInterval;
+
+            // Phase 2 — after 600ms start revealing one char every 80ms
+            setTimeout(() => {
+                revealInterval = setInterval(() => {
+                    if (revealed < len) {
+                        revealed++;
+                        render();
+                    } else {
+                        clearInterval(revealInterval);
+                    }
+                }, 80);
+                errorMessage._glitchInterval = revealInterval;
+                clearInterval(glitchInterval);
+            }, 600);
 
             errorMessage.style.background = 'rgba(0, 255, 0, 0.05)';
             errorMessage.style.borderColor = 'rgba(9, 255, 0, 0.4)';
