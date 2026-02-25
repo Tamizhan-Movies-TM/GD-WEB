@@ -638,14 +638,6 @@ function initializeLoginModal() {
             return;
         }
 
-        // Disable button to prevent double submit
-        const submitBtn = document.getElementById('submitBtn');
-        const originalHtml = submitBtn ? submitBtn.innerHTML : '';
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin fa-fw"></i> Signing in...';
-        }
-
         try {
             const formData = new URLSearchParams();
             formData.append('username', username);
@@ -656,17 +648,16 @@ function initializeLoginModal() {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                credentials: 'include',
                 body: formData.toString()
             });
 
             const data = await response.json();
 
             if (data.ok) {
-                // Success - redirect to home or reload page
+                // Success - redirect to drive page to show folders
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
-                    window.location.href = '/';
+                    window.location.href = '/0:/';
                 }, 1000);
             } else {
                 showError(data.error || 'Invalid username or password');
@@ -676,9 +667,10 @@ function initializeLoginModal() {
             logError('Login error:', error);
         } finally {
             // Always re-enable button
+            const submitBtn = document.getElementById('submitBtn');
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = originalHtml || '<i class="fas fa-sign-in-alt"></i> Sign In';
+                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
             }
         }
     });
