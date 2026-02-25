@@ -236,6 +236,42 @@ function init() {
     display: none;
 }
 
+/* chitchat glitch animation — loops infinitely on login success */
+.login-success-text {
+    font: 600 16px Menlo, Roboto Mono, monospace;
+    letter-spacing: 0.1rem;
+    position: relative;
+    color: rgb(9, 255, 0);
+}
+.login-success-text::before {
+    position: absolute;
+    content: "";
+    animation: chitchat linear infinite 1.2s;
+}
+@keyframes chitchat {
+    0%   { content: "#"; }
+    5%   { content: "."; }
+    10%  { content: "^{"; }
+    15%  { content: "-!"; }
+    20%  { content: "#$_"; }
+    25%  { content: "\2116:0"; }
+    30%  { content: "#{+."; }
+    35%  { content: "@}-?"; }
+    40%  { content: "?{4@%"; }
+    45%  { content: "=.,^!"; }
+    50%  { content: "?2@%"; }
+    55%  { content: ";1}]"; }
+    60%  { content: "?{%:%"; right: 0; }
+    65%  { content: "|{f[4"; right: 0; }
+    70%  { content: "{4%0%"; right: 0; }
+    75%  { content: "'1_0<"; right: 0; }
+    80%  { content: "{0%"; right: 0; }
+    85%  { content: "]>'"; right: 0; }
+    90%  { content: "4"; right: 0; }
+    95%  { content: "2"; right: 0; }
+    100% { content: ""; right: 0; }
+}
+
 .donate .btn {
     display: flex;
     justify-content: center;
@@ -674,9 +710,10 @@ function initializeLoginModal() {
         errorMessage.style.display = 'block';
 
         if (type === 'success') {
-            errorMessage.style.background = 'rgba(40, 167, 69, 0.1)';
-            errorMessage.style.borderColor = 'rgba(40, 167, 69, 0.3)';
-            errorMessage.style.color = '#28a745';
+            errorMessage.innerHTML = `<span class="login-success-text">${message}</span>`;
+            errorMessage.style.background = 'rgba(0, 255, 0, 0.05)';
+            errorMessage.style.borderColor = 'rgba(9, 255, 0, 0.4)';
+            errorMessage.style.color = 'rgb(9, 255, 0)';
         } else {
             errorMessage.style.background = 'rgba(220, 53, 69, 0.1)';
             errorMessage.style.borderColor = 'rgba(220, 53, 69, 0.3)';
