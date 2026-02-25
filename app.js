@@ -685,27 +685,55 @@ function initializeLoginModal() {
         errorMessage.style.display = 'block';
 
         if (type === 'success') {
-            // JS-driven chitchat glitch — CSS content animation not supported cross-browser
-            const glitchFrames = [
-                '#', '.', '^{', '-!', '#$_', '№:0', '#{+.', '@}-?',
-                '?{4@%', '=.,^!', '?2@%', ';1}]', '?{%:%', '|{f[4',
-                '{4%0%', "'1_0<", '{0%', "]>'", '4', '2', ''
-            ];
-            let glitchIndex = 0;
+            // Full-text glitch — entire message scrambles character by character
+            const glitchChars = ['#', '.', '^', '{', '-', '!', '$', '_', '№', ':', '0',
+                '+', '@', '}', '?', '%', '=', ',', ';', '|', 'f', '[', '4', "'", '1', '<', ']', '>', '2', '~', '*', '&'];
+
+            const originalText = message; // e.g. "Login successful! Redirecting..."
+            let frame = 0;
             let glitchInterval = null;
 
-            const updateGlitch = () => {
-                const glitchChar = glitchFrames[glitchIndex % glitchFrames.length];
-                errorMessage.innerHTML =
-                    `<span class="login-success-text">${message}</span>` +
-                    `<span style="color:rgb(9,255,0);font:600 16px Menlo,monospace;margin-left:4px;">${glitchChar}</span>`;
-                glitchIndex++;
+            // Each character has its own reveal progress
+            const charState = originalText.split('').map(() => ({
+                revealed: false,
+                glitchOffset: Math.floor(Math.random() * glitchChars.length)
+            }));
+
+            const renderFrame = () => {
+                frame++;
+                // Reveal characters left to right — one more char revealed every 3 frames
+                const revealUpTo = Math.floor(frame / 3);
+                for (let i = 0; i < charState.length; i++) {
+                    if (i < revealUpTo) charState[i].revealed = true;
+                }
+
+                let display = '';
+                for (let i = 0; i < originalText.length; i++) {
+                    if (charState[i].revealed) {
+                        // Revealed — show real character in bright green
+                        const ch = originalText[i] === ' ' ? '&nbsp;' : originalText[i];
+                        display += `<span style="color:rgb(9,255,0)">${ch}</span>`;
+                    } else {
+                        // Not yet revealed — show cycling glitch char in dim green
+                        charState[i].glitchOffset = (charState[i].glitchOffset + 1) % glitchChars.length;
+                        const gc = glitchChars[charState[i].glitchOffset];
+                        display += `<span style="color:rgba(9,255,0,0.35);font-style:normal">${gc}</span>`;
+                    }
+                }
+
+                errorMessage.innerHTML = `<span class="login-success-text">${display}</span>`;
+
+                // All revealed — keep looping glitch on last few chars for effect
+                if (revealUpTo >= originalText.length) {
+                    // Re-scramble last 4 chars repeatedly for a persistent tail glitch
+                    for (let i = originalText.length - 4; i < originalText.length; i++) {
+                        if (i >= 0) charState[i].revealed = Math.random() > 0.3;
+                    }
+                }
             };
 
-            updateGlitch();
-            glitchInterval = setInterval(updateGlitch, 60);
-
-            // Store interval id so redirect cleanup can clear it
+            renderFrame();
+            glitchInterval = setInterval(renderFrame, 45);
             errorMessage._glitchInterval = glitchInterval;
 
             errorMessage.style.background = 'rgba(0, 255, 0, 0.05)';
