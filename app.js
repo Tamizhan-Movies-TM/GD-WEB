@@ -236,40 +236,12 @@ function init() {
     display: none;
 }
 
-/* chitchat glitch animation — loops infinitely on login success */
+/* login success glitch text */
 .login-success-text {
     font: 600 16px Menlo, Roboto Mono, monospace;
     letter-spacing: 0.1rem;
-    position: relative;
     color: rgb(9, 255, 0);
-}
-.login-success-text::before {
-    position: absolute;
-    content: "";
-    animation: chitchat linear infinite 1.2s;
-}
-@keyframes chitchat {
-    0%   { content: "#"; }
-    5%   { content: "."; }
-    10%  { content: "^{"; }
-    15%  { content: "-!"; }
-    20%  { content: "#$_"; }
-    25%  { content: "\2116:0"; }
-    30%  { content: "#{+."; }
-    35%  { content: "@}-?"; }
-    40%  { content: "?{4@%"; }
-    45%  { content: "=.,^!"; }
-    50%  { content: "?2@%"; }
-    55%  { content: ";1}]"; }
-    60%  { content: "?{%:%"; right: 0; }
-    65%  { content: "|{f[4"; right: 0; }
-    70%  { content: "{4%0%"; right: 0; }
-    75%  { content: "'1_0<"; right: 0; }
-    80%  { content: "{0%"; right: 0; }
-    85%  { content: "]>'"; right: 0; }
-    90%  { content: "4"; right: 0; }
-    95%  { content: "2"; right: 0; }
-    100% { content: ""; right: 0; }
+    display: inline-block;
 }
 
 .donate .btn {
@@ -693,8 +665,11 @@ function initializeLoginModal() {
                 // Success - redirect to home or reload page
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
+                    // Clear glitch interval before leaving
+                    const em = document.getElementById('errorMessage');
+                    if (em && em._glitchInterval) clearInterval(em._glitchInterval);
                     window.location.href = '/';
-                }, 1000);
+                }, 1500);
             } else {
                 showError('Invalid username or password');
             }
@@ -710,7 +685,29 @@ function initializeLoginModal() {
         errorMessage.style.display = 'block';
 
         if (type === 'success') {
-            errorMessage.innerHTML = `<span class="login-success-text">${message}</span>`;
+            // JS-driven chitchat glitch — CSS content animation not supported cross-browser
+            const glitchFrames = [
+                '#', '.', '^{', '-!', '#$_', '№:0', '#{+.', '@}-?',
+                '?{4@%', '=.,^!', '?2@%', ';1}]', '?{%:%', '|{f[4',
+                '{4%0%', "'1_0<", '{0%', "]>'", '4', '2', ''
+            ];
+            let glitchIndex = 0;
+            let glitchInterval = null;
+
+            const updateGlitch = () => {
+                const glitchChar = glitchFrames[glitchIndex % glitchFrames.length];
+                errorMessage.innerHTML =
+                    `<span class="login-success-text">${message}</span>` +
+                    `<span style="color:rgb(9,255,0);font:600 16px Menlo,monospace;margin-left:4px;">${glitchChar}</span>`;
+                glitchIndex++;
+            };
+
+            updateGlitch();
+            glitchInterval = setInterval(updateGlitch, 60);
+
+            // Store interval id so redirect cleanup can clear it
+            errorMessage._glitchInterval = glitchInterval;
+
             errorMessage.style.background = 'rgba(0, 255, 0, 0.05)';
             errorMessage.style.borderColor = 'rgba(9, 255, 0, 0.4)';
             errorMessage.style.color = 'rgb(9, 255, 0)';
