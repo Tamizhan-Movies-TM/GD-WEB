@@ -244,7 +244,7 @@ function init() {
 .success-message-anim::after {
     content: "";
     position: absolute;
-    right: 10px;
+    right: 12px;
     top: 50%;
     transform: translateY(-50%);
     color: #28a745;
@@ -252,30 +252,31 @@ function init() {
     font-size: 0.85em;
     opacity: 0.8;
     font-family: monospace;
+    pointer-events: none;
 }
 
 @keyframes chitchat {
-    0%   { content: "#"; }
-    5%   { content: "."; }
-    10%  { content: "^{"; }
-    15%  { content: "-!"; }
-    20%  { content: "#$_"; }
-    25%  { content: "№:0"; }
-    30%  { content: "#{+."; }
-    35%  { content: "@}-?"; }
-    40%  { content: "?{4@%"; }
-    45%  { content: "=.,^!"; }
-    50%  { content: "?2@%"; }
-    55%  { content: "\;1}]"; }
-    60%  { content: "?{%:%"; right: 0; }
-    65%  { content: "|{f[4"; right: 0; }
-    70%  { content: "{4%0%"; right: 0; }
-    75%  { content: "'1_0<"; right: 0; }
-    80%  { content: "{0%";  right: 0; }
-    85%  { content: "]>'";  right: 0; }
-    90%  { content: "4";    right: 0; }
-    95%  { content: "2";    right: 0; }
-    100% { content: "";     right: 0; }
+    0%   { content: "#"; right: 12px; }
+    5%   { content: "."; right: 12px; }
+    10%  { content: "^{"; right: 12px; }
+    15%  { content: "-!"; right: 12px; }
+    20%  { content: "#$_"; right: 12px; }
+    25%  { content: "№:0"; right: 12px; }
+    30%  { content: "#{+."; right: 12px; }
+    35%  { content: "@}-?"; right: 12px; }
+    40%  { content: "?{4@%"; right: 12px; }
+    45%  { content: "=.,^!"; right: 12px; }
+    50%  { content: "?2@%"; right: 12px; }
+    55%  { content: "\;1}]"; right: 12px; }
+    60%  { content: "?{%:%"; right: 12px; }
+    65%  { content: "|{f[4"; right: 12px; }
+    70%  { content: "{4%0%"; right: 12px; }
+    75%  { content: "'1_0<"; right: 12px; }
+    80%  { content: "{0%";  right: 12px; }
+    85%  { content: "]>'";  right: 12px; }
+    90%  { content: "4";    right: 12px; }
+    95%  { content: "2";    right: 12px; }
+    100% { content: "";     right: 12px; }
 }
 
 .donate .btn {
@@ -720,12 +721,13 @@ function initializeLoginModal() {
             errorMessage.style.color = '#28a745';
             errorMessage.classList.add('success-message-anim');
 
-            // Typewriter effect for success message
-            errorMessage.textContent = '';
+            // Use inner span for typewriter — keeps ::after glitch separate
+            errorMessage.innerHTML = '<span class="typewriter-text"></span>';
+            const typeSpan = errorMessage.querySelector('.typewriter-text');
             let i = 0;
             const typeInterval = setInterval(() => {
                 if (i < message.length) {
-                    errorMessage.textContent += message[i];
+                    typeSpan.textContent += message[i];
                     i++;
                 } else {
                     clearInterval(typeInterval);
