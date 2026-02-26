@@ -684,10 +684,10 @@ function initializeLoginModal() {
                 '+', '@', '}', '?', '%', '=', ',', ';', '|', 'f', '[', '4', "'", '1', '<', ']', '>', '2', '~', '*', '&'];
             const originalText = message;
             let frame = 0;
-            // 45ms × 6 frames per char = ~270ms per character — full text reveals slowly
-            const revealEvery = 6;
+            // 45ms × 18 frames per char = ~810ms per character — slow dramatic reveal
+            const revealEvery = 18;
             // How long to keep the tail glitch running after all chars are revealed
-            const tailDuration = 1800;
+            const tailDuration = 2500;
             let allRevealedAt = null;
 
             const charState = originalText.split('').map(() => ({
