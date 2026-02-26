@@ -236,57 +236,6 @@ function init() {
     display: none;
 }
 
-.error-message.success-glitch {
-    background: rgba(40, 167, 69, 0.1);
-    border-color: rgba(40, 167, 69, 0.3);
-    color: #28a745;
-    font-family: Menlo, Roboto Mono, monospace;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-}
-
-.error-message.success-glitch .glitch-span {
-    position: relative;
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: clip;
-}
-
-.error-message.success-glitch .glitch-span::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    color: lime;
-    animation: chitchat-msg linear both 1.4s infinite;
-    pointer-events: none;
-}
-
-@keyframes chitchat-msg {
-    0%   { content: "#"; }
-    5%   { content: "."; }
-    10%  { content: "^{"; }
-    15%  { content: "-!"; }
-    20%  { content: "#$_"; }
-    25%  { content: "№:0"; }
-    30%  { content: "#{+."; }
-    35%  { content: "@}-?"; }
-    40%  { content: "?{4@%"; }
-    45%  { content: "=.,^!"; }
-    50%  { content: "?2@%"; }
-    55%  { content: ";1}]"; }
-    60%  { content: "?{%:%"; }
-    65%  { content: "|{f[4"; }
-    70%  { content: "{4%0%"; }
-    75%  { content: "'1_0<"; }
-    80%  { content: "{0%"; }
-    85%  { content: "]>'"; }
-    90%  { content: "4"; }
-    95%  { content: "2"; }
-    100% { content: ""; }
-}
-
 .donate .btn {
     display: flex;
     justify-content: center;
@@ -723,16 +672,53 @@ function initializeLoginModal() {
     function showError(message, type = 'error') {
         errorMessage.style.display = 'block';
 
+        // Clear any existing glitch interval
+        if (errorMessage._glitchInterval) {
+            clearInterval(errorMessage._glitchInterval);
+            errorMessage._glitchInterval = null;
+        }
+
         if (type === 'success') {
-            errorMessage.classList.add('success-glitch');
-            // Wrap message in span for ::before pseudo glitch effect
-            errorMessage.innerHTML = `<span class="glitch-span">${message}</span>`;
-            // Reset inline styles so CSS class takes over
-            errorMessage.style.background = '';
-            errorMessage.style.borderColor = '';
-            errorMessage.style.color = '';
+            // Full-text glitch — entire message scrambles character by character
+            const glitchChars = ['#', '.', '^', '{', '-', '!', '$', '_', '№', ':', '0',
+                '+', '@', '}', '?', '%', '=', ',', ';', '|', 'f', '[', '4', "'", '1', '<', ']', '>', '2', '~', '*', '&'];
+            const originalText = message;
+            let frame = 0;
+            const charState = originalText.split('').map(() => ({
+                revealed: false,
+                glitchOffset: Math.floor(Math.random() * glitchChars.length)
+            }));
+            const renderFrame = () => {
+                frame++;
+                const revealUpTo = Math.floor(frame / 3);
+                for (let i = 0; i < charState.length; i++) {
+                    if (i < revealUpTo) charState[i].revealed = true;
+                }
+                let display = '';
+                for (let i = 0; i < originalText.length; i++) {
+                    if (charState[i].revealed) {
+                        const ch = originalText[i] === ' ' ? '&nbsp;' : originalText[i];
+                        display += `<span style="color:rgb(9,255,0)">${ch}</span>`;
+                    } else {
+                        charState[i].glitchOffset = (charState[i].glitchOffset + 1) % glitchChars.length;
+                        const gc = glitchChars[charState[i].glitchOffset];
+                        display += `<span style="color:rgba(9,255,0,0.35);font-style:normal">${gc}</span>`;
+                    }
+                }
+                errorMessage.innerHTML = `<span class="login-success-text">${display}</span>`;
+                if (revealUpTo >= originalText.length) {
+                    for (let i = originalText.length - 4; i < originalText.length; i++) {
+                        if (i >= 0) charState[i].revealed = Math.random() > 0.3;
+                    }
+                }
+            };
+            renderFrame();
+            let glitchInterval = setInterval(renderFrame, 45);
+            errorMessage._glitchInterval = glitchInterval;
+            errorMessage.style.background = 'rgba(0, 255, 0, 0.05)';
+            errorMessage.style.borderColor = 'rgba(9, 255, 0, 0.4)';
+            errorMessage.style.color = 'rgb(9, 255, 0)';
         } else {
-            errorMessage.classList.remove('success-glitch');
             errorMessage.textContent = message;
             errorMessage.style.background = 'rgba(220, 53, 69, 0.1)';
             errorMessage.style.borderColor = 'rgba(220, 53, 69, 0.3)';
@@ -741,7 +727,10 @@ function initializeLoginModal() {
 
         setTimeout(() => {
             errorMessage.style.display = 'none';
-            errorMessage.classList.remove('success-glitch');
+            if (errorMessage._glitchInterval) {
+                clearInterval(errorMessage._glitchInterval);
+                errorMessage._glitchInterval = null;
+            }
         }, 5000);
     }
 
