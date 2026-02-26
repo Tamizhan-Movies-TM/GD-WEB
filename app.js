@@ -236,15 +236,46 @@ function init() {
     display: none;
 }
 
-/* login success glitch text */
-.login-success-text {
-    font: 600 14px Menlo, Roboto Mono, monospace;
-    letter-spacing: 0.05rem;
-    color: rgb(9, 255, 0);
-    display: block;
-    white-space: nowrap;
+.success-message-anim {
+    position: relative;
     overflow: hidden;
-    width: 100%;
+}
+
+.success-message-anim::after {
+    content: "";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #28a745;
+    animation: chitchat 2s linear infinite;
+    font-size: 0.85em;
+    opacity: 0.8;
+    font-family: monospace;
+}
+
+@keyframes chitchat {
+    0%   { content: "#"; }
+    5%   { content: "."; }
+    10%  { content: "^{"; }
+    15%  { content: "-!"; }
+    20%  { content: "#$_"; }
+    25%  { content: "№:0"; }
+    30%  { content: "#{+."; }
+    35%  { content: "@}-?"; }
+    40%  { content: "?{4@%"; }
+    45%  { content: "=.,^!"; }
+    50%  { content: "?2@%"; }
+    55%  { content: "\;1}]"; }
+    60%  { content: "?{%:%"; right: 0; }
+    65%  { content: "|{f[4"; right: 0; }
+    70%  { content: "{4%0%"; right: 0; }
+    75%  { content: "'1_0<"; right: 0; }
+    80%  { content: "{0%";  right: 0; }
+    85%  { content: "]>'";  right: 0; }
+    90%  { content: "4";    right: 0; }
+    95%  { content: "2";    right: 0; }
+    100% { content: "";     right: 0; }
 }
 
 .donate .btn {
@@ -668,11 +699,8 @@ function initializeLoginModal() {
                 // Success - redirect to home or reload page
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
-                    // Clear glitch intervals before leaving
-                    const em = document.getElementById('errorMessage');
-                    if (em && em._glitchInterval) clearInterval(em._glitchInterval);
                     window.location.href = '/';
-                }, 3500);
+                }, 1000);
             } else {
                 showError('Invalid username or password');
             }
@@ -684,65 +712,36 @@ function initializeLoginModal() {
 
     // Show error message function
     function showError(message, type = 'error') {
-        errorMessage.textContent = message;
         errorMessage.style.display = 'block';
 
         if (type === 'success') {
-            // Phase 1: Full glitch scramble for 600ms (no reveal yet)
-            // Phase 2: Reveal left→right, 1 char every 80ms
-            // Total: ~600ms scramble + (33 chars × 80ms) = ~3.2s → redirect at 3.5s
-            const glitchChars = '#.^{-!$_:0+@}?%=,;|[4<]>2~*&';
-            const originalText = message;
-            const len = originalText.length;
-            let revealed = 0;
-            let glitchInterval = null;
-            let revealInterval = null;
+            errorMessage.style.background = 'rgba(40, 167, 69, 0.1)';
+            errorMessage.style.borderColor = 'rgba(40, 167, 69, 0.3)';
+            errorMessage.style.color = '#28a745';
+            errorMessage.classList.add('success-message-anim');
 
-            // Render current state: revealed chars = real, rest = glitch
-            const render = () => {
-                let out = '';
-                for (let i = 0; i < len; i++) {
-                    if (originalText[i] === ' ') {
-                        out += '&nbsp;';
-                    } else if (i < revealed) {
-                        out += `<span style="color:rgb(9,255,0)">${originalText[i]}</span>`;
-                    } else {
-                        const gc = glitchChars[Math.floor(Math.random() * glitchChars.length)];
-                        out += `<span style="color:rgba(9,255,0,0.45)">${gc}</span>`;
-                    }
+            // Typewriter effect for success message
+            errorMessage.textContent = '';
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < message.length) {
+                    errorMessage.textContent += message[i];
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
                 }
-                errorMessage.innerHTML = `<span class="login-success-text">${out}</span>`;
-            };
-
-            // Phase 1 — full scramble, fast flicker, no reveal
-            glitchInterval = setInterval(render, 40);
-            errorMessage._glitchInterval = glitchInterval;
-
-            // Phase 2 — after 600ms start revealing one char every 80ms
-            setTimeout(() => {
-                revealInterval = setInterval(() => {
-                    if (revealed < len) {
-                        revealed++;
-                        render();
-                    } else {
-                        clearInterval(revealInterval);
-                    }
-                }, 80);
-                errorMessage._glitchInterval = revealInterval;
-                clearInterval(glitchInterval);
-            }, 600);
-
-            errorMessage.style.background = 'rgba(0, 255, 0, 0.05)';
-            errorMessage.style.borderColor = 'rgba(9, 255, 0, 0.4)';
-            errorMessage.style.color = 'rgb(9, 255, 0)';
+            }, 55);
         } else {
+            errorMessage.textContent = message;
             errorMessage.style.background = 'rgba(220, 53, 69, 0.1)';
             errorMessage.style.borderColor = 'rgba(220, 53, 69, 0.3)';
             errorMessage.style.color = '#dc3545';
+            errorMessage.classList.remove('success-message-anim');
         }
 
         setTimeout(() => {
             errorMessage.style.display = 'none';
+            errorMessage.classList.remove('success-message-anim');
         }, 5000);
     }
 
@@ -1762,25 +1761,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
     $('#SearchModelLabel').html(title);
 
-    // ── PATCH: Request a secure packed fallback URL from the server ──────────
-    // The server generates token.exp.sig (expiry + HMAC + IP lock).
-    // We cannot build this on the client side — the keys live only on the server.
-    let directUrl = null;
-    try {
-        const res = await fetch('/generate-fallback-url', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: file_id, view: can_preview ? 'true' : 'false' })
-        });
-        if (res.ok) {
-            const data = await res.json();
-            directUrl = data.url || null;
-        }
-    } catch (_) {}
-    // Fallback: if endpoint unavailable, degrade gracefully (no direct URL)
-    if (!directUrl) {
-        directUrl = window.location.origin + '/fallback';
-    }
+    // Create the direct URL
+    const encodedFileId = encodeURIComponent(file_id);
+    const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
 
     // Function to get Chrome open URL
     function getChromeOpenUrl(url) {
