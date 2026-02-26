@@ -236,47 +236,55 @@ function init() {
     display: none;
 }
 
-.success-message-anim {
-    position: relative;
-    overflow: hidden;
+.error-message.success-glitch {
+    background: rgba(40, 167, 69, 0.1);
+    border-color: rgba(40, 167, 69, 0.3);
+    color: #28a745;
+    font-family: Menlo, Roboto Mono, monospace;
+    font-weight: 600;
+    letter-spacing: 0.03em;
 }
 
-.success-message-anim::after {
+.error-message.success-glitch .glitch-span {
+    position: relative;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+}
+
+.error-message.success-glitch .glitch-span::after {
     content: "";
     position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #28a745;
-    animation: chitchat 2s linear infinite;
-    font-size: 0.85em;
-    opacity: 0.8;
-    font-family: monospace;
+    top: 0;
+    right: 0;
+    color: lime;
+    animation: chitchat-msg linear both 1.4s infinite;
     pointer-events: none;
 }
 
-@keyframes chitchat {
-    0%   { content: "#"; right: 12px; }
-    5%   { content: "."; right: 12px; }
-    10%  { content: "^{"; right: 12px; }
-    15%  { content: "-!"; right: 12px; }
-    20%  { content: "#$_"; right: 12px; }
-    25%  { content: "№:0"; right: 12px; }
-    30%  { content: "#{+."; right: 12px; }
-    35%  { content: "@}-?"; right: 12px; }
-    40%  { content: "?{4@%"; right: 12px; }
-    45%  { content: "=.,^!"; right: 12px; }
-    50%  { content: "?2@%"; right: 12px; }
-    55%  { content: "\;1}]"; right: 12px; }
-    60%  { content: "?{%:%"; right: 12px; }
-    65%  { content: "|{f[4"; right: 12px; }
-    70%  { content: "{4%0%"; right: 12px; }
-    75%  { content: "'1_0<"; right: 12px; }
-    80%  { content: "{0%";  right: 12px; }
-    85%  { content: "]>'";  right: 12px; }
-    90%  { content: "4";    right: 12px; }
-    95%  { content: "2";    right: 12px; }
-    100% { content: "";     right: 12px; }
+@keyframes chitchat-msg {
+    0%   { content: "#"; }
+    5%   { content: "."; }
+    10%  { content: "^{"; }
+    15%  { content: "-!"; }
+    20%  { content: "#$_"; }
+    25%  { content: "№:0"; }
+    30%  { content: "#{+."; }
+    35%  { content: "@}-?"; }
+    40%  { content: "?{4@%"; }
+    45%  { content: "=.,^!"; }
+    50%  { content: "?2@%"; }
+    55%  { content: ";1}]"; }
+    60%  { content: "?{%:%"; }
+    65%  { content: "|{f[4"; }
+    70%  { content: "{4%0%"; }
+    75%  { content: "'1_0<"; }
+    80%  { content: "{0%"; }
+    85%  { content: "]>'"; }
+    90%  { content: "4"; }
+    95%  { content: "2"; }
+    100% { content: ""; }
 }
 
 .donate .btn {
@@ -716,34 +724,24 @@ function initializeLoginModal() {
         errorMessage.style.display = 'block';
 
         if (type === 'success') {
-            errorMessage.style.background = 'rgba(40, 167, 69, 0.1)';
-            errorMessage.style.borderColor = 'rgba(40, 167, 69, 0.3)';
-            errorMessage.style.color = '#28a745';
-            errorMessage.classList.add('success-message-anim');
-
-            // Use inner span for typewriter — keeps ::after glitch separate
-            errorMessage.innerHTML = '<span class="typewriter-text"></span>';
-            const typeSpan = errorMessage.querySelector('.typewriter-text');
-            let i = 0;
-            const typeInterval = setInterval(() => {
-                if (i < message.length) {
-                    typeSpan.textContent += message[i];
-                    i++;
-                } else {
-                    clearInterval(typeInterval);
-                }
-            }, 55);
+            errorMessage.classList.add('success-glitch');
+            // Wrap message in span for ::before pseudo glitch effect
+            errorMessage.innerHTML = `<span class="glitch-span">${message}</span>`;
+            // Reset inline styles so CSS class takes over
+            errorMessage.style.background = '';
+            errorMessage.style.borderColor = '';
+            errorMessage.style.color = '';
         } else {
+            errorMessage.classList.remove('success-glitch');
             errorMessage.textContent = message;
             errorMessage.style.background = 'rgba(220, 53, 69, 0.1)';
             errorMessage.style.borderColor = 'rgba(220, 53, 69, 0.3)';
             errorMessage.style.color = '#dc3545';
-            errorMessage.classList.remove('success-message-anim');
         }
 
         setTimeout(() => {
             errorMessage.style.display = 'none';
-            errorMessage.classList.remove('success-message-anim');
+            errorMessage.classList.remove('success-glitch');
         }, 5000);
     }
 
