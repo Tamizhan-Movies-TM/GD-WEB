@@ -684,16 +684,29 @@ function initializeLoginModal() {
                 '+', '@', '}', '?', '%', '=', ',', ';', '|', 'f', '[', '4', "'", '1', '<', ']', '>', '2', '~', '*', '&'];
             const originalText = message;
             let frame = 0;
+            // 45ms × 6 frames per char = ~270ms per character — full text reveals slowly
+            const revealEvery = 6;
+            // How long to keep the tail glitch running after all chars are revealed
+            const tailDuration = 1800;
+            let allRevealedAt = null;
+
             const charState = originalText.split('').map(() => ({
                 revealed: false,
                 glitchOffset: Math.floor(Math.random() * glitchChars.length)
             }));
+
             const renderFrame = () => {
                 frame++;
-                const revealUpTo = Math.floor(frame / 3);
+                const revealUpTo = Math.floor(frame / revealEvery);
                 for (let i = 0; i < charState.length; i++) {
                     if (i < revealUpTo) charState[i].revealed = true;
                 }
+
+                // Record the moment all characters become revealed
+                if (revealUpTo >= originalText.length && allRevealedAt === null) {
+                    allRevealedAt = Date.now();
+                }
+
                 let display = '';
                 for (let i = 0; i < originalText.length; i++) {
                     if (charState[i].revealed) {
@@ -706,12 +719,20 @@ function initializeLoginModal() {
                     }
                 }
                 errorMessage.innerHTML = `<span class="login-success-text">${display}</span>`;
-                if (revealUpTo >= originalText.length) {
+
+                // Once fully revealed: run tail glitch, then hide after tailDuration
+                if (allRevealedAt !== null) {
                     for (let i = originalText.length - 4; i < originalText.length; i++) {
                         if (i >= 0) charState[i].revealed = Math.random() > 0.3;
                     }
+                    if (Date.now() - allRevealedAt >= tailDuration) {
+                        clearInterval(errorMessage._glitchInterval);
+                        errorMessage._glitchInterval = null;
+                        errorMessage.style.display = 'none';
+                    }
                 }
             };
+
             renderFrame();
             let glitchInterval = setInterval(renderFrame, 45);
             errorMessage._glitchInterval = glitchInterval;
@@ -723,15 +744,11 @@ function initializeLoginModal() {
             errorMessage.style.background = 'rgba(220, 53, 69, 0.1)';
             errorMessage.style.borderColor = 'rgba(220, 53, 69, 0.3)';
             errorMessage.style.color = '#dc3545';
-        }
 
-        setTimeout(() => {
-            errorMessage.style.display = 'none';
-            if (errorMessage._glitchInterval) {
-                clearInterval(errorMessage._glitchInterval);
-                errorMessage._glitchInterval = null;
-            }
-        }, 5000);
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
     }
 
     // Check for URL error parameters
