@@ -3023,16 +3023,16 @@ $(document).ready(function () {
 }
 #tm-dl-cancel {
     margin-top: 22px;
-    background: rgba(255,255,255,.07);
-    border: 1px solid rgba(255,255,255,.15);
-    color: rgba(255,255,255,.6);
+    background: #dc3545;
+    border: 1px solid #c82333;
+    color: #fff;
     border-radius: 8px;
     padding: 7px 20px;
     font-size: 13px;
     cursor: pointer;
     transition: background .2s;
 }
-#tm-dl-cancel:hover { background: rgba(255,255,255,.14); }
+#tm-dl-cancel:hover { background: #c82333; }
 
 /* Toast - styled like URL Copied notice */
 #tm-dl-toast {
@@ -3085,7 +3085,7 @@ $(document).ready(function () {
       <div id="tm-dl-num">5</div>
     </div>
     <div id="tm-dl-sub">Download will start automatically…</div>
-    <button id="tm-dl-cancel">✕ Close</button>
+    <button id="tm-dl-cancel">Cancel</button>
   </div>
 </div>
 <div id="tm-dl-toast">
