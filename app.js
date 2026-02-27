@@ -3034,27 +3034,28 @@ $(document).ready(function () {
 }
 #tm-dl-cancel:hover { background: rgba(255,255,255,.14); }
 
-/* Toast */
+/* Toast - styled like URL Copied notice */
 #tm-dl-toast {
     position: fixed;
     bottom: 28px;
     left: 50%;
     transform: translateX(-50%) translateY(90px);
-    background: #16a34a;
+    background: rgba(30, 30, 30, 0.92);
     color: #fff;
-    padding: 13px 30px;
-    border-radius: 50px;
-    font-size: 15px;
-    font-weight: 600;
+    padding: 11px 22px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
     display: flex !important;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     z-index: 100000;
     opacity: 0;
     transition: transform .3s ease, opacity .3s ease;
     white-space: nowrap;
-    box-shadow: 0 4px 28px rgba(0,0,0,.4);
+    box-shadow: 0 4px 20px rgba(0,0,0,.5);
     pointer-events: none;
+    border: 1px solid rgba(255,255,255,.08);
 }
 #tm-dl-toast.tm-show {
     transform: translateX(-50%) translateY(0);
@@ -3084,11 +3085,11 @@ $(document).ready(function () {
       <div id="tm-dl-num">5</div>
     </div>
     <div id="tm-dl-sub">Download will start automatically…</div>
-    <button id="tm-dl-cancel">✕ Cancel</button>
+    <button id="tm-dl-cancel">✕ Close</button>
   </div>
 </div>
 <div id="tm-dl-toast">
-  <i class="fa-solid fa-file-arrow-down"></i>&nbsp; File Downloading…
+  <i class="fa-solid fa-check" style="color:#22c55e;"></i> File Downloading…
 </div>`);
     }
 
