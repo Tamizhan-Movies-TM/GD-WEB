@@ -2945,207 +2945,253 @@ $(document).on('click', '.gdflix-btn', function() {
 
 // =============================================================================
 // DOWNLOAD TIMER — 5-second countdown → trigger download → show "File Downloading..." toast
+// Everything is initialised inside $(document).ready() so body always exists.
 // =============================================================================
 
-// Inject CSS once
-(function _injectDownloadTimerStyles() {
-    if (document.getElementById('tm-dl-timer-style')) return;
-    const style = document.createElement('style');
-    style.id = 'tm-dl-timer-style';
-    style.textContent = `
-/* ── Download countdown overlay ───────────────────────────────────────── */
+$(document).ready(function () {
+
+    // ── 1. Inject CSS ──────────────────────────────────────────────────────────
+    if (!document.getElementById('tm-dl-timer-style')) {
+        $('<style id="tm-dl-timer-style">').text(`
 #tm-dl-overlay {
     display: none;
     position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.72);
-    backdrop-filter: blur(4px);
-    z-index: 9999;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,.75);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 99999;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    gap: 18px;
 }
-#tm-dl-overlay.active { display: flex; }
+#tm-dl-overlay.tm-active { display: flex !important; }
 
 #tm-dl-card {
-    background: rgba(20,24,38,.97);
-    border: 1px solid rgba(255,255,255,.12);
-    border-radius: 18px;
-    padding: 38px 48px 32px;
+    background: #13172a;
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 20px;
+    padding: 40px 52px 36px;
     text-align: center;
-    min-width: 300px;
-    box-shadow: 0 8px 40px rgba(0,0,0,.5);
-    animation: tmSlideIn .28s ease-out;
+    min-width: 290px;
+    box-shadow: 0 10px 50px rgba(0,0,0,.6);
+    animation: tmCardIn .25s ease-out;
 }
-@keyframes tmSlideIn {
-    from { opacity:0; transform:translateY(-18px); }
-    to   { opacity:1; transform:translateY(0); }
+@keyframes tmCardIn {
+    from { opacity: 0; transform: scale(.92) translateY(-12px); }
+    to   { opacity: 1; transform: scale(1)  translateY(0); }
 }
-
 #tm-dl-title {
-    font-size: 17px;
-    color: rgba(255,255,255,.75);
-    margin-bottom: 20px;
-    letter-spacing: .3px;
+    font-size: 16px;
+    color: rgba(255,255,255,.8);
+    margin-bottom: 24px;
+    font-weight: 600;
+    letter-spacing: .4px;
 }
-
-/* Circular countdown ring */
-#tm-dl-ring {
+#tm-dl-ring-wrap {
     position: relative;
-    width: 90px;
-    height: 90px;
-    margin: 0 auto 22px;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 20px;
 }
-#tm-dl-ring svg {
-    transform: rotate(-90deg);
-}
-#tm-dl-ring-track {
+#tm-dl-svg { transform: rotate(-90deg); display: block; }
+#tm-dl-ring-bg {
     fill: none;
-    stroke: rgba(255,255,255,.1);
-    stroke-width: 6;
+    stroke: rgba(255,255,255,.08);
+    stroke-width: 7;
 }
-#tm-dl-ring-progress {
+#tm-dl-ring-arc {
     fill: none;
     stroke: #22c55e;
-    stroke-width: 6;
+    stroke-width: 7;
     stroke-linecap: round;
-    transition: stroke-dashoffset .95s linear;
+    transition: stroke-dashoffset 1s linear;
 }
-#tm-dl-count {
+#tm-dl-num {
     position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-    font-weight: 700;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 36px;
+    font-weight: 800;
     color: #fff;
+    line-height: 1;
 }
-
-#tm-dl-msg {
-    font-size: 14px;
-    color: rgba(255,255,255,.55);
-    margin-top: 6px;
+#tm-dl-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,.45);
+    margin-top: 4px;
 }
+#tm-dl-cancel {
+    margin-top: 22px;
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.15);
+    color: rgba(255,255,255,.6);
+    border-radius: 8px;
+    padding: 7px 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .2s;
+}
+#tm-dl-cancel:hover { background: rgba(255,255,255,.14); }
 
-/* "File Downloading…" toast */
+/* Toast */
 #tm-dl-toast {
     position: fixed;
-    bottom: 30px;
+    bottom: 28px;
     left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: rgba(22,163,74,.93);
+    transform: translateX(-50%) translateY(90px);
+    background: #16a34a;
     color: #fff;
-    padding: 13px 28px;
+    padding: 13px 30px;
     border-radius: 50px;
     font-size: 15px;
     font-weight: 600;
-    display: flex;
+    display: flex !important;
     align-items: center;
     gap: 10px;
-    z-index: 10000;
-    transition: transform .35s ease, opacity .35s ease;
+    z-index: 100000;
     opacity: 0;
+    transition: transform .3s ease, opacity .3s ease;
     white-space: nowrap;
-    box-shadow: 0 4px 24px rgba(0,0,0,.35);
+    box-shadow: 0 4px 28px rgba(0,0,0,.4);
+    pointer-events: none;
 }
-#tm-dl-toast.show {
+#tm-dl-toast.tm-show {
     transform: translateX(-50%) translateY(0);
     opacity: 1;
 }
-`;
-    document.head.appendChild(style);
-})();
+`).appendTo('head');
+    }
 
-// Build overlay DOM once
-(function _buildDownloadOverlay() {
-    if (document.getElementById('tm-dl-overlay')) return;
+    // ── 2. Build overlay HTML ──────────────────────────────────────────────────
+    const RADIUS = 42;
+    const CIRC   = +(2 * Math.PI * RADIUS).toFixed(4); // e.g. 263.8938
 
-    const r = 40, circ = 2 * Math.PI * r; // circumference ≈ 251.3
-
-    document.body.insertAdjacentHTML('beforeend', `
+    if (!document.getElementById('tm-dl-overlay')) {
+        $('body').append(`
 <div id="tm-dl-overlay">
   <div id="tm-dl-card">
-    <div id="tm-dl-title"><i class="fa-solid fa-circle-down" style="color:#22c55e;margin-right:8px;"></i>Preparing Download…</div>
-    <div id="tm-dl-ring">
-      <svg width="90" height="90" viewBox="0 0 90 90">
-        <circle id="tm-dl-ring-track" cx="45" cy="45" r="${r}"/>
-        <circle id="tm-dl-ring-progress" cx="45" cy="45" r="${r}"
-                stroke-dasharray="${circ}"
-                stroke-dashoffset="0"/>
-      </svg>
-      <div id="tm-dl-count">5</div>
+    <div id="tm-dl-title">
+      <i class="fa-solid fa-circle-down" style="color:#22c55e;margin-right:7px;"></i>
+      Preparing Your Download…
     </div>
-    <div id="tm-dl-msg">Download starts automatically…</div>
+    <div id="tm-dl-ring-wrap">
+      <svg id="tm-dl-svg" width="100" height="100" viewBox="0 0 100 100">
+        <circle id="tm-dl-ring-bg"  cx="50" cy="50" r="${RADIUS}"/>
+        <circle id="tm-dl-ring-arc" cx="50" cy="50" r="${RADIUS}"
+                stroke-dasharray="${CIRC}" stroke-dashoffset="0"/>
+      </svg>
+      <div id="tm-dl-num">5</div>
+    </div>
+    <div id="tm-dl-sub">Download will start automatically…</div>
+    <button id="tm-dl-cancel">✕ Cancel</button>
   </div>
 </div>
-<div id="tm-dl-toast"><i class="fa-solid fa-file-arrow-down"></i> File Downloading…</div>
-`);
-})();
+<div id="tm-dl-toast">
+  <i class="fa-solid fa-file-arrow-down"></i>&nbsp; File Downloading…
+</div>`);
+    }
 
-// Click handler — delegated so it works after dynamic DOM inserts
-$(document).on('click', '.tm-download-btn', function (e) {
-    e.preventDefault();
-    const btn   = $(this);
-    const dlUrl = btn.data('url');
-    if (!dlUrl) return;
+    // Cache elements
+    const $overlay  = $('#tm-dl-overlay');
+    const $num      = $('#tm-dl-num');
+    const $arc      = $('#tm-dl-ring-arc');
+    const $toast    = $('#tm-dl-toast');
+    const $cancelBtn= $('#tm-dl-cancel');
 
-    const TOTAL_SEC = 5;
-    const r         = 40;
-    const circ      = 2 * Math.PI * r;
-    const overlay   = document.getElementById('tm-dl-overlay');
-    const countEl   = document.getElementById('tm-dl-count');
-    const progress  = document.getElementById('tm-dl-ring-progress');
-    const toast     = document.getElementById('tm-dl-toast');
+    let _timer    = null;
+    let _toastTmr = null;
 
-    // Reset ring
-    progress.style.transition = 'none';
-    progress.style.strokeDashoffset = '0';
-    countEl.textContent = TOTAL_SEC;
+    function resetRing (sec) {
+        // Disable transition, snap back to full
+        $arc.css({ transition: 'none', 'stroke-dashoffset': '0' });
+        $num.text(sec);
+    }
 
-    overlay.classList.add('active');
-
-    let remaining = TOTAL_SEC;
-
-    // Kick off the ring shrink on next frame so transition fires
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            progress.style.transition = `stroke-dashoffset ${TOTAL_SEC}s linear`;
-            progress.style.strokeDashoffset = circ;
+    function startRing (sec) {
+        // Re-enable transition in next paint so browser sees the change
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                $arc.css({
+                    transition: 'stroke-dashoffset ' + sec + 's linear',
+                    'stroke-dashoffset': String(CIRC)
+                });
+            });
         });
+    }
+
+    function showOverlay ()  { $overlay.addClass('tm-active'); }
+    function hideOverlay ()  { $overlay.removeClass('tm-active'); }
+
+    function showToast () {
+        clearTimeout(_toastTmr);
+        $toast.addClass('tm-show');
+        _toastTmr = setTimeout(function () { $toast.removeClass('tm-show'); }, 3500);
+    }
+
+    function triggerDownload (url, name) {
+        var a = document.createElement('a');
+        a.href     = url;
+        a.download = name || '';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
+            try { document.body.removeChild(a); } catch (_) {}
+        }, 500);
+    }
+
+    function cancelTimer () {
+        if (_timer) { clearInterval(_timer); _timer = null; }
+        hideOverlay();
+    }
+
+    // Cancel button
+    $cancelBtn.on('click', cancelTimer);
+
+    // Click outside card
+    $overlay.on('click', function (e) {
+        if (e.target === this) cancelTimer();
     });
 
-    const tick = setInterval(() => {
-        remaining--;
-        countEl.textContent = remaining;
-        if (remaining <= 0) {
-            clearInterval(tick);
-            overlay.classList.remove('active');
+    // ── 3. Main delegated click handler ────────────────────────────────────────
+    $(document).on('click', '.tm-download-btn', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
 
-            // Trigger the actual download via hidden <a>
-            const a  = document.createElement('a');
-            a.href   = dlUrl;
-            a.download = btn.data('name') || '';
-            a.style.display = 'none';
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => document.body.removeChild(a), 300);
+        var dlUrl  = $(this).data('url');
+        var dlName = $(this).data('name') || '';
 
-            // Show toast
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3500);
+        if (!dlUrl) {
+            log('tm-download-btn: no data-url found on button');
+            return;
         }
-    }, 1000);
 
-    // Allow user to close overlay by clicking outside the card
-    overlay.onclick = function (ev) {
-        if (ev.target === overlay) {
-            clearInterval(tick);
-            overlay.classList.remove('active');
-        }
-    };
-});
+        var TOTAL = 5;
+        var remaining = TOTAL;
+
+        // Stop any running timer first
+        if (_timer) { clearInterval(_timer); _timer = null; }
+
+        resetRing(TOTAL);
+        showOverlay();
+        startRing(TOTAL);
+
+        _timer = setInterval(function () {
+            remaining--;
+            $num.text(remaining);
+
+            if (remaining <= 0) {
+                clearInterval(_timer);
+                _timer = null;
+                hideOverlay();
+                triggerDownload(dlUrl, dlName);
+                setTimeout(showToast, 400);
+            }
+        }, 1000);
+    });
+
+}); // end $(document).ready
 
 // =============================================================================
 // create a MutationObserver to listen for changes to the DOM
