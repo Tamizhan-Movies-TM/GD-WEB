@@ -746,11 +746,11 @@ function getQueryVariable(variable) {
             return val;
         }
     }
-    return (false);
+    return null; // ✅ FIX: was return (false) — null is more conventional for "not found"
 }
 
 function render(path) {
-    if (path.indexOf("?") > 0) {
+    if (path.indexOf("?") >= 0) {  // ✅ FIX: was > 0, misses '?' at position 0
         path = path.substr(0, path.indexOf("?"));
     }
     title(path);
@@ -1248,7 +1248,7 @@ function append_files_to_fallback_list(path, files) {
                 pn += "?a=view";
                 c += " view";
                 //}
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${p}&a=view"><span>`
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${p}&a=view"><span>`
 
                 html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1379,7 +1379,7 @@ function append_files_to_list(path, files) {
             pn += "?a=view";
             c += " view";
             //}
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
 
             html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1577,7 +1577,9 @@ function render_search_result_list() {
     requestSearch({ q: window.MODEL.q }, searchSuccessCallback);
 
     // Fast copy handler with modern API
-    document.getElementById("handle-multiple-items-copy").addEventListener("click", () => {
+    // ✅ FIX: Guard against null — element only exists when UI.allow_selecting_files is true
+    const _copyBtn = document.getElementById("handle-multiple-items-copy");
+    if (_copyBtn) _copyBtn.addEventListener("click", () => {
         const checked = document.querySelectorAll('input[type="checkbox"]:checked');
 
         if (checked.length === 0) {
@@ -1655,7 +1657,7 @@ function append_search_result_to_list(files) {
             item['md5Checksum'] = item['md5Checksum'] || '—';
             const ext = item.fileExtension;
             const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
 
             html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1670,9 +1672,9 @@ function append_search_result_to_list(files) {
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
-            total_size = formatFileSize(totalsize) || '0 Bytes';
-            total_items = $list.find('.countitems').length;
-            total_files = $list.find('.size_items').length;
+            const total_size = formatFileSize(totalsize) || '0 Bytes';   // ✅ FIX: was implicit global
+            const total_items = $list.find('.countitems').length;          // ✅ FIX: was implicit global
+            const total_files = $list.find('.size_items').length;          // ✅ FIX: was implicit global
             if (total_items == 0) {
                 $('#count').removeClass('d-none').find('.number').text("0 item");
             } else if (total_items == 1) {
@@ -2157,7 +2159,6 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
                 <span class="tth">Size</span>
                 </th>
                 <td>${size}</td>
-               </td>
                         </tr>
                     </tbody>
                 </table>
@@ -2264,7 +2265,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                  <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
-                  </td>
                            </tr>
                      </tbody>
                  </table>
@@ -2422,11 +2422,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                   <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
-                    </td>
                              </tr>
-                         </tbody>
-                    </table>
-        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
           <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
@@ -2721,10 +2717,11 @@ function markdown(el, data) {
 }
 
 // Listen for fallback events
-window.onpopstate = function() {
+// ✅ FIX: Use addEventListener instead of window.onpopstate to avoid overriding other handlers
+window.addEventListener('popstate', function() {
     var path = window.location.pathname;
     render(path);
-}
+});
 
 $(function() {
     init();
@@ -2757,7 +2754,11 @@ function copyFunction() {
             tooltip.innerHTML = `<i class="fas fa-check fa-fw"></i>Copied`;
         })
         .catch(function(error) {
-            logError("Failed to copy text: ", error);
+            // ✅ FIX: Use legacy fallback instead of silently failing
+            logError("Clipboard API failed, using legacy copy: ", error);
+            _legacyCopy(copyText.value);
+            var tooltip = document.getElementById("myTooltip");
+            if (tooltip) tooltip.innerHTML = `<i class="fas fa-check fa-fw"></i>Copied`;
         });
 }
 
