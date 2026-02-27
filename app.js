@@ -2957,9 +2957,9 @@ $(document).ready(function () {
     display: none;
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,.75);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
+    background: rgba(0,0,0,.82);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     z-index: 99999;
     align-items: center;
     justify-content: center;
@@ -2968,42 +2968,71 @@ $(document).ready(function () {
 #tm-dl-overlay.tm-active { display: flex !important; }
 
 #tm-dl-card {
-    background: #13172a;
-    border: 1px solid rgba(255,255,255,.13);
-    border-radius: 20px;
-    padding: 40px 52px 36px;
+    background: linear-gradient(160deg, #1a1f35 0%, #0f1322 100%);
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 24px;
+    padding: 44px 56px 40px;
     text-align: center;
-    min-width: 290px;
-    box-shadow: 0 10px 50px rgba(0,0,0,.6);
-    animation: tmCardIn .25s ease-out;
+    min-width: 320px;
+    box-shadow: 0 24px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(34,197,94,.08), inset 0 1px 0 rgba(255,255,255,.06);
+    animation: tmCardIn .3s cubic-bezier(.34,1.56,.64,1);
+    position: relative;
+    overflow: hidden;
+}
+#tm-dl-card::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(34,197,94,.12) 0%, transparent 70%);
+    pointer-events: none;
 }
 @keyframes tmCardIn {
-    from { opacity: 0; transform: scale(.92) translateY(-12px); }
+    from { opacity: 0; transform: scale(.88) translateY(-16px); }
     to   { opacity: 1; transform: scale(1)  translateY(0); }
 }
 #tm-dl-title {
-    font-size: 16px;
-    color: rgba(255,255,255,.8);
-    margin-bottom: 24px;
-    font-weight: 600;
-    letter-spacing: .4px;
+    font-size: 17px;
+    color: #fff;
+    margin-bottom: 28px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+}
+#tm-dl-title-icon {
+    width: 30px; height: 30px;
+    background: rgba(34,197,94,.15);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
 }
 #tm-dl-ring-wrap {
     position: relative;
-    width: 100px;
-    height: 100px;
-    margin: 0 auto 20px;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 22px;
+}
+#tm-dl-ring-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-shadow: 0 0 28px rgba(34,197,94,.25);
+    pointer-events: none;
 }
 #tm-dl-svg { transform: rotate(-90deg); display: block; }
 #tm-dl-ring-bg {
     fill: none;
-    stroke: rgba(255,255,255,.08);
-    stroke-width: 7;
+    stroke: rgba(255,255,255,.07);
+    stroke-width: 6;
 }
 #tm-dl-ring-arc {
     fill: none;
-    stroke: #22c55e;
-    stroke-width: 7;
+    stroke: url(#tmGradArc);
+    stroke-width: 6;
     stroke-linecap: round;
     transition: stroke-dashoffset 1s linear;
 }
@@ -3011,29 +3040,45 @@ $(document).ready(function () {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 36px;
-    font-weight: 800;
+    font-size: 42px;
+    font-weight: 900;
     color: #fff;
     line-height: 1;
+    letter-spacing: -1px;
 }
 #tm-dl-sub {
-    font-size: 13px;
-    color: rgba(255,255,255,.45);
-    margin-top: 4px;
+    font-size: 12.5px;
+    color: rgba(255,255,255,.38);
+    margin-top: 2px;
+    letter-spacing: .3px;
+}
+#tm-dl-divider {
+    width: 48px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(34,197,94,.5), transparent);
+    margin: 20px auto 0;
+    border-radius: 2px;
 }
 #tm-dl-cancel {
-    margin-top: 22px;
-    background: #dc3545;
-    border: 1px solid #c82333;
+    margin-top: 24px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border: none;
     color: #fff;
-    border-radius: 8px;
-    padding: 7px 20px;
-    font-size: 13px;
+    border-radius: 10px;
+    padding: 10px 32px;
+    font-size: 13.5px;
     font-weight: 700;
     cursor: pointer;
-    transition: background .2s;
+    transition: all .2s ease;
+    letter-spacing: .4px;
+    box-shadow: 0 4px 14px rgba(220,38,38,.35);
 }
-#tm-dl-cancel:hover { background: #c82333; }
+#tm-dl-cancel:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(220,38,38,.45);
+}
+#tm-dl-cancel:active { transform: translateY(0); }
 
 /* Toast - styled like URL Copied notice */
 #tm-dl-toast {
@@ -3074,18 +3119,26 @@ $(document).ready(function () {
 <div id="tm-dl-overlay">
   <div id="tm-dl-card">
     <div id="tm-dl-title">
-      <i class="fa-solid fa-circle-down" style="color:#22c55e;margin-right:7px;"></i>
+      <span id="tm-dl-title-icon"><i class="fa-solid fa-circle-down" style="color:#22c55e;font-size:13px;"></i></span>
       Preparing Your Download…
     </div>
     <div id="tm-dl-ring-wrap">
-      <svg id="tm-dl-svg" width="100" height="100" viewBox="0 0 100 100">
+      <svg id="tm-dl-svg" width="120" height="120" viewBox="0 0 100 100">
+        <defs>
+          <linearGradient id="tmGradArc" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#22c55e"/>
+            <stop offset="100%" style="stop-color:#4ade80"/>
+          </linearGradient>
+        </defs>
         <circle id="tm-dl-ring-bg"  cx="50" cy="50" r="${RADIUS}"/>
         <circle id="tm-dl-ring-arc" cx="50" cy="50" r="${RADIUS}"
                 stroke-dasharray="${CIRC}" stroke-dashoffset="0"/>
       </svg>
+      <div id="tm-dl-ring-glow"></div>
       <div id="tm-dl-num">5</div>
     </div>
     <div id="tm-dl-sub">Download will start automatically…</div>
+    <div id="tm-dl-divider"></div>
     <button id="tm-dl-cancel">Cancel</button>
   </div>
 </div>
