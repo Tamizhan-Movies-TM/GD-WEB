@@ -3042,8 +3042,8 @@ $(document).ready(function () {
     transform: translateX(-50%) translateY(90px);
     background: rgba(30, 30, 30, 0.92);
     color: #fff;
-    padding: 11px 22px;
-    border-radius: 8px;
+    padding: 11px 26px;
+    border-radius: 50px;
     font-size: 14px;
     font-weight: 500;
     display: flex !important;
