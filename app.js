@@ -3029,6 +3029,7 @@ $(document).ready(function () {
     border-radius: 8px;
     padding: 7px 20px;
     font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
     transition: background .2s;
 }
@@ -3045,7 +3046,7 @@ $(document).ready(function () {
     padding: 11px 26px;
     border-radius: 50px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 700;
     display: flex !important;
     align-items: center;
     gap: 8px;
