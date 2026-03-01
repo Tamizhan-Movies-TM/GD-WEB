@@ -3069,140 +3069,11 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
 
 // Handler for Download button to open GKYFILEHOST link
 // =============================================================================
-// DOWNLOAD COUNTDOWN MODAL STYLES
+// ONE-CLICK-PER-PAGE-LOAD LOCK
+// In-memory Set — resets automatically on every page refresh.
+// Prevents users from triggering multiple download requests by rapid/multi clicking.
 // =============================================================================
-(function injectDownloadModalStyles() {
-    const style = document.createElement('style');
-    style.textContent = `
-        #dl-countdown-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(4px);
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-        }
-        #dl-countdown-overlay.active { display: flex; }
-        #dl-countdown-card {
-            background: #1e1e2e;
-            border-radius: 16px;
-            padding: 40px 48px;
-            text-align: center;
-            min-width: 320px;
-            color: #fff;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        }
-        #dl-countdown-card .dl-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 24px;
-            color: #4caf50;
-        }
-        #dl-countdown-card .dl-title i { margin-right: 8px; }
-        .dl-circle-wrap {
-            position: relative;
-            width: 120px; height: 120px;
-            margin: 0 auto 20px;
-        }
-        .dl-circle-wrap svg { transform: rotate(-90deg); }
-        .dl-circle-bg { fill: none; stroke: #333; stroke-width: 8; }
-        .dl-circle-fg {
-            fill: none;
-            stroke: #4caf50;
-            stroke-width: 8;
-            stroke-linecap: round;
-            stroke-dasharray: 283;
-            stroke-dashoffset: 0;
-            transition: stroke-dashoffset 0.9s linear;
-        }
-        .dl-count-num {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 2.4rem;
-            font-weight: 700;
-            color: #fff;
-        }
-        #dl-countdown-card .dl-sub {
-            color: rgba(255,255,255,0.6);
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-        }
-        #dl-cancel-btn {
-            background: #e53935;
-            color: #fff;
-            border: none;
-            padding: 10px 28px;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        #dl-cancel-btn:hover { background: #b71c1c; }
-    `;
-    document.head.appendChild(style);
-
-    // Inject modal HTML
-    const overlay = document.createElement('div');
-    overlay.id = 'dl-countdown-overlay';
-    overlay.innerHTML = `
-        <div id="dl-countdown-card">
-            <div class="dl-title"><i class="fas fa-circle-down"></i> Preparing Your Download...</div>
-            <div class="dl-circle-wrap">
-                <svg width="120" height="120" viewBox="0 0 120 120">
-                    <circle class="dl-circle-bg" cx="60" cy="60" r="45"/>
-                    <circle class="dl-circle-fg" id="dl-circle-fg" cx="60" cy="60" r="45"/>
-                </svg>
-                <div class="dl-count-num" id="dl-count-num">5</div>
-            </div>
-            <p class="dl-sub">Download will start automatically...</p>
-            <button id="dl-cancel-btn"><i class="fas fa-times"></i> Cancel</button>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-
-    document.getElementById('dl-cancel-btn').addEventListener('click', function() {
-        _cancelDownloadCountdown();
-    });
-})();
-
-let _dlCountdownTimer = null;
-
-function _cancelDownloadCountdown() {
-    if (_dlCountdownTimer) { clearInterval(_dlCountdownTimer); _dlCountdownTimer = null; }
-    document.getElementById('dl-countdown-overlay').classList.remove('active');
-}
-
-function _showDownloadCountdown(onComplete) {
-    const SECONDS = 5;
-    const circumference = 2 * Math.PI * 45; // ~283
-    const overlay = document.getElementById('dl-countdown-overlay');
-    const numEl = document.getElementById('dl-count-num');
-    const circFg = document.getElementById('dl-circle-fg');
-
-    let remaining = SECONDS;
-    numEl.textContent = remaining;
-    circFg.style.strokeDashoffset = '0';
-    overlay.classList.add('active');
-
-    _dlCountdownTimer = setInterval(function() {
-        remaining--;
-        numEl.textContent = remaining;
-        // Animate the circle shrinking
-        const offset = circumference * (1 - remaining / SECONDS);
-        circFg.style.strokeDashoffset = offset;
-
-        if (remaining <= 0) {
-            clearInterval(_dlCountdownTimer);
-            _dlCountdownTimer = null;
-            overlay.classList.remove('active');
-            onComplete();
-        }
-    }, 1000);
-}
+const _dlClickedSet = new Set();
 
 $(document).on('click', '.download-via-gkyfilehost', function(e) {
     e.preventDefault();
@@ -3216,26 +3087,14 @@ $(document).on('click', '.download-via-gkyfilehost', function(e) {
         return;
     }
 
-    // --- TWO-CLICK LOGIC ---
-    // First click: show countdown modal, mark as "clicked once", do NOT download.
-    // After user refreshes and clicks again: actually trigger download.
-    const storageKey = 'dl_clicked_' + fileId;
-    const alreadyClicked = sessionStorage.getItem(storageKey);
-
-    if (!alreadyClicked) {
-        // FIRST CLICK — show countdown, set flag, but do NOT download
-        sessionStorage.setItem(storageKey, '1');
-        _showDownloadCountdown(function() {
-            // Countdown finished — show a "please refresh" message
-            const originalHtml = button.html();
-            button.prop('disabled', true).html('<i class="fas fa-refresh fa-fw"></i> Please Refresh & Click Again');
-            log('First click: countdown done, waiting for page refresh and second click.');
-        });
+    // If already clicked once this page load, silently ignore all extra clicks.
+    if (_dlClickedSet.has(fileId)) {
+        log('Download already triggered for fileId:', fileId, '— ignoring extra click.');
         return;
     }
 
-    // SECOND CLICK (after refresh) — clear flag and proceed with download
-    sessionStorage.removeItem(storageKey);
+    // Lock: mark this fileId as clicked for the lifetime of this page.
+    _dlClickedSet.add(fileId);
 
     // Show loading state
     const originalHtml = button.html();
@@ -3248,6 +3107,8 @@ $(document).on('click', '.download-via-gkyfilehost', function(e) {
             log('Successfully opened GKYFILEHOST link:', link);
         })
         .catch((error) => {
+            // On failure: unlock so user can retry after seeing the error message.
+            _dlClickedSet.delete(fileId);
             button.html('<i class="fas fa-times fa-fw"></i> Failed');
             setTimeout(() => {
                 button.prop('disabled', false).html(originalHtml);
