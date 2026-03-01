@@ -3089,7 +3089,7 @@ $(document).ready(function () {
   </div>
 </div>
 <div id="tm-dl-toast">
-  <i class="fa-solid fa-check" style="color:#22c55e;"></i> File  Downloading…
+  <i class="fa-solid fa-check" style="color:#22c55e;"></i> File&nbsp;&nbsp;Downloading…
 </div>`);
     }
 
