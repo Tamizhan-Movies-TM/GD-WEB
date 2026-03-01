@@ -3072,37 +3072,45 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
 }
 
 // =============================================================================
-// DOWNLOAD TIMER: Shows ➎➍➌➋➊ countdown then auto-triggers download
-// Call startDownloadTimer() after rendering any file view with #tm-dl-btn
+// DOWNLOAD TIMER: Shows ➎ Download → ➍ Download → … → ➊ Download countdown
+// Button stays fully clickable throughout. No auto-download.
+// After countdown ends with no click, restores to normal ⬇ Download button.
 // =============================================================================
 function startDownloadTimer() {
     const btn = document.getElementById('tm-dl-btn');
     if (!btn) return;
 
-    const downloadInnerHTML = btn.innerHTML; // capture original (icon + text)
+    const dlLabel = '&nbsp;𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱';
+    const finalHTML = '<i class="fa-solid fa-circle-down"></i>&nbsp;𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱';
     const steps = ['➎', '➍', '➌', '➋', '➊'];
 
-    // Disable pointer events so user can't click mid-countdown
-    btn.style.pointerEvents = 'none';
-    btn.style.opacity = '0.9';
-    btn.style.minWidth = btn.offsetWidth + 'px'; // lock width to avoid layout shift
+    // Lock width to prevent layout jump during countdown
+    btn.style.minWidth = (btn.offsetWidth || 130) + 'px';
 
     let step = 0;
-    const interval = setInterval(() => {
+    let timerID;
+
+    function showStep() {
         if (step < steps.length) {
-            btn.innerHTML = `<span style="font-size:1.4em;font-weight:bold;letter-spacing:3px;">${steps[step]}</span>`;
+            btn.innerHTML = '<span style="font-size:1.1em;font-weight:bold;">' + steps[step] + '</span>' + dlLabel;
             step++;
+            timerID = setTimeout(showStep, 1000);
         } else {
-            clearInterval(interval);
-            // Restore original icon + label
-            btn.innerHTML = downloadInnerHTML;
-            btn.style.pointerEvents = '';
-            btn.style.opacity = '';
+            // Countdown finished with no click — restore normal button
+            btn.innerHTML = finalHTML;
             btn.style.minWidth = '';
-            // Auto-trigger the download
-            btn.click();
         }
-    }, 1000);
+    }
+
+    timerID = setTimeout(showStep, 1000);
+
+    // If user clicks during countdown, stop timer and restore immediately
+    function onClickDuringTimer() {
+        clearTimeout(timerID);
+        btn.innerHTML = finalHTML;
+        btn.style.minWidth = '';
+    }
+    btn.addEventListener('click', onClickDuringTimer, { once: true });
 }
 
 // Handler for Download button to open GKYFILEHOST link
