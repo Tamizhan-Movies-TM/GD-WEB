@@ -236,6 +236,112 @@ function init() {
     display: none;
 }
 
+/* ===== Download Timer Modal ===== */
+.dl-timer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+.dl-timer-overlay.active { display: flex; }
+.dl-timer-card {
+    background: #1a1d2e;
+    border-radius: 18px;
+    padding: 36px 40px 30px;
+    text-align: center;
+    width: 320px;
+    max-width: 90vw;
+    animation: dlSlideIn .3s ease-out;
+    box-shadow: 0 8px 40px rgba(0,0,0,.6);
+}
+@keyframes dlSlideIn {
+    from { opacity:0; transform:translateY(-24px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+.dl-timer-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.dl-timer-title .dl-icon { color: #22c55e; font-size: 1.3rem; }
+.dl-ring-wrap {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin: 0 auto 18px;
+}
+.dl-ring-wrap svg {
+    transform: rotate(-90deg);
+    width: 110px; height: 110px;
+}
+.dl-ring-track { fill: none; stroke: #2d3148; stroke-width: 8; }
+.dl-ring-bar   { fill: none; stroke: #22c55e; stroke-width: 8;
+                  stroke-linecap: round;
+                  stroke-dasharray: 283;
+                  stroke-dashoffset: 0;
+                  transition: stroke-dashoffset 1s linear; }
+.dl-ring-num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: #fff;
+}
+.dl-timer-sub {
+    color: rgba(255,255,255,.55);
+    font-size: .85rem;
+    margin-bottom: 22px;
+}
+.dl-cancel-btn {
+    background: #e53935;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 34px;
+    font-size: .95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .25s;
+}
+.dl-cancel-btn:hover { background: #c62828; }
+
+/* ===== File Downloading Toast ===== */
+.dl-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1a1d2e;
+    color: #fff;
+    border-radius: 10px;
+    padding: 13px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: .95rem;
+    font-weight: 600;
+    box-shadow: 0 4px 24px rgba(0,0,0,.5);
+    opacity: 0;
+    transition: opacity .35s, transform .35s;
+    z-index: 10000;
+    pointer-events: none;
+    white-space: nowrap;
+}
+.dl-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.dl-toast .dl-toast-icon { color: #22c55e; font-size: 1.1rem; }
+
 .donate .btn {
     display: flex;
     justify-content: center;
@@ -465,6 +571,30 @@ strong {
             </button>
         </form>
     </div>
+</div>
+
+<!-- Download Timer Modal -->
+<div class="dl-timer-overlay" id="dlTimerOverlay">
+    <div class="dl-timer-card">
+        <div class="dl-timer-title">
+            <i class="fa-solid fa-circle-down dl-icon"></i>
+            Preparing Your Download...
+        </div>
+        <div class="dl-ring-wrap">
+            <svg viewBox="0 0 110 110">
+                <circle class="dl-ring-track" cx="55" cy="55" r="45"/>
+                <circle class="dl-ring-bar" id="dlRingBar" cx="55" cy="55" r="45"/>
+            </svg>
+            <div class="dl-ring-num" id="dlTimerNum">5</div>
+        </div>
+        <div class="dl-timer-sub">Download will start automatically...</div>
+        <button class="dl-cancel-btn" id="dlCancelBtn">Cancel</button>
+    </div>
+</div>
+<!-- File Downloading Toast -->
+<div class="dl-toast" id="dlToast">
+    <i class="fa-solid fa-check dl-toast-icon"></i>
+    File Downloading...
 </div>
 
 <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
@@ -2170,10 +2300,10 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${isUserLoggedIn() || !UI.enable_gkyfilehost
-            ? `<a id="tm-dl-btn" href="${url}" type="button" class="btn btn-success" download>
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
                </a>`
-            : `<a id="tm-dl-btn" type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
           <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
            </a>`
           }
@@ -2194,7 +2324,6 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
     $('#content').html(content);
 
     // GDFlix handler is registered once at module level (see bottom of file)
-    startDownloadTimer();
 
     $('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
     var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
@@ -2283,10 +2412,10 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${isUserLoggedIn() || !UI.enable_gkyfilehost
-            ? `<a id="tm-dl-btn" href="${url}" type="button" class="btn btn-success" download>
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
                </a>`
-            : `<a id="tm-dl-btn" type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
           <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
            </a>`
           }
@@ -2307,7 +2436,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     $("#content").html(content);
 
     // GDFlix handler is registered once at module level (see bottom of file)
-    startDownloadTimer();
 
     $('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
     var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
@@ -2447,10 +2575,10 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${isUserLoggedIn() || !UI.enable_gkyfilehost
-            ? `<a id="tm-dl-btn" href="${url}" type="button" class="btn btn-success" download>
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
                </a>`
-            : `<a id="tm-dl-btn" type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
           <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
            </a>`
           }
@@ -2471,7 +2599,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     $("#content").html(content);
 
   // GDFlix handler is registered once at module level (see bottom of file)
-  startDownloadTimer();
 
   // Load Video.js and initialize the player
     if (!UI.disable_player && player_js) {
@@ -2586,10 +2713,10 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
                             ${isUserLoggedIn() || !UI.enable_gkyfilehost
-            ? `<a id="tm-dl-btn" href="${url}" type="button" class="btn btn-success" download>
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
                </a>`
-            : `<a id="tm-dl-btn" type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
                                 <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
                             </a>`
           }
@@ -2611,7 +2738,6 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
         </div>
     </div>`;
     $("#content").html(content);
-    startDownloadTimer();
 
     // Initialize player if enabled
     if (!UI.disable_player && player_js) {
@@ -3071,49 +3197,103 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
     });
 }
 
+// Handler for Download button to open GKYFILEHOST link
 // =============================================================================
-// DOWNLOAD TIMER: Shows ➎ Download → ➍ Download → … → ➊ Download countdown
-// Button stays fully clickable throughout. No auto-download.
-// After countdown ends with no click, restores to normal ⬇ Download button.
+// DOWNLOAD TIMER MODAL + "File Downloading..." TOAST
 // =============================================================================
-function startDownloadTimer() {
-    const btn = document.getElementById('tm-dl-btn');
-    if (!btn) return;
+let _dlTimerInterval = null;
+let _dlTimerCancel = false;
+const DL_TIMER_SECS = 5;
+const RING_CIRCUMFERENCE = 2 * Math.PI * 45; // ~282.74
 
-    const dlLabel = '&nbsp;𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱';
-    const finalHTML = '<i class="fa-solid fa-circle-down"></i>&nbsp;𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱';
-    const steps = ['➎', '➍', '➌', '➋', '➊'];
+/**
+ * Show a 5-second countdown modal, then call onComplete().
+ * Returns a cancel function.
+ */
+function showDownloadTimer(onComplete) {
+    const overlay  = document.getElementById('dlTimerOverlay');
+    const numEl    = document.getElementById('dlTimerNum');
+    const ringBar  = document.getElementById('dlRingBar');
+    const cancelBtn = document.getElementById('dlCancelBtn');
 
-    // Lock width to prevent layout jump during countdown
-    btn.style.minWidth = (btn.offsetWidth || 130) + 'px';
+    if (!overlay) { onComplete(); return () => {}; }
 
-    let step = 0;
-    let timerID;
+    _dlTimerCancel = false;
+    let remaining = DL_TIMER_SECS;
 
-    function showStep() {
-        if (step < steps.length) {
-            btn.innerHTML = '<span style="font-size:1.1em;font-weight:bold;">' + steps[step] + '</span>' + dlLabel;
-            step++;
-            timerID = setTimeout(showStep, 1000);
-        } else {
-            // Countdown finished with no click — restore normal button
-            btn.innerHTML = finalHTML;
-            btn.style.minWidth = '';
+    // Init ring
+    ringBar.style.strokeDasharray  = RING_CIRCUMFERENCE;
+    ringBar.style.strokeDashoffset = 0;
+    numEl.textContent = remaining;
+    overlay.classList.add('active');
+
+    function updateRing(sec) {
+        const offset = RING_CIRCUMFERENCE * (1 - sec / DL_TIMER_SECS);
+        ringBar.style.strokeDashoffset = offset;
+    }
+
+    function cleanup() {
+        clearInterval(_dlTimerInterval);
+        overlay.classList.remove('active');
+    }
+
+    _dlTimerInterval = setInterval(() => {
+        if (_dlTimerCancel) { cleanup(); return; }
+        remaining--;
+        numEl.textContent = remaining;
+        updateRing(remaining);
+        if (remaining <= 0) {
+            cleanup();
+            if (!_dlTimerCancel) {
+                showDownloadingToast();
+                onComplete();
+            }
         }
+    }, 1000);
+
+    // Update ring for initial full state right away
+    updateRing(remaining);
+
+    function cancel() {
+        _dlTimerCancel = true;
+        cleanup();
     }
 
-    timerID = setTimeout(showStep, 1000);
-
-    // If user clicks during countdown, stop timer and restore immediately
-    function onClickDuringTimer() {
-        clearTimeout(timerID);
-        btn.innerHTML = finalHTML;
-        btn.style.minWidth = '';
-    }
-    btn.addEventListener('click', onClickDuringTimer, { once: true });
+    cancelBtn.onclick = cancel;
+    return cancel;
 }
 
-// Handler for Download button to open GKYFILEHOST link
+/**
+ * Show the "File Downloading..." toast for 3 seconds.
+ */
+function showDownloadingToast() {
+    const toast = document.getElementById('dlToast');
+    if (!toast) return;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// =============================================================================
+// Direct-download <a download> handler — intercept and show timer
+// =============================================================================
+$(document).on('click', 'a.btn[download]', function(e) {
+    const href = this.href;
+    if (!href) return; // nothing to do
+
+    e.preventDefault();
+
+    showDownloadTimer(() => {
+        // Trigger the actual download
+        const a = document.createElement('a');
+        a.href = href;
+        a.download = this.getAttribute('download') || '';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
+});
+
 $(document).on('click', '.download-via-gkyfilehost', function(e) {
     e.preventDefault();
     const fileId = $(this).data('file-id');
