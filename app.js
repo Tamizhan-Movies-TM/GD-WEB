@@ -250,7 +250,7 @@ function init() {
 .dl-timer-overlay.active { display: flex; }
 .dl-timer-card {
     background: #1a1d2e;
-    border-radius: 18px;
+    border-radius: 28px;
     padding: 36px 44px 30px;
     text-align: center;
     width: 360px;
@@ -3217,9 +3217,9 @@ const RING_CIRCUMFERENCE = 2 * Math.PI * 45; // ~282.74
  * Returns a cancel function.
  */
 function showDownloadTimer(onComplete) {
-    const overlay  = document.getElementById('dlTimerOverlay');
-    const numEl    = document.getElementById('dlTimerNum');
-    const ringBar  = document.getElementById('dlRingBar');
+    const overlay   = document.getElementById('dlTimerOverlay');
+    const numEl     = document.getElementById('dlTimerNum');
+    const ringBar   = document.getElementById('dlRingBar');
     const cancelBtn = document.getElementById('dlCancelBtn');
 
     if (!overlay) { onComplete(); return () => {}; }
@@ -3227,15 +3227,23 @@ function showDownloadTimer(onComplete) {
     _dlTimerCancel = false;
     let remaining = DL_TIMER_SECS;
 
-    // Init ring
-    ringBar.style.strokeDasharray  = RING_CIRCUMFERENCE;
+    // Circumference of r=45 circle
+    const circ = 2 * Math.PI * 45; // ~282.74
+
+    // Start full, drain to 0
+    ringBar.style.transition = 'none';
+    ringBar.style.strokeDasharray  = circ;
     ringBar.style.strokeDashoffset = 0;
     numEl.textContent = remaining;
     overlay.classList.add('active');
 
-    function updateRing(sec) {
-        const offset = RING_CIRCUMFERENCE * (1 - sec / DL_TIMER_SECS);
-        ringBar.style.strokeDashoffset = offset;
+    // Force reflow so transition applies from next tick
+    ringBar.getBoundingClientRect();
+    ringBar.style.transition = 'stroke-dashoffset 1s linear';
+
+    function setRing(sec) {
+        // offset goes from 0 (full) → circ (empty) as sec goes 5→0
+        ringBar.style.strokeDashoffset = circ * (1 - sec / DL_TIMER_SECS);
     }
 
     function cleanup() {
@@ -3247,7 +3255,7 @@ function showDownloadTimer(onComplete) {
         if (_dlTimerCancel) { cleanup(); return; }
         remaining--;
         numEl.textContent = remaining;
-        updateRing(remaining);
+        setRing(remaining);
         if (remaining <= 0) {
             cleanup();
             if (!_dlTimerCancel) {
@@ -3257,8 +3265,8 @@ function showDownloadTimer(onComplete) {
         }
     }, 1000);
 
-    // Update ring for initial full state right away
-    updateRing(remaining);
+    // Kick ring to first step after brief delay so CSS transition fires
+    setTimeout(() => setRing(DL_TIMER_SECS - 1), 50);
 
     function cancel() {
         _dlTimerCancel = true;
@@ -3284,11 +3292,17 @@ function showDownloadingToast() {
 // =============================================================================
 $(document).on('click', 'a.btn[download]', function(e) {
     const href = this.href;
-    if (!href) return; // nothing to do
+    if (!href) return;
 
     e.preventDefault();
 
-    showDownloadTimer(() => {
+    const btn = $(this);
+    // Prevent double-clicks while timer is running
+    if (btn.data('dl-pending')) return;
+    btn.data('dl-pending', true).prop('disabled', true);
+
+    const cancelTimer = showDownloadTimer(() => {
+        btn.data('dl-pending', false).prop('disabled', false);
         // Trigger the actual download
         const a = document.createElement('a');
         a.href = href;
@@ -3298,6 +3312,16 @@ $(document).on('click', 'a.btn[download]', function(e) {
         a.click();
         document.body.removeChild(a);
     });
+
+    // Re-enable button if user cancels
+    const origCancel = document.getElementById('dlCancelBtn');
+    if (origCancel) {
+        const prevOnclick = origCancel.onclick;
+        origCancel.onclick = function() {
+            btn.data('dl-pending', false).prop('disabled', false);
+            if (prevOnclick) prevOnclick();
+        };
+    }
 });
 
 $(document).on('click', '.download-via-gkyfilehost', function(e) {
