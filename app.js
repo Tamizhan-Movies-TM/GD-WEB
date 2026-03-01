@@ -251,10 +251,10 @@ function init() {
 .dl-timer-card {
     background: #1a1d2e;
     border-radius: 18px;
-    padding: 36px 40px 30px;
+    padding: 36px 44px 30px;
     text-align: center;
-    width: 320px;
-    max-width: 90vw;
+    width: 360px;
+    max-width: 92vw;
     animation: dlSlideIn .3s ease-out;
     box-shadow: 0 8px 40px rgba(0,0,0,.6);
 }
@@ -268,11 +268,17 @@ function init() {
     color: #fff;
     margin-bottom: 22px;
     display: flex;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
+    white-space: nowrap;
 }
-.dl-timer-title .dl-icon { color: #22c55e; font-size: 1.3rem; }
+.dl-timer-title .dl-icon {
+    color: #22c55e;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
 .dl-ring-wrap {
     position: relative;
     width: 110px;
@@ -578,7 +584,7 @@ strong {
     <div class="dl-timer-card">
         <div class="dl-timer-title">
             <i class="fa-solid fa-circle-down dl-icon"></i>
-            Preparing Your Download...
+            <span>Preparing Your Download...</span>
         </div>
         <div class="dl-ring-wrap">
             <svg viewBox="0 0 110 110">
