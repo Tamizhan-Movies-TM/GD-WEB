@@ -535,7 +535,7 @@ strong {
     transform: translateX(-50%) translateY(0);
     opacity: 1;
 }
-#dl-toast i { color: #28a745; font-size: 1.1rem; }
+#dl-toast i { color: #28a745; font-size: 1.1rem; margin-right: 6px; }
 </style>
 
 <!-- Download Timer Overlay -->
@@ -555,7 +555,7 @@ strong {
 </div>
 
 <!-- File Downloading Toast -->
-<div id="dl-toast"><i class="fas fa-circle-check"></i> File Downloading...</div>
+<div id="dl-toast"><i class="fas fa-circle-check"></i>&nbsp; File Downloading...</div>
 
 <!-- Login Modal -->
 <div class="login-modal" id="loginModal">
