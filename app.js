@@ -555,7 +555,7 @@ strong {
 </div>
 
 <!-- File Downloading Toast -->
-<div id="dl-toast"><i class="fas fa-circle-check"></i>𝗙𝗶𝗹𝗲 &nbsp;𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱𝗶𝗻𝗴...</div>
+<div id="dl-toast"><i class="fas fa-circle-check"></i>File &nbsp;Downloading...</div>
 
 <!-- Login Modal -->
 <div class="login-modal" id="loginModal">
