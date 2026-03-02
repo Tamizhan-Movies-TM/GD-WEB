@@ -2308,7 +2308,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${isUserLoggedIn() || !UI.enable_gkyfilehost
-            ? `<a href="${url}" type="button" class="btn btn-success" download>
+            ? `<a href="#" type="button" class="btn btn-success" onclick="event.preventDefault();window.open('${url}','_blank')">
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
                </a>`
             : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
@@ -2420,7 +2420,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${isUserLoggedIn() || !UI.enable_gkyfilehost
-            ? `<a href="${url}" type="button" class="btn btn-success" download>
+            ? `<a href="#" type="button" class="btn btn-success" onclick="event.preventDefault();window.open('${url}','_blank')">
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
                </a>`
             : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
@@ -2583,7 +2583,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${isUserLoggedIn() || !UI.enable_gkyfilehost
-            ? `<a href="${url}" type="button" class="btn btn-success" download>
+            ? `<a href="#" type="button" class="btn btn-success" onclick="event.preventDefault();window.open('${url}','_blank')">
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
                </a>`
             : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
@@ -2721,7 +2721,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
                             ${isUserLoggedIn() || !UI.enable_gkyfilehost
-            ? `<a href="${url}" type="button" class="btn btn-success" download>
+            ? `<a href="#" type="button" class="btn btn-success" onclick="event.preventDefault();window.open('${url}','_blank')">
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
                </a>`
             : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
