@@ -417,7 +417,142 @@ strong {
     display: none;
     margin-top: 1rem;
 }
+
+/* ===================== DOWNLOAD TIMER OVERLAY ===================== */
+#download-timer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+#download-timer-overlay.active {
+    display: flex;
+}
+.dl-timer-card {
+    background: rgba(20,20,36,0.97);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 40px 48px;
+    text-align: center;
+    max-width: 360px;
+    width: 90%;
+    animation: dlSlideIn 0.3s ease-out;
+}
+@keyframes dlSlideIn {
+    from { opacity:0; transform:translateY(-24px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+.dl-timer-ring {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 20px;
+}
+.dl-timer-ring svg {
+    transform: rotate(-90deg);
+}
+.dl-timer-ring circle.bg {
+    fill: none;
+    stroke: rgba(255,255,255,0.08);
+    stroke-width: 7;
+}
+.dl-timer-ring circle.prog {
+    fill: none;
+    stroke: #28a745;
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-dasharray: 251.2;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear, stroke 0.3s;
+}
+.dl-timer-count {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+}
+.dl-timer-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 6px;
+}
+.dl-timer-sub {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 22px;
+}
+.dl-timer-cancel {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6);
+    border-radius: 8px;
+    padding: 8px 22px;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.dl-timer-cancel:hover {
+    border-color: rgba(255,255,255,0.5);
+    color: #fff;
+}
+
+/* ===================== DOWNLOADING TOAST ===================== */
+#dl-toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: rgba(20,20,36,0.97);
+    border: 1px solid rgba(40,167,69,0.4);
+    border-left: 4px solid #28a745;
+    color: #fff;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease;
+    opacity: 0;
+    white-space: nowrap;
+    pointer-events: none;
+}
+#dl-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+#dl-toast i { color: #28a745; font-size: 1.1rem; }
 </style>
+
+<!-- Download Timer Overlay -->
+<div id="download-timer-overlay">
+  <div class="dl-timer-card">
+    <div class="dl-timer-ring">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle class="bg" cx="50" cy="50" r="40"/>
+        <circle class="prog" id="dl-ring-prog" cx="50" cy="50" r="40"/>
+      </svg>
+      <div class="dl-timer-count" id="dl-timer-count">5</div>
+    </div>
+    <div class="dl-timer-title"><i class="fa-solid fa-cloud-arrow-down"></i>&nbsp; Preparing Download</div>
+    <div class="dl-timer-sub">Your download will start automatically…</div>
+    <button class="dl-timer-cancel" id="dl-timer-cancel"><i class="fas fa-times"></i>&nbsp; Cancel</button>
+  </div>
+</div>
+
+<!-- File Downloading Toast -->
+<div id="dl-toast"><i class="fas fa-circle-check"></i> File Downloading...</div>
 
 <!-- Login Modal -->
 <div class="login-modal" id="loginModal">
@@ -2169,9 +2304,14 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          <button type="button" class="btn btn-success tm-download-btn" data-url="${url}" data-name="${encoded_name}">
+          ${isUserLoggedIn() || !UI.enable_gkyfilehost
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-               </button>
+               </a>`
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+           </a>`
+          }
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2276,9 +2416,14 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          <button type="button" class="btn btn-success tm-download-btn" data-url="${url}" data-name="${encoded_name}">
+          ${isUserLoggedIn() || !UI.enable_gkyfilehost
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-               </button>
+               </a>`
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+           </a>`
+          }
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2434,9 +2579,14 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          <button type="button" class="btn btn-success tm-download-btn" data-url="${url}" data-name="${encoded_name}">
+          ${isUserLoggedIn() || !UI.enable_gkyfilehost
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-               </button>
+               </a>`
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+           </a>`
+          }
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2567,9 +2717,14 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                     <div class="text-center">
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
-                            <button type="button" class="btn btn-success tm-download-btn" data-url="${url}" data-name="${encoded_name}">
+                            ${isUserLoggedIn() || !UI.enable_gkyfilehost
+            ? `<a href="${url}" type="button" class="btn btn-success" download>
                  <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-               </button>
+               </a>`
+            : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+                                <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+                            </a>`
+          }
                             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split"
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="sr-only"></span>
@@ -2913,6 +3068,173 @@ function generateGDFlixLink(fileId) {
     });
 }
 
+// Update the generateGKYFILEHOSTLink function to call the worker endpoint
+function generateGKYFILEHOSTLink(fileId, fileName) {
+    return new Promise((resolve, reject) => {
+        log('GKYFILEHOST - Received fileId:', fileId);
+        log('GKYFILEHOST - Received fileName:', fileName);
+
+        if (!fileId) {
+            logError('GKYFILEHOST - No file ID provided');
+            alert('Error: No file ID provided');
+            reject(new Error('No file ID provided'));
+            return;
+        }
+
+        fileId = String(fileId).trim();
+
+        if (fileId === '') {
+            logError('GKYFILEHOST - Empty file ID');
+            alert('Error: Empty file ID');
+            reject(new Error('Empty file ID'));
+            return;
+        }
+
+        // Try to get filename from page if not provided
+        if (!fileName) {
+            try {
+                // Try to find the filename from the page title or heading
+                const titleElement = document.querySelector('h5.card-title');
+                if (titleElement) {
+                    fileName = titleElement.textContent.trim();
+                }
+            } catch (e) {
+                log('GKYFILEHOST - Could not extract filename from page');
+            }
+        }
+
+        log('GKYFILEHOST - Final fileName:', fileName || 'download');
+        log('GKYFILEHOST - Requesting link generation from worker...');
+        log('GKYFILEHOST - File ID being sent:', fileId);
+
+        // Show a loading indicator (you can customize this)
+        const loadingMsg = 'Generating GKYFILEHOST link... Please wait...';
+        log(loadingMsg);
+
+        // Make request to worker endpoint (FIXED: Changed from /generate-gkyfilehost to /gkyfilehost)
+        fetch('/gkyfilehost', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                file_id: fileId,
+                file_name: fileName || 'download'
+            })
+        })
+        .then(response => {
+            log('GKYFILEHOST - Response status:', response.status);
+            log('GKYFILEHOST - Response OK:', response.ok);
+
+            // Try to get the response body even if status is not OK
+            return response.json().then(data => {
+                return { status: response.status, ok: response.ok, data: data };
+            }).catch(() => {
+                // If JSON parsing fails, try to get text
+                return response.text().then(text => {
+                    return { status: response.status, ok: response.ok, data: { error: text } };
+                });
+            });
+        })
+        .then(result => {
+            log('GKYFILEHOST - Full response:', result);
+
+            if (!result.ok) {
+                // Show specific error from server
+                const errorMsg = result.data.error || result.data.details || `HTTP error! status: ${result.status}`;
+                logError('GKYFILEHOST - Server error:', errorMsg);
+                throw new Error(errorMsg);
+            }
+
+            const data = result.data;
+            log('GKYFILEHOST - Worker response data:', data);
+
+            if (data.success && (data.link || data.gkyfilehost_link)) {
+                const gkyLink = data.link || data.gkyfilehost_link;
+                log('GKYFILEHOST - Generated link:', gkyLink);
+
+                // Validate the link format
+                if (!gkyLink.includes('gkyfilehost')) {
+                    logError('GKYFILEHOST - Warning: Link does not contain gkyfilehost domain');
+                }
+
+                // Open the GKYFILEHOST link directly in a new tab
+                window.open(gkyLink, '_blank');
+
+                // Show success message
+                log('✅ GKYFILEHOST link generated successfully!');
+
+                resolve(gkyLink);
+            } else {
+                const errorMsg = data.error || 'Failed to generate GKYFILEHOST link - no link in response';
+                logError('GKYFILEHOST - Error from server:', errorMsg);
+                throw new Error(errorMsg);
+            }
+        })
+        .catch(error => {
+            logError('GKYFILEHOST Error:', error);
+            logError('GKYFILEHOST Error stack:', error.stack);
+
+            // Show user-friendly error message
+            let userMessage = 'Failed to generate GKYFILEHOST link';
+
+            if (error.message.includes('Failed to login')) {
+                userMessage += '\n\n⚠️ Login to GKYFILEHOST failed.\n\nPossible solutions:\n' +
+                             '1. Check your GKYFILEHOST account credentials\n' +
+                             '2. Make sure your account is active\n' +
+                             '3. Check Cloudflare Worker logs for details';
+            } else if (error.message.includes('HTTP error! status: 500')) {
+                userMessage += '\n\nServer error (500).\n\nPlease check:\n' +
+                             '1. Cloudflare Worker logs for details\n' +
+                             '2. GKYFILEHOST credentials are correct\n' +
+                             '3. The file ID is valid';
+            } else if (error.message.includes('HTTP error! status: 400')) {
+                userMessage += '\n\nBad request (400). The file ID might be invalid.';
+            } else if (error.message.includes('Failed to fetch')) {
+                userMessage += '\n\nNetwork error. Check your internet connection.';
+            } else {
+                userMessage += ':\n\n' + error.message;
+            }
+
+            alert(userMessage);
+            reject(error);
+        });
+    });
+}
+
+// Handler for Download button to open GKYFILEHOST link
+$(document).on('click', '.download-via-gkyfilehost', function(e) {
+    e.preventDefault();
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+
+    log('Download button clicked, fileId:', fileId);
+
+    if (!fileId) {
+        alert('Error: No file ID found');
+        return;
+    }
+
+    // Show loading state
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+
+    // Call GKYFILEHOST function
+    generateGKYFILEHOSTLink(fileId)
+        .then((link) => {
+            button.prop('disabled', false).html(originalHtml);
+            log('Successfully opened GKYFILEHOST link:', link);
+        })
+        .catch((error) => {
+            button.html('<i class="fas fa-times fa-fw"></i> Failed');
+            setTimeout(() => {
+                button.prop('disabled', false).html(originalHtml);
+            }, 2000);
+            logError('Download error:', error);
+        });
+});
+
+
 // =============================================================================
 // SINGLE TOP-LEVEL GDFlix Button Handler
 // Registered once here — replaces 3 duplicate handlers that were
@@ -2943,258 +3265,6 @@ $(document).on('click', '.gdflix-btn', function() {
         });
 });
 
-// =============================================================================
-// DOWNLOAD TIMER — 5-second countdown → trigger download → show "File Downloading..." toast
-// Everything is initialised inside $(document).ready() so body always exists.
-// =============================================================================
-
-$(document).ready(function () {
-
-    // ── 1. Inject CSS ──────────────────────────────────────────────────────────
-    if (!document.getElementById('tm-dl-timer-style')) {
-        $('<style id="tm-dl-timer-style">').text(`
-#tm-dl-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,.75);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    z-index: 99999;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-}
-#tm-dl-overlay.tm-active { display: flex !important; }
-
-#tm-dl-card {
-    background: #13172a;
-    border: 1px solid rgba(255,255,255,.13);
-    border-radius: 20px;
-    padding: 40px 52px 36px;
-    text-align: center;
-    min-width: 290px;
-    box-shadow: 0 10px 50px rgba(0,0,0,.6);
-    animation: tmCardIn .25s ease-out;
-}
-@keyframes tmCardIn {
-    from { opacity: 0; transform: scale(.92) translateY(-12px); }
-    to   { opacity: 1; transform: scale(1)  translateY(0); }
-}
-#tm-dl-title {
-    font-size: 16px;
-    color: rgba(255,255,255,.8);
-    margin-bottom: 24px;
-    font-weight: 600;
-    letter-spacing: .4px;
-}
-#tm-dl-ring-wrap {
-    position: relative;
-    width: 100px;
-    height: 100px;
-    margin: 0 auto 20px;
-}
-#tm-dl-svg { transform: rotate(-90deg); display: block; }
-#tm-dl-ring-bg {
-    fill: none;
-    stroke: rgba(255,255,255,.08);
-    stroke-width: 7;
-}
-#tm-dl-ring-arc {
-    fill: none;
-    stroke: #22c55e;
-    stroke-width: 7;
-    stroke-linecap: round;
-    transition: stroke-dashoffset 1s linear;
-}
-#tm-dl-num {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 36px;
-    font-weight: 800;
-    color: #fff;
-    line-height: 1;
-}
-#tm-dl-sub {
-    font-size: 13px;
-    color: rgba(255,255,255,.45);
-    margin-top: 4px;
-}
-#tm-dl-cancel {
-    margin-top: 22px;
-    background: #dc3545;
-    border: 1px solid #c82333;
-    color: #fff;
-    border-radius: 8px;
-    padding: 7px 20px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: background .2s;
-}
-#tm-dl-cancel:hover { background: #c82333; }
-
-/* Toast - styled like URL Copied notice */
-#tm-dl-toast {
-    position: fixed;
-    bottom: 28px;
-    left: 50%;
-    transform: translateX(-50%) translateY(90px);
-    background: rgba(30, 30, 30, 0.92);
-    color: #fff;
-    padding: 11px 26px;
-    border-radius: 50px;
-    font-size: 14px;
-    font-weight: 500;
-    display: flex !important;
-    align-items: center;
-    gap: 8px;
-    z-index: 100000;
-    opacity: 0;
-    transition: transform .3s ease, opacity .3s ease;
-    white-space: nowrap;
-    box-shadow: 0 4px 20px rgba(0,0,0,.5);
-    pointer-events: none;
-    border: 1px solid rgba(255,255,255,.08);
-}
-#tm-dl-toast.tm-show {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-}
-`).appendTo('head');
-    }
-
-    // ── 2. Build overlay HTML ──────────────────────────────────────────────────
-    const RADIUS = 42;
-    const CIRC   = +(2 * Math.PI * RADIUS).toFixed(4); // e.g. 263.8938
-
-    if (!document.getElementById('tm-dl-overlay')) {
-        $('body').append(`
-<div id="tm-dl-overlay">
-  <div id="tm-dl-card">
-    <div id="tm-dl-title">
-      <i class="fa-solid fa-circle-down" style="color:#22c55e;margin-right:7px;"></i>
-      Preparing Your Download…
-    </div>
-    <div id="tm-dl-ring-wrap">
-      <svg id="tm-dl-svg" width="100" height="100" viewBox="0 0 100 100">
-        <circle id="tm-dl-ring-bg"  cx="50" cy="50" r="${RADIUS}"/>
-        <circle id="tm-dl-ring-arc" cx="50" cy="50" r="${RADIUS}"
-                stroke-dasharray="${CIRC}" stroke-dashoffset="0"/>
-      </svg>
-      <div id="tm-dl-num">5</div>
-    </div>
-    <div id="tm-dl-sub">Download will start automatically…</div>
-    <button id="tm-dl-cancel">Cancel</button>
-  </div>
-</div>
-<div id="tm-dl-toast">
-  <i class="fa-solid fa-check" style="color:#22c55e;"></i> File Downloading…
-</div>`);
-    }
-
-    // Cache elements
-    const $overlay  = $('#tm-dl-overlay');
-    const $num      = $('#tm-dl-num');
-    const $arc      = $('#tm-dl-ring-arc');
-    const $toast    = $('#tm-dl-toast');
-    const $cancelBtn= $('#tm-dl-cancel');
-
-    let _timer    = null;
-    let _toastTmr = null;
-
-    function resetRing (sec) {
-        // Disable transition, snap back to full
-        $arc.css({ transition: 'none', 'stroke-dashoffset': '0' });
-        $num.text(sec);
-    }
-
-    function startRing (sec) {
-        // Re-enable transition in next paint so browser sees the change
-        requestAnimationFrame(function () {
-            requestAnimationFrame(function () {
-                $arc.css({
-                    transition: 'stroke-dashoffset ' + sec + 's linear',
-                    'stroke-dashoffset': String(CIRC)
-                });
-            });
-        });
-    }
-
-    function showOverlay ()  { $overlay.addClass('tm-active'); }
-    function hideOverlay ()  { $overlay.removeClass('tm-active'); }
-
-    function showToast () {
-        clearTimeout(_toastTmr);
-        $toast.addClass('tm-show');
-        _toastTmr = setTimeout(function () { $toast.removeClass('tm-show'); }, 3500);
-    }
-
-    function triggerDownload (url, name) {
-        var a = document.createElement('a');
-        a.href     = url;
-        a.download = name || '';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function () {
-            try { document.body.removeChild(a); } catch (_) {}
-        }, 500);
-    }
-
-    function cancelTimer () {
-        if (_timer) { clearInterval(_timer); _timer = null; }
-        hideOverlay();
-    }
-
-    // Cancel button
-    $cancelBtn.on('click', cancelTimer);
-
-    // Click outside card
-    $overlay.on('click', function (e) {
-        if (e.target === this) cancelTimer();
-    });
-
-    // ── 3. Main delegated click handler ────────────────────────────────────────
-    $(document).on('click', '.tm-download-btn', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        var dlUrl  = $(this).data('url');
-        var dlName = $(this).data('name') || '';
-
-        if (!dlUrl) {
-            log('tm-download-btn: no data-url found on button');
-            return;
-        }
-
-        var TOTAL = 5;
-        var remaining = TOTAL;
-
-        // Stop any running timer first
-        if (_timer) { clearInterval(_timer); _timer = null; }
-
-        resetRing(TOTAL);
-        showOverlay();
-        startRing(TOTAL);
-
-        _timer = setInterval(function () {
-            remaining--;
-            $num.text(remaining);
-
-            if (remaining <= 0) {
-                clearInterval(_timer);
-                _timer = null;
-                hideOverlay();
-                triggerDownload(dlUrl, dlName);
-                setTimeout(showToast, 400);
-            }
-        }, 1000);
-    });
-
-}); // end $(document).ready
-
-// =============================================================================
 // create a MutationObserver to listen for changes to the DOM
 const observer = new MutationObserver(() => {
     updateCheckboxes();
@@ -3208,3 +3278,105 @@ const options = {
 
 // observe changes to the body element
 observer.observe(document.documentElement, options);
+
+// =============================================================================
+// DOWNLOAD TIMER — 5-second countdown → trigger download → show toast
+// Intercepts direct <a download> clicks. Registered inside document.ready so
+// body elements are guaranteed to exist.
+// =============================================================================
+$(document).ready(function () {
+
+    const TIMER_SECS   = 5;
+    const CIRCUMF      = 251.2; // 2 * π * 40 (radius)
+
+    let _timerInterval = null;
+    let _pendingHref   = null;
+
+    function showDlToast() {
+        const $t = $('#dl-toast');
+        $t.addClass('show');
+        setTimeout(() => $t.removeClass('show'), 3500);
+    }
+
+    function resetTimerUI() {
+        $('#dl-timer-count').text(TIMER_SECS);
+        $('#dl-ring-prog').css('stroke-dashoffset', 0);
+        $('#dl-ring-prog').css('stroke', '#28a745');
+    }
+
+    function startDownloadTimer(href) {
+        _pendingHref = href;
+        resetTimerUI();
+        $('#download-timer-overlay').addClass('active');
+        $('body').css('overflow', 'hidden');
+
+        let remaining = TIMER_SECS;
+
+        _timerInterval = setInterval(function () {
+            remaining--;
+
+            // Update countdown number
+            $('#dl-timer-count').text(remaining);
+
+            // Update ring progress (offset shrinks as time passes)
+            const offset = CIRCUMF * (remaining / TIMER_SECS);
+            $('#dl-ring-prog').css('stroke-dashoffset', offset);
+
+            // Turn ring orange at 2, red at 1
+            if (remaining === 2) $('#dl-ring-prog').css('stroke', '#fd7e14');
+            if (remaining === 1) $('#dl-ring-prog').css('stroke', '#dc3545');
+
+            if (remaining <= 0) {
+                clearInterval(_timerInterval);
+                _timerInterval = null;
+                closeTimerOverlay();
+                triggerDownload(_pendingHref);
+                _pendingHref = null;
+            }
+        }, 1000);
+    }
+
+    function closeTimerOverlay() {
+        $('#download-timer-overlay').removeClass('active');
+        $('body').css('overflow', '');
+        if (_timerInterval) {
+            clearInterval(_timerInterval);
+            _timerInterval = null;
+        }
+    }
+
+    function triggerDownload(href) {
+        const a = document.createElement('a');
+        a.href = href;
+        a.download = '';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showDlToast();
+    }
+
+    // Cancel button
+    $(document).on('click', '#dl-timer-cancel', function () {
+        closeTimerOverlay();
+        _pendingHref = null;
+    });
+
+    // Close on overlay backdrop click
+    $(document).on('click', '#download-timer-overlay', function (e) {
+        if (e.target === this) {
+            closeTimerOverlay();
+            _pendingHref = null;
+        }
+    });
+
+    // Intercept clicks on direct-download anchor buttons (btn-success[download])
+    // These are the <a href="url" ... download> buttons rendered in file_video/file_code/file_others
+    $(document).on('click', 'a.btn[download]', function (e) {
+        e.preventDefault();
+        const href = $(this).attr('href');
+        if (!href) return;
+        startDownloadTimer(href);
+    });
+
+});
