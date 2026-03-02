@@ -490,9 +490,9 @@ strong {
     margin-bottom: 22px;
 }
 .dl-timer-cancel {
-    background: none;
-    border: 1px solid rgba(255,255,255,0.2);
-    color: rgba(255,255,255,0.6);
+    background: rgba(220,53,69,0.15);
+    border: 1px solid rgba(220,53,69,0.6);
+    color: #ff6b7a;
     border-radius: 8px;
     padding: 8px 22px;
     font-size: 0.88rem;
@@ -500,7 +500,8 @@ strong {
     transition: all 0.2s;
 }
 .dl-timer-cancel:hover {
-    border-color: rgba(255,255,255,0.5);
+    background: rgba(220,53,69,0.35);
+    border-color: #dc3545;
     color: #fff;
 }
 
@@ -510,19 +511,21 @@ strong {
     bottom: 28px;
     left: 50%;
     transform: translateX(-50%) translateY(80px);
-    background: rgba(20,20,36,0.97);
+    background: rgba(20,20,36,0.35);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(40,167,69,0.4);
     border-left: 4px solid #28a745;
     color: #fff;
     padding: 14px 24px;
     border-radius: 12px;
-    font-size: 0.92rem;
-    font-weight: 500;
+    font-size: 0.95rem;
+    font-weight: 700;
     z-index: 10000;
     display: flex;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
     transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease;
     opacity: 0;
     white-space: nowrap;
