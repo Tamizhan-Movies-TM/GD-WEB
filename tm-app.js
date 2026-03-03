@@ -3150,90 +3150,82 @@ observer.observe(document.documentElement, options);
 // =============================================================================
 $(document).ready(function () {
 
-    // Inject styles once
-    if (!document.getElementById('tm-dl-style')) {
-        var styleEl = document.createElement('style');
-        styleEl.id  = 'tm-dl-style';
-        styleEl.textContent = ''
-            + '#tm-dl-overlay{'
-            +     'display:none;position:fixed;inset:0;z-index:9999;'
-            +     'background:rgba(0,0,0,.65);'
-            +     'align-items:center;justify-content:center;flex-direction:column;gap:16px'
-            + '}'
-            + '#tm-dl-overlay.show{display:flex}'
-            + '#tm-dl-ring{'
-            +     'width:100px;height:100px;border-radius:50%;'
-            +     'background:#1a1a2e;border:5px solid #198754;'
-            +     'display:flex;align-items:center;justify-content:center;'
-            +     'font-size:46px;font-weight:700;color:#fff'
-            + '}'
-            + '#tm-dl-label{color:#fff;font-size:14px;font-weight:500;letter-spacing:.5px}'
-            + '#tm-dl-toast{'
-            +     'display:none;position:fixed;bottom:28px;left:50%;'
-            +     'transform:translateX(-50%);'
-            +     'background:#198754;color:#fff;'
-            +     'padding:12px 28px;border-radius:8px;'
-            +     'font-size:15px;font-weight:600;'
-            +     'box-shadow:0 4px 18px rgba(0,0,0,.45);'
-            +     'z-index:10000;align-items:center;gap:10px;white-space:nowrap'
-            + '}'
-            + '#tm-dl-toast.show{display:flex;animation:tmSlideUp .25s ease}'
-            + '@keyframes tmSlideUp{'
-            +     'from{opacity:0;transform:translateX(-50%) translateY(8px)}'
-            +     'to{opacity:1;transform:translateX(-50%) translateY(0)}'
-            + '}';
-        document.head.appendChild(styleEl);
+    if (!document.getElementById("tm-dl-style")) {
+        var s = document.createElement("style");
+        s.id = "tm-dl-style";
+        s.textContent = ""
+            + "#tm-dl-overlay{display:none;position:fixed;inset:0;z-index:9999;"
+            + "background:rgba(0,0,0,.65);align-items:center;"
+            + "justify-content:center;flex-direction:column;gap:16px}"
+            + "#tm-dl-overlay.show{display:flex}"
+            + "#tm-dl-ring{width:100px;height:100px;border-radius:50%;"
+            + "background:#1a1a2e;border:5px solid #198754;"
+            + "display:flex;align-items:center;justify-content:center;"
+            + "font-size:46px;font-weight:700;color:#fff}"
+            + "#tm-dl-label{color:#fff;font-size:14px;font-weight:500;letter-spacing:.5px}"
+            + "#tm-dl-toast{display:none;position:fixed;bottom:32px;left:50%;"
+            + "transform:translateX(-50%);"
+            + "background:#1e9e4f;color:#fff;"
+            + "padding:14px 28px 14px 16px;border-radius:50px;"
+            + "font-size:16px;font-weight:700;letter-spacing:.3px;"
+            + "box-shadow:0 6px 24px rgba(0,0,0,.5);"
+            + "z-index:10000;align-items:center;gap:12px;white-space:nowrap}"
+            + "#tm-dl-toast.show{display:flex;animation:tmSlideUp .3s ease}"
+            + "#tm-dl-check{width:30px;height:30px;border-radius:50%;"
+            + "background:#fff;display:flex;align-items:center;"
+            + "justify-content:center;flex-shrink:0}"
+            + "@keyframes tmSlideUp{"
+            + "from{opacity:0;transform:translateX(-50%) translateY(10px)}"
+            + "to{opacity:1;transform:translateX(-50%) translateY(0)}}";
+        document.head.appendChild(s);
     }
 
-    // Inject overlay + toast HTML once
-    if (!document.getElementById('tm-dl-overlay')) {
-        $('body').append(
-            '<div id="tm-dl-overlay">'
-            +   '<div id="tm-dl-ring">5</div>'
-            +   '<div id="tm-dl-label">Preparing your download...</div>'
-            + '</div>'
-            + '<div id="tm-dl-toast">'
-            +   '<i class="fas fa-download"></i> File Downloading...'
-            + '</div>'
+    if (!document.getElementById("tm-dl-overlay")) {
+        $("body").append(
+            "<div id="tm-dl-overlay">"
+            + "<div id="tm-dl-ring">5</div>"
+            + "<div id="tm-dl-label">Preparing your download...</div>"
+            + "</div>"
+            + "<div id="tm-dl-toast">"
+            + "<div id="tm-dl-check">"
+            + "<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">"
+            + "<path d="M3 8.5L6.5 12L13 5" stroke="#1e9e4f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>"
+            + "</svg></div>"
+            + "<span>File Downloading...</span>"
+            + "</div>"
         );
     }
 
-    // Intercept a.btn-success[download] clicks
-    $(document).on('click', 'a.btn-success[download]', function (e) {
+    $(document).on("click", "a.btn-success[download]", function (e) {
         e.preventDefault();
-        var href      = $(this).attr('href');
-        var overlay   = document.getElementById('tm-dl-overlay');
-        var ring      = document.getElementById('tm-dl-ring');
-        var toast     = document.getElementById('tm-dl-toast');
+        var href      = $(this).attr("href");
+        var overlay   = document.getElementById("tm-dl-overlay");
+        var ring      = document.getElementById("tm-dl-ring");
+        var toast     = document.getElementById("tm-dl-toast");
         var remaining = 5;
 
         ring.textContent = remaining;
-        overlay.classList.add('show');
+        overlay.classList.add("show");
 
         var tick = setInterval(function () {
             remaining -= 1;
             ring.textContent = remaining > 0 ? remaining : 0;
-
             if (remaining <= 0) {
                 clearInterval(tick);
-                overlay.classList.remove('show');
+                overlay.classList.remove("show");
 
-                // Trigger the actual download
-                var a = document.createElement('a');
+                var a = document.createElement("a");
                 a.href          = href;
-                a.download      = '';
-                a.style.display = 'none';
+                a.download      = "";
+                a.style.display = "none";
                 document.body.appendChild(a);
                 a.click();
                 setTimeout(function () {
                     if (a.parentNode) { a.parentNode.removeChild(a); }
                 }, 500);
 
-                // Show "File Downloading..." toast for 4 seconds
-                toast.classList.add('show');
-                setTimeout(function () {
-                    toast.classList.remove('show');
-                }, 4000);
+                toast.classList.add("show");
+                setTimeout(function () { toast.classList.remove("show"); }, 4000);
             }
         }, 1000);
     });
