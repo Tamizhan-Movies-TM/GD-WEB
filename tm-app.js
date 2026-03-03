@@ -3225,32 +3225,40 @@ $(document).ready(function () {
 }
 #tm-dl-cancel:hover { background: #c82333; }
 
-/* Toast - styled like URL Copied notice */
-#tm-dl-toast {
+/* Download toast */
+#dl-toast {
     position: fixed;
     bottom: 28px;
     left: 50%;
-    transform: translateX(-50%) translateY(90px);
-    background: rgba(30, 30, 30, 0.92);
+    transform: translateX(-50%) translateY(80px);
+    background: rgba(20,20,36,0.35);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(40,167,69,0.4);
+    border-left: 4px solid #28a745;
     color: #fff;
-    padding: 11px 26px;
-    border-radius: 50px;
-    font-size: 14px;
-    font-weight: 500;
-    display: flex !important;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    z-index: 10000;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    z-index: 100000;
+    gap: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease;
     opacity: 0;
-    transition: transform .3s ease, opacity .3s ease;
     white-space: nowrap;
-    box-shadow: 0 4px 20px rgba(0,0,0,.5);
     pointer-events: none;
-    border: 1px solid rgba(255,255,255,.08);
 }
-#tm-dl-toast.tm-show {
+#dl-toast.show {
     transform: translateX(-50%) translateY(0);
     opacity: 1;
+}
+#dl-toast i {
+    color: #28a745;
+    font-size: 1.1rem;
+    margin-right: 6px;
 }
 `).appendTo('head');
     }
@@ -3279,16 +3287,14 @@ $(document).ready(function () {
     <button id="tm-dl-cancel">Cancel</button>
   </div>
 </div>
-<div id="tm-dl-toast">
-  <i class="fa-solid fa-check" style="color:#22c55e;"></i> File&nbsp;&nbsp;Downloading…
-</div>`);
+<div id="dl-toast"><i class="fas fa-circle-check"></i>File &nbsp;Downloading...</div>`);
     }
 
     // Cache elements
     const $overlay  = $('#tm-dl-overlay');
     const $num      = $('#tm-dl-num');
     const $arc      = $('#tm-dl-ring-arc');
-    const $toast    = $('#tm-dl-toast');
+    const $toast    = $('#dl-toast');
     const $cancelBtn= $('#tm-dl-cancel');
 
     let _timer    = null;
@@ -3317,8 +3323,8 @@ $(document).ready(function () {
 
     function showToast () {
         clearTimeout(_toastTmr);
-        $toast.addClass('tm-show');
-        _toastTmr = setTimeout(function () { $toast.removeClass('tm-show'); }, 3500);
+        $toast.addClass('show');
+        _toastTmr = setTimeout(function () { $toast.removeClass('show'); }, 3500);
     }
 
     function triggerDownload (url, name) {
