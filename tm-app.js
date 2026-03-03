@@ -3130,151 +3130,6 @@ $(document).on('click', '.gdflix-btn', function() {
         });
 });
 
-
-// =============================================================================
-// DOWNLOAD TIMER -- 5-second countdown -> trigger download -> show "File Downloading..." toast
-// Everything is initialised inside $(document).ready() so body always exists.
-// =============================================================================
-$(document).ready(function () {
-
-    // -- Toast + countdown styles (injected once) ------------------------------
-    if (!document.getElementById('tm-download-toast-style')) {
-        var style = document.createElement('style');
-        style.id = 'tm-download-toast-style';
-        style.textContent = [
-            '#tm-download-toast {',
-            '    position: fixed;',
-            '    bottom: 24px;',
-            '    left: 50%;',
-            '    transform: translateX(-50%);',
-            '    background: #198754;',
-            '    color: #fff;',
-            '    padding: 14px 28px;',
-            '    border-radius: 8px;',
-            '    font-size: 15px;',
-            '    font-weight: 600;',
-            '    box-shadow: 0 4px 18px rgba(0,0,0,.35);',
-            '    z-index: 99999;',
-            '    display: none;',
-            '    align-items: center;',
-            '    gap: 10px;',
-            '    white-space: nowrap;',
-            '    animation: tmToastFadeIn .25s ease;',
-            '}',
-            '@keyframes tmToastFadeIn {',
-            '    from { opacity:0; transform:translateX(-50%) translateY(12px); }',
-            '    to   { opacity:1; transform:translateX(-50%) translateY(0);    }',
-            '}',
-            '#tm-download-toast.tm-toast-visible { display: flex; }',
-            '#tm-countdown-overlay {',
-            '    position: fixed;',
-            '    inset: 0;',
-            '    background: rgba(0,0,0,.55);',
-            '    z-index: 99998;',
-            '    display: none;',
-            '    align-items: center;',
-            '    justify-content: center;',
-            '    flex-direction: column;',
-            '    gap: 16px;',
-            '}',
-            '#tm-countdown-overlay.tm-cd-visible { display: flex; }',
-            '#tm-countdown-circle {',
-            '    width: 110px;',
-            '    height: 110px;',
-            '    border-radius: 50%;',
-            '    background: #212529;',
-            '    border: 5px solid #198754;',
-            '    display: flex;',
-            '    align-items: center;',
-            '    justify-content: center;',
-            '    font-size: 48px;',
-            '    font-weight: 700;',
-            '    color: #fff;',
-            '}',
-            '#tm-countdown-label {',
-            '    color: #fff;',
-            '    font-size: 16px;',
-            '    font-weight: 500;',
-            '    letter-spacing: .5px;',
-            '}'
-        ].join('\n');
-        document.head.appendChild(style);
-    }
-
-    // -- DOM elements (created once, reused) -----------------------------------
-    if (!document.getElementById('tm-download-toast')) {
-        $('body').append(
-            '<div id="tm-countdown-overlay">' +
-                '<div id="tm-countdown-circle">5</div>' +
-                '<div id="tm-countdown-label">Preparing your download...</div>' +
-            '</div>' +
-            '<div id="tm-download-toast">' +
-                '<i class="fas fa-download"></i> File Downloading...' +
-            '</div>'
-        );
-    }
-
-    // -- Helper: show "File Downloading..." toast then auto-hide ---------------
-    function showDownloadToast(durationMs) {
-        durationMs = durationMs || 4000;
-        var $toast = $('#tm-download-toast');
-        $toast.addClass('tm-toast-visible');
-        setTimeout(function () {
-            $toast.removeClass('tm-toast-visible');
-        }, durationMs);
-    }
-
-    // -- Helper: 5-second countdown -> trigger download -> show toast ----------
-    function runDownloadCountdown(downloadUrl, seconds) {
-        seconds = seconds || 5;
-        var $overlay  = $('#tm-countdown-overlay');
-        var $circle   = $('#tm-countdown-circle');
-        var remaining = seconds;
-
-        $circle.text(remaining);
-        $overlay.addClass('tm-cd-visible');
-
-        var ticker = setInterval(function () {
-            remaining -= 1;
-            $circle.text(remaining);
-
-            if (remaining <= 0) {
-                clearInterval(ticker);
-                $overlay.removeClass('tm-cd-visible');
-
-                // Trigger the actual download
-                if (downloadUrl) {
-                    var a = document.createElement('a');
-                    a.href          = downloadUrl;
-                    a.download      = '';
-                    a.style.display = 'none';
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(function () { document.body.removeChild(a); }, 500);
-                }
-
-                // Show "File Downloading..." toast
-                showDownloadToast(4000);
-            }
-        }, 1000);
-    }
-
-    // -- Expose helpers globally so other parts of the app can call them -------
-    window.tmRunDownloadCountdown = runDownloadCountdown;
-    window.tmShowDownloadToast    = showDownloadToast;
-
-    // -- Click handler: elements tagged with [data-tm-countdown] ---------------
-    // Usage in HTML:
-    //   <a href="/path/to/file" class="btn btn-success" data-tm-countdown="5">Download</a>
-    $(document).on('click', '[data-tm-countdown]', function (e) {
-        e.preventDefault();
-        var url  = $(this).attr('href') || $(this).data('url') || '';
-        var secs = parseInt($(this).data('tm-countdown'), 10) || 5;
-        runDownloadCountdown(url, secs);
-    });
-
-}); // end $(document).ready -- DOWNLOAD TIMER block
-
 // create a MutationObserver to listen for changes to the DOM
 const observer = new MutationObserver(() => {
     updateCheckboxes();
@@ -3288,3 +3143,99 @@ const options = {
 
 // observe changes to the body element
 observer.observe(document.documentElement, options);
+
+// =============================================================================
+// DOWNLOAD TIMER - 5-second countdown then trigger download then show toast
+// Targets: a.btn-success[download]  (direct GDrive/index download links)
+// =============================================================================
+$(document).ready(function () {
+
+    // Inject styles once
+    if (!document.getElementById('tm-dl-style')) {
+        var styleEl = document.createElement('style');
+        styleEl.id  = 'tm-dl-style';
+        styleEl.textContent = ''
+            + '#tm-dl-overlay{'
+            +     'display:none;position:fixed;inset:0;z-index:9999;'
+            +     'background:rgba(0,0,0,.65);'
+            +     'align-items:center;justify-content:center;flex-direction:column;gap:16px'
+            + '}'
+            + '#tm-dl-overlay.show{display:flex}'
+            + '#tm-dl-ring{'
+            +     'width:100px;height:100px;border-radius:50%;'
+            +     'background:#1a1a2e;border:5px solid #198754;'
+            +     'display:flex;align-items:center;justify-content:center;'
+            +     'font-size:46px;font-weight:700;color:#fff'
+            + '}'
+            + '#tm-dl-label{color:#fff;font-size:14px;font-weight:500;letter-spacing:.5px}'
+            + '#tm-dl-toast{'
+            +     'display:none;position:fixed;bottom:28px;left:50%;'
+            +     'transform:translateX(-50%);'
+            +     'background:#198754;color:#fff;'
+            +     'padding:12px 28px;border-radius:8px;'
+            +     'font-size:15px;font-weight:600;'
+            +     'box-shadow:0 4px 18px rgba(0,0,0,.45);'
+            +     'z-index:10000;align-items:center;gap:10px;white-space:nowrap'
+            + '}'
+            + '#tm-dl-toast.show{display:flex;animation:tmSlideUp .25s ease}'
+            + '@keyframes tmSlideUp{'
+            +     'from{opacity:0;transform:translateX(-50%) translateY(8px)}'
+            +     'to{opacity:1;transform:translateX(-50%) translateY(0)}'
+            + '}';
+        document.head.appendChild(styleEl);
+    }
+
+    // Inject overlay + toast HTML once
+    if (!document.getElementById('tm-dl-overlay')) {
+        $('body').append(
+            '<div id="tm-dl-overlay">'
+            +   '<div id="tm-dl-ring">5</div>'
+            +   '<div id="tm-dl-label">Preparing your download...</div>'
+            + '</div>'
+            + '<div id="tm-dl-toast">'
+            +   '<i class="fas fa-download"></i> File Downloading...'
+            + '</div>'
+        );
+    }
+
+    // Intercept a.btn-success[download] clicks
+    $(document).on('click', 'a.btn-success[download]', function (e) {
+        e.preventDefault();
+        var href      = $(this).attr('href');
+        var overlay   = document.getElementById('tm-dl-overlay');
+        var ring      = document.getElementById('tm-dl-ring');
+        var toast     = document.getElementById('tm-dl-toast');
+        var remaining = 5;
+
+        ring.textContent = remaining;
+        overlay.classList.add('show');
+
+        var tick = setInterval(function () {
+            remaining -= 1;
+            ring.textContent = remaining > 0 ? remaining : 0;
+
+            if (remaining <= 0) {
+                clearInterval(tick);
+                overlay.classList.remove('show');
+
+                // Trigger the actual download
+                var a = document.createElement('a');
+                a.href          = href;
+                a.download      = '';
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(function () {
+                    if (a.parentNode) { a.parentNode.removeChild(a); }
+                }, 500);
+
+                // Show "File Downloading..." toast for 4 seconds
+                toast.classList.add('show');
+                setTimeout(function () {
+                    toast.classList.remove('show');
+                }, 4000);
+            }
+        }, 1000);
+    });
+
+}); // end DOWNLOAD TIMER
