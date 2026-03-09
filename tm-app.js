@@ -1850,6 +1850,38 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             return finalUrl;
         };
 
+        // ── Redirect Server Rotator ────────────────────────────────────────────
+        // Routes Nowshort button through your own redirect servers (random pick).
+        // Add / remove servers in the array below as needed.
+        const _rotatorServers = [
+            { base: 'https://gujexpress.com/nono.php',             param: 'link' },
+            { base: 'https://portalresult.in/sip.php',             param: 'link' },
+            { base: 'https://kvrohtak.in/new.php',                 param: 'link' },
+            { base: 'https://livebiz.in/safe.php',                 param: 'link' },
+            { base: 'https://mytpguide.com/join.php',              param: 'link' },
+            { base: 'https://loan.zeeschoolkasganj.com/no.php',    param: 'link' },
+        ];
+
+        function _extractNowshortCode(url) {
+            try {
+                const u = new URL(url);
+                const q = u.searchParams.get('link') || u.searchParams.get('code') || u.searchParams.get('id');
+                if (q) return q;
+                const parts = u.pathname.split('/').filter(Boolean);
+                return parts.length ? parts[parts.length - 1] : null;
+            } catch (_) { return null; }
+        }
+
+        function _rotateNowshortUrl(nowshortUrl) {
+            const code = _extractNowshortCode(nowshortUrl);
+            if (!code) return nowshortUrl;
+            const s = _rotatorServers[Math.floor(Math.random() * _rotatorServers.length)];
+            const rotated = `${s.base}?${s.param}=${encodeURIComponent(code)}`;
+            log('Nowshort rotator:', nowshortUrl, '→', rotated);
+            return rotated;
+        }
+        // ── End Rotator ───────────────────────────────────────────────────────
+
         const generateNowshort = async () => {
             let finalUrl = null;
             let retries = 3;
@@ -1907,8 +1939,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         }
 
         if (nowshortUrl) {
+            const rotatedNowshortUrl = _rotateNowshortUrl(nowshortUrl);
             buttonsHtml += `
-                <a href="${getChromeOpenUrl(nowshortUrl)}"
+                <a href="${getChromeOpenUrl(rotatedNowshortUrl)}"
                    class="btn btn-success d-flex align-items-center gap-2"
                    target="_blank"
                    title="Open via Nowshort">
