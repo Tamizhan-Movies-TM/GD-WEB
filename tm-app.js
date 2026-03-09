@@ -1859,6 +1859,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             { base: 'https://kvrohtak.in/new.php',                 param: 'link' },
             { base: 'https://mytpguide.com/join.php',              param: 'link' },
             { base: 'https://loan.zeeschoolkasganj.com/no.php',    param: 'link' },
+					  { base: 'https://loan.brilliantbihar.com/now.php',     param: 'link' },
         ];
 
         function _extractNowshortCode(url) {
