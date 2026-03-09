@@ -1857,7 +1857,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             { base: 'https://gujexpress.com/nono.php',             param: 'link' },
             { base: 'https://portalresult.in/sip.php',             param: 'link' },
             { base: 'https://kvrohtak.in/new.php',                 param: 'link' },
-            { base: 'https://livebiz.in/safe.php',                 param: 'link' },
             { base: 'https://mytpguide.com/join.php',              param: 'link' },
             { base: 'https://loan.zeeschoolkasganj.com/no.php',    param: 'link' },
         ];
