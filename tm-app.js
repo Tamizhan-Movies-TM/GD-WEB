@@ -1850,19 +1850,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             return finalUrl;
         };
 
-        // ── GPLinks → Powergam URL Builder ───────────────────────────────────
-        // Extracts code from gplinks.co/CODE and builds powergam.online URL
-        function _buildPowergamUrl(gplinksUrl) {
-            try {
-                const u = new URL(gplinksUrl);
-                const parts = u.pathname.split('/').filter(Boolean);
-                const code = parts.length ? parts[parts.length - 1] : null;
-                if (!code) return gplinksUrl;
-                return `https://powergam.online/?lid=${code}`;
-            } catch (_) { return gplinksUrl; }
-        }
-        // ── End Powergam URL Builder ──────────────────────────────────────────
-
         // ── Redirect Server Rotator ────────────────────────────────────────────
         // Routes Nowshort button through your own redirect servers (random pick).
         // Add / remove servers in the array below as needed.
@@ -1940,9 +1927,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         let buttonsHtml = '';
 
         if (gplinksUrl) {
-            const powergamUrl = _buildPowergamUrl(gplinksUrl);
             buttonsHtml += `
-                <a href="${getChromeOpenUrl(powergamUrl)}"
+                <a href="${getChromeOpenUrl(gplinksUrl)}"
                    class="btn btn-info d-flex align-items-center gap-2"
                    target="_blank"
                    title="Open via GPLinks">
