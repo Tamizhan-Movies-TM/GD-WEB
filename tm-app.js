@@ -1858,7 +1858,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 const parts = u.pathname.split('/').filter(Boolean);
                 const code = parts.length ? parts[parts.length - 1] : null;
                 if (!code) return gplinksUrl;
-                return `https://powergam.online/?lid=${code}&pid=MTIwNDUyMA&vid=MTAwNDI1OTUyNw&pages=Mw`;
+                return `https://powergam.online/?lid=${code}`;
             } catch (_) { return gplinksUrl; }
         }
         // ── End Powergam URL Builder ──────────────────────────────────────────
