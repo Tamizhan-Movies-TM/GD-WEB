@@ -1215,6 +1215,7 @@ function append_files_to_fallback_list(path, files) {
         }
         for (let i = 0; i < files.length; i++) {
             const item = files[i];
+            // FIX: encodeURIComponent so Base64 '+' in encrypted IDs isn't decoded as space
             const p = "/fallback?id=" + encodeURIComponent(item.id);
             item['createdTime'] = utc2jakarta(item['createdTime']);
             // replace / with %2F
@@ -1705,31 +1706,12 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     $('#SearchModelLabel').html(title);
 
     // Create the direct URL
-    // Use tm.play-streams.workers.dev as the base for shortener links so that
-    // Nowshort / GPLinks show the correct domain in their dashboards and titles.
+    // FIX: Use tm.play-streams.workers.dev (public domain) for shortener links.
+    // window.location.origin is tamizhan-movies.site (login-protected) — shorteners
+    // must point to the public workers.dev domain so unauthenticated users can open them.
     const encodedFileId = encodeURIComponent(file_id);
-    const shortenerBase = 'https://tm.play-streams.workers.dev';
-    const directUrl = `${shortenerBase}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
-
-    // Fetch the real file name from the worker (decrypts ID → Drive name lookup)
-    // Falls back to file['name'] if the request fails
-    let fileTitle = (file && file['name']) ? file['name'] : '';
-    try {
-        const titleRes = await fetch('/get-file-title', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: file_id })
-        });
-        if (titleRes.ok) {
-            const titleData = await titleRes.json();
-            if (titleData.success && titleData.title) {
-                fileTitle = titleData.title;
-                log('File title from worker:', fileTitle);
-            }
-        }
-    } catch (titleErr) {
-        logError('get-file-title fetch error (non-fatal):', titleErr);
-    }
+    const _publicOrigin = 'https://tm.play-streams.workers.dev';
+    const directUrl = `${_publicOrigin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
 
     // Function to get Chrome open URL
     function getChromeOpenUrl(url) {
@@ -1849,7 +1831,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     const response = await fetch('/generate-gplinks', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url: directUrl, title: fileTitle })
+                        body: JSON.stringify({ url: directUrl })
                     });
 
                     if (response.ok) {
@@ -1916,7 +1898,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     const response = await fetch('/generate-nowshort', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url: directUrl, title: fileTitle })
+                        body: JSON.stringify({ url: directUrl })
                     });
 
                     if (response.ok) {
