@@ -1215,7 +1215,7 @@ function append_files_to_fallback_list(path, files) {
         }
         for (let i = 0; i < files.length; i++) {
             const item = files[i];
-            const p = "/fallback?id=" + item.id;
+            const p = "/fallback?id=" + encodeURIComponent(item.id);
             item['createdTime'] = utc2jakarta(item['createdTime']);
             // replace / with %2F
             if (item['mimeType'] == 'application/vnd.google-apps.folder') {
