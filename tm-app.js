@@ -1710,8 +1710,26 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     const encodedFileId = encodeURIComponent(file_id);
     const shortenerBase = 'https://tm.play-streams.workers.dev';
     const directUrl = `${shortenerBase}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
-    // Title to apply on both shortener services (file name without extension for neatness)
-    const fileTitle = (file && file['name']) ? file['name'] : '';
+
+    // Fetch the real file name from the worker (decrypts ID → Drive name lookup)
+    // Falls back to file['name'] if the request fails
+    let fileTitle = (file && file['name']) ? file['name'] : '';
+    try {
+        const titleRes = await fetch('/get-file-title', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: file_id })
+        });
+        if (titleRes.ok) {
+            const titleData = await titleRes.json();
+            if (titleData.success && titleData.title) {
+                fileTitle = titleData.title;
+                log('File title from worker:', fileTitle);
+            }
+        }
+    } catch (titleErr) {
+        logError('get-file-title fetch error (non-fatal):', titleErr);
+    }
 
     // Function to get Chrome open URL
     function getChromeOpenUrl(url) {
