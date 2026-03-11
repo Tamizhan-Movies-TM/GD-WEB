@@ -1705,8 +1705,13 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     $('#SearchModelLabel').html(title);
 
     // Create the direct URL
+    // Use tm.play-streams.workers.dev as the base for shortener links so that
+    // Nowshort / GPLinks show the correct domain in their dashboards and titles.
     const encodedFileId = encodeURIComponent(file_id);
-    const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
+    const shortenerBase = 'https://tm.play-streams.workers.dev';
+    const directUrl = `${shortenerBase}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
+    // Title to apply on both shortener services (file name without extension for neatness)
+    const fileTitle = (file && file['name']) ? file['name'] : '';
 
     // Function to get Chrome open URL
     function getChromeOpenUrl(url) {
@@ -1826,7 +1831,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     const response = await fetch('/generate-gplinks', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url: directUrl })
+                        body: JSON.stringify({ url: directUrl, title: fileTitle })
                     });
 
                     if (response.ok) {
@@ -1851,36 +1856,30 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         };
 
         // ── Redirect Server Rotator ────────────────────────────────────────────
-        // Instead of sending user directly to nowshort.com, we route through
-        // one of our own redirect servers (rotated randomly on each click).
+        // Routes Nowshort button through your own redirect servers (random pick).
         // Add / remove servers in the array below as needed.
         const _rotatorServers = [
             { base: 'https://gujexpress.com/nono.php',             param: 'link' },
             { base: 'https://portalresult.in/sip.php',             param: 'link' },
             { base: 'https://kvrohtak.in/new.php',                 param: 'link' },
-            { base: 'https://livebiz.in/safe.php',                 param: 'link' },
             { base: 'https://mytpguide.com/join.php',              param: 'link' },
             { base: 'https://loan.zeeschoolkasganj.com/no.php',    param: 'link' },
+			{ base: 'https://loan.brilliantbihar.com/now.php',     param: 'link' },
         ];
 
-        // Extracts the short code from a nowshort.com URL
-        // e.g. https://nowshort.com/LNgTDlW  →  LNgTDlW
         function _extractNowshortCode(url) {
             try {
                 const u = new URL(url);
-                // query param style: ?link=CODE or ?code=CODE
                 const q = u.searchParams.get('link') || u.searchParams.get('code') || u.searchParams.get('id');
                 if (q) return q;
-                // path style: nowshort.com/CODE
                 const parts = u.pathname.split('/').filter(Boolean);
                 return parts.length ? parts[parts.length - 1] : null;
             } catch (_) { return null; }
         }
 
-        // Wraps a nowshort URL through a randomly chosen redirect server
         function _rotateNowshortUrl(nowshortUrl) {
             const code = _extractNowshortCode(nowshortUrl);
-            if (!code) return nowshortUrl; // fallback: use original if code not found
+            if (!code) return nowshortUrl;
             const s = _rotatorServers[Math.floor(Math.random() * _rotatorServers.length)];
             const rotated = `${s.base}?${s.param}=${encodeURIComponent(code)}`;
             log('Nowshort rotator:', nowshortUrl, '→', rotated);
@@ -1899,7 +1898,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     const response = await fetch('/generate-nowshort', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url: directUrl })
+                        body: JSON.stringify({ url: directUrl, title: fileTitle })
                     });
 
                     if (response.ok) {
