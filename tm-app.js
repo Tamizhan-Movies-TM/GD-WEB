@@ -1215,7 +1215,7 @@ function append_files_to_fallback_list(path, files) {
         }
         for (let i = 0; i < files.length; i++) {
             const item = files[i];
-            const p = "/fallback?id=" + item.id;
+            const p = "/fallback?id=" + encodeURIComponent(item.id);
             item['createdTime'] = utc2jakarta(item['createdTime']);
             // replace / with %2F
             if (item['mimeType'] == 'application/vnd.google-apps.folder') {
@@ -1705,8 +1705,13 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     $('#SearchModelLabel').html(title);
 
     // Create the direct URL
+    // Use tm.play-streams.workers.dev as the base for shortener links so that
+    // Nowshort / GPLinks show the correct domain in their dashboards and titles.
     const encodedFileId = encodeURIComponent(file_id);
-    const directUrl = `${window.location.origin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
+    const shortenerBase = 'https://tm.play-streams.workers.dev';
+    const directUrl = `${shortenerBase}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
+    // Title to apply on both shortener services (file name without extension for neatness)
+    const fileTitle = (file && file['name']) ? file['name'] : '';
 
     // Function to get Chrome open URL
     function getChromeOpenUrl(url) {
@@ -1826,7 +1831,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     const response = await fetch('/generate-gplinks', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url: directUrl })
+                        body: JSON.stringify({ url: directUrl, title: fileTitle })
                     });
 
                     if (response.ok) {
@@ -1893,7 +1898,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     const response = await fetch('/generate-nowshort', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url: directUrl })
+                        body: JSON.stringify({ url: directUrl, title: fileTitle })
                     });
 
                     if (response.ok) {
