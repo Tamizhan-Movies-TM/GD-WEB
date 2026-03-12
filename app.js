@@ -1215,8 +1215,7 @@ function append_files_to_fallback_list(path, files) {
         }
         for (let i = 0; i < files.length; i++) {
             const item = files[i];
-            // FIX: encodeURIComponent so Base64 '+' in encrypted IDs isn't decoded as space
-            const p = "/fallback?id=" + encodeURIComponent(item.id);
+            const p = "/fallback?id=" + item.id;
             item['createdTime'] = utc2jakarta(item['createdTime']);
             // replace / with %2F
             if (item['mimeType'] == 'application/vnd.google-apps.folder') {
@@ -1623,27 +1622,35 @@ function append_search_result_to_list(files) {
         var $list = $('#list');
         var is_lastpage_loaded = null === $list.data('nextPageToken');
 
-        // Worker guarantees all results are folders inside Tamil Web Series.
-        // Sort A→Z by name.
-        files.sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+        // Worker returns only folders inside Tamil Web Series — sort A→Z
+        files.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
-        let html = '';
-
+        let html = "";
         for (let i = 0; i < files.length; i++) {
             const item = files[i];
             item['createdTime'] = utc2jakarta(item['createdTime']);
             const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
-            const timeHtml = UI.display_time ? `<span class="badge bg-info" style="margin-left:2rem;">${item['createdTime']}</span>` : '';
-            const sizeHtml = UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width:85px;">—</span>` : '';
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${itemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration:none; color:${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${timeHtml}${sizeHtml}</div>`;
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">` +
+                `<a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${itemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" ` +
+                `class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration:none; color:${UI.folder_text_color};">` +
+                `<span>${folder_icon}</span>${escapeHtml(item.name)}</a>` +
+                `${UI.display_time ? `<span class="badge bg-info" style="margin-left:2rem;">${item['createdTime']}</span>` : ''}` +
+                `${UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width:85px;">—</span>` : ''}` +
+                `</div>`;
         }
 
         if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 
         if (is_lastpage_loaded) {
             const total_items = $list.find('.countitems').length;
-            $('#count').removeClass('d-none').find('.number').text(total_items + (total_items === 1 ? ' folder' : ' folders'));
-            $('#count').removeClass('d-none').find('.totalsize').text('');
+            if (total_items == 0) {
+                $('#count').removeClass('d-none').find('.number').text("0 item");
+            } else if (total_items == 1) {
+                $('#count').removeClass('d-none').find('.number').text(total_items + " folder");
+            } else {
+                $('#count').removeClass('d-none').find('.number').text(total_items + " folders");
+            }
+            $('#count').removeClass('d-none').find('.totalsize').text("");
         }
     } catch (e) {
         log(e);
@@ -1657,16 +1664,11 @@ function append_search_result_to_list(files) {
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
 
-    // Set title immediately — show "Folder" for folders, "File Information" for files
-    var title = (file && file['mimeType'] === 'application/vnd.google-apps.folder')
-        ? `<i class="fas fa-folder-open fa-fw"></i> Folder`
-        : `<i class="fas fa-file-alt fa-fw"></i> File Information`;
+    // Set title immediately
+    var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
     $('#SearchModelLabel').html(title);
 
     // Create the direct URL
-    // FIX: Use tm.play-streams.workers.dev (public domain) for shortener links.
-    // window.location.origin is tamizhan-movies.site (login-protected) — shorteners
-    // must point to the public workers.dev domain so unauthenticated users can open them.
     const encodedFileId = encodeURIComponent(file_id);
     const _publicOrigin = 'https://tm.play-streams.workers.dev';
     const directUrl = `${_publicOrigin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
