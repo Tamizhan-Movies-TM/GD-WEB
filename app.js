@@ -1622,7 +1622,7 @@ function append_search_result_to_list(files) {
         var $list = $('#list');
         var is_lastpage_loaded = null === $list.data('nextPageToken');
 
-        // Worker returns only folders inside Tamil Web Series — sort A→Z
+        // Worker returns only Tamil Web Series folders — sort A→Z
         files.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
         let html = "";
