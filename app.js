@@ -3294,7 +3294,7 @@ $(document).ready(function () {
     opacity: 1;
 }
 #dl-toast i {
-    color: #28a745;
+    color: #ffffff;
     font-size: 1.1rem;
     margin-right: 6px;
 }
