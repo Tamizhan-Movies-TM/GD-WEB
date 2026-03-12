@@ -1215,6 +1215,7 @@ function append_files_to_fallback_list(path, files) {
         }
         for (let i = 0; i < files.length; i++) {
             const item = files[i];
+            // FIX: encodeURIComponent so Base64 '+' in encrypted IDs isn't decoded as space
             const p = "/fallback?id=" + encodeURIComponent(item.id);
             item['createdTime'] = utc2jakarta(item['createdTime']);
             // replace / with %2F
@@ -1621,71 +1622,129 @@ function append_search_result_to_list(files) {
     try {
         var cur = window.current_drive_order || 0;
         var $list = $('#list');
-        // Is it the last page of data?
         var is_lastpage_loaded = null === $list.data('nextPageToken');
-        // var is_firstpage = '0' == $list.data('curPageIndex');
 
-        // Sort files by size in descending order (largest first)
-        files.sort((a, b) => {
-            const sizeA = parseInt(a.size || 0);
-            const sizeB = parseInt(b.size || 0);
-            return sizeB - sizeA;
-        });
+        // ── Tamil Web Series folder filter ────────────────────────────────────
+        // UI.tamil_web_series_id  = the Google Drive folder ID of "Tamil Web Series".
+        // Any folder whose parents[] contains that ID is a direct series subfolder.
+        // Those get shown with GPLinks/Nowshort on click (no files shown for them).
+        // Everything else (files + folders outside Tamil Web Series) renders normally.
+        // ─────────────────────────────────────────────────────────────────────
+        const tamilSeriesParentId = (typeof UI !== 'undefined' && UI.tamil_web_series_id)
+            ? UI.tamil_web_series_id : null;
 
-        let html = "";
-        let totalsize = 0;
-        let is_file = false;
+        // Split into two buckets
+        const seriesFolders = [];   // folders inside Tamil Web Series → shortener modal
+        const normalItems   = [];   // everything else → render as before
+
         for (let i = 0; i < files.length; i++) {
             const item = files[i];
-
-            // Skip folders in search results
-            if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-                continue; // This will skip the rest of the loop for this item
+            const isFolder = item['mimeType'] === 'application/vnd.google-apps.folder';
+            const parents  = item['parents'] || [];
+            if (tamilSeriesParentId && isFolder && parents.includes(tamilSeriesParentId)) {
+                seriesFolders.push(item);
+            } else {
+                normalItems.push(item);
             }
+        }
 
-            if (item['size'] == undefined) {
-                item['size'] = "";
-            }
+        // Sort series folders A→Z by name
+        seriesFolders.sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+
+        // Sort normal items: folders first, then files by size desc (original behaviour)
+        normalItems.sort(function(a, b) {
+            const aIsFolder = a['mimeType'] === 'application/vnd.google-apps.folder';
+            const bIsFolder = b['mimeType'] === 'application/vnd.google-apps.folder';
+            if (aIsFolder && !bIsFolder) return -1;
+            if (!aIsFolder && bIsFolder) return 1;
+            return parseInt(b.size || 0) - parseInt(a.size || 0);
+        });
+
+        let html = '';
+        let totalsize = 0;
+        let is_file = false;
+
+        // ── Render Tamil Web Series child folders ─────────────────────────────
+        for (let i = 0; i < seriesFolders.length; i++) {
+            const item = seriesFolders[i];
             item['createdTime'] = utc2jakarta(item['createdTime']);
+            const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
 
-            // Only process files (folders are skipped above)
+            // Size: Google Drive search doesn't return folder size — show '—'
+            const sizeHtml = UI.display_size
+                ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width: 85px;">—</span>`
+                : '';
+            const timeHtml = UI.display_time
+                ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>`
+                : '';
+
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">` +
+                `<a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${itemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};">` +
+                `<span>${folder_icon}</span>${escapeHtml(item.name)}</a>` +
+                `${timeHtml}${sizeHtml}` +
+                `</div>`;
+        }
+
+        // ── Render normal items (files + non-series folders) exactly as before ─
+        for (let i = 0; i < normalItems.length; i++) {
+            const item = normalItems[i];
+
+            if (item['mimeType'] === 'application/vnd.google-apps.folder') {
+                // Normal folder — navigates to /fallback like before
+                const p = '/fallback?id=' + encodeURIComponent(item.id);
+                item['createdTime'] = utc2jakarta(item['createdTime']);
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">` +
+                    `<a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2">` +
+                    `<span>${folder_icon}</span>${escapeHtml(item.name)}</a>` +
+                    `${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${utc2jakarta(item['createdTime'])}</span>` : ''}` +
+                    `${UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width: 85px;">—</span>` : ''}` +
+                    `</div>`;
+                continue;
+            }
+
+            // Normal file — exact same rendering as the old code
+            if (item['size'] === undefined) item['size'] = '';
+            item['createdTime'] = utc2jakarta(item['createdTime']);
             is_file = true;
             totalsize = totalsize + Number(item.size || 0);
             item['size'] = formatFileSize(item['size']) || '—';
             item['md5Checksum'] = item['md5Checksum'] || '—';
             const ext = item.fileExtension;
             const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
-
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="' + link + '" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, '&quot;')})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`;
             html += _getIcon(ext, item.mimeType, item.iconLink);
-
-            html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] == '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
-            ${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
+            html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ''}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] === '—' ? 'text-center' : 'text-end'}" style="min-width: 85px;">${item['size']}</span>` : ''}<span class="d-flex gap-2">${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ''}</span></div>`;
         }
+
         if (is_file && UI.allow_selecting_files) {
             document.getElementById('select_items').style.display = 'block';
         }
-        // When it is page 1, remove the horizontal loading bar
-        // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
-    if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
-        // When it is the last page, count and display the total number of items
+
+        if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+
         if (is_lastpage_loaded) {
-            total_size = formatFileSize(totalsize) || '0 Bytes';
-            total_items = $list.find('.countitems').length;
-            total_files = $list.find('.size_items').length;
-            if (total_items == 0) {
-                $('#count').removeClass('d-none').find('.number').text("0 item");
-            } else if (total_items == 1) {
-                $('#count').removeClass('d-none').find('.number').text(total_items + " item");
+            const total_size = formatFileSize(totalsize) || '0 Bytes';
+            const total_items = $list.find('.countitems').length;
+            const total_files = $list.find('.size_items').length;
+            const series_count = seriesFolders.length;
+
+            if (total_items === 0) {
+                $('#count').removeClass('d-none').find('.number').text('0 items');
             } else {
-                $('#count').removeClass('d-none').find('.number').text(total_items + " items");
+                const parts = [];
+                if (series_count > 0) parts.push(series_count + (series_count === 1 ? ' series folder' : ' series folders'));
+                const fileCount = total_files;
+                if (fileCount > 0) parts.push(fileCount + (fileCount === 1 ? ' file' : ' files'));
+                const otherFolders = total_items - series_count - fileCount;
+                if (otherFolders > 0) parts.push(otherFolders + (otherFolders === 1 ? ' folder' : ' folders'));
+                $('#count').removeClass('d-none').find('.number').text(parts.join(', ') || total_items + ' items');
             }
-            if (total_files == 0) {
-                $('#count').removeClass('d-none').find('.totalsize').text("0 file");
-            } else if (total_files == 1) {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
+            if (total_files === 0) {
+                $('#count').removeClass('d-none').find('.totalsize').text('');
+            } else if (total_files === 1) {
+                $('#count').removeClass('d-none').find('.totalsize').text(total_files + ' file, total: ' + total_size);
             } else {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
+                $('#count').removeClass('d-none').find('.totalsize').text(total_files + ' files, total: ' + total_size);
             }
         }
     } catch (e) {
@@ -1700,18 +1759,19 @@ function append_search_result_to_list(files) {
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
 
-    // Set title immediately
-    var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
+    // Set title immediately — show "Folder" for folders, "File Information" for files
+    var title = (file && file['mimeType'] === 'application/vnd.google-apps.folder')
+        ? `<i class="fas fa-folder-open fa-fw"></i> Folder`
+        : `<i class="fas fa-file-alt fa-fw"></i> File Information`;
     $('#SearchModelLabel').html(title);
 
     // Create the direct URL
-    // Use tm.play-streams.workers.dev as the base for shortener links so that
-    // Nowshort / GPLinks show the correct domain in their dashboards and titles.
+    // FIX: Use tm.play-streams.workers.dev (public domain) for shortener links.
+    // window.location.origin is tamizhan-movies.site (login-protected) — shorteners
+    // must point to the public workers.dev domain so unauthenticated users can open them.
     const encodedFileId = encodeURIComponent(file_id);
-    const shortenerBase = 'https://tm.play-streams.workers.dev';
-    const directUrl = `${shortenerBase}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
-    // Title to apply on both shortener services (file name without extension for neatness)
-    const fileTitle = (file && file['name']) ? file['name'] : '';
+    const _publicOrigin = 'https://tm.play-streams.workers.dev';
+    const directUrl = `${_publicOrigin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
 
     // Function to get Chrome open URL
     function getChromeOpenUrl(url) {
@@ -1831,7 +1891,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     const response = await fetch('/generate-gplinks', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url: directUrl, title: fileTitle })
+                        body: JSON.stringify({ url: directUrl })
                     });
 
                     if (response.ok) {
@@ -1898,7 +1958,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     const response = await fetch('/generate-nowshort', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url: directUrl, title: fileTitle })
+                        body: JSON.stringify({ url: directUrl })
                     });
 
                     if (response.ok) {
