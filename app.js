@@ -1623,81 +1623,27 @@ function append_search_result_to_list(files) {
         var $list = $('#list');
         var is_lastpage_loaded = null === $list.data('nextPageToken');
 
-        // Tamil Web Series folder ID — folders whose parents[] includes this ID
-        // get the GPLinks/Nowshort modal on click instead of direct navigation.
-        const TAMIL_WEB_SERIES_ID = '1SLp8D5d_0TmMZOHl1-ValpGDp8Ay98hc';
+        // Worker guarantees all results are folders inside Tamil Web Series.
+        // Sort A→Z by name.
+        files.sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
 
         let html = '';
-        let totalsize = 0;
-        let is_file = false;
-
-        // Sort: Tamil Web Series folders first (A→Z), then other folders, then files by size desc
-        files.sort(function(a, b) {
-            const aIsSeries = a['mimeType'] === 'application/vnd.google-apps.folder' && (a['parents'] || []).includes(TAMIL_WEB_SERIES_ID);
-            const bIsSeries = b['mimeType'] === 'application/vnd.google-apps.folder' && (b['parents'] || []).includes(TAMIL_WEB_SERIES_ID);
-            const aIsFolder = a['mimeType'] === 'application/vnd.google-apps.folder';
-            const bIsFolder = b['mimeType'] === 'application/vnd.google-apps.folder';
-            if (aIsSeries && !bIsSeries) return -1;
-            if (!aIsSeries && bIsSeries) return 1;
-            if (aIsFolder && !bIsFolder) return -1;
-            if (!aIsFolder && bIsFolder) return 1;
-            if (aIsSeries && bIsSeries) return (a.name || '').localeCompare(b.name || '');
-            return parseInt(b.size || 0) - parseInt(a.size || 0);
-        });
 
         for (let i = 0; i < files.length; i++) {
             const item = files[i];
-            const isFolder = item['mimeType'] === 'application/vnd.google-apps.folder';
-            const parents  = item['parents'] || [];
-            const isSeries = isFolder && parents.includes(TAMIL_WEB_SERIES_ID);
-
             item['createdTime'] = utc2jakarta(item['createdTime']);
-
-            if (isSeries) {
-                // ── Tamil Web Series child folder → GPLinks/Nowshort modal ──────
-                const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
-                const timeHtml = UI.display_time ? `<span class="badge bg-info" style="margin-left:2rem;">${item['createdTime']}</span>` : '';
-                const sizeHtml = UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width:85px;">—</span>` : '';
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${itemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration:none; color:${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${timeHtml}${sizeHtml}</div>`;
-
-            } else if (isFolder) {
-                // ── Other folder → navigate directly as before ───────────────
-                const p = '/fallback?id=' + encodeURIComponent(item.id);
-                const timeHtml = UI.display_time ? `<span class="badge bg-info" style="margin-left:2rem;">${item['createdTime']}</span>` : '';
-                const sizeHtml = UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width:85px;">—</span>` : '';
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="${p}" style="color:${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${timeHtml}${sizeHtml}</div>`;
-
-            } else {
-                // ── File → exact same rendering as before ────────────────────
-                if (item['size'] === undefined) item['size'] = '';
-                is_file = true;
-                totalsize += Number(item.size || 0);
-                item['size'] = formatFileSize(item['size']) || '—';
-                item['md5Checksum'] = item['md5Checksum'] || '—';
-                const ext = item.fileExtension;
-                const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
-                const itemJson2 = JSON.stringify(item).replace(/"/g, '&quot;');
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">${UI.allow_selecting_files ? `<input class="form-check-input" style="margin-top:0.3em;margin-right:0.5em;" type="checkbox" value="${link}" id="flexCheckDefault">` : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${itemJson2})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration:none; color:${UI.css_a_tag_color};"><span>${_getIcon(ext, item.mimeType, item.iconLink)}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left:2rem;">${item['createdTime']}</span>` : ''}${UI.display_size ? `<span class="badge bg-primary my-1 ${item['size'] === '—' ? 'text-center' : 'text-end'}" style="min-width:85px;">${item['size']}</span>` : ''}<span class="d-flex gap-2">${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg></a>` : ''}</span></div>`;
-            }
-        }
-
-        if (is_file && UI.allow_selecting_files) {
-            document.getElementById('select_items').style.display = 'block';
+            const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
+            const timeHtml = UI.display_time ? `<span class="badge bg-info" style="margin-left:2rem;">${item['createdTime']}</span>` : '';
+            const sizeHtml = UI.display_size ? `<span class="badge bg-dark-info-transparent my-1 text-center" style="min-width:85px;">—</span>` : '';
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${itemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration:none; color:${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${timeHtml}${sizeHtml}</div>`;
         }
 
         if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 
         if (is_lastpage_loaded) {
-            const total_size = formatFileSize(totalsize) || '0 Bytes';
             const total_items = $list.find('.countitems').length;
-            const total_files = $list.find('.size_items').length;
-            if (total_items === 0) {
-                $('#count').removeClass('d-none').find('.number').text('0 items');
-                $('#count').removeClass('d-none').find('.totalsize').text('');
-            } else {
-                $('#count').removeClass('d-none').find('.number').text(total_items + (total_items === 1 ? ' item' : ' items'));
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files > 0 ? total_files + ' files, total: ' + total_size : '');
-            }
+            $('#count').removeClass('d-none').find('.number').text(total_items + (total_items === 1 ? ' folder' : ' folders'));
+            $('#count').removeClass('d-none').find('.totalsize').text('');
         }
     } catch (e) {
         log(e);
