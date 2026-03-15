@@ -306,162 +306,114 @@ function init() {
         <div class="card-body d-flex align-items-center justify-content-center">
         <div>
            <style>
-/* Exact uiverse.io button by dexter-st */
+/* Glass pill button — exact match to uiverse.io dexter-st "Generate" style */
 .wv-btn-wrapper {
   position: relative;
   display: inline-block;
 }
 .wv-btn {
-  --border-radius: 24px;
-  --padding: 4px;
-  --transition: 0.4s;
-  --button-color: #101010;
-  --highlight-color-hue: 210deg;
-  user-select: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0.5em 1.1em 0.5em 1.1em;
-  font-family: "Poppins", "Inter", "Segoe UI", sans-serif;
-  font-size: 1em;
-  font-weight: 400;
-  background-color: var(--button-color);
-  box-shadow:
-    inset 0px 1px 1px rgba(255,255,255,0.2),
-    inset 0px 2px 2px rgba(255,255,255,0.15),
-    inset 0px 4px 4px rgba(255,255,255,0.1),
-    inset 0px 8px 8px rgba(255,255,255,0.05),
-    inset 0px 16px 16px rgba(255,255,255,0.05),
-    0px -1px 1px rgba(0,0,0,0.02),
-    0px -2px 2px rgba(0,0,0,0.03),
-    0px -4px 4px rgba(0,0,0,0.05),
-    0px -8px 8px rgba(0,0,0,0.06),
-    0px -16px 16px rgba(0,0,0,0.08);
-  border: solid 1px #fff2;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  text-decoration: none;
-  gap: 0.5em;
-  transition:
-    box-shadow var(--transition),
-    border var(--transition),
-    background-color var(--transition);
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 28px 13px 22px;
+  border-radius: 999px;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  font-family: "Poppins", "Inter", "Segoe UI", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: #ccd6f0;
+  /* Deep dark glassy base */
+  background: linear-gradient(160deg, #2a2d3a 0%, #1a1c26 40%, #12141c 100%);
+  /* Blue glowing border */
+  border: 1px solid rgba(100, 140, 255, 0.35);
+  outline: 1px solid rgba(60, 100, 220, 0.15);
+  /* Layered shadows: blue outer glow + dark depth */
+  box-shadow:
+    0 0 0 1px rgba(80, 120, 255, 0.12),
+    0 0 12px 2px rgba(80, 120, 255, 0.18),
+    0 0 30px 4px rgba(60, 100, 220, 0.10),
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    inset 0 -1px 0 rgba(0,0,0,0.4),
+    0 6px 24px rgba(0,0,0,0.7);
+  transition: all 0.3s ease;
+  overflow: hidden;
 }
+/* Top gloss shine */
 .wv-btn::before {
   content: "";
   position: absolute;
-  top: calc(0px - var(--padding));
-  left: calc(0px - var(--padding));
-  width: calc(100% + var(--padding) * 2);
-  height: calc(100% + var(--padding) * 2);
-  border-radius: calc(var(--border-radius) + var(--padding));
+  top: 0; left: 0; right: 0;
+  height: 52%;
+  border-radius: 999px 999px 60% 60%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.18) 0%,
+    rgba(255,255,255,0.06) 60%,
+    transparent 100%
+  );
   pointer-events: none;
-  background-image: linear-gradient(0deg, #0004, #000a);
-  z-index: -1;
-  transition: box-shadow var(--transition), filter var(--transition);
-  box-shadow:
-    0 -8px 8px -6px #0000 inset,
-    0 -16px 16px -8px #00000000 inset,
-    1px 1px 1px #fff2,
-    2px 2px 2px #fff1,
-    -1px -1px 1px #0002,
-    -2px -2px 2px #0001;
 }
+/* Bottom subtle reflection */
 .wv-btn::after {
   content: "";
   position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  border-radius: inherit;
+  bottom: 0; left: 10%; right: 10%;
+  height: 30%;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(to top, rgba(80,120,255,0.10), transparent);
   pointer-events: none;
-  background-image: linear-gradient(
-    0deg,
-    #fff,
-    hsl(var(--highlight-color-hue), 100%, 70%),
-    hsla(var(--highlight-color-hue), 100%, 70%, 50%),
-    8%,
-    transparent
-  );
-  background-position: 0 0;
-  opacity: 0;
-  transition: opacity var(--transition), filter var(--transition);
 }
-.wv-btn-svg {
-  height: 22px;
-  width: 22px;
-  fill: #e8e8e8;
-  animation: wvFlicker 2s linear infinite;
-  animation-delay: 0.5s;
-  filter: drop-shadow(0 0 2px #fff9);
-  transition: fill var(--transition), filter var(--transition), opacity var(--transition);
-  flex-shrink: 0;
-}
-@keyframes wvFlicker { 50% { opacity: 0.3; } }
-.wv-btn-letter {
-  position: relative;
-  display: inline-block;
-  color: #fff5;
-  animation: wvLetterAnim 2s ease-in-out infinite;
-  transition: color var(--transition), text-shadow var(--transition), opacity var(--transition);
-}
-@keyframes wvLetterAnim { 50% { text-shadow: 0 0 3px #fff8; color: #fff; } }
-.wv-txt-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-/* Hover */
-.wv-btn:hover { border: solid 1px hsla(var(--highlight-color-hue), 100%, 80%, 40%); }
-.wv-btn:hover::before {
+/* Hover state */
+.wv-btn:hover {
+  color: #e8eeff;
+  background: linear-gradient(160deg, #32364a 0%, #20233a 40%, #181c2e 100%);
+  border-color: rgba(120, 160, 255, 0.55);
   box-shadow:
-    0 -8px 8px -6px #fffa inset,
-    0 -16px 16px -8px hsla(var(--highlight-color-hue), 100%, 70%, 30%) inset,
-    1px 1px 1px #fff2, 2px 2px 2px #fff1,
-    -1px -1px 1px #0002, -2px -2px 2px #0001;
+    0 0 0 1px rgba(100, 140, 255, 0.25),
+    0 0 18px 4px rgba(80, 120, 255, 0.30),
+    0 0 40px 8px rgba(60, 100, 220, 0.18),
+    inset 0 1px 0 rgba(255,255,255,0.22),
+    inset 0 -1px 0 rgba(0,0,0,0.4),
+    0 8px 28px rgba(0,0,0,0.75);
+  transform: translateY(-1px);
 }
-.wv-btn:hover::after { opacity: 1; mask-image: linear-gradient(0deg, #fff, transparent); }
-.wv-btn:hover .wv-btn-svg {
-  fill: #fff;
-  filter: drop-shadow(0 0 3px hsl(var(--highlight-color-hue), 100%, 70%)) drop-shadow(0 -4px 6px #0009);
-  animation: none;
-}
-/* Active */
+/* Active/click state */
 .wv-btn:active {
-  border: solid 1px hsla(var(--highlight-color-hue), 100%, 80%, 70%);
-  background-color: hsla(var(--highlight-color-hue), 50%, 20%, 0.5);
-}
-.wv-btn:active::before {
+  transform: translateY(1px);
   box-shadow:
-    0 -8px 12px -6px #fffa inset,
-    0 -16px 16px -8px hsla(var(--highlight-color-hue), 100%, 70%, 80%) inset,
-    1px 1px 1px #fff4, 2px 2px 2px #fff2,
-    -1px -1px 1px #0002, -2px -2px 2px #0001;
+    0 0 0 1px rgba(80, 120, 255, 0.2),
+    0 0 8px 2px rgba(80, 120, 255, 0.2),
+    inset 0 1px 0 rgba(255,255,255,0.10),
+    0 2px 8px rgba(0,0,0,0.5);
 }
-.wv-btn:active::after { opacity: 1; mask-image: linear-gradient(0deg, #fff, transparent); filter: brightness(200%); }
-.wv-btn:active .wv-btn-letter { text-shadow: 0 0 1px hsla(var(--highlight-color-hue), 100%, 90%, 90%); animation: none; }
-/* Letter delays */
-.wv-btn-letter:nth-child(1)  { animation-delay: 0s; }
-.wv-btn-letter:nth-child(2)  { animation-delay: 0.08s; }
-.wv-btn-letter:nth-child(3)  { animation-delay: 0.16s; }
-.wv-btn-letter:nth-child(4)  { animation-delay: 0.24s; }
-.wv-btn-letter:nth-child(5)  { animation-delay: 0.32s; }
-.wv-btn-letter:nth-child(6)  { animation-delay: 0.40s; }
-.wv-btn-letter:nth-child(7)  { animation-delay: 0.48s; }
-.wv-btn-letter:nth-child(8)  { animation-delay: 0.56s; }
-.wv-btn-letter:nth-child(9)  { animation-delay: 0.64s; }
-.wv-btn-letter:nth-child(10) { animation-delay: 0.72s; }
-.wv-btn-letter:nth-child(11) { animation-delay: 0.80s; }
+/* Sparkle icon */
+.wv-btn-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  fill: #c8d8ff;
+  filter: drop-shadow(0 0 5px rgba(180,200,255,0.8)) drop-shadow(0 0 2px rgba(255,255,255,0.9));
+  transition: filter 0.3s ease, fill 0.3s ease;
+}
+.wv-btn:hover .wv-btn-icon {
+  fill: #fff;
+  filter: drop-shadow(0 0 8px rgba(200,220,255,1)) drop-shadow(0 0 3px rgba(255,255,255,1));
+}
            </style>
            <div class="wv-btn-wrapper">
-           <a class="wv-btn" href="https://t.me/tamizhan_updates/266" title="Watch Video Clearly" target="_blank">
-             <svg class="wv-btn-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-               <path d="M8 5v14l11-7z"/>
-             </svg>
-             <div class="wv-txt-wrapper">
-               <span class="wv-btn-letter">W</span><span class="wv-btn-letter">A</span><span class="wv-btn-letter">T</span><span class="wv-btn-letter">C</span><span class="wv-btn-letter">H</span><span class="wv-btn-letter">&nbsp;</span><span class="wv-btn-letter">V</span><span class="wv-btn-letter">I</span><span class="wv-btn-letter">D</span><span class="wv-btn-letter">E</span><span class="wv-btn-letter">O</span>
-             </div>
-           </a>
+             <a class="wv-btn" href="https://t.me/tamizhan_updates/266" title="Watch Video Clearly" target="_blank">
+               <svg class="wv-btn-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                 <!-- Large sparkle -->
+                 <path d="M10 3.5c0 .3-.38 2.2-1.4 3.1C7.5 7.6 5.5 8 5.5 8.5s2 .9 3.1 1.9c1.02.9 1.4 2.8 1.4 3.1s.38-2.2 1.4-3.1c1.02-.9 3.1-1.4 3.1-1.9s-2.08-.9-3.1-1.9C10.38 5.7 10 3.8 10 3.5Z"/>
+                 <!-- Small sparkle -->
+                 <path d="M17.5 13.5c0 .15-.25 1.1-.8 1.65-.55.55-1.7.75-1.7.85s1.15.3 1.7.85c.55.55.8 1.5.8 1.65s.25-1.1.8-1.65c.55-.55 1.7-.75 1.7-.85s-1.15-.3-1.7-.85c-.55-.55-.8-1.5-.8-1.65Z"/>
+               </svg>
+               WATCH VIDEO
+             </a>
            </div>
        <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
          <div style="padding-bottom: 1rem;">3 Step-by-step guide 🎬</div>
