@@ -306,149 +306,77 @@ function init() {
         <div class="card-body d-flex align-items-center justify-content-center">
         <div>
            <style>
-/* Watch Video Button — from Uiverse.io by dexter-st */
-.watch-btn-wrapper { position: relative; display: inline-block; }
-.watch-btn {
-  --border-radius: 24px;
-  --padding: 4px;
-  --transition: 0.4s;
-  --button-color: #101010;
-  --highlight-color-hue: 210deg;
-  user-select: none;
-  display: flex;
+/* Watch Video — sleek dark pill button */
+.watch-pill-btn {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 0.5em 0.5em 0.5em 1.1em;
+  gap: 10px;
+  padding: 13px 26px;
+  border-radius: 999px;
+  background: radial-gradient(ellipse at 50% 0%, #3a3a3a 0%, #1a1a1a 60%, #111 100%);
+  border: 1px solid rgba(255,255,255,0.13);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.12) inset,
+    0 -1px 0 rgba(0,0,0,0.5) inset,
+    0 4px 16px rgba(0,0,0,0.6),
+    0 1px 3px rgba(0,0,0,0.4);
+  color: #e8e8e8;
   font-family: "Poppins", "Inter", "Segoe UI", sans-serif;
-  font-size: 1em;
-  font-weight: 400;
-  background-color: var(--button-color);
-  box-shadow:
-    inset 0px 1px 1px rgba(255,255,255,0.2),
-    inset 0px 2px 2px rgba(255,255,255,0.15),
-    inset 0px 4px 4px rgba(255,255,255,0.1),
-    inset 0px 8px 8px rgba(255,255,255,0.05),
-    inset 0px 16px 16px rgba(255,255,255,0.05),
-    0px -1px 1px rgba(0,0,0,0.02),
-    0px -2px 2px rgba(0,0,0,0.03),
-    0px -4px 4px rgba(0,0,0,0.05),
-    0px -8px 8px rgba(0,0,0,0.06),
-    0px -16px 16px rgba(0,0,0,0.08);
-  border: solid 1px #fff2;
-  border-radius: var(--border-radius);
-  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
   text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.22s ease;
   position: relative;
-  transition: box-shadow var(--transition), border var(--transition), background-color var(--transition);
-  min-width: 10em;
+  overflow: hidden;
 }
-.watch-btn::before {
+.watch-pill-btn::before {
   content: "";
   position: absolute;
-  top: calc(0px - var(--padding));
-  left: calc(0px - var(--padding));
-  width: calc(100% + var(--padding) * 2);
-  height: calc(100% + var(--padding) * 2);
-  border-radius: calc(var(--border-radius) + var(--padding));
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  border-radius: 999px 999px 0 0;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.07), transparent);
   pointer-events: none;
-  background-image: linear-gradient(0deg, #0004, #000a);
-  z-index: -1;
-  transition: box-shadow var(--transition), filter var(--transition);
+}
+.watch-pill-btn:hover {
+  background: radial-gradient(ellipse at 50% 0%, #484848 0%, #222 60%, #161616 100%);
   box-shadow:
-    0 -8px 8px -6px #0000 inset,
-    0 -16px 16px -8px #00000000 inset,
-    1px 1px 1px #fff2,
-    2px 2px 2px #fff1,
-    -1px -1px 1px #0002,
-    -2px -2px 2px #0001;
+    0 1px 0 rgba(255,255,255,0.16) inset,
+    0 -1px 0 rgba(0,0,0,0.5) inset,
+    0 6px 22px rgba(0,0,0,0.7),
+    0 2px 6px rgba(0,0,0,0.5);
+  color: #fff;
+  transform: translateY(-1px);
+  border-color: rgba(255,255,255,0.2);
 }
-.watch-btn::after {
-  content: "";
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  border-radius: inherit;
-  pointer-events: none;
-  background-image: linear-gradient(
-    0deg,
-    #fff,
-    hsl(var(--highlight-color-hue), 100%, 70%),
-    hsla(var(--highlight-color-hue), 100%, 70%, 50%),
-    8%,
-    transparent
-  );
-  background-position: 0 0;
-  opacity: 0;
-  transition: opacity var(--transition), filter var(--transition);
-}
-.watch-btn-svg {
-  flex-grow: 1;
-  height: 24px;
-  margin-right: 0.5rem;
-  fill: #e8e8e8;
-  animation: wbFlicker 2s linear infinite;
-  animation-delay: 0.5s;
-  filter: drop-shadow(0 0 2px #fff9);
-  transition: fill var(--transition), filter var(--transition), opacity var(--transition);
-}
-@keyframes wbFlicker { 50% { opacity: 0.3; } }
-.watch-btn-letter {
-  position: relative;
-  display: inline-block;
-  color: #fff5;
-  animation: wbLetterAnim 2s ease-in-out infinite;
-  transition: color var(--transition), text-shadow var(--transition), opacity var(--transition);
-}
-@keyframes wbLetterAnim { 50% { text-shadow: 0 0 3px #fff8; color: #fff; } }
-.watch-btn-txt-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  min-width: 7em;
-}
-.watch-btn:hover { border: solid 1px hsla(var(--highlight-color-hue), 100%, 80%, 40%); }
-.watch-btn:hover::before {
+.watch-pill-btn:active {
+  transform: translateY(1px);
   box-shadow:
-    0 -8px 8px -6px #fffa inset,
-    0 -16px 16px -8px hsla(var(--highlight-color-hue), 100%, 70%, 30%) inset,
-    1px 1px 1px #fff2, 2px 2px 2px #fff1,
-    -1px -1px 1px #0002, -2px -2px 2px #0001;
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 -1px 0 rgba(0,0,0,0.5) inset,
+    0 2px 8px rgba(0,0,0,0.5);
 }
-.watch-btn:hover::after { opacity: 1; mask-image: linear-gradient(0deg, #fff, transparent); }
-.watch-btn:hover .watch-btn-svg {
+.watch-pill-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  fill: #d8d8d8;
+  filter: drop-shadow(0 0 4px rgba(255,255,255,0.55));
+  transition: fill 0.22s ease, filter 0.22s ease;
+}
+.watch-pill-btn:hover .watch-pill-icon {
   fill: #fff;
-  filter: drop-shadow(0 0 3px hsl(var(--highlight-color-hue), 100%, 70%)) drop-shadow(0 -4px 6px #0009);
-  animation: none;
+  filter: drop-shadow(0 0 7px rgba(255,255,255,0.9));
 }
-.watch-btn:active { border: solid 1px hsla(var(--highlight-color-hue), 100%, 80%, 70%); background-color: hsla(var(--highlight-color-hue), 50%, 20%, 0.5); }
-.watch-btn:active::before {
-  box-shadow:
-    0 -8px 12px -6px #fffa inset,
-    0 -16px 16px -8px hsla(var(--highlight-color-hue), 100%, 70%, 80%) inset,
-    1px 1px 1px #fff4, 2px 2px 2px #fff2,
-    -1px -1px 1px #0002, -2px -2px 2px #0001;
-}
-.watch-btn:active::after { opacity: 1; mask-image: linear-gradient(0deg, #fff, transparent); filter: brightness(200%); }
-.watch-btn:active .watch-btn-letter { text-shadow: 0 0 1px hsla(var(--highlight-color-hue), 100%, 90%, 90%); animation: none; }
-.watch-btn-letter:nth-child(1)  { animation-delay: 0s; }
-.watch-btn-letter:nth-child(2)  { animation-delay: 0.08s; }
-.watch-btn-letter:nth-child(3)  { animation-delay: 0.16s; }
-.watch-btn-letter:nth-child(4)  { animation-delay: 0.24s; }
-.watch-btn-letter:nth-child(5)  { animation-delay: 0.32s; }
-.watch-btn-letter:nth-child(6)  { animation-delay: 0.40s; }
-.watch-btn-letter:nth-child(7)  { animation-delay: 0.48s; }
-.watch-btn-letter:nth-child(8)  { animation-delay: 0.56s; }
-.watch-btn-letter:nth-child(9)  { animation-delay: 0.64s; }
-.watch-btn-letter:nth-child(10) { animation-delay: 0.72s; }
-.watch-btn-letter:nth-child(11) { animation-delay: 0.80s; }
            </style>
-           <a class="watch-btn" href="https://t.me/tamizhan_updates/266" title="Watch Video Clearly" target="_blank">
-             <svg class="watch-btn-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+           <a class="watch-pill-btn" href="https://t.me/tamizhan_updates/266" title="Watch Video Clearly" target="_blank">
+             <svg class="watch-pill-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="none">
                <path d="M8 5v14l11-7z"/>
              </svg>
-             <div class="watch-btn-txt-wrapper">
-               <span class="watch-btn-letter">W</span><span class="watch-btn-letter">A</span><span class="watch-btn-letter">T</span><span class="watch-btn-letter">C</span><span class="watch-btn-letter">H</span><span class="watch-btn-letter">&nbsp;</span><span class="watch-btn-letter">V</span><span class="watch-btn-letter">I</span><span class="watch-btn-letter">D</span><span class="watch-btn-letter">E</span><span class="watch-btn-letter">O</span>
-             </div>
+             WATCH VIDEO
            </a>
        <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
          <div style="padding-bottom: 1rem;">3 Step-by-step guide 🎬</div>
