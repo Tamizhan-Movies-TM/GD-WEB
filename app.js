@@ -1783,8 +1783,10 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         const chromeButtonHtml = `
             <style>
             .chrome-Btn {
-                width: 200px;
-                height: 40px;
+                width: auto;
+                height: 44px;
+                padding: 0 20px;
+                white-space: nowrap;
                 border: none;
                 border-radius: 10px;
                 background: linear-gradient(to right,#77530a,#ffd277,#77530a,#77530a,#ffd277,#77530a);
@@ -1792,7 +1794,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 background-position: left;
                 color: #ffd277;
                 position: relative;
-                display: flex;
+                display: inline-flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
@@ -1800,6 +1802,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 overflow: hidden;
                 text-decoration: none;
                 font-weight: 600;
+                font-size: 14px;
                 gap: 8px;
             }
             .chrome-Btn::before {
