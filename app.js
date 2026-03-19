@@ -1782,37 +1782,45 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // Create Chrome button HTML with direct URL (exact same as working version)
         const chromeButtonHtml = `
             <style>
+            @keyframes chrome-btn-gradient {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
             .chrome-Btn {
+                width: auto;
+                min-width: 200px;
+                height: 40px;
+                border: none;
+                border-radius: 40px;
+                background: linear-gradient(to right,#bf953f,#fcf6ba,#b38728,#fbf5b7,#aa771c);
+                background-size: 200% 200%;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
+                gap: 8px;
+                font-size: 0.8em;
+                color: rgb(121, 103, 3);
+                font-weight: 600;
                 cursor: pointer;
-                background: linear-gradient(45deg, #ffc75d, #ffc708);
-                box-shadow: 0 0 24px #ffb20861;
-                border: 2px solid #ffe825;
-                border-radius: 100px;
-                transition: background-color 0.3s ease, box-shadow 0.3s ease, text-shadow 0.3s ease;
-                padding: 10px 20px;
-                color: #09090b;
-                font-weight: bold;
-                font-size: 14px;
+                position: relative;
+                z-index: 2;
+                transition-duration: 3s;
+                box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.144);
                 white-space: nowrap;
+                padding: 0 20px;
                 text-decoration: none;
-                text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-                gap: 6px;
-            }
-            .chrome-Btn:hover {
-                background-color: #ffc75d !important;
-                box-shadow: 0 0 34px #ffb20861 !important;
-                text-shadow: 0 0 4px #ffe825;
-                border-color: #ffe825 !important;
-                color: #09090b;
-            }
-            .chrome-Btn:active {
-                transform: scale(0.95);
             }
             .chrome-Btn img {
-                filter: drop-shadow(2px 2px 5px rgba(0, 0, 0, 0.3));
+                filter: brightness(0) saturate(100%) invert(35%) sepia(80%) saturate(500%) hue-rotate(10deg) brightness(90%);
+            }
+            .chrome-Btn:hover {
+                transform: scale(0.95);
+                transition-duration: 3s;
+                animation: chrome-btn-gradient 5s ease infinite;
+                background-position: right;
+                color: rgb(121, 103, 3);
+                text-decoration: none;
             }
             </style>
             <a href="${getChromeOpenUrl(directUrl)}"
