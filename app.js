@@ -236,6 +236,183 @@ function init() {
     display: none;
 }
 
+.donate .btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 13rem;
+    overflow: hidden;
+    height: 3rem;
+    background-size: 300% 300%;
+    cursor: pointer;
+    backdrop-filter: blur(1rem);
+    border-radius: 5rem;
+    transition: 0.5s;
+    animation: gradient_301 5s ease infinite;
+    border: double 4px transparent;
+    background-image: linear-gradient(#212121, #212121),
+        linear-gradient(
+            137.48deg,
+            #ffdb3b 10%,
+            #fe53bb 45%,
+            #8f51ea 67%,
+            #0044ff 87%
+        );
+    background-origin: border-box;
+    background-clip: content-box, border-box;
+    text-decoration: none;
+    position: relative;
+}
+
+#container-stars {
+    position: absolute;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    transition: 0.5s;
+    backdrop-filter: blur(1rem);
+    border-radius: 5rem;
+}
+
+strong {
+    z-index: 2;
+    font-family: "Avalors Personal Use", sans-serif;
+    font-size: 12px;
+    letter-spacing: 5px;
+    color: #ffffff;
+    text-shadow: 0 0 4px white;
+}
+
+#glow {
+    position: absolute;
+    display: flex;
+    width: 12rem;
+}
+
+.circle {
+    width: 100%;
+    height: 30px;
+    filter: blur(2rem);
+    animation: pulse_3011 4s infinite;
+    z-index: -1;
+}
+
+.circle:nth-of-type(1) {
+    background: rgba(254, 83, 186, 0.636);
+}
+
+.circle:nth-of-type(2) {
+    background: rgba(142, 81, 234, 0.704);
+}
+
+.donate .btn:hover #container-stars {
+    z-index: 1;
+    background-color: #212121;
+}
+
+.donate .btn:hover {
+    transform: scale(1.1);
+}
+
+.donate .btn:active {
+    border: double 4px #fe53bb;
+    background-origin: border-box;
+    background-clip: content-box, border-box;
+    animation: none;
+}
+
+.donate .btn:active .circle {
+    background: #fe53bb;
+}
+
+#stars {
+    position: relative;
+    background: transparent;
+    width: 200rem;
+    height: 200rem;
+}
+
+#stars::after {
+    content: "";
+    position: absolute;
+    top: -10rem;
+    left: -100rem;
+    width: 100%;
+    height: 100%;
+    animation: animStarRotate 90s linear infinite;
+}
+
+#stars::after {
+    background-image: radial-gradient(#ffffff 1px, transparent 1%);
+    background-size: 50px 50px;
+}
+
+#stars::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -50%;
+    width: 170%;
+    height: 500%;
+    animation: animStar 60s linear infinite;
+}
+
+#stars::before {
+    background-image: radial-gradient(#ffffff 1px, transparent 1%);
+    background-size: 50px 50px;
+    opacity: 0.5;
+}
+
+@keyframes animStar {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-135rem);
+    }
+}
+
+@keyframes animStarRotate {
+    from {
+        transform: rotate(360deg);
+    }
+    to {
+        transform: rotate(0);
+    }
+}
+
+@keyframes gradient_301 {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes pulse_3011 {
+    0% {
+        transform: scale(0.75);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+    }
+    100% {
+        transform: scale(0.75);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+}
+
+.donate:hover .qrcode {
+    display: block;
+}
+
 .qrcode {
     display: none;
     margin-top: 1rem;
@@ -293,7 +470,7 @@ function init() {
 <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
 <div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
     <div class="row align-items-start g-3">
-        `+TamizhanWidget;
+        `;
         html += `
     <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
   </div>
@@ -304,215 +481,19 @@ function init() {
         <i class="fa-solid fa-circle-question"></i> How&nbsp; To&nbsp; Download&nbsp; Movies&nbsp; 🤔
         </div>
         <div class="card-body d-flex align-items-center justify-content-center">
-        <div>
-           <style>
-/* From Uiverse.io by dexter-st */
-.tm-btn-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.tm-btn {
-  --border-radius: 24px;
-  --padding: 4px;
-  --transition: 0.4s;
-  --button-color: #101010;
-  --highlight-color-hue: 210deg;
-
-  user-select: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0.5em 0.5em 0.5em 1.1em;
-  font-family: "Poppins", "Inter", "Segoe UI", sans-serif;
-  font-size: 1em;
-  font-weight: 400;
-  text-decoration: none;
-  color: inherit;
-
-  background-color: var(--button-color);
-
-  box-shadow:
-    inset 0px 1px 1px rgba(255, 255, 255, 0.2),
-    inset 0px 2px 2px rgba(255, 255, 255, 0.15),
-    inset 0px 4px 4px rgba(255, 255, 255, 0.1),
-    inset 0px 8px 8px rgba(255, 255, 255, 0.05),
-    inset 0px 16px 16px rgba(255, 255, 255, 0.05),
-    0px -1px 1px rgba(0, 0, 0, 0.02),
-    0px -2px 2px rgba(0, 0, 0, 0.03),
-    0px -4px 4px rgba(0, 0, 0, 0.05),
-    0px -8px 8px rgba(0, 0, 0, 0.06),
-    0px -16px 16px rgba(0, 0, 0, 0.08);
-
-  border: solid 1px #fff2;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-
-  transition:
-    box-shadow var(--transition),
-    border var(--transition),
-    background-color var(--transition);
-}
-.tm-btn::before {
-  content: "";
-  position: absolute;
-  top: calc(0px - var(--padding));
-  left: calc(0px - var(--padding));
-  width: calc(100% + var(--padding) * 2);
-  height: calc(100% + var(--padding) * 2);
-  border-radius: calc(var(--border-radius) + var(--padding));
-  pointer-events: none;
-  background-image: linear-gradient(0deg, #0004, #000a);
-  z-index: -1;
-  transition:
-    box-shadow var(--transition),
-    filter var(--transition);
-  box-shadow:
-    0 -8px 8px -6px #0000 inset,
-    0 -16px 16px -8px #00000000 inset,
-    1px 1px 1px #fff2,
-    2px 2px 2px #fff1,
-    -1px -1px 1px #0002,
-    -2px -2px 2px #0001;
-}
-.tm-btn::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  pointer-events: none;
-  background-image: linear-gradient(
-    0deg,
-    #fff,
-    hsl(var(--highlight-color-hue), 100%, 70%),
-    hsla(var(--highlight-color-hue), 100%, 70%, 50%),
-    8%,
-    transparent
-  );
-  background-position: 0 0;
-  opacity: 0;
-  transition:
-    opacity var(--transition),
-    filter var(--transition);
-}
-
-.tm-btn-letter {
-  position: relative;
-  display: inline-block;
-  color: #fff5;
-  animation: tm-letter-anim 2s ease-in-out infinite;
-  transition:
-    color var(--transition),
-    text-shadow var(--transition),
-    opacity var(--transition);
-}
-
-@keyframes tm-letter-anim {
-  50% {
-    text-shadow: 0 0 3px #fff8;
-    color: #fff;
-  }
-}
-
-.tm-btn-svg {
-  flex-grow: 1;
-  height: 24px;
-  width: 24px;
-  margin-right: 0.5rem;
-  fill: #e8e8e8;
-  animation: tm-flicker 2s linear infinite;
-  animation-delay: 0.5s;
-  filter: drop-shadow(0 0 2px #fff9);
-  transition:
-    fill var(--transition),
-    filter var(--transition),
-    opacity var(--transition);
-}
-@keyframes tm-flicker {
-  50% { opacity: 0.3; }
-}
-
-.tm-txt-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  min-width: 6.4em;
-}
-
-/* Hover state */
-.tm-btn:hover {
-  border: solid 1px hsla(var(--highlight-color-hue), 100%, 80%, 40%);
-}
-.tm-btn:hover::before {
-  box-shadow:
-    0 -8px 8px -6px #fffa inset,
-    0 -16px 16px -8px hsla(var(--highlight-color-hue), 100%, 70%, 30%) inset,
-    1px 1px 1px #fff2,
-    2px 2px 2px #fff1,
-    -1px -1px 1px #0002,
-    -2px -2px 2px #0001;
-}
-.tm-btn:hover::after {
-  opacity: 1;
-  mask-image: linear-gradient(0deg, #fff, transparent);
-}
-.tm-btn:hover .tm-btn-svg {
-  fill: #fff;
-  filter: drop-shadow(0 0 3px hsl(var(--highlight-color-hue), 100%, 70%))
-    drop-shadow(0 -4px 6px #0009);
-  animation: none;
-}
-
-/* Active state */
-.tm-btn:active {
-  border: solid 1px hsla(var(--highlight-color-hue), 100%, 80%, 70%);
-  background-color: hsla(var(--highlight-color-hue), 50%, 20%, 0.5);
-}
-.tm-btn:active::before {
-  box-shadow:
-    0 -8px 12px -6px #fffa inset,
-    0 -16px 16px -8px hsla(var(--highlight-color-hue), 100%, 70%, 80%) inset,
-    1px 1px 1px #fff4,
-    2px 2px 2px #fff2,
-    -1px -1px 1px #0002,
-    -2px -2px 2px #0001;
-}
-.tm-btn:active::after {
-  opacity: 1;
-  mask-image: linear-gradient(0deg, #fff, transparent);
-  filter: brightness(200%);
-}
-.tm-btn:active .tm-btn-letter {
-  text-shadow: 0 0 1px hsla(var(--highlight-color-hue), 100%, 90%, 90%);
-  animation: none;
-}
-
-/* Letter animation delays */
-.tm-btn-letter:nth-child(1)  { animation-delay: 0s; }
-.tm-btn-letter:nth-child(2)  { animation-delay: 0.08s; }
-.tm-btn-letter:nth-child(3)  { animation-delay: 0.16s; }
-.tm-btn-letter:nth-child(4)  { animation-delay: 0.24s; }
-.tm-btn-letter:nth-child(5)  { animation-delay: 0.32s; }
-.tm-btn-letter:nth-child(6)  { animation-delay: 0.4s; }
-.tm-btn-letter:nth-child(7)  { animation-delay: 0.48s; }
-.tm-btn-letter:nth-child(8)  { animation-delay: 0.56s; }
-.tm-btn-letter:nth-child(9)  { animation-delay: 0.64s; }
-.tm-btn-letter:nth-child(10) { animation-delay: 0.72s; }
-.tm-btn-letter:nth-child(11) { animation-delay: 0.8s; }
-           </style>
-           <div class="tm-btn-wrapper">
-             <a class="tm-btn" href="https://t.me/tamizhan_updates/266" title="Watch Video Clearly" target="_blank">
-               <svg class="tm-btn-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                 <path d="M8 5v14l11-7z"/>
-               </svg>
-               <div class="tm-txt-wrapper">
-                 <span class="tm-btn-letter">W</span><span class="tm-btn-letter">A</span><span class="tm-btn-letter">T</span><span class="tm-btn-letter">C</span><span class="tm-btn-letter">H</span><span class="tm-btn-letter">&nbsp;</span><span class="tm-btn-letter">V</span><span class="tm-btn-letter">I</span><span class="tm-btn-letter">D</span><span class="tm-btn-letter">E</span><span class="tm-btn-letter">O</span>
-               </div>
-             </a>
-           </div>
+        <div class="donate btn p-0">
+           <a class="btn" href="https://t.me/tamizhan_updates/266" title="Watch Video Clearly" target="_blank">
+         <strong>
+             <i class="fa-solid fa-eye"></i>WATCH VIDEO
+         </strong>
+         <div id="container-stars">
+             <div id="stars"></div>
+         </div>
+         <div id="glow">
+             <div class="circle"></div>
+             <div class="circle"></div>
+         </div>
+       </a>
        <div class="qrcode card" style="padding: 1rem 1rem 0 1rem;">
          <div style="padding-bottom: 1rem;">3 Step-by-step guide 🎬</div>
          </div>
@@ -1508,7 +1489,7 @@ function render_search_result_list() {
     </div>
     <div class="card">
         <div class="card-header">
-            <div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
+            <div class="text-truncate"><i class="fas fa-search fa-fw"></i> <code>${model.q}</code></div>
             ${searchBar}
         </div>
         <div id="list" class="list-group list-group-flush text-break">
@@ -2136,16 +2117,6 @@ async function file(path) {
             $("#content").html(content);
         });
    }
-
-const TamizhanWidget = `<div class="col-md-12">
-<div class="card" style="padding: 0 0 0.3rem 0;border-radius:.5rem;width:100%;overflow:hidden;">
-  <div style="display: flex; justify-content: center; align-items: center; height: 40px; overflow: hidden;">
-    <marquee behavior="scroll" direction="left" scrollamount="6" style="color:white; font-weight:bold; font-size: 16px; text-shadow: 0 0 5px rgba(0,0,0,0.7); line-height: 40px; width: 100%;">
-      ִֶָ 𓂃˖˳·˖ ִֶָ ⋆🌷͙⋆ ִֶָ˖·˳˖𓂃 ִֶָ&nbsp;&nbsp;&nbsp;வணக்கம்&nbsp;&nbsp;&nbsp;நண்பர்களே,&nbsp;&nbsp;&nbsp;⋆.˚🦋༘⋆&nbsp;&nbsp;&nbsp;தமிழன்&nbsp;&nbsp;&nbsp;திரைப்படங்களுக்கு&nbsp;&nbsp;&nbsp;˙✧˖°🍿 ༘ 🎬⋆｡°&nbsp;&nbsp;&nbsp;உங்களை&nbsp;&nbsp;&nbsp;அன்புடன்&nbsp;&nbsp;&nbsp;வரவேற்கிறோம்!&nbsp;&nbsp;&nbsp;⊱🪷⊰˚&nbsp;&nbsp;&nbsp;உங்கள்&nbsp;&nbsp;&nbsp;அன்பு&nbsp;&nbsp;&nbsp;மற்றும்&nbsp;&nbsp;&nbsp;ஆதரவுக்கு&nbsp;&nbsp;&nbsp;நன்றி.&nbsp;&nbsp;&nbsp;༄˖°.🍂.ೃ࿔*:･🙌
-    </marquee>
-  </div>
-</div>
-</div>`;
 
 const copyButton = `<button onclick="copyFunction()" onmouseout="outFunc()" class="btn btn-primary"><span class="tooltiptext" id="myTooltip"><i class="fas fa-copy fa-fw"></i>Copy</span></button>`
 
