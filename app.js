@@ -1787,6 +1787,20 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 60%  { left: 110%; }
                 100% { left: 110%; }
             }
+            @keyframes chrome-border-spin {
+                0%   { background-position: 0% 50%; }
+                50%  { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+            .chrome-Btn-wrap {
+                display: inline-flex;
+                padding: 2px;
+                border-radius: calc(0.5rem + 2px);
+                background: linear-gradient(90deg, #ff0000, #ff7700, #ffff00, #00ff00, #0099ff, #6600ff, #ff0099, #ff0000);
+                background-size: 300% 300%;
+                animation: chrome-border-spin 4s linear infinite;
+                text-decoration: none;
+            }
             .chrome-Btn {
                 display: inline-flex;
                 padding: 0.5rem 1.4rem;
@@ -1798,7 +1812,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 vertical-align: middle;
                 align-items: center;
                 border-radius: 0.5rem;
-                border: 1px solid rgba(99, 179, 237, 0.4);
+                border: none;
                 gap: 0.75rem;
                 color: #ffffff;
                 background: linear-gradient(135deg, #1e3a5f 0%, #1a2e4a 50%, #0f2137 100%);
@@ -1808,7 +1822,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 text-decoration: none;
                 position: relative;
                 overflow: hidden;
-                box-shadow: 0 0 12px rgba(56, 139, 253, 0.25), inset 0 1px 0 rgba(255,255,255,0.07);
             }
             .chrome-Btn::before {
                 content: "";
@@ -1834,8 +1847,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 transform: scale(1.025);
                 color: #ffffff;
                 text-decoration: none;
-                border-color: rgba(99, 179, 237, 0.7);
-                box-shadow: 0 0 20px rgba(56, 139, 253, 0.45), inset 0 1px 0 rgba(255,255,255,0.1);
             }
             .chrome-Btn:active {
                 transform: scale(0.975);
@@ -1851,13 +1862,15 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 z-index: 2;
             }
             </style>
-            <a href="${getChromeOpenUrl(directUrl)}"
-               class="chrome-Btn"
-               target="_blank"
-               title="Open in Chrome">
-                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome">
-                <span>Open in Chrome (Direct)</span>
-            </a>`;
+            <div class="chrome-Btn-wrap">
+                <a href="${getChromeOpenUrl(directUrl)}"
+                   class="chrome-Btn"
+                   target="_blank"
+                   title="Open in Chrome">
+                    <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome">
+                    <span>Open in Chrome (Direct)</span>
+                </a>
+            </div>`;
 
         // Update buttons immediately with the direct Chrome link
         $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
