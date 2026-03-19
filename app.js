@@ -1782,53 +1782,98 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // Create Chrome button HTML with direct URL (exact same as working version)
         const chromeButtonHtml = `
             <style>
-            @keyframes chrome-btn-gradient {
-                0% { background-position: 0% 50%; }
-                50% { background-position: 100% 50%; }
-                100% { background-position: 0% 50%; }
+            @keyframes chrome-shine {
+                from { transform: translateX(-100%) rotate(45deg); }
+                to   { transform: translateX(100%) rotate(45deg); }
             }
             .chrome-Btn {
-                width: auto;
-                min-width: 200px;
-                height: 40px;
+                position: relative;
+                padding: 14px 32px;
                 border: none;
-                border-radius: 40px;
-                background: linear-gradient(to right,#bf953f,#fcf6ba,#b38728,#fbf5b7,#aa771c);
-                background-size: 200% 200%;
+                border-radius: 12px;
+                cursor: pointer;
+                overflow: hidden;
+                font-family: "Inter", sans-serif;
+                isolation: isolate;
                 display: inline-flex;
                 align-items: center;
-                justify-content: center;
-                gap: 8px;
-                font-size: 0.8em;
-                color: rgb(121, 103, 3);
-                font-weight: 600;
-                cursor: pointer;
-                position: relative;
-                z-index: 2;
-                transition-duration: 3s;
-                box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.144);
                 white-space: nowrap;
-                padding: 0 20px;
                 text-decoration: none;
-            }
-            .chrome-Btn img {
-                filter: brightness(0) saturate(100%) invert(35%) sepia(80%) saturate(500%) hue-rotate(10deg) brightness(90%);
+                box-shadow: 0 2px 4px rgba(79,70,229,0.1), 0 4px 8px rgba(79,70,229,0.1), 0 -1px 2px rgba(79,70,229,0.05);
+                transition: all 0.3s ease;
             }
             .chrome-Btn:hover {
-                transform: scale(0.95);
-                transition-duration: 3s;
-                animation: chrome-btn-gradient 5s ease infinite;
-                background-position: right;
-                color: rgb(121, 103, 3);
+                box-shadow: 0 4px 8px rgba(79,70,229,0.2), 0 8px 16px rgba(79,70,229,0.2), 0 -2px 4px rgba(79,70,229,0.1);
                 text-decoration: none;
+            }
+            .chrome-Btn-bg {
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #6366f1 100%);
+                transition: all 0.3s ease;
+                z-index: 0;
+            }
+            .chrome-Btn:hover .chrome-Btn-bg {
+                transform: scale(1.05);
+                filter: brightness(1.1);
+            }
+            .chrome-Btn:active .chrome-Btn-bg {
+                transform: scale(0.98);
+                filter: brightness(0.95);
+            }
+            .chrome-Btn-content {
+                position: relative;
+                z-index: 1;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 16px;
+                font-weight: 600;
+                color: #fff;
+                transition: transform 0.2s ease;
+            }
+            .chrome-Btn:hover .chrome-Btn-content {
+                transform: translateY(-1px);
+            }
+            .chrome-Btn:active .chrome-Btn-content {
+                transform: translateY(1px);
+            }
+            .chrome-Btn-icon {
+                display: inline-flex;
+                transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+            .chrome-Btn:hover .chrome-Btn-icon {
+                transform: translateX(4px);
+            }
+            .chrome-Btn::after {
+                content: "";
+                position: absolute;
+                top: 0; left: 0;
+                width: 50%;
+                height: 100%;
+                background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+                transform: translateX(-100%) rotate(45deg);
+                z-index: 1;
+            }
+            .chrome-Btn:hover::after {
+                animation: chrome-shine 1s ease;
+            }
+            .chrome-Btn:focus-visible {
+                outline: 2px solid #4f46e5;
+                outline-offset: 2px;
             }
             </style>
             <a href="${getChromeOpenUrl(directUrl)}"
                class="chrome-Btn"
                target="_blank"
-               title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲">
-                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-                <span>𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)</span>
+               title="Open in Chrome">
+                <div class="chrome-Btn-bg"></div>
+                <div class="chrome-Btn-content">
+                    <span class="chrome-Btn-icon">
+                        <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height:20px;width:20px;">
+                    </span>
+                    <span>Open in Chrome (Direct)</span>
+                </div>
             </a>`;
 
         // Update buttons immediately with the direct Chrome link
