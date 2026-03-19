@@ -1783,57 +1783,36 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         const chromeButtonHtml = `
             <style>
             .chrome-Btn {
-                width: auto;
-                height: 44px;
-                padding: 0 20px;
-                white-space: nowrap;
-                border: none;
-                border-radius: 10px;
-                background: linear-gradient(to right,#77530a,#ffd277,#77530a,#77530a,#ffd277,#77530a);
-                background-size: 250%;
-                background-position: left;
-                color: #ffd277;
-                position: relative;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
-                transition-duration: 1s;
-                overflow: hidden;
-                text-decoration: none;
-                font-weight: 600;
+                background: linear-gradient(45deg, #ffc75d, #ffc708);
+                box-shadow: 0 0 24px #ffb20861;
+                border: 2px solid #ffe825;
+                border-radius: 100px;
+                transition: background-color 0.3s ease, box-shadow 0.3s ease, text-shadow 0.3s ease;
+                padding: 10px 20px;
+                color: #09090b;
+                font-weight: bold;
                 font-size: 14px;
-                gap: 8px;
-            }
-            .chrome-Btn::before {
-                position: absolute;
-                content: "";
-                color: #ffd277;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 97%;
-                height: 90%;
-                border-radius: 8px;
-                transition-duration: 1s;
-                background-color: rgba(0, 0, 0, 0.842);
-                background-size: 200%;
-            }
-            .chrome-Btn span, .chrome-Btn img {
-                position: relative;
-                z-index: 1;
+                white-space: nowrap;
+                text-decoration: none;
+                text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+                gap: 6px;
             }
             .chrome-Btn:hover {
-                background-position: right;
-                transition-duration: 1s;
-                color: #ffd277;
-            }
-            .chrome-Btn:hover::before {
-                background-position: right;
-                transition-duration: 1s;
+                background-color: #ffc75d !important;
+                box-shadow: 0 0 34px #ffb20861 !important;
+                text-shadow: 0 0 4px #ffe825;
+                border-color: #ffe825 !important;
+                color: #09090b;
             }
             .chrome-Btn:active {
                 transform: scale(0.95);
+            }
+            .chrome-Btn img {
+                filter: drop-shadow(2px 2px 5px rgba(0, 0, 0, 0.3));
             }
             </style>
             <a href="${getChromeOpenUrl(directUrl)}"
