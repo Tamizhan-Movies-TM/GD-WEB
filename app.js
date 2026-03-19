@@ -1782,6 +1782,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // Create Chrome button HTML with direct URL (exact same as working version)
         const chromeButtonHtml = `
             <style>
+            @keyframes chrome-shine-move {
+                0%   { left: -80px; }
+                60%  { left: 110%; }
+                100% { left: 110%; }
+            }
             .chrome-Btn {
                 display: inline-flex;
                 padding: 0.5rem 1.4rem;
@@ -1793,19 +1798,44 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 vertical-align: middle;
                 align-items: center;
                 border-radius: 0.5rem;
-                border: 1px solid rgba(255, 255, 255, 0.25);
+                border: 1px solid rgba(99, 179, 237, 0.4);
                 gap: 0.75rem;
-                color: #c4d2dc;
-                background-color: #19242b;
+                color: #e0f2fe;
+                background: linear-gradient(135deg, #1e3a5f 0%, #1a2e4a 50%, #0f2137 100%);
                 cursor: pointer;
                 transition: all 0.25s cubic-bezier(0, 0.87, 0.12, 1);
                 white-space: nowrap;
                 text-decoration: none;
+                position: relative;
+                overflow: hidden;
+                box-shadow: 0 0 12px rgba(56, 139, 253, 0.25), inset 0 1px 0 rgba(255,255,255,0.07);
+            }
+            .chrome-Btn::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -80px;
+                width: 50px;
+                height: 100%;
+                background: linear-gradient(
+                    to right,
+                    transparent,
+                    rgba(255, 255, 255, 0.1),
+                    rgba(255, 255, 255, 0.2),
+                    rgba(255, 255, 255, 0.1),
+                    transparent
+                );
+                transform: skewX(-25deg);
+                animation: chrome-shine-move 3s infinite linear;
+                pointer-events: none;
+                z-index: 1;
             }
             .chrome-Btn:hover {
                 transform: scale(1.025);
-                color: #c4d2dc;
+                color: #e0f2fe;
                 text-decoration: none;
+                border-color: rgba(99, 179, 237, 0.7);
+                box-shadow: 0 0 20px rgba(56, 139, 253, 0.45), inset 0 1px 0 rgba(255,255,255,0.1);
             }
             .chrome-Btn:active {
                 transform: scale(0.975);
@@ -1813,6 +1843,12 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             .chrome-Btn img {
                 height: 24px;
                 width: auto;
+                position: relative;
+                z-index: 2;
+            }
+            .chrome-Btn span {
+                position: relative;
+                z-index: 2;
             }
             </style>
             <a href="${getChromeOpenUrl(directUrl)}"
