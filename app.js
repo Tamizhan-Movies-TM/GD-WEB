@@ -1800,7 +1800,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 border-radius: 0.5rem;
                 border: 1px solid rgba(99, 179, 237, 0.4);
                 gap: 0.75rem;
-                color: #e0f2fe;
+                color: #ffffff;
                 background: linear-gradient(135deg, #1e3a5f 0%, #1a2e4a 50%, #0f2137 100%);
                 cursor: pointer;
                 transition: all 0.25s cubic-bezier(0, 0.87, 0.12, 1);
@@ -1832,7 +1832,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             }
             .chrome-Btn:hover {
                 transform: scale(1.025);
-                color: #e0f2fe;
+                color: #ffffff;
                 text-decoration: none;
                 border-color: rgba(99, 179, 237, 0.7);
                 box-shadow: 0 0 20px rgba(56, 139, 253, 0.45), inset 0 1px 0 rgba(255,255,255,0.1);
