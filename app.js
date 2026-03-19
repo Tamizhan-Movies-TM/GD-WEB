@@ -1781,12 +1781,64 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
 
         // Create Chrome button HTML with direct URL (exact same as working version)
         const chromeButtonHtml = `
+            <style>
+            .chrome-Btn {
+                width: 200px;
+                height: 40px;
+                border: none;
+                border-radius: 10px;
+                background: linear-gradient(to right,#77530a,#ffd277,#77530a,#77530a,#ffd277,#77530a);
+                background-size: 250%;
+                background-position: left;
+                color: #ffd277;
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition-duration: 1s;
+                overflow: hidden;
+                text-decoration: none;
+                font-weight: 600;
+                gap: 8px;
+            }
+            .chrome-Btn::before {
+                position: absolute;
+                content: "";
+                color: #ffd277;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 97%;
+                height: 90%;
+                border-radius: 8px;
+                transition-duration: 1s;
+                background-color: rgba(0, 0, 0, 0.842);
+                background-size: 200%;
+            }
+            .chrome-Btn span, .chrome-Btn img {
+                position: relative;
+                z-index: 1;
+            }
+            .chrome-Btn:hover {
+                background-position: right;
+                transition-duration: 1s;
+                color: #ffd277;
+            }
+            .chrome-Btn:hover::before {
+                background-position: right;
+                transition-duration: 1s;
+            }
+            .chrome-Btn:active {
+                transform: scale(0.95);
+            }
+            </style>
             <a href="${getChromeOpenUrl(directUrl)}"
-               class="btn btn-info d-flex align-items-center gap-2"
+               class="chrome-Btn"
                target="_blank"
                title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲">
                 <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
-                𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)
+                <span>𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)</span>
             </a>`;
 
         // Update buttons immediately with the direct Chrome link
