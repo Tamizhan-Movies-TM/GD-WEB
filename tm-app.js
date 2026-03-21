@@ -2463,44 +2463,105 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       let player = '';
       let player_js = '';
       let player_css = '';
-      // ✅ FIX: Detect iPhone/iPad Safari — cannot play MKV, AVI, or other
-      // non-native formats. Safari only supports MP4 (H.264/HEVC), MOV, M4V.
+
+      // ── iOS Detection ──────────────────────────────────────────────────────
+      // Safari on iPhone/iPad cannot play MKV, AVI, FLV, WMV — hardware limit.
+      // Only MP4 (H.264/HEVC), MOV, M4V are natively supported.
       const _isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const _unsupportedMime = [
+        'video/x-matroska','video/x-msvideo','video/x-flv',
+        'video/x-ms-wmv','video/avi','video/mkv','video/divx'
+      ];
+      const _unsupportedExt = ['.mkv','.avi','.flv','.wmv','.divx','.rmvb','.rm'];
+      const _nameLower = (name || '').toLowerCase();
       const _iosCantPlay = _isIOS && (
-        mimeType === 'video/x-matroska' ||   // MKV
-        mimeType === 'video/x-msvideo'   ||   // AVI
-        mimeType === 'video/x-flv'       ||   // FLV
-        mimeType === 'video/x-ms-wmv'    ||   // WMV
-        (name || '').toLowerCase().endsWith('.mkv') ||
-        (name || '').toLowerCase().endsWith('.avi') ||
-        (name || '').toLowerCase().endsWith('.flv') ||
-        (name || '').toLowerCase().endsWith('.wmv')
+        _unsupportedMime.includes(mimeType) ||
+        _unsupportedExt.some(e => _nameLower.endsWith(e))
       );
 
       if (!UI.disable_player) {
         if (_iosCantPlay) {
-            // Show a clear message instead of a black broken player
-            const _ext = (name || '').split('.').pop().toUpperCase();
-            player = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
-                        min-height:200px;background:#1a1a2e;border-radius:8px;padding:24px;text-align:center;color:#fff;">
-                <div style="font-size:2.5rem;margin-bottom:12px;">📵</div>
-                <div style="font-weight:700;font-size:1rem;margin-bottom:8px;">
-                  ${_ext} Not Supported on iPhone
+            // ── Show "Open in App" card instead of black broken player ─────
+            const _ext  = _nameLower.split('.').pop().toUpperCase();
+            const _enc  = encodeURIComponent(url);
+            // Strip protocol for schemes that need raw host/path
+            const _bare = url.replace(/^https?:\/\//, '');
+
+            player = `
+              <div style="
+                display:flex;flex-direction:column;align-items:center;
+                justify-content:center;min-height:230px;
+                background:linear-gradient(145deg,#1a1a2e 0%,#16213e 100%);
+                border-radius:10px;padding:20px 14px;text-align:center;color:#fff;">
+
+                <div style="font-size:2.6rem;margin-bottom:6px;">📵</div>
+                <div style="font-weight:700;font-size:0.93rem;margin-bottom:4px;">
+                  ${_ext} cannot play in Safari
                 </div>
-                <div style="font-size:0.82rem;color:#aaa;margin-bottom:16px;max-width:260px;">
-                  Safari cannot play ${_ext} files. Use the Download button below
-                  and open with VLC app, or watch on Android / PC.
+                <div style="font-size:0.73rem;color:#9ca3af;margin-bottom:16px;
+                            max-width:270px;line-height:1.5;">
+                  Open with one of these apps to stream directly:
                 </div>
-                <a href="vlc-x-callback://x-callback-url/stream?url=${encodeURIComponent(url)}"
-                   style="background:#f60;color:#fff;padding:8px 20px;border-radius:20px;
-                          text-decoration:none;font-size:0.85rem;font-weight:600;">
-                  ▶ Open in VLC
-                </a>
+
+                <div style="display:flex;flex-direction:column;gap:9px;width:100%;max-width:280px;">
+
+                  <!-- VLC — vlc-x-callback URL scheme (official, confirmed) -->
+                  <a href="vlc-x-callback://x-callback-url/stream?url=${_enc}"
+                     style="display:flex;align-items:center;gap:10px;padding:11px 14px;
+                            border-radius:12px;text-decoration:none;color:#fff;
+                            background:rgba(255,102,0,0.18);border:1.5px solid #ff6600;">
+                    <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png"
+                         style="height:26px;width:26px;border-radius:6px;"
+                         onerror="this.style.display='none'">
+                    <span style="font-weight:700;font-size:0.85rem;">VLC</span>
+                    <span style="font-size:0.72rem;color:#aaa;margin-left:auto;">Tap to stream</span>
+                  </a>
+
+                  <!-- PLAYit — playit:// URL scheme (iOS version confirmed in App Store) -->
+                  <a href="playit://stream?url=${_enc}"
+                     style="display:flex;align-items:center;gap:10px;padding:11px 14px;
+                            border-radius:12px;text-decoration:none;color:#fff;
+                            background:rgba(255,59,48,0.18);border:1.5px solid #ff3b30;">
+                    <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png"
+                         style="height:26px;width:26px;border-radius:6px;"
+                         onerror="this.style.display='none'">
+                    <span style="font-weight:700;font-size:0.85rem;">PLAYit</span>
+                    <span style="font-size:0.72rem;color:#aaa;margin-left:auto;">Tap to stream</span>
+                  </a>
+
+                  <!-- MX Player — mxvideo:// URL scheme (iOS version confirmed in App Store) -->
+                  <a href="mxvideo://${_bare}"
+                     style="display:flex;align-items:center;gap:10px;padding:11px 14px;
+                            border-radius:12px;text-decoration:none;color:#fff;
+                            background:rgba(52,199,89,0.18);border:1.5px solid #34c759;">
+                    <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png"
+                         style="height:26px;width:26px;border-radius:6px;"
+                         onerror="this.style.display='none'">
+                    <span style="font-weight:700;font-size:0.85rem;">MX Player</span>
+                    <span style="font-size:0.72rem;color:#aaa;margin-left:auto;">Tap to stream</span>
+                  </a>
+
+                  <!-- Video Player All Format (iOS App Store confirmed) — use vlc fallback scheme -->
+                  <a href="infuse://x-callback-url/play?url=${_enc}"
+                     style="display:flex;align-items:center;gap:10px;padding:11px 14px;
+                            border-radius:12px;text-decoration:none;color:#fff;
+                            background:rgba(90,200,250,0.15);border:1.5px solid #5ac8fa;">
+                    <span style="font-size:1.4rem;line-height:1;">📺</span>
+                    <span style="font-weight:700;font-size:0.85rem;">Video Player All Format</span>
+                    <span style="font-size:0.72rem;color:#aaa;margin-left:auto;">Tap to stream</span>
+                  </a>
+
+                </div>
+
+                <div style="margin-top:13px;font-size:0.67rem;color:#6b7280;line-height:1.5;">
+                  App not installed? Download below &amp; watch on Android / PC.
+                </div>
               </div>`;
             player_js  = '';
             player_css = '';
-         } else if (player_config.player == "plyr") {
-            // ✅ FIX: webkit-playsinline required for inline playback on older iOS
+
+        } else if (player_config.player == "plyr") {
+            // ✅ FIX: webkit-playsinline — required for older iOS inline playback
             player = `<video id="player" playsinline webkit-playsinline controls data-poster="${poster}">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
@@ -2508,7 +2569,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
             player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
         } else if (player_config.player == "videojs") {
-            // ✅ FIX: webkit-playsinline required for inline playback on older iOS
+            // ✅ FIX: webkit-playsinline — required for older iOS inline playback
             player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" playsinline webkit-playsinline width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
@@ -2608,14 +2669,14 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
   // GDFlix handler is registered once at module level (see bottom of file)
 
-  // Load Video.js and initialize the player
+  // Load player script — skip entirely on iOS unsupported formats
     if (!UI.disable_player && player_js && !_iosCantPlay) {
     var videoJsScript = document.createElement('script');
     videoJsScript.src = player_js;
     videoJsScript.onload = function() {
         // Video.js is loaded, initialize the player
         if (player_config.player == "plyr") {
-            // ✅ FIX: iOS-safe Plyr config — prevents autoplay policy conflicts
+            // ✅ FIX: iOS-safe Plyr config — prevents autoplay policy conflicts on iPhone
             const player = new Plyr('#player', {
                 controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
                 autoplay: false,
