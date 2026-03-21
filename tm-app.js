@@ -2465,14 +2465,14 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       let player_css = '';
       if (!UI.disable_player) {
          if (player_config.player == "plyr") {
-            player = `<video id="player" playsinline controls data-poster="${poster}">
+            player = `<video id="player" playsinline webkit-playsinline controls data-poster="${poster}">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
         </video>`
             player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
             player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
         } else if (player_config.player == "videojs") {
-            player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
+            player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" playsinline webkit-playsinline width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
       <source src="${url}" type="video/avi" />
@@ -2578,7 +2578,12 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     videoJsScript.onload = function() {
         // Video.js is loaded, initialize the player
         if (player_config.player == "plyr") {
-            const player = new Plyr('#player');
+            const player = new Plyr('#player', {
+                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+                autoplay: false,
+                playsinline: true,
+                ratio: '16:9'
+            });
         } else if (player_config.player == "videojs") {
             const player = new videojs('vplayer');
         } else if (player_config.player == "dplayer") {
