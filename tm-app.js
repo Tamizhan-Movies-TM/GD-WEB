@@ -2464,9 +2464,9 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       let player_js = '';
       let player_css = '';
 
-      // ── iOS Detection ──────────────────────────────────────────────────────
+      // ── iOS Detection ─────────────────────────────────────────────────────
       // Safari on iPhone/iPad cannot play MKV, AVI, FLV, WMV — hardware limit.
-      // Only MP4 (H.264/HEVC), MOV, M4V are natively supported.
+      // Only MP4 (H.264/HEVC), MOV, M4V are natively supported by Safari.
       const _isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
       const _unsupportedMime = [
         'video/x-matroska','video/x-msvideo','video/x-flv',
@@ -2481,10 +2481,9 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
       if (!UI.disable_player) {
         if (_iosCantPlay) {
-            // ── Show "Open in App" card instead of black broken player ─────
-            const _ext  = _nameLower.split('.').pop().toUpperCase();
-            const _enc  = encodeURIComponent(url);
-            // Strip protocol for schemes that need raw host/path
+            // ── Show "Open in App" card — VLC (orange) + MX Player (blue) ─
+            const _ext = _nameLower.split('.').pop().toUpperCase();
+            const _enc = encodeURIComponent(url);
             const _bare = url.replace(/^https?:\/\//, '');
 
             player = `
@@ -2500,55 +2499,40 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                 </div>
                 <div style="font-size:0.73rem;color:#9ca3af;margin-bottom:16px;
                             max-width:270px;line-height:1.5;">
-                  Open with one of these apps to stream directly:
+                  iPhone Safari does not support ${_ext}.<br>
+                  Open with one of these apps to stream:
                 </div>
 
-                <div style="display:flex;flex-direction:column;gap:9px;width:100%;max-width:280px;">
+                <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;">
 
-                  <!-- VLC — vlc-x-callback URL scheme (official, confirmed) -->
+                  <!-- VLC — orange border -->
                   <a href="vlc-x-callback://x-callback-url/stream?url=${_enc}"
-                     style="display:flex;align-items:center;gap:10px;padding:11px 14px;
+                     style="display:flex;align-items:center;gap:12px;padding:12px 16px;
                             border-radius:12px;text-decoration:none;color:#fff;
                             background:rgba(255,102,0,0.18);border:1.5px solid #ff6600;">
                     <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png"
-                         style="height:26px;width:26px;border-radius:6px;"
+                         style="height:28px;width:28px;border-radius:6px;"
                          onerror="this.style.display='none'">
-                    <span style="font-weight:700;font-size:0.85rem;">VLC</span>
-                    <span style="font-size:0.72rem;color:#aaa;margin-left:auto;">Tap to stream</span>
+                    <div style="text-align:left;">
+                      <div style="font-weight:700;font-size:0.87rem;">VLC</div>
+                      <div style="font-size:0.7rem;color:#f97316;">Free · Plays all formats</div>
+                    </div>
+                    <span style="margin-left:auto;font-size:0.75rem;color:#aaa;">Open ›</span>
                   </a>
 
-                  <!-- PLAYit — playit:// URL scheme (iOS version confirmed in App Store) -->
-                  <a href="playit://stream?url=${_enc}"
-                     style="display:flex;align-items:center;gap:10px;padding:11px 14px;
-                            border-radius:12px;text-decoration:none;color:#fff;
-                            background:rgba(255,59,48,0.18);border:1.5px solid #ff3b30;">
-                    <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png"
-                         style="height:26px;width:26px;border-radius:6px;"
-                         onerror="this.style.display='none'">
-                    <span style="font-weight:700;font-size:0.85rem;">PLAYit</span>
-                    <span style="font-size:0.72rem;color:#aaa;margin-left:auto;">Tap to stream</span>
-                  </a>
-
-                  <!-- MX Player — mxvideo:// URL scheme (iOS version confirmed in App Store) -->
+                  <!-- MX Player — blue border -->
                   <a href="mxvideo://${_bare}"
-                     style="display:flex;align-items:center;gap:10px;padding:11px 14px;
+                     style="display:flex;align-items:center;gap:12px;padding:12px 16px;
                             border-radius:12px;text-decoration:none;color:#fff;
-                            background:rgba(52,199,89,0.18);border:1.5px solid #34c759;">
+                            background:rgba(10,132,255,0.18);border:1.5px solid #0a84ff;">
                     <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png"
-                         style="height:26px;width:26px;border-radius:6px;"
+                         style="height:28px;width:28px;border-radius:6px;"
                          onerror="this.style.display='none'">
-                    <span style="font-weight:700;font-size:0.85rem;">MX Player</span>
-                    <span style="font-size:0.72rem;color:#aaa;margin-left:auto;">Tap to stream</span>
-                  </a>
-
-                  <!-- Video Player All Format (iOS App Store confirmed) — use vlc fallback scheme -->
-                  <a href="infuse://x-callback-url/play?url=${_enc}"
-                     style="display:flex;align-items:center;gap:10px;padding:11px 14px;
-                            border-radius:12px;text-decoration:none;color:#fff;
-                            background:rgba(90,200,250,0.15);border:1.5px solid #5ac8fa;">
-                    <span style="font-size:1.4rem;line-height:1;">📺</span>
-                    <span style="font-weight:700;font-size:0.85rem;">Video Player All Format</span>
-                    <span style="font-size:0.72rem;color:#aaa;margin-left:auto;">Tap to stream</span>
+                    <div style="text-align:left;">
+                      <div style="font-weight:700;font-size:0.87rem;">MX Player</div>
+                      <div style="font-size:0.7rem;color:#0a84ff;">Free · HD Video Player</div>
+                    </div>
+                    <span style="margin-left:auto;font-size:0.75rem;color:#aaa;">Open ›</span>
                   </a>
 
                 </div>
