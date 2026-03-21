@@ -1781,96 +1781,13 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
 
         // Create Chrome button HTML with direct URL (exact same as working version)
         const chromeButtonHtml = `
-            <style>
-            @keyframes chrome-shine-move {
-                0%   { left: -80px; }
-                60%  { left: 110%; }
-                100% { left: 110%; }
-            }
-            @keyframes chrome-border-spin {
-                0%   { background-position: 0% 50%; }
-                50%  { background-position: 100% 50%; }
-                100% { background-position: 0% 50%; }
-            }
-            .chrome-Btn-wrap {
-                display: inline-flex;
-                padding: 2px;
-                border-radius: calc(0.5rem + 2px);
-                background: linear-gradient(90deg, #ff0000, #ff7700, #ffff00, #00ff00, #0099ff, #6600ff, #ff0099, #ff0000);
-                background-size: 300% 300%;
-                animation: chrome-border-spin 4s linear infinite;
-                text-decoration: none;
-            }
-            .chrome-Btn {
-                display: inline-flex;
-                padding: 0.5rem 1.4rem;
-                font-size: 0.875rem;
-                line-height: 1.25rem;
-                font-weight: 700;
-                text-align: center;
-                font-family: "Montserrat", sans-serif;
-                vertical-align: middle;
-                align-items: center;
-                border-radius: 0.5rem;
-                border: none;
-                gap: 0.75rem;
-                color: #ffffff;
-                background: linear-gradient(135deg, #1e3a5f 0%, #1a2e4a 50%, #0f2137 100%);
-                cursor: pointer;
-                transition: all 0.25s cubic-bezier(0, 0.87, 0.12, 1);
-                white-space: nowrap;
-                text-decoration: none;
-                position: relative;
-                overflow: hidden;
-            }
-            .chrome-Btn::before {
-                content: "";
-                position: absolute;
-                top: 0;
-                left: -80px;
-                width: 50px;
-                height: 100%;
-                background: linear-gradient(
-                    to right,
-                    transparent,
-                    rgba(255, 255, 255, 0.1),
-                    rgba(255, 255, 255, 0.2),
-                    rgba(255, 255, 255, 0.1),
-                    transparent
-                );
-                transform: skewX(-25deg);
-                animation: chrome-shine-move 3s infinite linear;
-                pointer-events: none;
-                z-index: 1;
-            }
-            .chrome-Btn:hover {
-                transform: scale(1.025);
-                color: #ffffff;
-                text-decoration: none;
-            }
-            .chrome-Btn:active {
-                transform: scale(0.975);
-            }
-            .chrome-Btn img {
-                height: 24px;
-                width: auto;
-                position: relative;
-                z-index: 2;
-            }
-            .chrome-Btn span {
-                position: relative;
-                z-index: 2;
-            }
-            </style>
-            <div class="chrome-Btn-wrap">
-                <a href="${getChromeOpenUrl(directUrl)}"
-                   class="chrome-Btn"
-                   target="_blank"
-                   title="Open in Chrome">
-                    <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome">
-                    <span>Open in Chrome (Direct)</span>
-                </a>
-            </div>`;
+            <a href="${getChromeOpenUrl(directUrl)}"
+               class="btn btn-info d-flex align-items-center gap-2"
+               target="_blank"
+               title="𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲">
+                <img src="https://www.google.com/chrome/static/images/chrome-logo.svg" alt="Chrome" style="height: 20px; width: 20px;">
+                𝗢𝗽𝗲𝗻 𝗶𝗻 𝗖𝗵𝗿𝗼𝗺𝗲 (Direct)
+            </a>`;
 
         // Update buttons immediately with the direct Chrome link
         $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
@@ -2478,14 +2395,14 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       let player_css = '';
       if (!UI.disable_player) {
          if (player_config.player == "plyr") {
-            player = `<video id="player" playsinline controls data-poster="${poster}">
+            player = `<video id="player" playsinline webkit-playsinline controls data-poster="${poster}">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
         </video>`
             player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
             player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
         } else if (player_config.player == "videojs") {
-            player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
+            player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" playsinline webkit-playsinline width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
       <source src="${url}" type="video/avi" />
@@ -2591,7 +2508,12 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     videoJsScript.onload = function() {
         // Video.js is loaded, initialize the player
         if (player_config.player == "plyr") {
-            const player = new Plyr('#player');
+            const player = new Plyr('#player', {
+                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+                autoplay: false,
+                playsinline: true,
+                ratio: '16:9'
+            });
         } else if (player_config.player == "videojs") {
             const player = new videojs('vplayer');
         } else if (player_config.player == "dplayer") {
