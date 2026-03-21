@@ -2481,7 +2481,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
       if (!UI.disable_player) {
         if (_iosCantPlay) {
-            // ── Show "Open in App" card — VLC (orange) + MX Player (blue) ─
+            // ── Show "Open in App" card — VLC (orange) + Infuse (yellow) ─
             const _ext = _nameLower.split('.').pop().toUpperCase();
             const _enc = encodeURIComponent(url);
             const _bare = url.replace(/^https?:\/\//, '');
@@ -2520,17 +2520,17 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                     <span style="margin-left:auto;font-size:0.75rem;color:#aaa;">Open ›</span>
                   </a>
 
-                  <!-- MX Player — blue border -->
-                  <a href="mxvideo://${_bare}"
+                  <!-- Infuse — yellow border -->
+                  <a href="infuse://x-callback-url/play?url=${_enc}"
                      style="display:flex;align-items:center;gap:12px;padding:12px 16px;
                             border-radius:12px;text-decoration:none;color:#fff;
-                            background:rgba(10,132,255,0.18);border:1.5px solid #0a84ff;">
-                    <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png"
+                            background:rgba(251,191,36,0.18);border:1.5px solid #fbbf24;">
+                    <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Infuse.png"
                          style="height:28px;width:28px;border-radius:6px;"
                          onerror="this.style.display='none'">
                     <div style="text-align:left;">
-                      <div style="font-weight:700;font-size:0.87rem;">MX Player</div>
-                      <div style="font-size:0.7rem;color:#0a84ff;">Free · HD Video Player</div>
+                      <div style="font-weight:700;font-size:0.87rem;">Infuse</div>
+                      <div style="font-size:0.7rem;color:#fbbf24;">Free · Best MKV player on iOS</div>
                     </div>
                     <span style="margin-left:auto;font-size:0.75rem;color:#aaa;">Open ›</span>
                   </a>
@@ -2538,7 +2538,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                 </div>
 
                 <div style="margin-top:13px;font-size:0.67rem;color:#6b7280;line-height:1.5;">
-                  App not installed? Download below &amp; watch on Android / PC.
+                  App not installed? Tap to install then stream directly.
                 </div>
               </div>`;
             player_js  = '';
