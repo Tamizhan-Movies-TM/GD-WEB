@@ -2463,8 +2463,44 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       let player = '';
       let player_js = '';
       let player_css = '';
+      // ✅ FIX: Detect iPhone/iPad Safari — cannot play MKV, AVI, or other
+      // non-native formats. Safari only supports MP4 (H.264/HEVC), MOV, M4V.
+      const _isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const _iosCantPlay = _isIOS && (
+        mimeType === 'video/x-matroska' ||   // MKV
+        mimeType === 'video/x-msvideo'   ||   // AVI
+        mimeType === 'video/x-flv'       ||   // FLV
+        mimeType === 'video/x-ms-wmv'    ||   // WMV
+        (name || '').toLowerCase().endsWith('.mkv') ||
+        (name || '').toLowerCase().endsWith('.avi') ||
+        (name || '').toLowerCase().endsWith('.flv') ||
+        (name || '').toLowerCase().endsWith('.wmv')
+      );
+
       if (!UI.disable_player) {
-         if (player_config.player == "plyr") {
+        if (_iosCantPlay) {
+            // Show a clear message instead of a black broken player
+            const _ext = (name || '').split('.').pop().toUpperCase();
+            player = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+                        min-height:200px;background:#1a1a2e;border-radius:8px;padding:24px;text-align:center;color:#fff;">
+                <div style="font-size:2.5rem;margin-bottom:12px;">📵</div>
+                <div style="font-weight:700;font-size:1rem;margin-bottom:8px;">
+                  ${_ext} Not Supported on iPhone
+                </div>
+                <div style="font-size:0.82rem;color:#aaa;margin-bottom:16px;max-width:260px;">
+                  Safari cannot play ${_ext} files. Use the Download button below
+                  and open with VLC app, or watch on Android / PC.
+                </div>
+                <a href="vlc-x-callback://x-callback-url/stream?url=${encodeURIComponent(url)}"
+                   style="background:#f60;color:#fff;padding:8px 20px;border-radius:20px;
+                          text-decoration:none;font-size:0.85rem;font-weight:600;">
+                  ▶ Open in VLC
+                </a>
+              </div>`;
+            player_js  = '';
+            player_css = '';
+         } else if (player_config.player == "plyr") {
+            // ✅ FIX: webkit-playsinline required for inline playback on older iOS
             player = `<video id="player" playsinline webkit-playsinline controls data-poster="${poster}">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
@@ -2472,6 +2508,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
             player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
         } else if (player_config.player == "videojs") {
+            // ✅ FIX: webkit-playsinline required for inline playback on older iOS
             player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" playsinline webkit-playsinline width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
@@ -2572,12 +2609,13 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   // GDFlix handler is registered once at module level (see bottom of file)
 
   // Load Video.js and initialize the player
-    if (!UI.disable_player && player_js) {
+    if (!UI.disable_player && player_js && !_iosCantPlay) {
     var videoJsScript = document.createElement('script');
     videoJsScript.src = player_js;
     videoJsScript.onload = function() {
         // Video.js is loaded, initialize the player
         if (player_config.player == "plyr") {
+            // ✅ FIX: iOS-safe Plyr config — prevents autoplay policy conflicts
             const player = new Plyr('#player', {
                 controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
                 autoplay: false,
