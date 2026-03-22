@@ -2485,7 +2485,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             const _ext = _nameLower.split('.').pop().toUpperCase();
             const _enc = encodeURIComponent(url);
             const _bare = url.replace(/^https?:\/\//, '');
-            const _encName = encodeURIComponent(name);
+            
 
             player = `
               <div style="
@@ -2498,15 +2498,22 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                 <div style="font-weight:700;font-size:0.93rem;margin-bottom:4px;">
                   Stream with VLC or Infuse
                 </div>
-                <div style="font-size:0.73rem;color:#9ca3af;margin-bottom:16px;
+                <div style="font-size:0.73rem;color:#9ca3af;margin-bottom:10px;
                             max-width:270px;line-height:1.5;">
                   Tap an app below to stream this file directly on your iPhone:
+                </div>
+
+                <!-- Filename display -->
+                <div style="font-size:0.68rem;color:#e5e7eb;background:rgba(255,255,255,0.07);
+                            border-radius:8px;padding:7px 10px;margin-bottom:14px;
+                            max-width:280px;word-break:break-all;line-height:1.5;text-align:left;">
+                  📁 ${escapeHtml(name)}
                 </div>
 
                 <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;">
 
                   <!-- VLC — bright orange border (#FFA500) -->
-                  <a href="vlc-x-callback://x-callback-url/stream?url=${_enc}&fname=${_encName}"
+                  <a href="vlc-x-callback://x-callback-url/stream?url=${_enc}"
                      style="display:flex;align-items:center;gap:12px;padding:12px 16px;
                             border-radius:12px;text-decoration:none;color:#fff;
                             background:rgba(255,165,0,0.18);border:1.5px solid #FFA500;">
@@ -2521,7 +2528,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                   </a>
 
                   <!-- Infuse — yellow border -->
-                  <a href="infuse://x-callback-url/play?url=${_enc}&title=${_encName}"
+                  <a href="infuse://x-callback-url/play?url=${_enc}"
                      style="display:flex;align-items:center;gap:12px;padding:12px 16px;
                             border-radius:12px;text-decoration:none;color:#fff;
                             background:rgba(251,191,36,0.18);border:1.5px solid #fbbf24;">
