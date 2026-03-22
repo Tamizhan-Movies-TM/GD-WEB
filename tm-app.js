@@ -2485,7 +2485,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             const _ext = _nameLower.split('.').pop().toUpperCase();
             const _enc = encodeURIComponent(url);
             const _bare = url.replace(/^https?:\/\//, '');
-            
 
             player = `
               <div style="
@@ -2494,20 +2493,13 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                 background:linear-gradient(145deg,#1a1a2e 0%,#16213e 100%);
                 border-radius:10px;padding:20px 14px;text-align:center;color:#fff;">
 
-                <div style="font-size:2.6rem;margin-bottom:6px;">📱</div>
+                <div style="font-size:2.6rem;margin-bottom:6px;">📱𝗶𝗣𝗵𝗼𝗻𝗲</div>
                 <div style="font-weight:700;font-size:0.93rem;margin-bottom:4px;">
-                  Stream with VLC or Infuse
+                  Stream support with VLC and Infuse
                 </div>
-                <div style="font-size:0.73rem;color:#9ca3af;margin-bottom:10px;
+                <div style="font-size:0.73rem;color:#9ca3af;margin-bottom:16px;
                             max-width:270px;line-height:1.5;">
-                  Tap an app below to stream this file directly on your iPhone:
-                </div>
-
-                <!-- Filename display -->
-                <div style="font-size:0.68rem;color:#e5e7eb;background:rgba(255,255,255,0.07);
-                            border-radius:8px;padding:7px 10px;margin-bottom:14px;
-                            max-width:280px;word-break:break-all;line-height:1.5;text-align:left;">
-                  📁 ${escapeHtml(name)}
+                  Tap an app below to stream this file directly on your <i class="fa-brands fa-apple"></i> iPhone:
                 </div>
 
                 <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;">
