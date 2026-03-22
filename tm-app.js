@@ -3063,7 +3063,9 @@ async function copyFile(driveid) {
 }
 
 // GDFlix Link Generation Function
-function generateGDFlixLink(fileId) {
+// newTab — optional pre-opened window reference (passed from click handler
+//          so iOS Safari does not block it as a popup).
+function generateGDFlixLink(fileId, newTab) {
     return new Promise((resolve, reject) => {
         // Debug logging
         log('GDFlix - Received fileId:', fileId);
@@ -3071,6 +3073,7 @@ function generateGDFlixLink(fileId) {
         // Basic validation
         if (!fileId) {
             logError('GDFlix - No file ID provided');
+            if (newTab && !newTab.closed) { newTab.close(); }
             reject(new Error('No file ID provided'));
             return;
         }
@@ -3080,16 +3083,12 @@ function generateGDFlixLink(fileId) {
 
         if (fileId === '') {
             logError('GDFlix - Empty file ID');
+            if (newTab && !newTab.closed) { newTab.close(); }
             reject(new Error('Empty file ID'));
             return;
         }
 
         log('GDFlix - Requesting link generation from worker...');
-
-        // ✅ FIX: Open a blank window SYNCHRONOUSLY here (still inside the user-gesture
-        // call stack) so Safari / iOS does not block it as a popup.
-        // We then navigate it to the real URL once the fetch resolves.
-        var newTab = window.open('', '_blank');
 
         // Make request to worker endpoint
         fetch('/generate-gdflix', {
@@ -3113,8 +3112,8 @@ function generateGDFlixLink(fileId) {
 
             if (data.success && data.gdflix_link) {
                 log('GDFlix - Generated link:', data.gdflix_link);
-                // Navigate the already-opened tab to the real GDFlix link.
-                // Falls back to window.open() if newTab was somehow blocked.
+                // Use the pre-opened tab if available (required for iOS Safari).
+                // Falls back to window.open() for any edge case where newTab is missing.
                 if (newTab && !newTab.closed) {
                     newTab.location.href = data.gdflix_link;
                 } else {
@@ -3319,10 +3318,25 @@ $(document).on('click', '.gdflix-btn', function() {
         return;
     }
 
+    // ✅ iOS FIX: window.open() MUST be called synchronously at the very top of
+    // the click handler — before any async work — so Safari treats it as a
+    // direct user gesture and does not block it as a popup.
+    // We open a loading page immediately, then redirect once we have the real URL.
+    var newTab = window.open('', '_blank');
+    if (newTab) {
+        newTab.document.write(
+            '<html><head><title>Loading GDFlix\u2026</title>' +
+            '<style>body{margin:0;display:flex;align-items:center;justify-content:center;' +
+            'height:100vh;background:#0f0f0f;color:#fff;font-family:sans-serif;font-size:1.2rem;}</style>' +
+            '</head><body>\u23f3 Generating GDFlix link, please wait\u2026</body></html>'
+        );
+        newTab.document.close();
+    }
+
     const originalHtml = button.html();
     button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
 
-    generateGDFlixLink(fileId)
+    generateGDFlixLink(fileId, newTab)
         .then(() => {
             button.prop('disabled', false).html(originalHtml);
         })
