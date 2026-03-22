@@ -3086,6 +3086,14 @@ function generateGDFlixLink(fileId) {
 
         log('GDFlix - Requesting link generation from worker...');
 
+        // Safari blocks window.open() called inside .then() (async context) as a popup.
+        // Fix: Open a blank tab SYNCHRONOUSLY now (still inside the user-gesture call stack),
+        // then navigate it to the real URL once the fetch resolves.
+        // Chrome does not have this restriction, so we only do this for Safari.
+        const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        var newTab = _isSafari ? window.open('', '_blank') : null;
+        log('GDFlix - Safari detected:', _isSafari);
+
         // Make request to worker endpoint
         fetch('/generate-gdflix', {
             method: 'POST',
@@ -3108,15 +3116,26 @@ function generateGDFlixLink(fileId) {
 
             if (data.success && data.gdflix_link) {
                 log('GDFlix - Generated link:', data.gdflix_link);
-                // Open the GDFlix link directly in a new tab
-                window.open(data.gdflix_link, '_blank');
+                if (_isSafari) {
+                    // Safari: navigate the pre-opened blank tab
+                    if (newTab && !newTab.closed) {
+                        newTab.location.href = data.gdflix_link;
+                    } else {
+                        window.open(data.gdflix_link, '_blank');
+                    }
+                } else {
+                    // Chrome / other browsers: direct open works fine
+                    window.open(data.gdflix_link, '_blank');
+                }
                 resolve(data.gdflix_link);
             } else {
+                if (newTab && !newTab.closed) { newTab.close(); }
                 reject(new Error(data.error || 'Failed to generate GDFlix link'));
             }
         })
         .catch(error => {
             logError('GDFlix Error:', error);
+            if (newTab && !newTab.closed) { newTab.close(); }
             alert('Failed to generate GDFlix link: ' + error.message);
             reject(error);
         });
