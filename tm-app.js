@@ -3086,11 +3086,6 @@ function generateGDFlixLink(fileId) {
 
         log('GDFlix - Requesting link generation from worker...');
 
-        // ✅ FIX: Open a blank window SYNCHRONOUSLY here (still inside the user-gesture
-        // call stack) so Safari / iOS does not block it as a popup.
-        // We then navigate it to the real URL once the fetch resolves.
-        var newTab = window.open('', '_blank');
-
         // Make request to worker endpoint
         fetch('/generate-gdflix', {
             method: 'POST',
@@ -3113,22 +3108,15 @@ function generateGDFlixLink(fileId) {
 
             if (data.success && data.gdflix_link) {
                 log('GDFlix - Generated link:', data.gdflix_link);
-                // Navigate the already-opened tab to the real GDFlix link.
-                // Falls back to window.open() if newTab was somehow blocked.
-                if (newTab && !newTab.closed) {
-                    newTab.location.href = data.gdflix_link;
-                } else {
-                    window.open(data.gdflix_link, '_blank');
-                }
+                // Open the GDFlix link directly in a new tab
+                window.open(data.gdflix_link, '_blank');
                 resolve(data.gdflix_link);
             } else {
-                if (newTab && !newTab.closed) { newTab.close(); }
                 reject(new Error(data.error || 'Failed to generate GDFlix link'));
             }
         })
         .catch(error => {
             logError('GDFlix Error:', error);
-            if (newTab && !newTab.closed) { newTab.close(); }
             alert('Failed to generate GDFlix link: ' + error.message);
             reject(error);
         });
