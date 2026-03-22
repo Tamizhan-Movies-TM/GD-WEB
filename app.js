@@ -2463,8 +2463,102 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
       let player = '';
       let player_js = '';
       let player_css = '';
+
+      // ── iOS Detection ─────────────────────────────────────────────────────
+      // Safari on iPhone/iPad cannot play MKV, AVI, FLV, WMV — hardware limit.
+      // Only MP4 (H.264/HEVC), MOV, M4V are natively supported by Safari.
+      const _isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const _unsupportedMime = [
+        'video/x-matroska','video/x-msvideo','video/x-flv',
+        'video/x-ms-wmv','video/avi','video/mkv','video/divx'
+      ];
+      const _unsupportedExt = ['.mkv','.avi','.flv','.wmv','.divx','.rmvb','.rm'];
+      const _nameLower = (name || '').toLowerCase();
+      const _iosCantPlay = _isIOS && (
+        _unsupportedMime.includes(mimeType) ||
+        _unsupportedExt.some(e => _nameLower.endsWith(e))
+      );
+
       if (!UI.disable_player) {
-         if (player_config.player == "plyr") {
+        if (_iosCantPlay) {
+            // ── Show "Open in App" card — VLC (orange) + Infuse (yellow) ─
+            const _ext = _nameLower.split('.').pop().toUpperCase();
+            const _enc = encodeURIComponent(url);
+            const _bare = url.replace(/^https?:\/\//, '');
+
+            player = `
+              <div style="
+                display:flex;flex-direction:column;align-items:center;
+                justify-content:center;min-height:230px;
+                background:linear-gradient(145deg,#1a1a2e 0%,#16213e 100%);
+                border-radius:10px;padding:20px 14px;text-align:center;color:#fff;">
+
+                <div style="font-size:2.6rem;margin-bottom:6px;">📵</div>
+                <div style="font-weight:700;font-size:0.93rem;margin-bottom:4px;">
+                  ${_ext} cannot play in Safari
+                </div>
+                <div style="font-size:0.73rem;color:#9ca3af;margin-bottom:16px;
+                            max-width:270px;line-height:1.5;">
+                  iPhone Safari does not support ${_ext}.<br>
+                  Open with one of these apps to stream:
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;">
+
+                  <!-- VLC — bright orange border (#FFA500) -->
+                  <a href="vlc-x-callback://x-callback-url/stream?url=${_enc}"
+                     style="display:flex;align-items:center;gap:12px;padding:12px 16px;
+                            border-radius:12px;text-decoration:none;color:#fff;
+                            background:rgba(255,165,0,0.18);border:1.5px solid #FFA500;">
+                    <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png"
+                         style="height:28px;width:28px;border-radius:6px;"
+                         onerror="this.style.display='none'">
+                    <div style="text-align:left;">
+                      <div style="font-weight:700;font-size:0.87rem;">VLC</div>
+                      <div style="font-size:0.7rem;color:#FFA500;">Free · Plays all formats</div>
+                    </div>
+                    <span style="margin-left:auto;font-size:0.75rem;color:#aaa;">Open ›</span>
+                  </a>
+
+                  <!-- Infuse — yellow border -->
+                  <a href="infuse://x-callback-url/play?url=${_enc}"
+                     style="display:flex;align-items:center;gap:12px;padding:12px 16px;
+                            border-radius:12px;text-decoration:none;color:#fff;
+                            background:rgba(251,191,36,0.18);border:1.5px solid #fbbf24;">
+                    <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Infuse.png"
+                         style="height:28px;width:28px;border-radius:6px;"
+                         onerror="this.style.display='none'">
+                    <div style="text-align:left;">
+                      <div style="font-weight:700;font-size:0.87rem;">Infuse</div>
+                      <div style="font-size:0.7rem;color:#fbbf24;">Free · Best MKV player on iOS</div>
+                    </div>
+                    <span style="margin-left:auto;font-size:0.75rem;color:#aaa;">Open ›</span>
+                  </a>
+
+                </div>
+
+                <div style="margin-top:13px;font-size:0.67rem;color:#6b7280;line-height:1.5;">
+                  App not installed? Tap to install then stream directly.
+                </div>
+
+                <!-- File Information below the buttons -->
+                <div style="margin-top:16px;width:100%;max-width:280px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;text-align:left;">
+                  <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;">
+                    <span style="font-size:0.75rem;color:#9ca3af;min-width:24px;">📁</span>
+                    <span style="font-size:0.73rem;color:#e5e7eb;word-break:break-all;line-height:1.4;">${escapeHtml(name)}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:0.75rem;color:#9ca3af;min-width:24px;">🕐</span>
+                    <span style="font-size:0.73rem;color:#9ca3af;">${createdTime}</span>
+                  </div>
+                </div>
+
+              </div>`;
+            player_js  = '';
+            player_css = '';
+
+        } else if (player_config.player == "plyr") {
+            // ✅ FIX: webkit-playsinline — required for older iOS inline playback
             player = `<video id="player" playsinline webkit-playsinline controls data-poster="${poster}">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
@@ -2472,6 +2566,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
             player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
         } else if (player_config.player == "videojs") {
+            // ✅ FIX: webkit-playsinline — required for older iOS inline playback
             player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" playsinline webkit-playsinline width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
       <source src="${url}" type="video/mp4" />
       <source src="${url}" type="video/webm" />
@@ -2571,13 +2666,14 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
   // GDFlix handler is registered once at module level (see bottom of file)
 
-  // Load Video.js and initialize the player
-    if (!UI.disable_player && player_js) {
+  // Load player script — skip entirely on iOS unsupported formats
+    if (!UI.disable_player && player_js && !_iosCantPlay) {
     var videoJsScript = document.createElement('script');
     videoJsScript.src = player_js;
     videoJsScript.onload = function() {
         // Video.js is loaded, initialize the player
         if (player_config.player == "plyr") {
+            // ✅ FIX: iOS-safe Plyr config — prevents autoplay policy conflicts on iPhone
             const player = new Plyr('#player', {
                 controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
                 autoplay: false,
