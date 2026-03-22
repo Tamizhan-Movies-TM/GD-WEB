@@ -2506,7 +2506,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                 <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;">
 
                   <!-- VLC — bright orange border (#FFA500) -->
-                  <a href="vlc-x-callback://x-callback-url/stream?url=${_enc}&filename=${_encName}"
+                  <a href="vlc-x-callback://x-callback-url/stream?url=${_enc}&fname=${_encName}"
                      style="display:flex;align-items:center;gap:12px;padding:12px 16px;
                             border-radius:12px;text-decoration:none;color:#fff;
                             background:rgba(255,165,0,0.18);border:1.5px solid #FFA500;">
