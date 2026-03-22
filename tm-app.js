@@ -2485,6 +2485,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             const _ext = _nameLower.split('.').pop().toUpperCase();
             const _enc = encodeURIComponent(url);
             const _bare = url.replace(/^https?:\/\//, '');
+            const _encName = encodeURIComponent(name);
 
             player = `
               <div style="
@@ -2493,35 +2494,34 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                 background:linear-gradient(145deg,#1a1a2e 0%,#16213e 100%);
                 border-radius:10px;padding:20px 14px;text-align:center;color:#fff;">
 
-                <div style="font-size:2.6rem;margin-bottom:6px;">📵</div>
+                <div style="font-size:2.6rem;margin-bottom:6px;">📱</div>
                 <div style="font-weight:700;font-size:0.93rem;margin-bottom:4px;">
-                  ${_ext} cannot play in Safari
+                  Stream with VLC or Infuse
                 </div>
                 <div style="font-size:0.73rem;color:#9ca3af;margin-bottom:16px;
                             max-width:270px;line-height:1.5;">
-                  iPhone Safari does not support ${_ext}.<br>
-                  Open with one of these apps to stream:
+                  Tap an app below to stream this file directly on your iPhone:
                 </div>
 
                 <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;">
 
-                  <!-- VLC — orange border -->
-                  <a href="vlc-x-callback://x-callback-url/stream?url=${_enc}"
+                  <!-- VLC — bright orange border (#FFA500) -->
+                  <a href="vlc-x-callback://x-callback-url/stream?url=${_enc}&filename=${_encName}"
                      style="display:flex;align-items:center;gap:12px;padding:12px 16px;
                             border-radius:12px;text-decoration:none;color:#fff;
-                            background:rgba(255,102,0,0.18);border:1.5px solid #ff6600;">
+                            background:rgba(255,165,0,0.18);border:1.5px solid #FFA500;">
                     <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png"
                          style="height:28px;width:28px;border-radius:6px;"
                          onerror="this.style.display='none'">
                     <div style="text-align:left;">
                       <div style="font-weight:700;font-size:0.87rem;">VLC</div>
-                      <div style="font-size:0.7rem;color:#f97316;">Free · Plays all formats</div>
+                      <div style="font-size:0.7rem;color:#FFA500;">Free · Plays all formats</div>
                     </div>
                     <span style="margin-left:auto;font-size:0.75rem;color:#aaa;">Open ›</span>
                   </a>
 
                   <!-- Infuse — yellow border -->
-                  <a href="infuse://x-callback-url/play?url=${_enc}"
+                  <a href="infuse://x-callback-url/play?url=${_enc}&title=${_encName}"
                      style="display:flex;align-items:center;gap:12px;padding:12px 16px;
                             border-radius:12px;text-decoration:none;color:#fff;
                             background:rgba(251,191,36,0.18);border:1.5px solid #fbbf24;">
@@ -2530,7 +2530,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                          onerror="this.style.display='none'">
                     <div style="text-align:left;">
                       <div style="font-weight:700;font-size:0.87rem;">Infuse</div>
-                      <div style="font-size:0.7rem;color:#fbbf24;">Free · Best MKV player on iOS</div>
+                      <div style="font-size:0.7rem;color:#fbbf24;">Free · Best ${_ext} player on iOS</div>
                     </div>
                     <span style="margin-left:auto;font-size:0.75rem;color:#aaa;">Open ›</span>
                   </a>
@@ -2540,6 +2540,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                 <div style="margin-top:13px;font-size:0.67rem;color:#6b7280;line-height:1.5;">
                   App not installed? Tap to install then stream directly.
                 </div>
+
               </div>`;
             player_js  = '';
             player_css = '';
