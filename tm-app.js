@@ -1929,12 +1929,10 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // Routes Nowshort button through your own redirect servers (random pick).
         // Add / remove servers in the array below as needed.
         const _rotatorServers = [
-            { base: 'https://gujexpress.com/nono.php',             param: 'link' },
-            { base: 'https://portalresult.in/sip.php',             param: 'link' },
-            { base: 'https://kvrohtak.in/new.php',                 param: 'link' },
-            { base: 'https://mytpguide.com/join.php',              param: 'link' },
-            { base: 'https://loan.zeeschoolkasganj.com/no.php',    param: 'link' },
-			{ base: 'https://loan.brilliantbihar.com/now.php',     param: 'link' },
+            { base: 'https://loan.grandyojna.com/join.php',             param: 'link' },
+            { base: 'https://loan.24jobkhabar.in/open.php',             param: 'link' },
+            { base: 'https://loan.rajasthanhelp.com/new.php',           param: 'link' },
+					  { base: 'https://plasmaline.in/new.php',                    param: 'link' },
         ];
 
         function _extractNowshortCode(url) {
