@@ -1639,11 +1639,10 @@ function append_search_result_to_list(files) {
         for (let i = 0; i < files.length; i++) {
             const item = files[i];
 
-            // Render folders (only Tamil Web Series folders reach here due to worker query filter)
+            // Render folders using fallback?id= (encrypted ID) — same as fallback list
             if (item['mimeType'] == 'application/vnd.google-apps.folder') {
                 item['createdTime'] = utc2jakarta(item['createdTime']);
-                var ep = encodeURIComponent(item.name).replace(/\//g, '%2F') + '/';
-                var fp = '/' + cur + ':/' + ep.replace(_reHash, '%23').replace(_reQ, '%3F');
+                const fp = '/fallback?id=' + encodeURIComponent(item.id);
                 html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${fp}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}<span class="d-flex gap-2">${UI.display_download ? `<a class="d-flex align-items-center" href="${fp}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
                 continue;
             }
