@@ -1626,11 +1626,14 @@ function append_search_result_to_list(files) {
         var is_lastpage_loaded = null === $list.data('nextPageToken');
         // var is_firstpage = '0' == $list.data('curPageIndex');
 
-        // Sort files by size in descending order (largest first)
+        // Sort: folders first (by name), then files by size descending (largest first)
         files.sort((a, b) => {
-            const sizeA = parseInt(a.size || 0);
-            const sizeB = parseInt(b.size || 0);
-            return sizeB - sizeA;
+            const aIsFolder = a.mimeType === 'application/vnd.google-apps.folder';
+            const bIsFolder = b.mimeType === 'application/vnd.google-apps.folder';
+            if (aIsFolder && bIsFolder) return a.name.localeCompare(b.name);
+            if (aIsFolder) return -1;
+            if (bIsFolder) return 1;
+            return parseInt(b.size || 0) - parseInt(a.size || 0);
         });
 
         let html = "";
@@ -1639,11 +1642,12 @@ function append_search_result_to_list(files) {
         for (let i = 0; i < files.length; i++) {
             const item = files[i];
 
-            // Render folders using fallback?id= (encrypted ID) — same as fallback list
+            // Render folders with modal (GPlinks/Nowshort) — same as files
             if (item['mimeType'] == 'application/vnd.google-apps.folder') {
                 item['createdTime'] = utc2jakarta(item['createdTime']);
-                const fp = '/fallback?id=' + encodeURIComponent(item.id);
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${fp}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}<span class="d-flex gap-2">${UI.display_download ? `<a class="d-flex align-items-center" href="${fp}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
+                item['size'] = item['size'] ? (formatFileSize(item['size']) || '—') : '—';
+                item['md5Checksum'] = '—';
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">—</span>` : ``}</div>`;
                 continue;
             }
 
@@ -1652,7 +1656,7 @@ function append_search_result_to_list(files) {
             }
             item['createdTime'] = utc2jakarta(item['createdTime']);
 
-            // Only process files (folders are skipped above)
+            // Only process files (folders handled above)
             is_file = true;
             totalsize = totalsize + Number(item.size || 0);
             item['size'] = formatFileSize(item['size']) || '—';
@@ -1714,7 +1718,10 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     // must point to the public workers.dev domain so unauthenticated users can open them.
     const encodedFileId = encodeURIComponent(file_id);
     const _publicOrigin = 'https://tm.play-streams.workers.dev';
-    const directUrl = `${_publicOrigin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
+    const isFolder = file['mimeType'] === 'application/vnd.google-apps.folder';
+    const directUrl = isFolder
+        ? `${_publicOrigin}/fallback?id=${encodedFileId}`
+        : `${_publicOrigin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
 
     // Function to get Chrome open URL
     function getChromeOpenUrl(url) {
