@@ -1207,6 +1207,15 @@ function append_files_to_fallback_list(path, files) {
         let targetFiles = [];
         let totalsize = 0;
         let is_file = false;
+        // Sort: folders by folderSize desc (largest first), then files by size desc
+        files.sort((a, b) => {
+            const aIsFolder = a.mimeType === 'application/vnd.google-apps.folder';
+            const bIsFolder = b.mimeType === 'application/vnd.google-apps.folder';
+            if (aIsFolder && bIsFolder) return Number(b.folderSize || 0) - Number(a.folderSize || 0);
+            if (aIsFolder) return -1;
+            if (bIsFolder) return 1;
+            return Number(b.size || 0) - Number(a.size || 0);
+        });
         if (files.length == 0) {
             html = `<div class="card-body"><div class="d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4">
                         <span><i class="fa-solid fa-heart-crack fa-2xl me-0"></i></span>
@@ -1220,7 +1229,8 @@ function append_files_to_fallback_list(path, files) {
             item['createdTime'] = utc2jakarta(item['createdTime']);
             // replace / with %2F
             if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">—</span>` : ``}<span class="d-flex gap-2">
+                const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
                 ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
             } else {
                 totalsize = totalsize + Number(item.size || 0);
@@ -1338,6 +1348,15 @@ function append_files_to_list(path, files) {
     let targetFiles = [];
     let totalsize = 0;
     let is_file = false;
+    // Sort: folders by folderSize desc (largest first), then files by size desc
+    files.sort((a, b) => {
+        const aIsFolder = a.mimeType === 'application/vnd.google-apps.folder';
+        const bIsFolder = b.mimeType === 'application/vnd.google-apps.folder';
+        if (aIsFolder && bIsFolder) return Number(b.folderSize || 0) - Number(a.folderSize || 0);
+        if (aIsFolder) return -1;
+        if (bIsFolder) return 1;
+        return Number(b.size || 0) - Number(a.size || 0);
+    });
     if (files.length == 0) {
         html = `<div class="card-body"><div class="d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4">
                     <span><i class="fa-solid fa-heart-crack fa-2xl me-0"></i></span>
@@ -1351,7 +1370,8 @@ function append_files_to_list(path, files) {
         item['createdTime'] = utc2jakarta(item['createdTime']);
         // replace / with %2F
         if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}<span class="d-flex gap-2">
+            const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
             ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
         } else {
             totalsize = totalsize + Number(item.size || 0);
@@ -1626,14 +1646,14 @@ function append_search_result_to_list(files) {
         var is_lastpage_loaded = null === $list.data('nextPageToken');
         // var is_firstpage = '0' == $list.data('curPageIndex');
 
-        // Sort: folders first (by name), then files by size descending (largest first)
+        // Sort: folders first by folderSize desc, then files by size desc
         files.sort((a, b) => {
             const aIsFolder = a.mimeType === 'application/vnd.google-apps.folder';
             const bIsFolder = b.mimeType === 'application/vnd.google-apps.folder';
-            if (aIsFolder && bIsFolder) return a.name.localeCompare(b.name);
+            if (aIsFolder && bIsFolder) return Number(b.folderSize || 0) - Number(a.folderSize || 0);
             if (aIsFolder) return -1;
             if (bIsFolder) return 1;
-            return parseInt(b.size || 0) - parseInt(a.size || 0);
+            return Number(b.size || 0) - Number(a.size || 0);
         });
 
         let html = "";
@@ -1647,7 +1667,8 @@ function append_search_result_to_list(files) {
                 item['createdTime'] = utc2jakarta(item['createdTime']);
                 item['size'] = item['size'] ? (formatFileSize(item['size']) || '—') : '—';
                 item['md5Checksum'] = '—';
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">—</span>` : ``}</div>`;
+                const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
                 continue;
             }
 
