@@ -1283,7 +1283,14 @@ function append_files_to_fallback_list(path, files) {
                 pn += "?a=view";
                 c += " view";
                 //}
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${p}&a=view"><span>`
+                // Archive files (zip/rar/7z/tar/gz) → show GPLinks+Nowshort modal on click, same as search results
+                const _isArchive = ext && ['zip','rar','7z','tar','gz'].includes(ext.toLowerCase());
+                const _fItemForModal = Object.assign({}, item, { md5Checksum: item.md5Checksum || '—' });
+                const _fItemJson = JSON.stringify(_fItemForModal).replace(/"/g, '&quot;');
+                const _fileLink = _isArchive
+                    ? `href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel"`
+                    : `href="${p}&a=view"`;
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" ${_fileLink}><span>`
 
                 html += _getIcon(ext, item.mimeType, item.iconLink);
 
