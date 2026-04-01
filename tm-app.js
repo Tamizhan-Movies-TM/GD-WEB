@@ -1804,7 +1804,10 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     // Decision logic:
     // - If show_url_shortener is true AND user is NOT logged in → Show GPLinks/Nowshort
     // - Otherwise → Show Chrome button
-    const shouldShowShorteners = showUrlShortener && !userLoggedIn;
+    // Quality folders (e.g. 4K, 1080p, 720p, 480p) get GPLinks/Nowshort buttons.
+    // Parent/series folders (e.g. "Cross (2026) S02") get the Chrome-only button.
+    const isQualityFolder = isFolder && /\b(4[Kk]|2160p|1080p|720p|480p|360p)\b/i.test(file['name']);
+    const shouldShowShorteners = showUrlShortener && !userLoggedIn && (!isFolder || isQualityFolder);
 
     if (!shouldShowShorteners) {
         // ===== Show Direct Chrome Button =====
