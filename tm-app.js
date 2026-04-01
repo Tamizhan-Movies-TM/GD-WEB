@@ -1230,8 +1230,11 @@ function append_files_to_fallback_list(path, files) {
             // replace / with %2F
             if (item['mimeType'] == 'application/vnd.google-apps.folder') {
                 const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
-                ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
+                // Prepare item data for modal — set size/md5 fields expected by onSearchResultItemClick
+                const _fItem = Object.assign({}, item, { size: folderSizeStr, md5Checksum: '—' });
+                const _fItemJson = JSON.stringify(_fItem).replace(/"/g, '&quot;');
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
+                ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="Open Folder"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
             } else {
                 totalsize = totalsize + Number(item.size || 0);
                 item['size'] = formatFileSize(item['size']) || '—';
@@ -1662,13 +1665,14 @@ function append_search_result_to_list(files) {
         for (let i = 0; i < files.length; i++) {
             const item = files[i];
 
-            // Render folders with modal (GPlinks/Nowshort) — same as files
+            // Render folders — clicking opens the folder directly (navigates into it)
             if (item['mimeType'] == 'application/vnd.google-apps.folder') {
                 item['createdTime'] = utc2jakarta(item['createdTime']);
                 item['size'] = item['size'] ? (formatFileSize(item['size']) || '—') : '—';
                 item['md5Checksum'] = '—';
                 const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
+                const folderDirectUrl = '/fallback?id=' + encodeURIComponent(item['id']);
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="${folderDirectUrl}" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
                 continue;
             }
 
@@ -1804,10 +1808,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     // Decision logic:
     // - If show_url_shortener is true AND user is NOT logged in → Show GPLinks/Nowshort
     // - Otherwise → Show Chrome button
-    // Quality folders (e.g. 4K, 1080p, 720p, 480p) get GPLinks/Nowshort buttons.
-    // Parent/series folders (e.g. "Cross (2026) S02") get the Chrome-only button.
-    const isQualityFolder = isFolder && /\b(4[Kk]|2160p|1080p|720p|480p|360p)\b/i.test(file['name']);
-    const shouldShowShorteners = showUrlShortener && !userLoggedIn && (!isFolder || isQualityFolder);
+    const shouldShowShorteners = showUrlShortener && !userLoggedIn;
 
     if (!shouldShowShorteners) {
         // ===== Show Direct Chrome Button =====
