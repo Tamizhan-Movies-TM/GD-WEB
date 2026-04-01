@@ -1050,8 +1050,7 @@ function list(path, id = '', fallback = false) {
             title(res['name']);
             $('#dirname').html(res['name']);
         }
-        $('#sharer').attr('href', 'https://kaceku.onrender.com/f/' + res['fid']);
-        $('#sharer').removeClass('d-none');
+
         $('#list')
             .data('nextPageToken', res['nextPageToken'])
             .data('curPageIndex', res['curPageIndex']);
