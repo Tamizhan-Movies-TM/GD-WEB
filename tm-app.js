@@ -1207,13 +1207,34 @@ function append_files_to_fallback_list(path, files) {
         let targetFiles = [];
         let totalsize = 0;
         let is_file = false;
-        // Sort: folders by folderSize desc (largest first), then files by size desc
+        // Extract episode number from filename (EP01, E01, S01E01, Episode 1, etc.)
+        function _getEpNum(name) {
+            if (!name) return null;
+            const m = name.match(/(?:EP|E|Episode\s*)(\d+)/i);
+            return m ? parseInt(m[1], 10) : null;
+        }
+        // Detect if the file list is a web series (>=50% of files have episode numbers)
+        const _fileItems = files.filter(f => f.mimeType !== 'application/vnd.google-apps.folder');
+        const _epCount = _fileItems.filter(f => _getEpNum(f.name) !== null).length;
+        const _isEpisodic = _fileItems.length > 0 && (_epCount / _fileItems.length) >= 0.5;
+
+        // Sort: folders first (by folderSize desc), then files
+        // — episodic: sort by episode number asc (EP1 → EP50)
+        // — regular: sort by size desc (largest first)
         files.sort((a, b) => {
             const aIsFolder = a.mimeType === 'application/vnd.google-apps.folder';
             const bIsFolder = b.mimeType === 'application/vnd.google-apps.folder';
             if (aIsFolder && bIsFolder) return Number(b.folderSize || 0) - Number(a.folderSize || 0);
             if (aIsFolder) return -1;
             if (bIsFolder) return 1;
+            if (_isEpisodic) {
+                const aEp = _getEpNum(a.name);
+                const bEp = _getEpNum(b.name);
+                if (aEp !== null && bEp !== null) return aEp - bEp;
+                if (aEp !== null) return -1;
+                if (bEp !== null) return 1;
+                return (a.name || '').localeCompare(b.name || '');
+            }
             return Number(b.size || 0) - Number(a.size || 0);
         });
         if (files.length == 0) {
