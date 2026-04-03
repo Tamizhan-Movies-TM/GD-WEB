@@ -1729,6 +1729,46 @@ function append_search_result_to_list(files) {
         // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+
+        // ── Background prefetch: warm _shortenerCache for all visible files ──────
+        // Only runs when show_url_shortener=true and user is NOT logged in.
+        // Fire-and-forget — errors are silently ignored so file listing is unaffected.
+        (function _prefetchShortenerLinks() {
+            try {
+                const _shouldPrefetch = typeof UI !== 'undefined' && UI.show_url_shortener === true && !isUserLoggedIn();
+                if (!_shouldPrefetch) return;
+                if (!window._shortenerCache) window._shortenerCache = {};
+                const _publicOrigin = 'https://tm.play-streams.workers.dev';
+
+                files.forEach(function(item) {
+                    if (item['mimeType'] === 'application/vnd.google-apps.folder') return;
+                    const encodedId = encodeURIComponent(item.id);
+                    const url = _publicOrigin + '/fallback?id=' + encodedId + '&a=view';
+                    // Skip if already fetched or currently in-flight
+                    if (window._shortenerCache[url]) return;
+                    window._shortenerCache[url] = { _pending: true };
+
+                    var _fetchShort = function(endpoint) {
+                        return fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ url: url })
+                        }).then(function(r) { return r.ok ? r.json() : null; })
+                          .then(function(d) { return (d && d.success && d.short_url) ? d.short_url : null; })
+                          .catch(function() { return null; });
+                    };
+
+                    Promise.all([
+                        _fetchShort('/generate-gplinks'),
+                        _fetchShort('/generate-nowshort')
+                    ]).then(function(results) {
+                        window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
+                        log('Prefetch cached:', url);
+                    });
+                });
+            } catch(e) { /* silent — never break file listing */ }
+        })();
+
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
             total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1931,66 +1971,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // ===== Show GPLinks and Nowshort =====
         log('Showing GPLinks and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
-        // Show content with loading buttons immediately
-        const loadingButtons = `
-            <button class="btn btn-info d-flex align-items-center gap-2" id="gplinks-loading" disabled>
-                <div class="spinner-border spinner-border-sm" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                Loading..
-            </button>
-            <button class="btn btn-success d-flex align-items-center gap-2" id="nowshort-loading" disabled>
-                <div class="spinner-border spinner-border-sm" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                Loading..
-            </button>`;
-
-        $('#modal-body-space-buttons').html(loadingButtons + close_btn);
-
-        // Style adjustments
-        $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
-        $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
-
-        // Generate both links simultaneously
-        const generateGPLinks = async () => {
-            let finalUrl = null;
-            let retries = 3;
-
-            while (retries > 0 && !finalUrl) {
-                try {
-                    log(`GPLinks - Attempt ${4 - retries}/3`);
-
-                    const response = await fetch('/generate-gplinks', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url: directUrl })
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.success && data.short_url) {
-                            finalUrl = data.short_url;
-                            log('GPLinks - Generated:', finalUrl);
-                            break;
-                        }
-                    }
-
-                    retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-                } catch (error) {
-                    logError('GPLinks error:', error);
-                    retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-                }
-            }
-
-            return finalUrl;
-        };
-
         // ── Redirect Server Rotator ────────────────────────────────────────────
-        // Routes Nowshort button through your own redirect servers (random pick).
-        // Add / remove servers in the array below as needed.
         const _rotatorServers = [
             { base: 'https://loan.grandyojna.com/join.php',             param: 'link' },
             { base: 'https://loan.24jobkhabar.in/open.php',             param: 'link' },
@@ -2018,77 +1999,99 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         }
         // ── End Rotator ───────────────────────────────────────────────────────
 
-        const generateNowshort = async () => {
-            let finalUrl = null;
-            let retries = 3;
+        // Style adjustments
+        $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
+        $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
-            while (retries > 0 && !finalUrl) {
-                try {
-                    log(`Nowshort - Attempt ${4 - retries}/3`);
+        // ── Prefetch cache: window._shortenerCache[directUrl] = { gplinks, nowshort } ──
+        // Links are fetched in the background as soon as file rows render.
+        // By the time user clicks, the cache is almost always already warm → instant display.
+        const cached = window._shortenerCache && window._shortenerCache[directUrl];
 
-                    const response = await fetch('/generate-nowshort', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url: directUrl })
-                    });
+        function _buildAndShowButtons(gplinksUrl, nowshortUrl) {
+            let buttonsHtml = '';
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.success && data.short_url) {
-                            finalUrl = data.short_url;
-                            log('Nowshort - Generated:', finalUrl);
-                            break;
-                        }
-                    }
-
-                    retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-                } catch (error) {
-                    logError('Nowshort error:', error);
-                    retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-                }
+            if (gplinksUrl) {
+                buttonsHtml += `
+                    <a href="${getChromeOpenUrl(gplinksUrl)}"
+                       class="btn btn-info d-flex align-items-center gap-2"
+                       target="_blank"
+                       title="Open via GPLinks">
+                        𝗚𝗣𝗟𝗶𝗻𝗸𝘀
+                    </a>`;
+            } else {
+                buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
             }
 
-            return finalUrl;
-        };
+            if (nowshortUrl) {
+                const rotatedNowshortUrl = _rotateNowshortUrl(nowshortUrl);
+                buttonsHtml += `
+                    <a href="${getChromeOpenUrl(rotatedNowshortUrl)}"
+                       class="btn btn-success d-flex align-items-center gap-2"
+                       target="_blank"
+                       title="Open via Nowshort">
+                        𝗡𝗼𝘄𝘀𝗵𝗼𝗿𝘁
+                    </a>`;
+            } else {
+                buttonsHtml += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
+            }
 
-        // Generate both links in parallel
-        const [gplinksUrl, nowshortUrl] = await Promise.all([
-            generateGPLinks(),
-            generateNowshort()
-        ]);
-
-        // Build buttons HTML
-        let buttonsHtml = '';
-
-        if (gplinksUrl) {
-            buttonsHtml += `
-                <a href="${getChromeOpenUrl(gplinksUrl)}"
-                   class="btn btn-info d-flex align-items-center gap-2"
-                   target="_blank"
-                   title="Open via GPLinks">
-                    𝗚𝗣𝗟𝗶𝗻𝗸𝘀
-                </a>`;
-        } else {
-            buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
+            $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
         }
 
-        if (nowshortUrl) {
-            const rotatedNowshortUrl = _rotateNowshortUrl(nowshortUrl);
-            buttonsHtml += `
-                <a href="${getChromeOpenUrl(rotatedNowshortUrl)}"
-                   class="btn btn-success d-flex align-items-center gap-2"
-                   target="_blank"
-                   title="Open via Nowshort">
-                    𝗡𝗼𝘄𝘀𝗵𝗼𝗿𝘁
-                </a>`;
+        if (cached && (cached.gplinks || cached.nowshort)) {
+            // ✅ Cache hit — show buttons instantly, no spinner
+            log('Shortener cache hit for:', directUrl);
+            _buildAndShowButtons(cached.gplinks, cached.nowshort);
         } else {
-            buttonsHtml += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
-        }
+            // Cache miss — show slim loading placeholders while fetching
+            const loadingButtons = `
+                <button class="btn btn-info d-flex align-items-center gap-2" disabled>
+                    <div class="spinner-border spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    GPLinks
+                </button>
+                <button class="btn btn-success d-flex align-items-center gap-2" disabled>
+                    <div class="spinner-border spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    Nowshort
+                </button>`;
+            $('#modal-body-space-buttons').html(loadingButtons + close_btn);
 
-        // Update buttons
-        $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
+            // Fetch both in parallel
+            const _fetchShortUrl = async (endpoint) => {
+                let retries = 3;
+                while (retries > 0) {
+                    try {
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ url: directUrl })
+                        });
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success && data.short_url) return data.short_url;
+                        }
+                    } catch (e) { logError(endpoint + ' error:', e); }
+                    retries--;
+                    if (retries > 0) await new Promise(r => setTimeout(r, 2000));
+                }
+                return null;
+            };
+
+            Promise.all([
+                _fetchShortUrl('/generate-gplinks'),
+                _fetchShortUrl('/generate-nowshort')
+            ]).then(([gplinksUrl, nowshortUrl]) => {
+                // Store in cache for next time this file is clicked
+                if (!window._shortenerCache) window._shortenerCache = {};
+                window._shortenerCache[directUrl] = { gplinks: gplinksUrl, nowshort: nowshortUrl };
+                log('Shortener cache stored for:', directUrl);
+                _buildAndShowButtons(gplinksUrl, nowshortUrl);
+            });
+        }
     }
 
     // Optional: Fetch path in background (for all users)
