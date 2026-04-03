@@ -1207,6 +1207,36 @@ function append_files_to_fallback_list(path, files) {
         let targetFiles = [];
         let totalsize = 0;
         let is_file = false;
+        // Extract episode number from filename (EP01, E01, S01E01, Episode 1, etc.)
+        function _getEpNum(name) {
+            if (!name) return null;
+            const m = name.match(/(?:EP|E|Episode\s*)(\d+)/i);
+            return m ? parseInt(m[1], 10) : null;
+        }
+        // Detect if the file list is a web series (>=50% of files have episode numbers)
+        const _fileItems = files.filter(f => f.mimeType !== 'application/vnd.google-apps.folder');
+        const _epCount = _fileItems.filter(f => _getEpNum(f.name) !== null).length;
+        const _isEpisodic = _fileItems.length > 0 && (_epCount / _fileItems.length) >= 0.5;
+
+        // Sort: folders first (by folderSize desc), then files
+        // — episodic: sort by episode number asc (EP1 → EP50)
+        // — regular: sort by size desc (largest first)
+        files.sort((a, b) => {
+            const aIsFolder = a.mimeType === 'application/vnd.google-apps.folder';
+            const bIsFolder = b.mimeType === 'application/vnd.google-apps.folder';
+            if (aIsFolder && bIsFolder) return Number(b.folderSize || 0) - Number(a.folderSize || 0);
+            if (aIsFolder) return -1;
+            if (bIsFolder) return 1;
+            if (_isEpisodic) {
+                const aEp = _getEpNum(a.name);
+                const bEp = _getEpNum(b.name);
+                if (aEp !== null && bEp !== null) return aEp - bEp;
+                if (aEp !== null) return -1;
+                if (bEp !== null) return 1;
+                return (a.name || '').localeCompare(b.name || '');
+            }
+            return Number(b.size || 0) - Number(a.size || 0);
+        });
         if (files.length == 0) {
             html = `<div class="card-body"><div class="d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4">
                         <span><i class="fa-solid fa-heart-crack fa-2xl me-0"></i></span>
@@ -1220,8 +1250,12 @@ function append_files_to_fallback_list(path, files) {
             item['createdTime'] = utc2jakarta(item['createdTime']);
             // replace / with %2F
             if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">—</span>` : ``}<span class="d-flex gap-2">
-                ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
+                const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
+                // Prepare item data for modal — set size/md5 fields expected by onSearchResultItemClick
+                const _fItem = Object.assign({}, item, { size: folderSizeStr, md5Checksum: '—' });
+                const _fItemJson = JSON.stringify(_fItem).replace(/"/g, '&quot;');
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
+                ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="Open Folder"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
             } else {
                 totalsize = totalsize + Number(item.size || 0);
                 item['size'] = formatFileSize(item['size']) || '—';
@@ -1249,7 +1283,14 @@ function append_files_to_fallback_list(path, files) {
                 pn += "?a=view";
                 c += " view";
                 //}
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${p}&a=view"><span>`
+                // Archive files (zip/rar/7z/tar/gz) → show GPLinks+Nowshort modal on click, same as search results
+                const _isArchive = ext && ['zip','rar','7z','tar','gz'].includes(ext.toLowerCase());
+                const _fItemForModal = Object.assign({}, item, { md5Checksum: item.md5Checksum || '—' });
+                const _fItemJson = JSON.stringify(_fItemForModal).replace(/"/g, '&quot;');
+                const _fileLink = _isArchive
+                    ? `href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel"`
+                    : `href="${p}&a=view"`;
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" ${_fileLink}><span>`
 
                 html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1338,6 +1379,15 @@ function append_files_to_list(path, files) {
     let targetFiles = [];
     let totalsize = 0;
     let is_file = false;
+    // Sort: folders by folderSize desc (largest first), then files by size desc
+    files.sort((a, b) => {
+        const aIsFolder = a.mimeType === 'application/vnd.google-apps.folder';
+        const bIsFolder = b.mimeType === 'application/vnd.google-apps.folder';
+        if (aIsFolder && bIsFolder) return Number(b.folderSize || 0) - Number(a.folderSize || 0);
+        if (aIsFolder) return -1;
+        if (bIsFolder) return 1;
+        return Number(b.size || 0) - Number(a.size || 0);
+    });
     if (files.length == 0) {
         html = `<div class="card-body"><div class="d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4">
                     <span><i class="fa-solid fa-heart-crack fa-2xl me-0"></i></span>
@@ -1351,7 +1401,8 @@ function append_files_to_list(path, files) {
         item['createdTime'] = utc2jakarta(item['createdTime']);
         // replace / with %2F
         if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}<span class="d-flex gap-2">
+            const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
             ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
         } else {
             totalsize = totalsize + Number(item.size || 0);
@@ -1626,11 +1677,14 @@ function append_search_result_to_list(files) {
         var is_lastpage_loaded = null === $list.data('nextPageToken');
         // var is_firstpage = '0' == $list.data('curPageIndex');
 
-        // Sort files by size in descending order (largest first)
+        // Sort: folders first by folderSize desc, then files by size desc
         files.sort((a, b) => {
-            const sizeA = parseInt(a.size || 0);
-            const sizeB = parseInt(b.size || 0);
-            return sizeB - sizeA;
+            const aIsFolder = a.mimeType === 'application/vnd.google-apps.folder';
+            const bIsFolder = b.mimeType === 'application/vnd.google-apps.folder';
+            if (aIsFolder && bIsFolder) return Number(b.folderSize || 0) - Number(a.folderSize || 0);
+            if (aIsFolder) return -1;
+            if (bIsFolder) return 1;
+            return Number(b.size || 0) - Number(a.size || 0);
         });
 
         let html = "";
@@ -1639,9 +1693,15 @@ function append_search_result_to_list(files) {
         for (let i = 0; i < files.length; i++) {
             const item = files[i];
 
-            // Skip folders in search results
+            // Render folders — clicking opens the folder directly (navigates into it)
             if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-                continue; // This will skip the rest of the loop for this item
+                item['createdTime'] = utc2jakarta(item['createdTime']);
+                item['size'] = item['size'] ? (formatFileSize(item['size']) || '—') : '—';
+                item['md5Checksum'] = '—';
+                const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
+                const folderDirectUrl = '/fallback?id=' + encodeURIComponent(item['id']);
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="${folderDirectUrl}" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
+                continue;
             }
 
             if (item['size'] == undefined) {
@@ -1649,7 +1709,7 @@ function append_search_result_to_list(files) {
             }
             item['createdTime'] = utc2jakarta(item['createdTime']);
 
-            // Only process files (folders are skipped above)
+            // Only process files (folders handled above)
             is_file = true;
             totalsize = totalsize + Number(item.size || 0);
             item['size'] = formatFileSize(item['size']) || '—';
@@ -1669,6 +1729,46 @@ function append_search_result_to_list(files) {
         // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+
+        // ── Background prefetch: warm _shortenerCache for all visible files ──────
+        // Only runs when show_url_shortener=true and user is NOT logged in.
+        // Fire-and-forget — errors are silently ignored so file listing is unaffected.
+        (function _prefetchShortenerLinks() {
+            try {
+                const _shouldPrefetch = typeof UI !== 'undefined' && UI.show_url_shortener === true && !isUserLoggedIn();
+                if (!_shouldPrefetch) return;
+                if (!window._shortenerCache) window._shortenerCache = {};
+                const _publicOrigin = 'https://tm.play-streams.workers.dev';
+
+                files.forEach(function(item) {
+                    if (item['mimeType'] === 'application/vnd.google-apps.folder') return;
+                    const encodedId = encodeURIComponent(item.id);
+                    const url = _publicOrigin + '/fallback?id=' + encodedId + '&a=view';
+                    // Skip if already fetched or currently in-flight
+                    if (window._shortenerCache[url]) return;
+                    window._shortenerCache[url] = { _pending: true };
+
+                    var _fetchShort = function(endpoint) {
+                        return fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ url: url })
+                        }).then(function(r) { return r.ok ? r.json() : null; })
+                          .then(function(d) { return (d && d.success && d.short_url) ? d.short_url : null; })
+                          .catch(function() { return null; });
+                    };
+
+                    Promise.all([
+                        _fetchShort('/generate-gplinks'),
+                        _fetchShort('/generate-nowshort')
+                    ]).then(function(results) {
+                        window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
+                        log('Prefetch cached:', url);
+                    });
+                });
+            } catch(e) { /* silent — never break file listing */ }
+        })();
+
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
             total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1711,7 +1811,10 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     // must point to the public workers.dev domain so unauthenticated users can open them.
     const encodedFileId = encodeURIComponent(file_id);
     const _publicOrigin = 'https://tm.play-streams.workers.dev';
-    const directUrl = `${_publicOrigin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
+    const isFolder = file['mimeType'] === 'application/vnd.google-apps.folder';
+    const directUrl = isFolder
+        ? `${_publicOrigin}/fallback?id=${encodedFileId}`
+        : `${_publicOrigin}/fallback?id=${encodedFileId}${can_preview ? '&a=view' : ''}`;
 
     // Function to get Chrome open URL
     function getChromeOpenUrl(url) {
@@ -1868,73 +1971,12 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // ===== Show GPLinks and Nowshort =====
         log('Showing GPLinks and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
-        // Show content with loading buttons immediately
-        const loadingButtons = `
-            <button class="btn btn-info d-flex align-items-center gap-2" id="gplinks-loading" disabled>
-                <div class="spinner-border spinner-border-sm" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                Loading..
-            </button>
-            <button class="btn btn-success d-flex align-items-center gap-2" id="nowshort-loading" disabled>
-                <div class="spinner-border spinner-border-sm" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                Loading..
-            </button>`;
-
-        $('#modal-body-space-buttons').html(loadingButtons + close_btn);
-
-        // Style adjustments
-        $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
-        $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
-
-        // Generate both links simultaneously
-        const generateGPLinks = async () => {
-            let finalUrl = null;
-            let retries = 3;
-
-            while (retries > 0 && !finalUrl) {
-                try {
-                    log(`GPLinks - Attempt ${4 - retries}/3`);
-
-                    const response = await fetch('/generate-gplinks', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url: directUrl })
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.success && data.short_url) {
-                            finalUrl = data.short_url;
-                            log('GPLinks - Generated:', finalUrl);
-                            break;
-                        }
-                    }
-
-                    retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-                } catch (error) {
-                    logError('GPLinks error:', error);
-                    retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-                }
-            }
-
-            return finalUrl;
-        };
-
         // ── Redirect Server Rotator ────────────────────────────────────────────
-        // Routes Nowshort button through your own redirect servers (random pick).
-        // Add / remove servers in the array below as needed.
         const _rotatorServers = [
-            { base: 'https://gujexpress.com/nono.php',             param: 'link' },
-            { base: 'https://portalresult.in/sip.php',             param: 'link' },
-            { base: 'https://kvrohtak.in/new.php',                 param: 'link' },
-            { base: 'https://mytpguide.com/join.php',              param: 'link' },
-            { base: 'https://loan.zeeschoolkasganj.com/no.php',    param: 'link' },
-			{ base: 'https://loan.brilliantbihar.com/now.php',     param: 'link' },
+            { base: 'https://loan.grandyojna.com/join.php',             param: 'link' },
+            { base: 'https://loan.24jobkhabar.in/open.php',             param: 'link' },
+            { base: 'https://loan.rajasthanhelp.com/new.php',           param: 'link' },
+					  { base: 'https://plasmaline.in/new.php',                    param: 'link' },
         ];
 
         function _extractNowshortCode(url) {
@@ -1957,77 +1999,99 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         }
         // ── End Rotator ───────────────────────────────────────────────────────
 
-        const generateNowshort = async () => {
-            let finalUrl = null;
-            let retries = 3;
+        // Style adjustments
+        $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
+        $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
-            while (retries > 0 && !finalUrl) {
-                try {
-                    log(`Nowshort - Attempt ${4 - retries}/3`);
+        // ── Prefetch cache: window._shortenerCache[directUrl] = { gplinks, nowshort } ──
+        // Links are fetched in the background as soon as file rows render.
+        // By the time user clicks, the cache is almost always already warm → instant display.
+        const cached = window._shortenerCache && window._shortenerCache[directUrl];
 
-                    const response = await fetch('/generate-nowshort', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url: directUrl })
-                    });
+        function _buildAndShowButtons(gplinksUrl, nowshortUrl) {
+            let buttonsHtml = '';
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.success && data.short_url) {
-                            finalUrl = data.short_url;
-                            log('Nowshort - Generated:', finalUrl);
-                            break;
-                        }
-                    }
-
-                    retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-                } catch (error) {
-                    logError('Nowshort error:', error);
-                    retries--;
-                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 2000));
-                }
+            if (gplinksUrl) {
+                buttonsHtml += `
+                    <a href="${getChromeOpenUrl(gplinksUrl)}"
+                       class="btn btn-info d-flex align-items-center gap-2"
+                       target="_blank"
+                       title="Open via GPLinks">
+                        𝗚𝗣𝗟𝗶𝗻𝗸𝘀
+                    </a>`;
+            } else {
+                buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
             }
 
-            return finalUrl;
-        };
+            if (nowshortUrl) {
+                const rotatedNowshortUrl = _rotateNowshortUrl(nowshortUrl);
+                buttonsHtml += `
+                    <a href="${getChromeOpenUrl(rotatedNowshortUrl)}"
+                       class="btn btn-success d-flex align-items-center gap-2"
+                       target="_blank"
+                       title="Open via Nowshort">
+                        𝗡𝗼𝘄𝘀𝗵𝗼𝗿𝘁
+                    </a>`;
+            } else {
+                buttonsHtml += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
+            }
 
-        // Generate both links in parallel
-        const [gplinksUrl, nowshortUrl] = await Promise.all([
-            generateGPLinks(),
-            generateNowshort()
-        ]);
-
-        // Build buttons HTML
-        let buttonsHtml = '';
-
-        if (gplinksUrl) {
-            buttonsHtml += `
-                <a href="${getChromeOpenUrl(gplinksUrl)}"
-                   class="btn btn-info d-flex align-items-center gap-2"
-                   target="_blank"
-                   title="Open via GPLinks">
-                    𝗚𝗣𝗟𝗶𝗻𝗸𝘀
-                </a>`;
-        } else {
-            buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
+            $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
         }
 
-        if (nowshortUrl) {
-            const rotatedNowshortUrl = _rotateNowshortUrl(nowshortUrl);
-            buttonsHtml += `
-                <a href="${getChromeOpenUrl(rotatedNowshortUrl)}"
-                   class="btn btn-success d-flex align-items-center gap-2"
-                   target="_blank"
-                   title="Open via Nowshort">
-                    𝗡𝗼𝘄𝘀𝗵𝗼𝗿𝘁
-                </a>`;
+        if (cached && (cached.gplinks || cached.nowshort)) {
+            // ✅ Cache hit — show buttons instantly, no spinner
+            log('Shortener cache hit for:', directUrl);
+            _buildAndShowButtons(cached.gplinks, cached.nowshort);
         } else {
-            buttonsHtml += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
-        }
+            // Cache miss — show slim loading placeholders while fetching
+            const loadingButtons = `
+                <button class="btn btn-info d-flex align-items-center gap-2" disabled>
+                    <div class="spinner-border spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    GPLinks
+                </button>
+                <button class="btn btn-success d-flex align-items-center gap-2" disabled>
+                    <div class="spinner-border spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    Nowshort
+                </button>`;
+            $('#modal-body-space-buttons').html(loadingButtons + close_btn);
 
-        // Update buttons
-        $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
+            // Fetch both in parallel
+            const _fetchShortUrl = async (endpoint) => {
+                let retries = 3;
+                while (retries > 0) {
+                    try {
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ url: directUrl })
+                        });
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success && data.short_url) return data.short_url;
+                        }
+                    } catch (e) { logError(endpoint + ' error:', e); }
+                    retries--;
+                    if (retries > 0) await new Promise(r => setTimeout(r, 2000));
+                }
+                return null;
+            };
+
+            Promise.all([
+                _fetchShortUrl('/generate-gplinks'),
+                _fetchShortUrl('/generate-nowshort')
+            ]).then(([gplinksUrl, nowshortUrl]) => {
+                // Store in cache for next time this file is clicked
+                if (!window._shortenerCache) window._shortenerCache = {};
+                window._shortenerCache[directUrl] = { gplinks: gplinksUrl, nowshort: nowshortUrl };
+                log('Shortener cache stored for:', directUrl);
+                _buildAndShowButtons(gplinksUrl, nowshortUrl);
+            });
+        }
     }
 
     // Optional: Fetch path in background (for all users)
@@ -2493,13 +2557,13 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                 background:linear-gradient(145deg,#1a1a2e 0%,#16213e 100%);
                 border-radius:10px;padding:20px 14px;text-align:center;color:#fff;">
 
-                <div style="font-size:2.6rem;margin-bottom:6px;">📱</div>
+                <div style="font-size:2.6rem;margin-bottom:6px;"><i class="fa-brands fa-apple"></i> 𝗶𝗣𝗵𝗼𝗻𝗲</div>
                 <div style="font-weight:700;font-size:0.93rem;margin-bottom:4px;">
-                  Stream with VLC or Infuse
+                  Stream support with VLC and Infuse
                 </div>
                 <div style="font-size:0.73rem;color:#9ca3af;margin-bottom:16px;
                             max-width:270px;line-height:1.5;">
-                  Tap an app below to stream this file directly on your iPhone:
+                  Tap an app below to stream this file directly on your device:
                 </div>
 
                 <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;">
@@ -3086,6 +3150,14 @@ function generateGDFlixLink(fileId) {
 
         log('GDFlix - Requesting link generation from worker...');
 
+        // Safari blocks window.open() called inside .then() (async context) as a popup.
+        // Fix: Open a blank tab SYNCHRONOUSLY now (still inside the user-gesture call stack),
+        // then navigate it to the real URL once the fetch resolves.
+        // Chrome does not have this restriction, so we only do this for Safari.
+        const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        var newTab = _isSafari ? window.open('', '_blank') : null;
+        log('GDFlix - Safari detected:', _isSafari);
+
         // Make request to worker endpoint
         fetch('/generate-gdflix', {
             method: 'POST',
@@ -3108,15 +3180,26 @@ function generateGDFlixLink(fileId) {
 
             if (data.success && data.gdflix_link) {
                 log('GDFlix - Generated link:', data.gdflix_link);
-                // Open the GDFlix link directly in a new tab
-                window.open(data.gdflix_link, '_blank');
+                if (_isSafari) {
+                    // Safari: navigate the pre-opened blank tab
+                    if (newTab && !newTab.closed) {
+                        newTab.location.href = data.gdflix_link;
+                    } else {
+                        window.open(data.gdflix_link, '_blank');
+                    }
+                } else {
+                    // Chrome / other browsers: direct open works fine
+                    window.open(data.gdflix_link, '_blank');
+                }
                 resolve(data.gdflix_link);
             } else {
+                if (newTab && !newTab.closed) { newTab.close(); }
                 reject(new Error(data.error || 'Failed to generate GDFlix link'));
             }
         })
         .catch(error => {
             logError('GDFlix Error:', error);
+            if (newTab && !newTab.closed) { newTab.close(); }
             alert('Failed to generate GDFlix link: ' + error.message);
             reject(error);
         });
