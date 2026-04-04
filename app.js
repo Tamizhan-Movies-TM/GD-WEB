@@ -1731,7 +1731,10 @@ function append_search_result_to_list(files) {
         // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+
+        // ── Background prefetch: warm _shortenerCache for all visible items ─────
         _prefetchShortenerLinks(files);
+
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
             total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1758,9 +1761,11 @@ function append_search_result_to_list(files) {
 }
 
 // =============================================================================
-// SHARED PREFETCH: warm _shortenerCache for all items (files + folders) in a list.
+// SHARED PREFETCH: warm _shortenerCache for ALL items (files + folders).
 // Called from every render location. Fire-and-forget — never blocks the UI.
-// Cache key matches exactly what onSearchResultItemClick builds as directUrl.
+// Cache key matches exactly what onSearchResultItemClick builds as directUrl:
+//   folders → fallback?id=XXX  (no &a=view)
+//   files   → fallback?id=XXX&a=view
 // =============================================================================
 function _prefetchShortenerLinks(files) {
     try {
@@ -1772,8 +1777,6 @@ function _prefetchShortenerLinks(files) {
         files.forEach(function(item) {
             const encodedId = encodeURIComponent(item.id);
             const isFolder = item.mimeType === 'application/vnd.google-apps.folder';
-            // Must match directUrl in onSearchResultItemClick exactly:
-            // folders → no &a=view, files → &a=view (can_preview=true for all non-folders here)
             const url = isFolder
                 ? `${_pub}/fallback?id=${encodedId}`
                 : `${_pub}/fallback?id=${encodedId}&a=view`;
@@ -2009,8 +2012,14 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
+        // ── Prefetch cache: window._shortenerCache[directUrl] = { gplinks, nowshort } ──
+        // Links are fetched in the background as soon as file rows render.
+        // By the time user clicks, the cache is almost always already warm → instant display.
+        const cached = window._shortenerCache && window._shortenerCache[directUrl];
+
         function _buildAndShowButtons(gplinksUrl, nowshortUrl) {
             let buttonsHtml = '';
+
             if (gplinksUrl) {
                 buttonsHtml += `
                     <a href="${getChromeOpenUrl(gplinksUrl)}"
@@ -2022,6 +2031,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             } else {
                 buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
             }
+
             if (nowshortUrl) {
                 const rotatedNowshortUrl = _rotateNowshortUrl(nowshortUrl);
                 buttonsHtml += `
@@ -2034,18 +2044,16 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             } else {
                 buttonsHtml += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
             }
+
             $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
         }
 
-        // Check prefetch cache (warmed in background when file list loaded)
-        const cached = window._shortenerCache && window._shortenerCache[directUrl];
-
         if (cached && !cached._pending && (cached.gplinks || cached.nowshort)) {
-            // ✅ Cache hit — instant, no spinner
+            // ✅ Cache hit — show buttons instantly, no spinner
             log('Shortener cache hit for:', directUrl);
             _buildAndShowButtons(cached.gplinks, cached.nowshort);
         } else {
-            // Cache miss or still in-flight — show brief spinner
+            // Cache miss or prefetch still in-flight — show slim loading placeholders
             const loadingButtons = `
                 <button class="btn btn-info d-flex align-items-center gap-2" disabled>
                     <div class="spinner-border spinner-border-sm" role="status">
@@ -2061,23 +2069,22 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 </button>`;
             $('#modal-body-space-buttons').html(loadingButtons + close_btn);
 
-            // If prefetch is still in-flight, poll for it; otherwise fetch fresh
+            // If prefetch is still in-flight, poll for it every 300ms instead of
+            // launching a duplicate fetch — avoids double API calls.
             var _pollOrFetch = function() {
                 var c = window._shortenerCache && window._shortenerCache[directUrl];
                 if (c && !c._pending) {
-                    if (!window._shortenerCache) window._shortenerCache = {};
                     _buildAndShowButtons(c.gplinks, c.nowshort);
                     return;
                 }
                 if (c && c._pending) {
-                    // Still in-flight — poll every 300ms
                     setTimeout(_pollOrFetch, 300);
                     return;
                 }
-                // No cache at all — fetch now
+                // No entry at all — fetch fresh
                 if (!window._shortenerCache) window._shortenerCache = {};
                 window._shortenerCache[directUrl] = { _pending: true };
-                var _fetchShort = function(endpoint) {
+                var _fetchShortUrl = function(endpoint) {
                     return fetch(endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -2086,12 +2093,15 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                       .then(function(d) { return (d && d.success && d.short_url) ? d.short_url : null; })
                       .catch(function() { return null; });
                 };
-                Promise.all([_fetchShort('/generate-gplinks'), _fetchShort('/generate-nowshort')])
-                    .then(function(results) {
-                        window._shortenerCache[directUrl] = { gplinks: results[0], nowshort: results[1] };
-                        log('Shortener cache stored for:', directUrl);
-                        _buildAndShowButtons(results[0], results[1]);
-                    });
+                Promise.all([
+                    _fetchShortUrl('/generate-gplinks'),
+                    _fetchShortUrl('/generate-nowshort')
+                ]).then(function(results) {
+                    if (!window._shortenerCache) window._shortenerCache = {};
+                    window._shortenerCache[directUrl] = { gplinks: results[0], nowshort: results[1] };
+                    log('Shortener cache stored for:', directUrl);
+                    _buildAndShowButtons(results[0], results[1]);
+                });
             };
             _pollOrFetch();
         }
