@@ -1347,6 +1347,43 @@ function append_files_to_fallback_list(path, files) {
     // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+
+        // ── Background prefetch for search results: warm _shortenerCache ──────────
+        (function _prefetchSearchShortenerLinks() {
+            try {
+                const _shouldPrefetch = typeof UI !== 'undefined' && UI.show_url_shortener === true && !isUserLoggedIn();
+                if (!_shouldPrefetch) return;
+                if (!window._shortenerCache) window._shortenerCache = {};
+                const _publicOrigin = 'https://tm.play-streams.workers.dev';
+
+                files.forEach(function(item) {
+                    if (item['mimeType'] === 'application/vnd.google-apps.folder') return;
+                    const encodedId = encodeURIComponent(item.id);
+                    const url = _publicOrigin + '/fallback?id=' + encodedId + '&a=view';
+                    if (window._shortenerCache[url]) return;
+                    window._shortenerCache[url] = { _pending: true };
+
+                    var _fetchShort = function(endpoint) {
+                        return fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ url: url })
+                        }).then(function(r) { return r.ok ? r.json() : null; })
+                          .then(function(d) { return (d && d.success && d.short_url) ? d.short_url : null; })
+                          .catch(function() { return null; });
+                    };
+
+                    Promise.all([
+                        _fetchShort('/generate-gplinks'),
+                        _fetchShort('/generate-nowshort')
+                    ]).then(function(results) {
+                        window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
+                        log('Prefetch cached (search):', url);
+                    });
+                });
+            } catch(e) { /* silent */ }
+        })();
+
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
             const total_size_str = formatFileSize(totalsize) || '0 Bytes';
