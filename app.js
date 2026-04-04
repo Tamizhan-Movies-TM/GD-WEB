@@ -42,6 +42,53 @@ function _getIcon(ext, mimeType, iconLink) {
 }
 
 // =============================================================================
+// BACKGROUND PREFETCH: Warm _shortenerCache for a batch of files/folders
+// Called after every list render (append_files_to_list, append_files_to_fallback_list,
+// append_search_result_to_list).  Fire-and-forget — never blocks the UI.
+//
+// Cache key matches exactly what onSearchResultItemClick builds as `directUrl`:
+//   • file   → _publicOrigin + '/fallback?id=' + encodedId + '&a=view'
+//   • folder → _publicOrigin + '/fallback?id=' + encodedId          (no &a=view)
+// =============================================================================
+function _prefetchShortenerLinks(files) {
+    try {
+        if (typeof UI === 'undefined' || UI.show_url_shortener !== true || isUserLoggedIn()) return;
+        if (!window._shortenerCache) window._shortenerCache = {};
+        const _pub = 'https://tm.play-streams.workers.dev';
+
+        files.forEach(function(item) {
+            const encodedId = encodeURIComponent(item.id);
+            const isFolder  = item.mimeType === 'application/vnd.google-apps.folder';
+            // Build URL exactly as onSearchResultItemClick does for each type
+            const url = isFolder
+                ? _pub + '/fallback?id=' + encodedId
+                : _pub + '/fallback?id=' + encodedId + '&a=view';
+
+            if (window._shortenerCache[url]) return; // already cached or in-flight
+            window._shortenerCache[url] = { _pending: true };
+
+            var _fetchShort = function(endpoint) {
+                return fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                }).then(function(r) { return r.ok ? r.json() : null; })
+                  .then(function(d) { return (d && d.success && d.short_url) ? d.short_url : null; })
+                  .catch(function() { return null; });
+            };
+
+            Promise.all([
+                _fetchShort('/generate-gplinks'),
+                _fetchShort('/generate-nowshort')
+            ]).then(function(results) {
+                window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
+                log('Prefetch cached:', url);
+            });
+        });
+    } catch(e) { /* silent — never break file listing */ }
+}
+
+// =============================================================================
 // LOGIN DETECTION FUNCTION
 // =============================================================================
 
@@ -1348,44 +1395,8 @@ function append_files_to_fallback_list(path, files) {
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 
-        // ── Background prefetch: warm _shortenerCache for all visible files ──────
-        // Only runs when show_url_shortener=true and user is NOT logged in.
-        // Fire-and-forget — errors are silently ignored so file listing is unaffected.
-        (function _prefetchShortenerLinks() {
-            try {
-                const _shouldPrefetch = typeof UI !== 'undefined' && UI.show_url_shortener === true && !isUserLoggedIn();
-                if (!_shouldPrefetch) return;
-                if (!window._shortenerCache) window._shortenerCache = {};
-                const _publicOrigin = 'https://tm.play-streams.workers.dev';
-
-                files.forEach(function(item) {
-                    if (item['mimeType'] === 'application/vnd.google-apps.folder') return;
-                    const encodedId = encodeURIComponent(item.id);
-                    const url = _publicOrigin + '/fallback?id=' + encodedId + '&a=view';
-                    // Skip if already fetched or currently in-flight
-                    if (window._shortenerCache[url]) return;
-                    window._shortenerCache[url] = { _pending: true };
-
-                    var _fetchShort = function(endpoint) {
-                        return fetch(endpoint, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ url: url })
-                        }).then(function(r) { return r.ok ? r.json() : null; })
-                          .then(function(d) { return (d && d.success && d.short_url) ? d.short_url : null; })
-                          .catch(function() { return null; });
-                    };
-
-                    Promise.all([
-                        _fetchShort('/generate-gplinks'),
-                        _fetchShort('/generate-nowshort')
-                    ]).then(function(results) {
-                        window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
-                        log('Prefetch cached:', url);
-                    });
-                });
-            } catch(e) { /* silent — never break file listing */ }
-        })();
+        // ── Background prefetch: warm _shortenerCache for all visible files/folders ──
+        _prefetchShortenerLinks(files);
 
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
@@ -1529,44 +1540,8 @@ function append_files_to_list(path, files) {
     // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 
-    // ── Background prefetch: warm _shortenerCache for all visible files ──────
-    // Only runs when show_url_shortener=true and user is NOT logged in.
-    // Fire-and-forget — errors are silently ignored so file listing is unaffected.
-    (function _prefetchShortenerLinks() {
-        try {
-            const _shouldPrefetch = typeof UI !== 'undefined' && UI.show_url_shortener === true && !isUserLoggedIn();
-            if (!_shouldPrefetch) return;
-            if (!window._shortenerCache) window._shortenerCache = {};
-            const _publicOrigin = 'https://tm.play-streams.workers.dev';
-
-            files.forEach(function(item) {
-                if (item['mimeType'] === 'application/vnd.google-apps.folder') return;
-                const encodedId = encodeURIComponent(item.id);
-                const url = _publicOrigin + '/fallback?id=' + encodedId + '&a=view';
-                // Skip if already fetched or currently in-flight
-                if (window._shortenerCache[url]) return;
-                window._shortenerCache[url] = { _pending: true };
-
-                var _fetchShort = function(endpoint) {
-                    return fetch(endpoint, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url: url })
-                    }).then(function(r) { return r.ok ? r.json() : null; })
-                      .then(function(d) { return (d && d.success && d.short_url) ? d.short_url : null; })
-                      .catch(function() { return null; });
-                };
-
-                Promise.all([
-                    _fetchShort('/generate-gplinks'),
-                    _fetchShort('/generate-nowshort')
-                ]).then(function(results) {
-                    window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
-                    log('Prefetch cached:', url);
-                });
-            });
-        } catch(e) { /* silent — never break file listing */ }
-    })();
+    // ── Background prefetch: warm _shortenerCache for all visible files/folders ──
+    _prefetchShortenerLinks(files);
 
     // When it is the last page, count and display the total number of items
     if (is_lastpage_loaded) {
@@ -1810,47 +1785,11 @@ function append_search_result_to_list(files) {
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 
-        // ── Background prefetch: warm _shortenerCache for all visible files ──────
-        // Only runs when show_url_shortener=true and user is NOT logged in.
-        // Fire-and-forget — errors are silently ignored so file listing is unaffected.
-        (function _prefetchShortenerLinks() {
-            try {
-                const _shouldPrefetch = typeof UI !== 'undefined' && UI.show_url_shortener === true && !isUserLoggedIn();
-                if (!_shouldPrefetch) return;
-                if (!window._shortenerCache) window._shortenerCache = {};
-                const _publicOrigin = 'https://tm.play-streams.workers.dev';
+    // ── Background prefetch: warm _shortenerCache for all visible files/folders ──
+    _prefetchShortenerLinks(files);
 
-                files.forEach(function(item) {
-                    if (item['mimeType'] === 'application/vnd.google-apps.folder') return;
-                    const encodedId = encodeURIComponent(item.id);
-                    const url = _publicOrigin + '/fallback?id=' + encodedId + '&a=view';
-                    // Skip if already fetched or currently in-flight
-                    if (window._shortenerCache[url]) return;
-                    window._shortenerCache[url] = { _pending: true };
-
-                    var _fetchShort = function(endpoint) {
-                        return fetch(endpoint, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ url: url })
-                        }).then(function(r) { return r.ok ? r.json() : null; })
-                          .then(function(d) { return (d && d.success && d.short_url) ? d.short_url : null; })
-                          .catch(function() { return null; });
-                    };
-
-                    Promise.all([
-                        _fetchShort('/generate-gplinks'),
-                        _fetchShort('/generate-nowshort')
-                    ]).then(function(results) {
-                        window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
-                        log('Prefetch cached:', url);
-                    });
-                });
-            } catch(e) { /* silent — never break file listing */ }
-        })();
-
-        // When it is the last page, count and display the total number of items
-        if (is_lastpage_loaded) {
+    // When it is the last page, count and display the total number of items
+    if (is_lastpage_loaded) {
             total_size = formatFileSize(totalsize) || '0 Bytes';
             total_items = $list.find('.countitems').length;
             total_files = $list.find('.size_items').length;
