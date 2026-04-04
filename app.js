@@ -1349,7 +1349,6 @@ function append_files_to_fallback_list(path, files) {
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 
         // ── Background prefetch: warm _shortenerCache for all visible files ──────
-        // Mirrors the same logic in append_search_result_to_list.
         // Only runs when show_url_shortener=true and user is NOT logged in.
         // Fire-and-forget — errors are silently ignored so file listing is unaffected.
         (function _prefetchShortenerLinks() {
@@ -1382,7 +1381,7 @@ function append_files_to_fallback_list(path, files) {
                         _fetchShort('/generate-nowshort')
                     ]).then(function(results) {
                         window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
-                        log('Prefetch cached (fallback):', url);
+                        log('Prefetch cached:', url);
                     });
                 });
             } catch(e) { /* silent — never break file listing */ }
@@ -1531,7 +1530,6 @@ function append_files_to_list(path, files) {
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
 
     // ── Background prefetch: warm _shortenerCache for all visible files ──────
-    // Mirrors the same logic in append_search_result_to_list.
     // Only runs when show_url_shortener=true and user is NOT logged in.
     // Fire-and-forget — errors are silently ignored so file listing is unaffected.
     (function _prefetchShortenerLinks() {
@@ -1564,7 +1562,7 @@ function append_files_to_list(path, files) {
                     _fetchShort('/generate-nowshort')
                 ]).then(function(results) {
                     window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
-                    log('Prefetch cached (list):', url);
+                    log('Prefetch cached:', url);
                 });
             });
         } catch(e) { /* silent — never break file listing */ }
