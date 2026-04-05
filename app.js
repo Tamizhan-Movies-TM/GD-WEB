@@ -1360,13 +1360,13 @@ function append_files_to_fallback_list(path, files) {
             } else {
                 $('#count').removeClass('d-none').find('.number').text(total_items_count + " items");
             }
-            // Update file count badge
+            // Update file count badge — hide when folder contains only sub-folders (no direct files)
             if (total_files_count == 0) {
-                $('#count').removeClass('d-none').find('.totalsize').text("0 file");
+                $('#count').find('.totalsize').text('').hide();
             } else if (total_files_count == 1) {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files_count + " file, total: " + total_size_str);
+                $('#count').removeClass('d-none').find('.totalsize').text(total_files_count + " file, total: " + total_size_str).show();
             } else {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files_count + " files, total: " + total_size_str);
+                $('#count').removeClass('d-none').find('.totalsize').text(total_files_count + " files, total: " + total_size_str).show();
             }
         }
     } catch (e) {
@@ -1511,7 +1511,7 @@ function append_files_to_list(path, files) {
             $('#count').removeClass('d-none').find('.number').text(total_items + " items");
         }
         if (total_files == 0) {
-            $('#count').removeClass('d-none').find('.totalsize').text("0 file");
+            $('#count').find('.totalsize').text('').hide();
         } else if (total_files == 1) {
             $('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
         } else {
