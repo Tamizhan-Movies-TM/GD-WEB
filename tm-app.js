@@ -1353,13 +1353,11 @@ function append_files_to_fallback_list(path, files) {
             const total_items_count = $list.find('.countitems').length;
             const total_files_count = $list.find('.size_items').length;
             const only_folders = total_files_count === 0;
-            // .number badge
             if (only_folders) {
                 $('#count').removeClass('d-none').find('.number').text(total_items_count === 1 ? "1 item folder" : total_items_count + " item folders");
             } else {
                 $('#count').removeClass('d-none').find('.number').text("total files: " + total_files_count);
             }
-            // .totalsize badge — hide when no direct files
             if (only_folders) {
                 $('#count').find('.totalsize').text('').hide();
             } else {
@@ -1778,19 +1776,16 @@ function append_search_result_to_list(files) {
             total_size = formatFileSize(totalsize) || '0 Bytes';
             total_items = $list.find('.countitems').length;
             total_files = $list.find('.size_items').length;
-            if (total_items == 0) {
-                $('#count').removeClass('d-none').find('.number').text("0 item");
-            } else if (total_items == 1) {
-                $('#count').removeClass('d-none').find('.number').text(total_items + " item");
+            const only_folders = total_files === 0;
+            if (only_folders) {
+                $('#count').removeClass('d-none').find('.number').text(total_items === 1 ? "1 item folder" : total_items + " item folders");
             } else {
-                $('#count').removeClass('d-none').find('.number').text(total_items + " items");
+                $('#count').removeClass('d-none').find('.number').text("total files: " + total_files);
             }
-            if (total_files == 0) {
-                $('#count').removeClass('d-none').find('.totalsize').text("0 file");
-            } else if (total_files == 1) {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
+            if (only_folders) {
+                $('#count').find('.totalsize').text('').hide();
             } else {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
+                $('#count').removeClass('d-none').find('.totalsize').text("total size: " + total_size).show();
             }
         }
     } catch (e) {
