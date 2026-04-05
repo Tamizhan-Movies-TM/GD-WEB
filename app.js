@@ -1352,21 +1352,22 @@ function append_files_to_fallback_list(path, files) {
             const total_size_str = formatFileSize(totalsize) || '0 Bytes';
             const total_items_count = $list.find('.countitems').length;
             const total_files_count = $list.find('.size_items').length;
-            // Update item count badge
+            const only_folders = total_files_count === 0;
+            // .number badge — "folder/folders" when no files, else "item file/files"
             if (total_items_count == 0) {
-                $('#count').removeClass('d-none').find('.number').text("0 item");
+                $('#count').removeClass('d-none').find('.number').text("0 item folders");
+            } else if (only_folders) {
+                $('#count').removeClass('d-none').find('.number').text(total_items_count === 1 ? "1 item folder" : total_items_count + " item folders");
             } else if (total_items_count == 1) {
-                $('#count').removeClass('d-none').find('.number').text(total_items_count + " item");
+                $('#count').removeClass('d-none').find('.number').text("1 item file");
             } else {
-                $('#count').removeClass('d-none').find('.number').text(total_items_count + " items");
+                $('#count').removeClass('d-none').find('.number').text(total_items_count + " item files");
             }
-            // Update file count badge — hide when folder contains only sub-folders (no direct files)
-            if (total_files_count == 0) {
+            // .totalsize badge — hide when no direct files
+            if (only_folders) {
                 $('#count').find('.totalsize').text('').hide();
-            } else if (total_files_count == 1) {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files_count + " file, total: " + total_size_str).show();
             } else {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files_count + " files, total: " + total_size_str).show();
+                $('#count').removeClass('d-none').find('.totalsize').text("total size: " + total_size_str).show();
             }
         }
     } catch (e) {
@@ -1503,19 +1504,20 @@ function append_files_to_list(path, files) {
         total_size = formatFileSize(totalsize) || '0 Bytes';
         total_items = $list.find('.countitems').length;
         total_files = $list.find('.size_items').length;
+        const only_folders = total_files === 0;
         if (total_items == 0) {
-            $('#count').removeClass('d-none').find('.number').text("0 item");
+            $('#count').removeClass('d-none').find('.number').text("0 item folders");
+        } else if (only_folders) {
+            $('#count').removeClass('d-none').find('.number').text(total_items === 1 ? "1 item folder" : total_items + " item folders");
         } else if (total_items == 1) {
-            $('#count').removeClass('d-none').find('.number').text(total_items + " item");
+            $('#count').removeClass('d-none').find('.number').text("1 item file");
         } else {
-            $('#count').removeClass('d-none').find('.number').text(total_items + " items");
+            $('#count').removeClass('d-none').find('.number').text(total_items + " item files");
         }
-        if (total_files == 0) {
+        if (only_folders) {
             $('#count').find('.totalsize').text('').hide();
-        } else if (total_files == 1) {
-            $('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
         } else {
-            $('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
+            $('#count').removeClass('d-none').find('.totalsize').text("total size: " + total_size).show();
         }
     }
 }
