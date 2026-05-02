@@ -1972,10 +1972,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
 
         // ── Redirect Server Rotator ────────────────────────────────────────────
         const _rotatorServers = [
-            { base: 'https://loan.grandyojna.com/join.php',             param: 'link' },
-            { base: 'https://loan.24jobkhabar.in/open.php',             param: 'link' },
-            { base: 'https://loan.rajasthanhelp.com/new.php',           param: 'link' },
-					  { base: 'https://plasmaline.in/new.php',                    param: 'link' },
+            { base: 'https://loan.sssbiotic.com/new.php',             param: 'link' },
+            { base: 'https://brilliantbihar.com/now.php',             param: 'link' },
+					  { base: 'https://autosimplify.in/zip.php',                param: 'link' },
         ];
 
         function _extractNowshortCode(url) {
