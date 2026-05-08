@@ -2156,13 +2156,13 @@ async function fallback(id, type) {
                     var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
                     if (mimeType.includes("video") || video.includes(fileExtension)) {
                         poster = obj.thumbnailLink ? poster : UI.poster;
-                        file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
                         file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else if (code.includes(fileExtension)) {
                         file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else {
-                        file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     }
                 }
             })
@@ -2226,13 +2226,13 @@ async function file(path) {
                 var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
                 if (mimeType.includes("video") || video.includes(fileExtension)) {
                     poster = obj.thumbnailLink ? poster : UI.poster;
-                    file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
                     file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else if (code.includes(fileExtension)) {
                     file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else {
-                    file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 }
             }
         })
@@ -2265,7 +2265,54 @@ function generateCopyFileBox(file_id, cookie_folder_id) {
 }
 
 // Document display |zip|.exe/others direct downloads
-function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+// =============================================================================
+// DOWNLOAD BUTTON HELPER
+// Decides whether non-login users get a GKY link or a direct download button.
+//
+// Logic controlled by two UI config flags (set in worker-tm.js):
+//   enable_gkyfilehost        — master switch. If false → always direct download.
+//   gky_large_file_only       — if true → GKY only for files ≥ threshold GB.
+//                               if false → GKY for ALL non-login users (old behaviour).
+//   gky_large_file_threshold_gb — size threshold in GB (default 10).
+//
+// Logged-in users ALWAYS get direct download regardless of settings.
+// =============================================================================
+function getDownloadButton(url, encoded_name, file_id, bytes) {
+    // Logged-in users → always direct download
+    if (isUserLoggedIn()) {
+        return `<button type="button" class="btn btn-success tm-download-btn"
+               data-url="${url}" data-name="${encoded_name}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </button>`;
+    }
+
+    // GKY master switch off → always direct download for everyone
+    if (!UI.enable_gkyfilehost) {
+        return `<button type="button" class="btn btn-success tm-download-btn"
+               data-url="${url}" data-name="${encoded_name}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </button>`;
+    }
+
+    // Non-login user, GKY enabled — check gky_large_file_only setting
+    const thresholdBytes = (UI.gky_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
+    const useGky = UI.gky_large_file_only
+        ? (bytes >= thresholdBytes)   // true → GKY only for large files
+        : true;                        // false → GKY for all non-login users
+
+    if (useGky) {
+        return `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </a>`;
+    } else {
+        return `<button type="button" class="btn btn-success tm-download-btn"
+               data-url="${url}" data-name="${encoded_name}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </button>`;
+    }
+}
+
+function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
     // Add the container and card elements // wait until image is loaded and then hide spinner
@@ -2331,15 +2378,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${isUserLoggedIn() || !UI.enable_gkyfilehost
-    ? `<button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>`
-    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </a>`
-    }
+          ${getDownloadButton(url, encoded_name, file_id, bytes)}
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2444,15 +2483,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${isUserLoggedIn() || !UI.enable_gkyfilehost
-    ? `<button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>`
-    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </a>`
-     }
+          ${getDownloadButton(url, encoded_name, file_id, bytes)}
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2516,7 +2547,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 
 
   // Document display video  mkv|mp4|webm|avi|
-   function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+   function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
      // Define all player icons
     const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
@@ -2690,15 +2721,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${isUserLoggedIn() || !UI.enable_gkyfilehost
-    ? `<button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>`
-    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </a>`
-    }
+          ${getDownloadButton(url, encoded_name, file_id, bytes)}
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2835,15 +2858,10 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                     <div class="text-center">
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
-                           ${isUserLoggedIn() || !UI.enable_gkyfilehost
-    ? `<button type="button" class="btn btn-success tm-download-btn"
+                           <button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>`
-    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </a>`
-    }
+       </button>
                             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split"
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="sr-only"></span>
@@ -3313,9 +3331,28 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
             logError('GKYFILEHOST Error:', error);
             logError('GKYFILEHOST Error stack:', error.stack);
 
-            // ✅ FIX: Do NOT alert() — silently log the error so the user can
-            // click the button again for a fresh retry without an annoying popup.
-            // The button handler resets itself to allow re-clicking.
+            // Show user-friendly error message
+            let userMessage = 'Failed to generate GKYFILEHOST link';
+
+            if (error.message.includes('Failed to login')) {
+                userMessage += '\n\n⚠️ Login to GKYFILEHOST failed.\n\nPossible solutions:\n' +
+                             '1. Check your GKYFILEHOST account credentials\n' +
+                             '2. Make sure your account is active\n' +
+                             '3. Check Cloudflare Worker logs for details';
+            } else if (error.message.includes('HTTP error! status: 500')) {
+                userMessage += '\n\nServer error (500).\n\nPlease check:\n' +
+                             '1. Cloudflare Worker logs for details\n' +
+                             '2. GKYFILEHOST credentials are correct\n' +
+                             '3. The file ID is valid';
+            } else if (error.message.includes('HTTP error! status: 400')) {
+                userMessage += '\n\nBad request (400). The file ID might be invalid.';
+            } else if (error.message.includes('Failed to fetch')) {
+                userMessage += '\n\nNetwork error. Check your internet connection.';
+            } else {
+                userMessage += ':\n\n' + error.message;
+            }
+
+            alert(userMessage);
             reject(error);
         });
     });
@@ -3345,9 +3382,10 @@ $(document).on('click', '.download-via-gkyfilehost', function(e) {
             log('Successfully opened GKYFILEHOST link:', link);
         })
         .catch((error) => {
-            // ✅ FIX: Always reset button to original state so user can click again.
-            // Never leave button frozen as "Failed" — silent retry is better UX.
-            button.prop('disabled', false).html(originalHtml);
+            button.html('<i class="fas fa-times fa-fw"></i> Failed');
+            setTimeout(() => {
+                button.prop('disabled', false).html(originalHtml);
+            }, 2000);
             logError('Download error:', error);
         });
 });
