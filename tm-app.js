@@ -3313,28 +3313,9 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
             logError('GKYFILEHOST Error:', error);
             logError('GKYFILEHOST Error stack:', error.stack);
 
-            // Show user-friendly error message
-            let userMessage = 'Failed to generate GKYFILEHOST link';
-
-            if (error.message.includes('Failed to login')) {
-                userMessage += '\n\n⚠️ Login to GKYFILEHOST failed.\n\nPossible solutions:\n' +
-                             '1. Check your GKYFILEHOST account credentials\n' +
-                             '2. Make sure your account is active\n' +
-                             '3. Check Cloudflare Worker logs for details';
-            } else if (error.message.includes('HTTP error! status: 500')) {
-                userMessage += '\n\nServer error (500).\n\nPlease check:\n' +
-                             '1. Cloudflare Worker logs for details\n' +
-                             '2. GKYFILEHOST credentials are correct\n' +
-                             '3. The file ID is valid';
-            } else if (error.message.includes('HTTP error! status: 400')) {
-                userMessage += '\n\nBad request (400). The file ID might be invalid.';
-            } else if (error.message.includes('Failed to fetch')) {
-                userMessage += '\n\nNetwork error. Check your internet connection.';
-            } else {
-                userMessage += ':\n\n' + error.message;
-            }
-
-            alert(userMessage);
+            // ✅ FIX: Do NOT alert() — silently log the error so the user can
+            // click the button again for a fresh retry without an annoying popup.
+            // The button handler resets itself to allow re-clicking.
             reject(error);
         });
     });
@@ -3364,10 +3345,9 @@ $(document).on('click', '.download-via-gkyfilehost', function(e) {
             log('Successfully opened GKYFILEHOST link:', link);
         })
         .catch((error) => {
-            button.html('<i class="fas fa-times fa-fw"></i> Failed');
-            setTimeout(() => {
-                button.prop('disabled', false).html(originalHtml);
-            }, 2000);
+            // ✅ FIX: Always reset button to original state so user can click again.
+            // Never leave button frozen as "Failed" — silent retry is better UX.
+            button.prop('disabled', false).html(originalHtml);
             logError('Download error:', error);
         });
 });
