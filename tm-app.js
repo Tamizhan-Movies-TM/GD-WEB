@@ -1976,7 +1976,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             { base: 'https://brilliantbihar.com/now.php',             param: 'link' },
 					  { base: 'https://loan.ojasjobs24.com/ok.php',             param: 'link' },
 					  { base: 'https://loan.mytpguide.com/join.php',            param: 'link' },
-					  { base: 'https://autosimplify.in/zip.php',                param: 'link' },
+					  { base: 'https://loan.kannursalafi.com/open.php',         param: 'link' },
         ];
 
         function _extractNowshortCode(url) {
