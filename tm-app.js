@@ -1970,7 +1970,12 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // ===== Show GPLinks and Nowshort =====
         log('Showing GPLinks and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
-
+        function _rotateNowshortUrl(nowshortUrl) {
+            // Use nowshort URL directly — no rotator
+            log('Nowshort URL:', nowshortUrl);
+            return nowshortUrl;
+        }
+        // ── End Rotator ───────────────────────────────────────────────────────
 
         // Style adjustments
         $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
@@ -1997,8 +2002,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             }
 
             if (nowshortUrl) {
+                const rotatedNowshortUrl = _rotateNowshortUrl(nowshortUrl);
                 buttonsHtml += `
-                    <a href="${getChromeOpenUrl(nowshortUrl)}"
+                    <a href="${getChromeOpenUrl(rotatedNowshortUrl)}"
                        class="btn btn-success d-flex align-items-center gap-2"
                        target="_blank"
                        title="Open via Nowshort">
