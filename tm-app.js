@@ -1970,34 +1970,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // ===== Show GPLinks and Nowshort =====
         log('Showing GPLinks and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
-        // ── Redirect Server Rotator ────────────────────────────────────────────
-        const _rotatorServers = [
-            { base: 'https://loan.sssbiotic.com/new.php',             param: 'link' },
-            { base: 'https://brilliantbihar.com/now.php',             param: 'link' },
-					  { base: 'https://loan.ojasjobs24.com/ok.php',             param: 'link' },
-					  { base: 'https://loan.mytpguide.com/join.php',            param: 'link' },
-					  { base: 'https://loan.kannursalafi.com/open.php',         param: 'link' },
-        ];
 
-        function _extractNowshortCode(url) {
-            try {
-                const u = new URL(url);
-                const q = u.searchParams.get('link') || u.searchParams.get('code') || u.searchParams.get('id');
-                if (q) return q;
-                const parts = u.pathname.split('/').filter(Boolean);
-                return parts.length ? parts[parts.length - 1] : null;
-            } catch (_) { return null; }
-        }
-
-        function _rotateNowshortUrl(nowshortUrl) {
-            const code = _extractNowshortCode(nowshortUrl);
-            if (!code) return nowshortUrl;
-            const s = _rotatorServers[Math.floor(Math.random() * _rotatorServers.length)];
-            const rotated = `${s.base}?${s.param}=${encodeURIComponent(code)}`;
-            log('Nowshort rotator:', nowshortUrl, '→', rotated);
-            return rotated;
-        }
-        // ── End Rotator ───────────────────────────────────────────────────────
 
         // Style adjustments
         $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
@@ -2024,9 +1997,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             }
 
             if (nowshortUrl) {
-                const rotatedNowshortUrl = _rotateNowshortUrl(nowshortUrl);
                 buttonsHtml += `
-                    <a href="${getChromeOpenUrl(rotatedNowshortUrl)}"
+                    <a href="${getChromeOpenUrl(nowshortUrl)}"
                        class="btn btn-success d-flex align-items-center gap-2"
                        target="_blank"
                        title="Open via Nowshort">
