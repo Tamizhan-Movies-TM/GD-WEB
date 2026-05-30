@@ -609,7 +609,7 @@ def _gdrive_list_folder_recursive(folder_fid, tok, _prefix=""):
 
 
 # ══════════════════════════════════════════════════════════════════════
-#  DRIVE UPLOAD  (resumable API — no speed cap)
+#  DRIVE UPLOAD  (resumable API — Maximum Speed)
 # ══════════════════════════════════════════════════════════════════════
 def _start_resumable_session(tok, mime, file_size, file_name, file_id, folder_id):
     """Initiate a Drive resumable upload session. Returns the upload URL or None."""
@@ -732,7 +732,7 @@ def _upload_to_drive(local_tmp, drive_fp, known_fid=None):
     mime      = ("video/x-matroska" if local_tmp.suffix.lower() == ".mkv"
                  else "video/mp4")
 
-    print(f"\n  {C}☁  Uploading to Drive via API{X}  ({_fmt_size(file_size)}, no speed cap)")
+    print(f"\n  {C}☁  Uploading to Drive via API{X}  ({_fmt_size(file_size)}, Maximum Speed)")
 
     try:
         tok = _token()
@@ -3338,7 +3338,7 @@ def _banner():
     print(f"""{C}
 ╔══════════════════════════════════════════════════════════════╗
 ║    🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v8.7       ║
-║   Direct Download → Fix → Upload to Drive (no speed cap)     ║
+║   Direct Download → Fix → Upload to Drive (Maximum Speed)    ║
 ╚══════════════════════════════════════════════════════════════╝{X}
   Folder  : {Y}{FOLDER}{X}
   Threads : {G}{THREADS}{X}   Chunk: {G}{CHUNK_MB} MB{X}  Pool: {G}128 connections{X}  Stream-conns: {G}{STREAM_CONNS}{X}
@@ -3347,7 +3347,7 @@ def _banner():
     🎬 Video      → default = {G}YES{X}
     🔊 Audio      → {G}Tamil first{X}, Tel→Mal→Kan→Hin→Eng→others, titles cleared
     💬 Subtitles  → {G}ALL languages kept{X} (tam/tel/mal/kan/hin/eng/other)
-    ☁  Upload     → Drive API resumable, 512 MB chunks, {G}no speed cap{X}
+    ☁  Upload     → Drive API resumable, 512 MB chunks, {G}Maximum Speed{X}
 """)
 
 
