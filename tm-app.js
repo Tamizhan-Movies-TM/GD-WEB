@@ -2245,13 +2245,13 @@ function generateCopyFileBox(file_id, cookie_folder_id) {
 // Document display |zip|.exe/others direct downloads
 // =============================================================================
 // DOWNLOAD BUTTON HELPER
-// Decides whether non-login users get a GKY link or a direct download button.
+// Decides whether non-login users get a GDflix link or a direct download button.
 //
 // Logic controlled by two UI config flags (set in worker-tm.js):
-//   enable_gkyfilehost        — master switch. If false → always direct download.
-//   gky_large_file_only       — if true → GKY only for files ≥ threshold GB.
-//                               if false → GKY for ALL non-login users (old behaviour).
-//   gky_large_file_threshold_gb — size threshold in GB (default 10).
+//   enable_gdflix_for_non_login        — master switch. If false → always direct download.
+//   gdflix_large_file_only             — if true → GDflix only for files ≥ threshold GB.
+//                                         if false → GDflix for ALL non-login users (old behaviour).
+//   gdflix_large_file_threshold_gb     — size threshold in GB (default 10).
 //
 // Logged-in users ALWAYS get direct download regardless of settings.
 // =============================================================================
@@ -2264,22 +2264,22 @@ function getDownloadButton(url, encoded_name, file_id, bytes) {
        </button>`;
     }
 
-    // GKY master switch off → always direct download for everyone
-    if (!UI.enable_gkyfilehost) {
+    // GDflix master switch off → always direct download for everyone
+    if (!UI.enable_gdflix_for_non_login) {
         return `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </button>`;
     }
 
-    // Non-login user, GKY enabled — check gky_large_file_only setting
-    const thresholdBytes = (UI.gky_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
-    const useGky = UI.gky_large_file_only
-        ? (bytes >= thresholdBytes)   // true → GKY only for large files
-        : true;                        // false → GKY for all non-login users
+    // Non-login user, GDflix enabled — check gdflix_large_file_only setting
+    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
+    const useGdflix = UI.gdflix_large_file_only
+        ? (bytes >= thresholdBytes)   // true → GDflix only for large files
+        : true;                        // false → GDflix for all non-login users
 
-    if (useGky) {
-        return `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+    if (useGdflix) {
+        return `<a type="button" class="btn btn-success download-via-gdflix" data-file-id="${file_id}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </a>`;
     } else {
@@ -3202,180 +3202,14 @@ function generateGDFlixLink(fileId) {
     });
 }
 
-// Update the generateGKYFILEHOSTLink function to call the worker endpoint
-function generateGKYFILEHOSTLink(fileId, fileName) {
-    return new Promise((resolve, reject) => {
-        log('GKYFILEHOST - Received fileId:', fileId);
-        log('GKYFILEHOST - Received fileName:', fileName);
-
-        if (!fileId) {
-            logError('GKYFILEHOST - No file ID provided');
-            alert('Error: No file ID provided');
-            reject(new Error('No file ID provided'));
-            return;
-        }
-
-        fileId = String(fileId).trim();
-
-        if (fileId === '') {
-            logError('GKYFILEHOST - Empty file ID');
-            alert('Error: Empty file ID');
-            reject(new Error('Empty file ID'));
-            return;
-        }
-
-        // Try to get filename from page if not provided
-        if (!fileName) {
-            try {
-                // Try to find the filename from the page title or heading
-                const titleElement = document.querySelector('h5.card-title');
-                if (titleElement) {
-                    fileName = titleElement.textContent.trim();
-                }
-            } catch (e) {
-                log('GKYFILEHOST - Could not extract filename from page');
-            }
-        }
-
-        log('GKYFILEHOST - Final fileName:', fileName || 'download');
-        log('GKYFILEHOST - Requesting link generation from worker...');
-        log('GKYFILEHOST - File ID being sent:', fileId);
-
-        // Show a loading indicator (you can customize this)
-        const loadingMsg = 'Generating GKYFILEHOST link... Please wait...';
-        log(loadingMsg);
-
-        // Make request to worker endpoint (FIXED: Changed from /generate-gkyfilehost to /gkyfilehost)
-        fetch('/gkyfilehost', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                file_id: fileId,
-                file_name: fileName || 'download'
-            })
-        })
-        .then(response => {
-            log('GKYFILEHOST - Response status:', response.status);
-            log('GKYFILEHOST - Response OK:', response.ok);
-
-            // Try to get the response body even if status is not OK
-            return response.json().then(data => {
-                return { status: response.status, ok: response.ok, data: data };
-            }).catch(() => {
-                // If JSON parsing fails, try to get text
-                return response.text().then(text => {
-                    return { status: response.status, ok: response.ok, data: { error: text } };
-                });
-            });
-        })
-        .then(result => {
-            log('GKYFILEHOST - Full response:', result);
-
-            if (!result.ok) {
-                // Show specific error from server
-                const errorMsg = result.data.error || result.data.details || `HTTP error! status: ${result.status}`;
-                logError('GKYFILEHOST - Server error:', errorMsg);
-                throw new Error(errorMsg);
-            }
-
-            const data = result.data;
-            log('GKYFILEHOST - Worker response data:', data);
-
-            if (data.success && (data.link || data.gkyfilehost_link)) {
-                const gkyLink = data.link || data.gkyfilehost_link;
-                log('GKYFILEHOST - Generated link:', gkyLink);
-
-                // Validate the link format
-                if (!gkyLink.includes('gkyfilehost')) {
-                    logError('GKYFILEHOST - Warning: Link does not contain gkyfilehost domain');
-                }
-
-                // Open the GKYFILEHOST link directly in a new tab
-                window.open(gkyLink, '_blank');
-
-                // Show success message
-                log('✅ GKYFILEHOST link generated successfully!');
-
-                resolve(gkyLink);
-            } else {
-                const errorMsg = data.error || 'Failed to generate GKYFILEHOST link - no link in response';
-                logError('GKYFILEHOST - Error from server:', errorMsg);
-                throw new Error(errorMsg);
-            }
-        })
-        .catch(error => {
-            logError('GKYFILEHOST Error:', error);
-            logError('GKYFILEHOST Error stack:', error.stack);
-
-            // Show user-friendly error message
-            let userMessage = 'Failed to generate GKYFILEHOST link';
-
-            if (error.message.includes('Failed to login')) {
-                userMessage += '\n\n⚠️ Login to GKYFILEHOST failed.\n\nPossible solutions:\n' +
-                             '1. Check your GKYFILEHOST account credentials\n' +
-                             '2. Make sure your account is active\n' +
-                             '3. Check Cloudflare Worker logs for details';
-            } else if (error.message.includes('HTTP error! status: 500')) {
-                userMessage += '\n\nServer error (500).\n\nPlease check:\n' +
-                             '1. Cloudflare Worker logs for details\n' +
-                             '2. GKYFILEHOST credentials are correct\n' +
-                             '3. The file ID is valid';
-            } else if (error.message.includes('HTTP error! status: 400')) {
-                userMessage += '\n\nBad request (400). The file ID might be invalid.';
-            } else if (error.message.includes('Failed to fetch')) {
-                userMessage += '\n\nNetwork error. Check your internet connection.';
-            } else {
-                userMessage += ':\n\n' + error.message;
-            }
-
-            alert(userMessage);
-            reject(error);
-        });
-    });
-}
-
-// Handler for Download button to open GKYFILEHOST link
-$(document).on('click', '.download-via-gkyfilehost', function(e) {
-    e.preventDefault();
-    const fileId = $(this).data('file-id');
-    const button = $(this);
-
-    log('Download button clicked, fileId:', fileId);
-
-    if (!fileId) {
-        alert('Error: No file ID found');
-        return;
-    }
-
-    // Show loading state
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-
-    // Call GKYFILEHOST function
-    generateGKYFILEHOSTLink(fileId)
-        .then((link) => {
-            button.prop('disabled', false).html(originalHtml);
-            log('Successfully opened GKYFILEHOST link:', link);
-        })
-        .catch((error) => {
-            button.html('<i class="fas fa-times fa-fw"></i> Failed');
-            setTimeout(() => {
-                button.prop('disabled', false).html(originalHtml);
-            }, 2000);
-            logError('Download error:', error);
-        });
-});
-
-
 // =============================================================================
 // SINGLE TOP-LEVEL GDFlix Button Handler
 // Registered once here — replaces 3 duplicate handlers that were
 // previously registered inside file_video(), file_code(), file_others()
-// on every file page load.
+// on every file page load. Also handles the "Download" button shown to
+// non-login users when GDflix is gating the download (see getDownloadButton).
 // =============================================================================
-$(document).on('click', '.gdflix-btn', function() {
+$(document).on('click', '.gdflix-btn, .download-via-gdflix', function() {
     const fileId = $(this).data('file-id');
     const button = $(this);
 
