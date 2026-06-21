@@ -732,22 +732,24 @@ strong {
       </script>
       </div>
     </div>
-</footer>
-${window.UI?.show_quota ? `<div id="gdi-quota-bar" style="padding:6px 16px;background:rgba(0,0,0,0.18);font-size:12px;color:var(--bs-secondary-color,#aaa);display:none;">
-  <span id="gdi-quota-text"></span>
-  <div style="height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin-top:4px;"><div id="gdi-quota-fill" style="height:4px;border-radius:2px;width:0%;background:#4caf50;transition:width 0.4s;"></div></div>
-</div>` : ''}
-${window.UI?.debug_mode ? `
-<div class="gdi-debug-wrap" id="gdi-debug-wrap">
-  <div class="gdi-debug-head" onclick="document.getElementById('gdi-debug-log').classList.toggle('collapsed')">
-    <strong><i class="fas fa-bug" style="color:#f0883e;"></i> GDI Debug <span id="gdi-dbg-count" class="gdi-dbg-count">0</span></strong>
-    <div class="gdi-debug-actions">
-      <button onclick="event.stopPropagation();GDIDebug.clear()">Clear</button>
-      <button onclick="event.stopPropagation();document.getElementById('gdi-debug-log').classList.toggle('collapsed')">Toggle</button>
-    </div>
-  </div>
-  <div id="gdi-debug-log" class="collapsed"></div>
-</div>` : ''}`;
+</footer>`;
+
+// Append quota bar and debug panel safely (no nested backticks)
+if (window.UI && window.UI.show_quota) {
+    html += '<div id="gdi-quota-bar" style="padding:6px 16px;background:rgba(0,0,0,0.18);font-size:12px;color:#aaa;display:none;">'
+          + '<span id="gdi-quota-text"></span>'
+          + '<div style="height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin-top:4px;">'
+          + '<div id="gdi-quota-fill" style="height:4px;border-radius:2px;width:0%;background:#4caf50;transition:width 0.4s;"></div></div></div>';
+}
+if (window.UI && window.UI.debug_mode) {
+    html += '<div class="gdi-debug-wrap" id="gdi-debug-wrap">'
+          + '<div class="gdi-debug-head" onclick="document.getElementById(\'gdi-debug-log\').classList.toggle(\'collapsed\')">'
+          + '<strong><i class="fas fa-bug" style="color:#f0883e;"></i> GDI Debug <span id="gdi-dbg-count" class="gdi-dbg-count">0</span></strong>'
+          + '<div class="gdi-debug-actions">'
+          + '<button onclick="event.stopPropagation();GDIDebug.clear()">Clear</button>'
+          + '<button onclick="event.stopPropagation();document.getElementById(\'gdi-debug-log\').classList.toggle(\'collapsed\')">Toggle</button>'
+          + '</div></div><div id="gdi-debug-log" class="collapsed"></div></div>';
+}
 $('body').html(html);
 
 // Initialize login modal functionality
