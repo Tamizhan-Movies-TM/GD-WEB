@@ -2136,7 +2136,7 @@ async function fallback(id, type) {
                         poster = obj.thumbnailLink ? poster : UI.poster;
                         file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
-                        file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else if (code.includes(fileExtension)) {
                         file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else {
@@ -2206,7 +2206,7 @@ async function file(path) {
                     poster = obj.thumbnailLink ? poster : UI.poster;
                     file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
-                    file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else if (code.includes(fileExtension)) {
                     file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else {
@@ -2524,6 +2524,28 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 }
 
 
+// =============================================================================
+// PLAYER VISIBILITY HELPER
+// Decides whether the inline audio/video player should be hidden.
+//
+// Logic controlled by UI config flags (set in worker-tm.js):
+//   disable_player                — master switch. If true → ALWAYS hide the player,
+//                                    regardless of file size.
+//   gdflix_large_file_threshold_gb — size threshold in GB (default 10). Files AT or
+//                                    ABOVE this size get the player hidden too — for
+//                                    EVERYONE, login and non-login — nudging large
+//                                    files towards the GDflix link instead of inline
+//                                    streaming.
+// =============================================================================
+function shouldDisablePlayer(bytes) {
+    // Master switch on → always hide, no matter the size
+    if (UI.disable_player) return true;
+
+    // Otherwise hide only for files at/above the GDflix large-file threshold
+    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
+    return bytes >= thresholdBytes;
+}
+
   // Document display video  mkv|mp4|webm|avi|
    function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
      // Define all player icons
@@ -2552,7 +2574,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         _unsupportedExt.some(e => _nameLower.endsWith(e))
       );
 
-      if (!UI.disable_player) {
+      if (!shouldDisablePlayer(bytes)) {
         if (_iosCantPlay) {
             // ── Show "Open in App" card — VLC (orange) + Infuse (yellow) ─
             const _ext = _nameLower.split('.').pop().toUpperCase();
@@ -2719,7 +2741,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   // GDFlix handler is registered once at module level (see bottom of file)
 
   // Load player script — skip entirely on iOS unsupported formats
-    if (!UI.disable_player && player_js && !_iosCantPlay) {
+    if (!shouldDisablePlayer(bytes) && player_js && !_iosCantPlay) {
     var videoJsScript = document.createElement('script');
     videoJsScript.src = player_js;
     videoJsScript.onload = function() {
@@ -2781,7 +2803,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
-function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
     // Add the container and card elements
@@ -2798,14 +2820,14 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
             <i class="fas fa-file-alt fa-fw"></i>File Information
         </div>
         <div class="card-body row g-3">
-            ${!UI.disable_player ? `
+            ${!shouldDisablePlayer(bytes) ? `
             <div class="col-lg-4 col-md-12">
                 <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
                     ${player}
                 </div>
             </div>
             ` : ''}
-            <div class="${UI.disable_player ? 'col-12' : 'col-lg-8 col-md-12'}">
+            <div class="${shouldDisablePlayer(bytes) ? 'col-12' : 'col-lg-8 col-md-12'}">
                 <table class="table table-dark">
                     <tbody>
                         <tr>
@@ -2860,7 +2882,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
     $("#content").html(content);
 
     // Initialize player if enabled
-    if (!UI.disable_player && player_js) {
+    if (!shouldDisablePlayer(bytes) && player_js) {
         const script = document.createElement('script');
         script.src = player_js;
         script.onload = () => {
