@@ -732,24 +732,22 @@ strong {
       </script>
       </div>
     </div>
-</footer>`;
-
-// Append quota bar and debug panel safely (no nested backticks)
-if (window.UI && window.UI.show_quota) {
-    html += '<div id="gdi-quota-bar" style="padding:6px 16px;background:rgba(0,0,0,0.18);font-size:12px;color:#aaa;display:none;">'
-          + '<span id="gdi-quota-text"></span>'
-          + '<div style="height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin-top:4px;">'
-          + '<div id="gdi-quota-fill" style="height:4px;border-radius:2px;width:0%;background:#4caf50;transition:width 0.4s;"></div></div></div>';
-}
-if (window.UI && window.UI.debug_mode) {
-    html += '<div class="gdi-debug-wrap" id="gdi-debug-wrap">'
-          + '<div class="gdi-debug-head" onclick="document.getElementById(\'gdi-debug-log\').classList.toggle(\'collapsed\')">'
-          + '<strong><i class="fas fa-bug" style="color:#f0883e;"></i> GDI Debug <span id="gdi-dbg-count" class="gdi-dbg-count">0</span></strong>'
-          + '<div class="gdi-debug-actions">'
-          + '<button onclick="event.stopPropagation();GDIDebug.clear()">Clear</button>'
-          + '<button onclick="event.stopPropagation();document.getElementById(\'gdi-debug-log\').classList.toggle(\'collapsed\')">Toggle</button>'
-          + '</div></div><div id="gdi-debug-log" class="collapsed"></div></div>';
-}
+</footer>
+${window.UI?.show_quota ? `<div id="gdi-quota-bar" style="padding:6px 16px;background:rgba(0,0,0,0.18);font-size:12px;color:var(--bs-secondary-color,#aaa);display:none;">
+  <span id="gdi-quota-text"></span>
+  <div style="height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin-top:4px;"><div id="gdi-quota-fill" style="height:4px;border-radius:2px;width:0%;background:#4caf50;transition:width 0.4s;"></div></div>
+</div>` : ''}
+${window.UI?.debug_mode ? `
+<div class="gdi-debug-wrap" id="gdi-debug-wrap">
+  <div class="gdi-debug-head" onclick="document.getElementById('gdi-debug-log').classList.toggle('collapsed')">
+    <strong><i class="fas fa-bug" style="color:#f0883e;"></i> GDI Debug <span id="gdi-dbg-count" class="gdi-dbg-count">0</span></strong>
+    <div class="gdi-debug-actions">
+      <button onclick="event.stopPropagation();GDIDebug.clear()">Clear</button>
+      <button onclick="event.stopPropagation();document.getElementById('gdi-debug-log').classList.toggle('collapsed')">Toggle</button>
+    </div>
+  </div>
+  <div id="gdi-debug-log" class="collapsed"></div>
+</div>` : ''}`;
 $('body').html(html);
 
 // Initialize login modal functionality
@@ -1763,17 +1761,6 @@ function append_files_to_list(path, files) {
 function render_search_result_list() {
     var model = window.MODEL;
 
-    // Add search bar to the card header with white background
-    var searchBar = `
-    <form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:search">
-        <div class="input-group">
-            <input class="form-control bg-white text-dark" name="q" type="search" placeholder="Search to Type Movies Name + Year" aria-label="Search" value="${model.q}" style="border-right:0;" required>
-              <button class="btn btn-success" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;">
-                <i class="fas fa-search" style="margin: 0"></i>
-            </button>
-        </div>
-    </form>`;
-
     var content = `
       <div id="update"></div>
     <div class="container" id="select_items" style="padding: 0px 50px 10px; display:none;">
@@ -1786,9 +1773,19 @@ function render_search_result_list() {
         </div>
     </div>
     <div class="card">
-        <div class="card-header">
-            <div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
-            ${searchBar}
+        <div class="card-header d-flex align-items-center gap-2">
+            <span><i class="fas fa-search fa-fw"></i></span><span class="w-100 text-truncate" id="dirname">Search: ${escapeHtml(model.q)}</span>
+        </div>
+        <div class="card-body py-2 px-3" style="border-bottom:1px solid rgba(255,255,255,0.08);">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <input id="folder-filter" type="search" placeholder="Filter files…" autocomplete="off"
+              class="form-control form-control-sm" style="max-width:220px;">
+            <div id="list-sort-header" class="d-flex gap-2 ms-auto">
+              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="name">Name</button>
+              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="size">Size</button>
+              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="date">Date</button>
+            </div>
+          </div>
         </div>
         <div id="list" class="list-group list-group-flush text-break">
             <div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>
@@ -1947,7 +1944,7 @@ function append_search_result_to_list(files) {
                 item['md5Checksum'] = '—';
                 const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
                 const folderDirectUrl = '/fallback?id=' + encodeURIComponent(item['id']);
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="${folderDirectUrl}" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${Number(item.folderSize || 0)}" data-date="${item['createdTime'] || ''}"><a href="${folderDirectUrl}" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
                 continue;
             }
 
@@ -1958,12 +1955,13 @@ function append_search_result_to_list(files) {
 
             // Only process files (folders handled above)
             is_file = true;
-            totalsize = totalsize + Number(item.size || 0);
+            const _rawBytes = Number(item.size || 0);
+            totalsize = totalsize + _rawBytes;
             item['size'] = formatFileSize(item['size']) || '—';
             item['md5Checksum'] = item['md5Checksum'] || '—';
             const ext = item.fileExtension;
             const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${_rawBytes}" data-date="${item['createdTime'] || ''}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
 
             html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1976,6 +1974,10 @@ function append_search_result_to_list(files) {
         // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+        // Init folder filter and column sort after each page
+        _folderFilterBound = false;
+        initFolderFilter();
+        initColumnSort();
 
         // ── Background prefetch: warm _shortenerCache for all visible files ──────
         // Only runs when show_url_shortener=true and user is NOT logged in.
