@@ -1612,18 +1612,6 @@ function render_search_result_list() {
             <div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
             ${searchBar}
         </div>
-        <div class="card-body py-2 px-3" style="border-bottom:1px solid rgba(255,255,255,0.08);">
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <div class="input-group flex-nowrap" style="max-width:260px;min-width:160px;flex:0 0 auto;">
-              <span class="input-group-text" style="background:transparent;border-color:rgba(140,130,115,0.13);"><i class="fas fa-search" style="margin:0;font-size:13px;"></i></span>
-              <input id="folder-filter" class="form-control" type="search" placeholder="Search files…" aria-label="Search files" autocomplete="off">
-            </div>
-            <div id="list-sort-header" class="d-flex gap-2 ms-auto flex-shrink-0">
-              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="name">Name</button>
-              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="size">Size</button>
-            </div>
-          </div>
-        </div>
         <div id="list" class="list-group list-group-flush text-break">
             <div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>
         </div>
