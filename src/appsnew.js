@@ -1,7 +1,7 @@
 // =============================================================================
 // GDI-tm | Frontend App Script
 // Software : GDI-tm
-// Version  : 2.5.9
+// Version  : 2.3.6
 // Author   : TheFirstSpeedster (telegram.dog/TheFirstSpeedster)
 // Source   : https://www.npmjs.com/package/@googledrive/index
 // Upgrades : +debug panel, +theme toggle, +quota bar, +embed mode,
