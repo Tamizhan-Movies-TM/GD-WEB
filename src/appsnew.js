@@ -1182,11 +1182,12 @@ function list(path, id = '', fallback = false) {
         </div>
         <div class="card-body py-2 px-3" style="border-bottom:1px solid rgba(255,255,255,0.08);">
           <div class="d-flex align-items-center gap-2 flex-wrap">
-            <div class="input-group" style="max-width:280px;">
-              <input id="folder-filter" class="form-control" type="search" placeholder="Search files…" aria-label="Search files" autocomplete="off" style="border-right:0;">
-              <button class="btn ${UI.search_button_class}" type="button" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;" tabindex="-1"><i class="fas fa-search" style="margin: 0"></i></button>
+            <div class="input-group flex-nowrap" style="max-width:260px;min-width:160px;flex:0 0 auto;">
+              <span class="input-group-text" style="background:transparent;border-color:rgba(140,130,115,0.13);"><i class="fas fa-search" style="margin:0;font-size:13px;"></i></span>
+              <input id="folder-filter" class="form-control" type="search" placeholder="Search files…" aria-label="Search files" autocomplete="off">
             </div>
-            <div id="list-sort-header" class="d-flex gap-2 ms-auto">
+            <div id="list-sort-header" class="d-flex gap-2 ms-auto flex-shrink-0">
+              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="name">Name</button>
               <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="size">Size</button>
             </div>
           </div>
@@ -1759,11 +1760,12 @@ function render_search_result_list() {
         </div>
         <div class="card-body py-2 px-3" style="border-bottom:1px solid rgba(255,255,255,0.08);">
           <div class="d-flex align-items-center gap-2 flex-wrap">
-            <div class="input-group" style="max-width:280px;">
-              <input id="folder-filter" class="form-control" type="search" placeholder="Search files…" aria-label="Search files" autocomplete="off" style="border-right:0;">
-              <button class="btn ${UI.search_button_class}" type="button" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;" tabindex="-1"><i class="fas fa-search" style="margin: 0"></i></button>
+            <div class="input-group flex-nowrap" style="max-width:260px;min-width:160px;flex:0 0 auto;">
+              <span class="input-group-text" style="background:transparent;border-color:rgba(140,130,115,0.13);"><i class="fas fa-search" style="margin:0;font-size:13px;"></i></span>
+              <input id="folder-filter" class="form-control" type="search" placeholder="Search files…" aria-label="Search files" autocomplete="off">
             </div>
-            <div id="list-sort-header" class="d-flex gap-2 ms-auto">
+            <div id="list-sort-header" class="d-flex gap-2 ms-auto flex-shrink-0">
+              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="name">Name</button>
               <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="size">Size</button>
             </div>
           </div>
