@@ -1183,13 +1183,11 @@ function list(path, id = '', fallback = false) {
         <div class="card-body py-2 px-3" style="border-bottom:1px solid rgba(255,255,255,0.08);">
           <div class="d-flex align-items-center gap-2 flex-wrap">
             <div class="input-group" style="max-width:280px;">
-              <input id="folder-filter" class="form-control" type="search" placeholder="Filter files…" aria-label="Filter files" autocomplete="off" style="border-right:0;">
+              <input id="folder-filter" class="form-control" type="search" placeholder="Search files…" aria-label="Search files" autocomplete="off" style="border-right:0;">
               <button class="btn ${UI.search_button_class}" type="button" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;" tabindex="-1"><i class="fas fa-search" style="margin: 0"></i></button>
             </div>
             <div id="list-sort-header" class="d-flex gap-2 ms-auto">
-              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="name">Name</button>
               <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="size">Size</button>
-              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="date">Date</button>
             </div>
           </div>
         </div>
@@ -1758,13 +1756,11 @@ function render_search_result_list() {
         <div class="card-body py-2 px-3" style="border-bottom:1px solid rgba(255,255,255,0.08);">
           <div class="d-flex align-items-center gap-2 flex-wrap">
             <div class="input-group" style="max-width:280px;">
-              <input id="folder-filter" class="form-control" type="search" placeholder="Filter files…" aria-label="Filter files" autocomplete="off" style="border-right:0;">
+              <input id="folder-filter" class="form-control" type="search" placeholder="Search files…" aria-label="Search files" autocomplete="off" style="border-right:0;">
               <button class="btn ${UI.search_button_class}" type="button" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;" tabindex="-1"><i class="fas fa-search" style="margin: 0"></i></button>
             </div>
             <div id="list-sort-header" class="d-flex gap-2 ms-auto">
-              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="name">Name</button>
               <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="size">Size</button>
-              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="date">Date</button>
             </div>
           </div>
         </div>
