@@ -1,13 +1,5 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
-// v2.5.9
-// Changelog v2.5.9:
-//   + GDI Debug panel (activated via UI.debug_mode)
-//   + Google Workspace export buttons in file list (Docs/Sheets/Slides)
-//   + Quota display bar (activated via UI.show_quota)
-//   + Folder filter — live search above file list
-//   + Column sort — Name / Size / Date sort buttons
-//   + Embed mode support (?embed=1 adds embed-mode class to body)
-//   + Date now shown in user's local timezone (was Jakarta-fixed)
+// v2.3.6
 
 // =============================================================================
 // OPTIMIZATION: Conditional Logging
@@ -16,15 +8,6 @@
 // =============================================================================
 const log = (...args) => window.DEBUG && console.log(...args);
 const logError = (...args) => window.DEBUG && console.error(...args);
-
-// =============================================================================
-// GOOGLE WORKSPACE TYPES — export format mapping for Docs/Sheets/Slides
-// =============================================================================
-const GDOC_TYPES = {
-    'application/vnd.google-apps.document':     { name: 'Google Doc',    formats: [{ label: 'PDF', ext: 'pdf' }, { label: 'DOCX', ext: 'docx' }, { label: 'TXT', ext: 'txt' }] },
-    'application/vnd.google-apps.spreadsheet':  { name: 'Google Sheet',  formats: [{ label: 'PDF', ext: 'pdf' }, { label: 'XLSX', ext: 'xlsx' }, { label: 'CSV', ext: 'csv' }] },
-    'application/vnd.google-apps.presentation': { name: 'Google Slides', formats: [{ label: 'PDF', ext: 'pdf' }, { label: 'PPTX', ext: 'pptx' }] },
-};
 
 // =============================================================================
 // PERFORMANCE: Pre-compiled constants — created once, reused on every file render
@@ -106,124 +89,6 @@ function _legacyCopy(text) {
     try { document.execCommand('copy'); } catch (_) {}
     document.body.removeChild(el);
     alert('Selected items copied to clipboard!');
-}
-
-// =============================================================================
-
-// =============================================================================
-// GDI DEBUG PANEL — lightweight log viewer (only when UI.debug_mode is true)
-// =============================================================================
-const GDIDebug = (() => {
-    const entries = [];
-    let _panelEl = null;
-
-    function _ts() { return new Date().toISOString().slice(11, 23); }
-
-    function _render() {
-        if (!_panelEl) _panelEl = document.getElementById('gdi-debug-log');
-        if (!_panelEl) return;
-        const COLORS = { req: '#da77f2', api: '#69db7c', error: '#ff6b6b', warn: '#ffa94d', info: '#74c0fc' };
-        const html = entries.map(e => {
-            const color = COLORS[e.type] || '#aaa';
-            const dataStr = e.data != null
-                ? (typeof e.data === 'string' ? e.data : JSON.stringify(e.data, null, 2))
-                : '';
-            return `<div class="gdi-dbg-entry">` +
-                `<span class="gdi-dbg-ts">${e.ts}</span>` +
-                `<span class="gdi-dbg-badge" style="color:${color}">[${e.type.toUpperCase()}]</span>` +
-                `<span class="gdi-dbg-msg">${escapeHtml(e.label)}</span>` +
-                (dataStr ? `<pre class="gdi-dbg-pre">${escapeHtml(dataStr)}</pre>` : '') +
-                `</div>`;
-        }).join('');
-        _panelEl.innerHTML = html || '<span class="gdi-dbg-empty">No entries yet.</span>';
-        _panelEl.scrollTop = _panelEl.scrollHeight;
-        const badge = document.getElementById('gdi-dbg-count');
-        if (badge) badge.textContent = entries.length;
-    }
-
-    function gdiLog(type, label, data) {
-        if (!window.UI?.debug_mode) return;
-        entries.push({ ts: _ts(), type, label, data: data !== undefined ? data : null });
-        _render();
-    }
-
-    function attach() {
-        _panelEl = document.getElementById('gdi-debug-log');
-        const style = document.createElement('style');
-        style.textContent = [
-            '.gdi-debug-wrap{width:100%;background:#0d1117;border-top:2px solid #f0883e;font-family:monospace;font-size:12px;}',
-            '.gdi-debug-head{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#161b22;cursor:pointer;user-select:none;color:#8b949e;}',
-            '.gdi-debug-head:hover{background:#1c2128;}',
-            '.gdi-debug-head strong{color:#f0f6fc;display:flex;align-items:center;gap:6px;}',
-            '.gdi-dbg-count{background:#1f6feb;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;}',
-            '.gdi-debug-actions{display:flex;gap:8px;}',
-            '.gdi-debug-actions button{background:none;border:1px solid #30363d;color:#8b949e;border-radius:4px;padding:2px 9px;cursor:pointer;font-size:11px;}',
-            '.gdi-debug-actions button:hover{background:#1c2128;color:#f0f6fc;}',
-            '#gdi-debug-log{max-height:300px;overflow-y:auto;padding:10px 14px;background:#0d1117;color:#e6edf3;}',
-            '#gdi-debug-log.collapsed{display:none;}',
-            '.gdi-dbg-entry{padding:3px 0;border-bottom:1px solid #21262d;line-height:1.6;}',
-            '.gdi-dbg-ts{color:#484f58;margin-right:6px;}',
-            '.gdi-dbg-badge{font-weight:bold;margin-right:6px;}',
-            '.gdi-dbg-msg{color:#e6edf3;}',
-            '.gdi-dbg-pre{margin:2px 0 2px 20px;padding:4px 8px;background:#161b22;border-left:2px solid #30363d;white-space:pre-wrap;word-break:break-all;color:#8b949e;font-size:11px;}',
-            '.gdi-dbg-empty{color:#484f58;}'
-        ].join('');
-        document.head.appendChild(style);
-        if (entries.length > 0) _render();
-        gdiLog('info', 'Debug attached', {
-            path: window.location.pathname,
-            search: window.location.search,
-            version: window.UI?.version
-        });
-    }
-
-    function clear() {
-        entries.length = 0;
-        if (_panelEl) _panelEl.innerHTML = '<span class="gdi-dbg-empty">Cleared.</span>';
-        const badge = document.getElementById('gdi-dbg-count');
-        if (badge) badge.textContent = '0';
-    }
-
-    return { log: gdiLog, attach, clear };
-})();
-
-// =============================================================================
-// QUOTA DISPLAY BAR — fetches and shows drive quota (requires UI.show_quota)
-// =============================================================================
-function fetchQuota() {
-    const cur = window.current_drive_order || 0;
-    fetch(`/${cur}:quota`)
-        .then(r => { if (!r.ok) throw new Error('quota fetch failed'); return r.json(); })
-        .then(data => {
-            const q = data.storageQuota;
-            if (!q) return;
-            const used = Number(q.usage || 0);
-            const total = Number(q.limit || 0);
-            const bar = document.getElementById('gdi-quota-bar');
-            const text = document.getElementById('gdi-quota-text');
-            const fill = document.getElementById('gdi-quota-fill');
-            if (!bar || !text || !fill) return;
-            const pct = total > 0 ? Math.min(100, (used / total) * 100) : 0;
-            const color = pct > 90 ? '#f44336' : pct > 70 ? '#ff9800' : '#4caf50';
-            text.textContent = total > 0
-                ? `${formatFileSize(used)} used of ${formatFileSize(total)} (${pct.toFixed(1)}%)`
-                : `${formatFileSize(used)} used`;
-            fill.style.width = pct + '%';
-            fill.style.background = color;
-            bar.style.display = 'block';
-        })
-        .catch(() => {});
-}
-
-// =============================================================================
-// DATE FORMAT — user's LOCAL timezone (replaces Jakarta-only fixed timezone)
-// Falls back to Jakarta-format string if no date provided
-// =============================================================================
-function formatDateTimeLocal(utc_datetime) {
-    if (!utc_datetime) return '';
-    try {
-        return new Date(utc_datetime).toLocaleString();
-    } catch(e) { return utc_datetime; }
 }
 
 // Initialize the page
@@ -711,22 +576,7 @@ strong {
       </script>
       </div>
     </div>
-</footer>
-${window.UI?.show_quota ? `<div id="gdi-quota-bar" style="padding:6px 16px;background:rgba(0,0,0,0.18);font-size:12px;color:var(--bs-secondary-color,#aaa);display:none;">
-  <span id="gdi-quota-text"></span>
-  <div style="height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin-top:4px;"><div id="gdi-quota-fill" style="height:4px;border-radius:2px;width:0%;background:#4caf50;transition:width 0.4s;"></div></div>
-</div>` : ''}
-${window.UI?.debug_mode ? `
-<div class="gdi-debug-wrap" id="gdi-debug-wrap">
-  <div class="gdi-debug-head" onclick="document.getElementById('gdi-debug-log').classList.toggle('collapsed')">
-    <strong><i class="fas fa-bug" style="color:#f0883e;"></i> GDI Debug <span id="gdi-dbg-count" class="gdi-dbg-count">0</span></strong>
-    <div class="gdi-debug-actions">
-      <button onclick="event.stopPropagation();GDIDebug.clear()">Clear</button>
-      <button onclick="event.stopPropagation();document.getElementById('gdi-debug-log').classList.toggle('collapsed')">Toggle</button>
-    </div>
-  </div>
-  <div id="gdi-debug-log" class="collapsed"></div>
-</div>` : ''}`;
+</footer>`;
 $('body').html(html);
 
 // Initialize login modal functionality
@@ -982,9 +832,6 @@ function nav(path) {
     html += `<li class="nav-item">
     <a class="nav-link" href="${UI.contact_link}" target="_blank"><i class="fas fa-paper-plane fa-fw"></i>${UI.nav_link_4}</a>
     </li>
-    <li class="nav-item">
-      </button>
-    </li>
     ${isUserLoggedIn()
         ? '<li class="nav-item"><a class="nav-link" href="/logout"><i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>Logout</a></li>'
         : '<li class="nav-item"><a class="nav-link" href="#" id="openLoginModal" style="cursor: pointer;"><i class="fa-solid fa-user fa-fw"></i>Login</a></li>'
@@ -1232,6 +1079,8 @@ function list(path, id = '', fallback = false) {
             } else {
                 append_files_to_list(path, res['data']['files']);
             }
+            initFolderFilter();
+            initColumnSort();
         } else {
             log('doing something...')
             if (fallback) {
@@ -1239,6 +1088,8 @@ function list(path, id = '', fallback = false) {
             } else {
                 append_files_to_list(path, res['data']['files']);
             }
+            initFolderFilter();
+            initColumnSort();
             if (window.scroll_status.event_bound !== true) {
                 $(window).on('scroll', function() {
                     var scrollTop = $(this).scrollTop();
@@ -1341,57 +1192,6 @@ function list(path, id = '', fallback = false) {
             _legacyCopy(dataToCopy);
         }
     });
-}
-
-// =============================================================================
-// FOLDER FILTER (live search) & COLUMN SORT — ported from app.js
-// =============================================================================
-let _folderFilterBound = false;
-function initFolderFilter() {
-    // Use delegated listener on document so it works even when #list is rebuilt.
-    // Bind only once for the lifetime of the page.
-    if (_folderFilterBound) return;
-    _folderFilterBound = true;
-    $(document).on('input', '#folder-filter', function() {
-        const q = this.value.trim().toLowerCase();
-        $('#list .list-group-item').each(function() {
-            const name = ($(this).data('name') || $(this).find('a.countitems').first().text()).toLowerCase();
-            $(this).toggle(!q || name.includes(q));
-        });
-    });
-    // Also bind Enter key on the filter input (prevents form submit / page reload)
-    $(document).on('keydown', '#folder-filter', function(e) {
-        if (e.key === 'Enter') e.preventDefault();
-    });
-}
-
-let _sortState = { col: null, dir: 1 };
-function initColumnSort() {
-    const buttons = document.querySelectorAll('#list-sort-header .gdi-sort-btn');
-    buttons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const col = this.dataset.sort;
-            if (_sortState.col === col) _sortState.dir *= -1;
-            else { _sortState.col = col; _sortState.dir = 1; }
-            buttons.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            this.textContent = col.charAt(0).toUpperCase() + col.slice(1) + (_sortState.dir === 1 ? ' ↑' : ' ↓');
-            sortFileList(col, _sortState.dir);
-        });
-    });
-}
-
-function sortFileList(col, dir) {
-    const $list = $('#list');
-    const items = $list.children('.list-group-item').toArray();
-    items.sort((a, b) => {
-        if (col === 'size') return dir * ((parseFloat($(a).data('bytes')) || 0) - (parseFloat($(b).data('bytes')) || 0));
-        if (col === 'date') return dir * (new Date($(a).data('date') || 0) - new Date($(b).data('date') || 0));
-        const av = ($(a).data('name') || $(a).find('a').first().text() || '').toLowerCase();
-        const bv = ($(b).data('name') || $(b).find('a').first().text() || '').toLowerCase();
-        return dir * av.localeCompare(bv);
-    });
-    items.forEach(el => $list.append(el));
 }
 
 function askPassword(path) {
@@ -1511,13 +1311,7 @@ function append_files_to_fallback_list(path, files) {
                 html += _getIcon(ext, item.mimeType, item.iconLink);
 
                 html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
-                ${(function() {
-                    const gdocType = GDOC_TYPES[item.mimeType];
-                    if (gdocType && UI.display_download) {
-                        return gdocType.formats.map(f => `<a class="d-flex align-items-center" href="${link}&fmt=${f.ext}" title="Export as ${f.label}" download style="font-size:10px;font-weight:600;padding:2px 5px;border:1px solid currentColor;border-radius:3px;text-decoration:none;margin-right:2px;">${f.label}</a>`).join('');
-                    }
-                    return UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : '';
-                })()}</span></div>`;
+                ${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
             }
         }
         if (is_file && UI.allow_selecting_files) {
@@ -1715,9 +1509,6 @@ function append_files_to_list(path, files) {
     // When it is page 1, remove the horizontal loading bar
     // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
-    // Init folder filter and column sort after each page
-    initFolderFilter();
-    initColumnSort();
     // When it is the last page, count and display the total number of items
     if (is_lastpage_loaded) {
         total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1740,8 +1531,70 @@ function append_files_to_list(path, files) {
 /**
  * Render the search results list. There is a lot of repetitive code, but there are different logics in it.
  */
+// =============================================================================
+// FOLDER FILTER (live search) & COLUMN SORT
+// Delegated on document so it survives DOM rebuilds on each page/search render.
+// =============================================================================
+let _folderFilterBound = false;
+function initFolderFilter() {
+    if (_folderFilterBound) return;
+    _folderFilterBound = true;
+    $(document).on('input', '#folder-filter', function() {
+        const q = this.value.trim().toLowerCase();
+        $('#list .list-group-item').each(function() {
+            const name = ($(this).data('name') || $(this).find('a.countitems').first().text()).toLowerCase();
+            $(this).toggle(!q || name.includes(q));
+        });
+    });
+    $(document).on('keydown', '#folder-filter', function(e) {
+        if (e.key === 'Enter') e.preventDefault();
+    });
+}
+
+let _sortState = { col: null, dir: 1 };
+function initColumnSort() {
+    const buttons = document.querySelectorAll('#list-sort-header .gdi-sort-btn');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const col = this.dataset.sort;
+            if (_sortState.col === col) _sortState.dir *= -1;
+            else { _sortState.col = col; _sortState.dir = 1; }
+            buttons.forEach(b => {
+                b.classList.remove('active');
+                b.textContent = b.dataset.sort.charAt(0).toUpperCase() + b.dataset.sort.slice(1);
+            });
+            this.classList.add('active');
+            this.textContent = col.charAt(0).toUpperCase() + col.slice(1) + (_sortState.dir === 1 ? ' ↑' : ' ↓');
+            sortFileList(col, _sortState.dir);
+        });
+    });
+}
+
+function sortFileList(col, dir) {
+    const $list = $('#list');
+    const items = $list.children('.list-group-item').toArray();
+    items.sort((a, b) => {
+        if (col === 'size') return dir * ((parseFloat($(a).data('bytes')) || 0) - (parseFloat($(b).data('bytes')) || 0));
+        const av = ($(a).data('name') || $(a).find('a.countitems').first().text() || '').toLowerCase();
+        const bv = ($(b).data('name') || $(b).find('a.countitems').first().text() || '').toLowerCase();
+        return dir * av.localeCompare(bv);
+    });
+    items.forEach(el => $list.append(el));
+}
+
 function render_search_result_list() {
     var model = window.MODEL;
+
+    // Add search bar to the card header with white background
+    var searchBar = `
+    <form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:search">
+        <div class="input-group">
+            <input class="form-control bg-white text-dark" name="q" type="search" placeholder="Search to Type Movies Name + Year" aria-label="Search" value="${model.q}" style="border-right:0;" required>
+              <button class="btn btn-success" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;">
+                <i class="fas fa-search" style="margin: 0"></i>
+            </button>
+        </div>
+    </form>`;
 
     var content = `
       <div id="update"></div>
@@ -1755,8 +1608,9 @@ function render_search_result_list() {
         </div>
     </div>
     <div class="card">
-        <div class="card-header d-flex align-items-center gap-2">
-            <span><i class="fas fa-search fa-fw"></i></span><span class="w-100 text-truncate" id="dirname">Search: ${escapeHtml(model.q)}</span>
+        <div class="card-header">
+            <div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
+            ${searchBar}
         </div>
         <div class="card-body py-2 px-3" style="border-bottom:1px solid rgba(255,255,255,0.08);">
           <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -1832,6 +1686,8 @@ function render_search_result_list() {
         // Fast render with requestAnimationFrame
         requestAnimationFrame(() => {
             append_search_result_to_list(res['data']['files']);
+            initFolderFilter();
+            initColumnSort();
         });
 
         // Setup scroll only once
@@ -1927,7 +1783,7 @@ function append_search_result_to_list(files) {
                 item['md5Checksum'] = '—';
                 const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
                 const folderDirectUrl = '/fallback?id=' + encodeURIComponent(item['id']);
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${Number(item.folderSize || 0)}" data-date="${item['createdTime'] || ''}"><a href="${folderDirectUrl}" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="${folderDirectUrl}" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
                 continue;
             }
 
@@ -1938,13 +1794,12 @@ function append_search_result_to_list(files) {
 
             // Only process files (folders handled above)
             is_file = true;
-            const _rawBytes = Number(item.size || 0);
-            totalsize = totalsize + _rawBytes;
+            totalsize = totalsize + Number(item.size || 0);
             item['size'] = formatFileSize(item['size']) || '—';
             item['md5Checksum'] = item['md5Checksum'] || '—';
             const ext = item.fileExtension;
             const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${_rawBytes}" data-date="${item['createdTime'] || ''}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
 
             html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1957,9 +1812,6 @@ function append_search_result_to_list(files) {
         // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
-        // Init folder filter and column sort after each page
-        initFolderFilter();
-        initColumnSort();
 
         // ── Background prefetch: warm _shortenerCache for all visible files ──────
         // Only runs when show_url_shortener=true and user is NOT logged in.
@@ -2535,7 +2387,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
                     <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5; opacity: 0;">
                         <span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
                         <span>Preview</span>
-                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${escapeHtml(name)}"></a>
+                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${name}"></a>
                     </div>
                 </div>` : `
                 <div class="h-100 border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;">
@@ -2605,7 +2457,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
     // GDFlix handler is registered once at module level (see bottom of file)
 
     $('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
-    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${escapeHtml(name)}" title="Preview of ${escapeHtml(name)}">`;
+    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
     var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
     $('#modal-body-space').html(preview);
     $('#modal-body-space-buttons').html(btn);
@@ -2644,7 +2496,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                     <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5; opacity: 0;">
                         <span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
                         <span>Preview</span>
-                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${escapeHtml(name)}"></a>
+                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${name}"></a>
                     </div>` : ``}
                 </div>
             </div>
@@ -2710,7 +2562,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     // GDFlix handler is registered once at module level (see bottom of file)
 
     $('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
-    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${escapeHtml(name)}" title="Preview of ${escapeHtml(name)}">`;
+    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
     var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
     $('#modal-body-space').html(preview);
     $('#modal-body-space-buttons').html(btn);
@@ -3167,11 +3019,12 @@ const _jakartaFmt = new Intl.DateTimeFormat('en-CA', {
     hour: '2-digit', minute: '2-digit', hour12: false
 });
 function utc2jakarta(utc_datetime) {
-    // Updated: now uses user's LOCAL timezone instead of fixed Jakarta timezone
-    // Function name kept for backward compatibility
     if (!utc_datetime) return '';
     try {
-        return new Date(utc_datetime).toLocaleString();
+        const p = {};
+        _jakartaFmt.formatToParts(new Date(utc_datetime))
+            .forEach(function(x) { p[x.type] = x.value; });
+        return p.day + '-' + p.month + '-' + p.year + ' ' + p.hour + ':' + p.minute;
     } catch(e) { return utc_datetime; }
 }
 
@@ -3248,16 +3101,20 @@ window.onpopstate = function() {
 
 $(function() {
     init();
-    // Apply saved theme after init() builds DOM
-    // Attach debug panel if enabled
-    if (window.UI && window.UI.debug_mode) GDIDebug.attach();
-    // Show quota bar if enabled
-    if (window.UI && window.UI.show_quota) fetchQuota();
-    // Embed mode: hide nav/footer for ?embed=1
-    if (new URLSearchParams(window.location.search).get('embed') === '1') {
-        document.body.classList.add('embed-mode');
-    }
     var path = window.location.pathname;
+    /*$("body").on("click", '.folder', function () {
+        var url = $(this).attr('href');
+        history.pushState(null, null, url);
+        render(url);
+        return false;
+    });
+    $("body").on("click", '.view', function () {
+        var url = $(this).attr('href');
+        history.pushState(null, null, url);
+        render(url);
+        return false;
+    });*/
+
     render(path);
 });
 
