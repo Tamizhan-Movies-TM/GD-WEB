@@ -1612,6 +1612,14 @@ function render_search_result_list() {
             <div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
             ${searchBar}
         </div>
+        <div class="card-body py-1 px-3" style="border-bottom:1px solid rgba(255,255,255,0.08);">
+          <div class="d-flex justify-content-end gap-2">
+            <div id="list-sort-header" class="d-flex gap-2 flex-shrink-0">
+              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="name">Name</button>
+              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="size">Size</button>
+            </div>
+          </div>
+        </div>
         <div id="list" class="list-group list-group-flush text-break">
             <div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>
         </div>
