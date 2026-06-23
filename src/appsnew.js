@@ -1,45 +1,88 @@
-// =============================================================================
-// GDI-tm | Frontend App Script
-// Software : GDI-tm
-// Version  : 2.3.6
-// Author   : TheFirstSpeedster (telegram.dog/TheFirstSpeedster)
-// Source   : https://www.npmjs.com/package/@googledrive/index
-// Upgrades : +debug panel, +theme toggle, +quota bar, +embed mode,
-//            +GDOC export UI, +more file types, +event delegation
-// =============================================================================
+// Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.
+// v2.3.6
+// Upgraded: +GDOC_TYPES, +GDIDebug panel, +theme toggle, +OS detection, +more file types, +fetchQuota, +generateBreadcrumb, +renderErrorCard, +embed mode, +event delegation
 
 // =============================================================================
-// SECTION 1: CONDITIONAL LOGGING
-// DEBUG flag injected by worker-tm.js via window.DEBUG.
-// To toggle: change DEBUG in worker-tm.js only — do NOT edit here.
+// OPTIMIZATION: Conditional Logging
+// DEBUG flag is injected by worker-tm.js via window.DEBUG — controlled from
+// one place only. To toggle: change DEBUG in worker-tm.js, not here.
 // =============================================================================
-const log      = (...args) => window.DEBUG && console.log(...args);
+const log = (...args) => window.DEBUG && console.log(...args);
 const logError = (...args) => window.DEBUG && console.error(...args);
 
 // =============================================================================
-// SECTION 2: SECURITY HELPERS
+// PERFORMANCE: Pre-compiled constants — created once, reused on every file render
+// =============================================================================
+const _reHash = /#/g;            // replaces _reHash inside loops
+const _reQ    = /\?/g;           // replaces _reQ inside loops
+const _origin = window.location.origin; // cached — avoids property lookup per file
+
+// O(1) extension → icon lookup (replaces 7 chained String.indexOf scans per file)
+// Extended with missing types: 3gp, m4v, aac, wma, alac, svg, tiff, ico, xml, py, rb, c, cpp, h, hpp, doc, docx, xls, xlsx, ppt, pptx
+const _iconMap = new Map(Object.entries({
+    // Video
+    mp4:'V', webm:'V', avi:'V', mpg:'V', mpeg:'V', mkv:'V',
+    rm:'V', rmvb:'V', mov:'V', wmv:'V', asf:'V', ts:'V', flv:'V',
+    '3gp':'V', m4v:'V',
+    // Audio
+    m4a:'A', mp3:'A', flac:'A', wav:'A', ogg:'A',
+    aac:'A', wma:'A', alac:'A',
+    // Image
+    bmp:'I', jpg:'I', jpeg:'I', png:'I', gif:'I',
+    svg:'I', tiff:'I', ico:'I',
+    // Archive
+    zip:'Z', rar:'Z', tar:'Z', '7z':'Z', gz:'Z',
+    // Code
+    html:'C', php:'C', css:'C', go:'C', java:'C', js:'C',
+    json:'C', txt:'C', sh:'C', xml:'C', py:'C', rb:'C',
+    c:'C', cpp:'C', h:'C', hpp:'C',
+    // Documents
+    doc:'D', docx:'D', xls:'D', xlsx:'D', ppt:'D', pptx:'D',
+    // Other
+    md:'M', pdf:'P'
+}));
+function _getIcon(ext, mimeType, iconLink) {
+    const t = ext ? _iconMap.get(ext.toLowerCase()) : null;
+    if (t === 'V') return video_icon;
+    if (t === 'C') return code_icon;
+    if (t === 'Z') return zip_icon;
+    if (t === 'I') return image_icon;
+    if (t === 'A') return audio_icon;
+    if (t === 'M') return markdown_icon;
+    if (t === 'P') return pdf_icon;
+    if (t === 'D') return '<i class="fas fa-file-alt fa-fw" style="color:#4dabf7;"></i>';
+    if (mimeType && mimeType.startsWith('application/vnd.google-apps.'))
+        return '<img src="' + iconLink + '" class="d-flex" style="width:1.24rem;margin-left:.12rem;margin-right:.12rem;">';
+    return file_icon;
+}
+
+// =============================================================================
+// GOOGLE WORKSPACE EXPORT TYPES
+// Maps Google Workspace MIME types to icons and export formats (PDF, DOCX, etc.)
+// =============================================================================
+const GDOC_TYPES = {
+    'application/vnd.google-apps.document':     { icon: '<i class="fas fa-file-word fa-fw" style="color:#4dabf7;"></i>',       name: 'Google Doc',    formats: [{ label: 'PDF', ext: 'pdf' }, { label: 'DOCX', ext: 'docx' }, { label: 'TXT', ext: 'txt' }] },
+    'application/vnd.google-apps.spreadsheet':  { icon: '<i class="fas fa-file-excel fa-fw" style="color:#51cf66;"></i>',      name: 'Google Sheet',  formats: [{ label: 'PDF', ext: 'pdf' }, { label: 'XLSX', ext: 'xlsx' }, { label: 'CSV', ext: 'csv' }] },
+    'application/vnd.google-apps.presentation': { icon: '<i class="fas fa-file-powerpoint fa-fw" style="color:#ff6b6b;"></i>', name: 'Google Slides', formats: [{ label: 'PDF', ext: 'pdf' }, { label: 'PPTX', ext: 'pptx' }] },
+};
+
+// =============================================================================
+// SECURITY: escHtml alias — same as escapeHtml, added for compatibility
+// =============================================================================
+// (escapeHtml defined below — this alias is set after that function)
+
+// =============================================================================
+// LOGIN DETECTION FUNCTION
 // =============================================================================
 
-// HTML escape — prevents XSS from file names containing <script> or event handlers
-function escapeHtml(str) {
-    if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g,  '&lt;')
-        .replace(/>/g,  '&gt;')
-        .replace(/"/g,  '&quot;')
-        .replace(/'/g,  '&#x27;');
-}
-// Alias — upstream code uses escHtml(), TM code uses escapeHtml(). Both work.
-const escHtml = escapeHtml;
-
-// Check if user is logged in by verifying the session cookie
+// Check if user is logged in by verifying session cookie
 function isUserLoggedIn() {
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
         const [name, value] = cookie.trim().split('=');
         if (name === 'session') {
             const sessionValue = value ? value.trim() : '';
+            // Check if session has a valid value
             if (sessionValue && sessionValue !== 'null' && sessionValue !== '' && sessionValue !== 'undefined') {
                 log('User is logged in, session:', sessionValue);
                 return true;
@@ -51,117 +94,24 @@ function isUserLoggedIn() {
 }
 
 // =============================================================================
-// SECTION 3: PERFORMANCE CONSTANTS
-// Created once at module load — reused on every file render to avoid
-// repeated property lookups and regex compilations inside hot loops.
+// SECURITY: HTML escape helper — prevents XSS from
+// file names containing <script> or event handlers
 // =============================================================================
-const _reHash  = /#/g;                         // used in URL encoding inside render loops
-const _reQ     = /\?/g;                         // used in URL encoding inside render loops
-const _origin  = window.location.origin;        // cached — avoids property lookup per file
-
-// =============================================================================
-// SECTION 4: FILE TYPE → ICON MAP  (O(1) lookup)
-// Replaces 7 chained String.indexOf() scans per file with a single Map.get().
-// Extended from original to cover all upstream file types.
-// =============================================================================
-const _iconMap = new Map(Object.entries({
-    // Video
-    mp4:'V',  webm:'V', avi:'V',  mpg:'V',  mpeg:'V', mkv:'V',
-    rm:'V',   rmvb:'V', mov:'V',  wmv:'V',  asf:'V',  ts:'V',  flv:'V',
-    '3gp':'V', m4v:'V',
-    // Audio
-    mp3:'A',  flac:'A', wav:'A',  ogg:'A',  m4a:'A',
-    aac:'A',  wma:'A',  alac:'A',
-    // Image
-    bmp:'I',  jpg:'I',  jpeg:'I', png:'I',  gif:'I',
-    svg:'I',  tiff:'I', ico:'I',
-    // Archive
-    zip:'Z',  rar:'Z',  tar:'Z',  '7z':'Z', gz:'Z',
-    // Code / Text
-    html:'C', php:'C',  css:'C',  go:'C',   java:'C', js:'C',
-    json:'C', txt:'C',  sh:'C',   xml:'C',  py:'C',   rb:'C',
-    c:'C',    cpp:'C',  h:'C',    hpp:'C',
-    // Documents
-    doc:'D',  docx:'D', xls:'D',  xlsx:'D', ppt:'D',  pptx:'D',
-    // Other
-    md:'M',
-    pdf:'P'
-}));
-
-// Return the correct icon HTML for a file based on extension, MIME type, and Drive icon URL
-function _getIcon(ext, mimeType, iconLink) {
-    const t = ext ? _iconMap.get(ext.toLowerCase()) : null;
-    if (t === 'V') return video_icon;
-    if (t === 'A') return audio_icon;
-    if (t === 'I') return image_icon;
-    if (t === 'Z') return zip_icon;
-    if (t === 'C') return code_icon;
-    if (t === 'D') return '<i class="fas fa-file-alt fa-fw" style="color:#4dabf7;"></i>';
-    if (t === 'M') return markdown_icon;
-    if (t === 'P') return pdf_icon;
-    if (mimeType && mimeType.startsWith('application/vnd.google-apps.'))
-        return '<img src="' + iconLink + '" class="d-flex" style="width:1.24rem;margin-left:.12rem;margin-right:.12rem;">';
-    return file_icon;
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
 }
+// Alias — upstream code uses escHtml(), TM code uses escapeHtml(). Both work.
+const escHtml = escapeHtml;
 
 // =============================================================================
-// SECTION 5: GOOGLE WORKSPACE EXPORT TYPES
-// Maps Google Workspace MIME types to icons and available export formats.
-// Used by file-view to render export buttons (PDF, DOCX, XLSX, PPTX, etc.)
-// =============================================================================
-const GDOC_TYPES = {
-    'application/vnd.google-apps.document':     {
-        icon:    '<i class="fas fa-file-word fa-fw" style="color:#4dabf7;"></i>',
-        name:    'Google Doc',
-        formats: [{ label: 'PDF', ext: 'pdf' }, { label: 'DOCX', ext: 'docx' }, { label: 'TXT', ext: 'txt' }]
-    },
-    'application/vnd.google-apps.spreadsheet':  {
-        icon:    '<i class="fas fa-file-excel fa-fw" style="color:#51cf66;"></i>',
-        name:    'Google Sheet',
-        formats: [{ label: 'PDF', ext: 'pdf' }, { label: 'XLSX', ext: 'xlsx' }, { label: 'CSV', ext: 'csv' }]
-    },
-    'application/vnd.google-apps.presentation': {
-        icon:    '<i class="fas fa-file-powerpoint fa-fw" style="color:#ff6b6b;"></i>',
-        name:    'Google Slides',
-        formats: [{ label: 'PDF', ext: 'pdf' }, { label: 'PPTX', ext: 'pptx' }]
-    },
-};
-
-// =============================================================================
-// SECTION 6: OS DETECTION
-// Used for mobile-specific scroll threshold in infinite scroll handler.
-// =============================================================================
-const Os = {
-    isWindows: navigator.userAgent.toUpperCase().indexOf('WIN') > -1,
-    isMac:     navigator.userAgent.toUpperCase().indexOf('MAC') > -1,
-    isMacLike: /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgent),
-    isIos:     /(iPhone|iPod|iPad)/i.test(navigator.userAgent),
-    isMobile:  /Android|webOS|iPhone|iPad|iPod|iOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-};
-
-// =============================================================================
-// SECTION 7: UTILITY FUNCTIONS
-// =============================================================================
-
-// Sleep — non-blocking delay used in retry logic
-function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-
-// Legacy clipboard fallback for browsers without navigator.clipboard API
-function _legacyCopy(text) {
-    const el = document.createElement('textarea');
-    el.value = text;
-    el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
-    document.body.appendChild(el);
-    el.select();
-    try { document.execCommand('copy'); } catch (_) {}
-    document.body.removeChild(el);
-    alert('Selected items copied to clipboard!');
-}
-
-// =============================================================================
-// SECTION 8: THEME TOGGLE
-// Persists user's dark/light preference to localStorage under key 'tm-theme'.
-// Default is dark (set by worker-tm.js uiConfig.theme).
+// THEME TOGGLE
+// Persists dark/light preference to localStorage under key 'tm-theme'.
 // =============================================================================
 function applyTheme(mode) {
     document.documentElement.setAttribute('data-bs-theme', mode);
@@ -174,28 +124,41 @@ function toggleTheme() {
     localStorage.setItem('tm-theme', next);
     applyTheme(next);
 }
-// Apply saved theme immediately on script load (before DOM renders)
 (function initTheme() {
     const saved = localStorage.getItem('tm-theme') || 'dark';
     applyTheme(saved);
 }());
 
 // =============================================================================
-// SECTION 9: GDI DEBUG PANEL
-// Collapsible footer panel showing all fetch() API calls, response timings,
-// and JS errors. Enable by setting debug_mode: true in worker-tm.js uiConfig.
-// Disabled by default in production (debug_mode: false).
+// OS DETECTION — used for mobile scroll threshold in infinite scroll
+// =============================================================================
+const Os = {
+    isWindows: navigator.userAgent.toUpperCase().indexOf('WIN') > -1,
+    isMac:     navigator.userAgent.toUpperCase().indexOf('MAC') > -1,
+    isMacLike: /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgent),
+    isIos:     /(iPhone|iPod|iPad)/i.test(navigator.userAgent),
+    isMobile:  /Android|webOS|iPhone|iPad|iPod|iOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+};
+
+// Sleep — non-blocking delay used in retry logic
+function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+// =============================================================================
+// GDI DEBUG PANEL
+// Collapsible footer panel showing all fetch() calls, API responses and errors.
+// Enable by setting debug_mode: true in worker-tm.js uiConfig.
+// Disabled in production (debug_mode: false) — zero performance cost when off.
 // =============================================================================
 const GDIDebug = (() => {
     const entries = [];
-    let _panelEl = null;
+    let _panelEl  = null;
     function _ts() { return new Date().toISOString().slice(11, 23); }
     function _render() {
         if (!_panelEl) _panelEl = document.getElementById('gdi-debug-log');
         if (!_panelEl) return;
         const COLORS = { req: '#da77f2', api: '#69db7c', error: '#ff6b6b', warn: '#ffa94d', info: '#74c0fc' };
         const html = entries.map(e => {
-            const color = COLORS[e.type] || '#aaa';
+            const color   = COLORS[e.type] || '#aaa';
             const dataStr = e.data != null ? (typeof e.data === 'string' ? e.data : JSON.stringify(e.data, null, 2)) : '';
             return `<div class="gdi-dbg-entry">` +
                 `<span class="gdi-dbg-ts">${e.ts}</span>` +
@@ -220,12 +183,10 @@ const GDIDebug = (() => {
         style.textContent = [
             '.gdi-debug-wrap{width:100%;background:#0d1117;border-top:2px solid #f0883e;font-family:monospace;font-size:12px;margin-top:8px;}',
             '.gdi-debug-head{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#161b22;cursor:pointer;user-select:none;color:#8b949e;}',
-            '.gdi-debug-head:hover{background:#1c2128;}',
             '.gdi-debug-head strong{color:#f0f6fc;display:flex;align-items:center;gap:6px;}',
             '.gdi-dbg-count{background:#1f6feb;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;}',
             '.gdi-debug-actions{display:flex;gap:8px;}',
             '.gdi-debug-actions button{background:none;border:1px solid #30363d;color:#8b949e;border-radius:4px;padding:2px 9px;cursor:pointer;font-size:11px;}',
-            '.gdi-debug-actions button:hover{background:#1c2128;color:#f0f6fc;}',
             '#gdi-debug-log{max-height:280px;overflow-y:auto;padding:10px 14px;background:#0d1117;color:#e6edf3;}',
             '#gdi-debug-log.collapsed{display:none;}',
             '.gdi-dbg-entry{padding:3px 0;border-bottom:1px solid #21262d;line-height:1.6;}',
@@ -237,12 +198,7 @@ const GDIDebug = (() => {
         ].join('');
         document.head.appendChild(style);
         if (entries.length > 0) _render();
-        _log('info', 'TM Debug attached', {
-            path: window.location.pathname,
-            search: window.location.search,
-            drive: window.current_drive_order,
-            version: window.UI?.version
-        });
+        _log('info', 'TM Debug attached', { path: window.location.pathname, drive: window.current_drive_order, version: window.UI?.version });
     }
     function clear() {
         entries.length = 0;
@@ -253,15 +209,13 @@ const GDIDebug = (() => {
     return { log: _log, attach, clear };
 })();
 
-// Set up fetch + error interceptors when debug_mode is on.
-// Runs immediately so fetch calls during startup are captured.
+// Intercept fetch + errors when debug_mode is on
 if (window.UI?.debug_mode) {
     const _origFetch = window.fetch.bind(window);
     window.fetch = async function(input, init) {
         const url    = typeof input === 'string' ? input : (input.url || String(input));
         const method = (init?.method || 'GET').toUpperCase();
-        let body;
-        try { body = init?.body ? JSON.parse(init.body) : undefined; } catch (_) { body = init?.body; }
+        let body; try { body = init?.body ? JSON.parse(init.body) : undefined; } catch (_) { body = init?.body; }
         GDIDebug.log('req', `→ ${method} ${url}`, body !== undefined ? body : null);
         const t0 = Date.now();
         try {
@@ -277,23 +231,28 @@ if (window.UI?.debug_mode) {
     };
     const _origCE = console.error.bind(console);
     console.error = function(...args) {
-        GDIDebug.log('error', args.map(a =>
-            a instanceof Error ? (a.stack || a.message) : (typeof a === 'object' ? JSON.stringify(a) : String(a))
-        ).join(' '));
+        GDIDebug.log('error', args.map(a => a instanceof Error ? (a.stack || a.message) : (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' '));
         _origCE(...args);
     };
-    window.addEventListener('error', e => {
-        GDIDebug.log('error', `Uncaught: ${e.message}`, `${e.filename}:${e.lineno}:${e.colno}`);
-    });
-    window.addEventListener('unhandledrejection', e => {
-        GDIDebug.log('error', `UnhandledPromise: ${String(e.reason)}`);
-    });
+    window.addEventListener('error', e => { GDIDebug.log('error', `Uncaught: ${e.message}`, `${e.filename}:${e.lineno}`); });
+    window.addEventListener('unhandledrejection', e => { GDIDebug.log('error', `UnhandledPromise: ${String(e.reason)}`); });
 }
 
 // =============================================================================
-// SECTION 10: PAGE INIT
-// Builds the full page skeleton (nav, login modal, content area, footer).
+// UTILITY: Legacy clipboard copy fallback
 // =============================================================================
+function _legacyCopy(text) {
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+    document.body.appendChild(el);
+    el.select();
+    try { document.execCommand('copy'); } catch (_) {}
+    document.body.removeChild(el);
+    alert('Selected items copied to clipboard!');
+}
+
+// Initialize the page
 function init() {
     document.siteName = $('title').html();
     var html = `<header>
@@ -778,22 +737,28 @@ strong {
       </script>
       </div>
     </div>
-</footer>
-${UI.show_quota ? `<div id="gdi-quota-bar" style="padding:6px 16px;background:rgba(0,0,0,0.4);font-size:12px;color:rgba(255,255,255,0.7);display:none;">
-  <span id="gdi-quota-text"></span>
-  <div style="height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin-top:4px;"><div id="gdi-quota-fill" style="height:4px;border-radius:2px;width:0%;background:#4caf50;transition:width 0.4s;"></div></div>
-</div>` : ''}
-${UI.debug_mode ? `
+</footer>`;
+// Append debug panel if debug_mode is on
+if (window.UI?.debug_mode) {
+    html += `
 <div class="gdi-debug-wrap" id="gdi-debug-wrap">
   <div class="gdi-debug-head" onclick="document.getElementById('gdi-debug-log').classList.toggle('collapsed')">
-    <strong><i class="fas fa-bug" style="color:#f0883e;"></i> TM Debug <span id="gdi-dbg-count" class="gdi-dbg-count">0</span></strong>
+    <strong><i class="fas fa-bug" style="color:#f0883e;margin-right:6px;"></i>TM Debug <span id="gdi-dbg-count" class="gdi-dbg-count">0</span></strong>
     <div class="gdi-debug-actions">
       <button onclick="event.stopPropagation();GDIDebug.clear()">Clear</button>
       <button onclick="event.stopPropagation();document.getElementById('gdi-debug-log').classList.toggle('collapsed')">Toggle</button>
     </div>
   </div>
   <div id="gdi-debug-log" class="collapsed"></div>
-</div>` : ''}`;
+</div>`;
+}
+// Append quota bar if show_quota is on
+if (window.UI?.show_quota) {
+    html += `<div id="gdi-quota-bar" style="padding:6px 16px;background:rgba(0,0,0,0.4);font-size:12px;color:rgba(255,255,255,0.7);display:none;">
+  <span id="gdi-quota-text"></span>
+  <div style="height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin-top:4px;"><div id="gdi-quota-fill" style="height:4px;border-radius:2px;width:0%;background:#4caf50;transition:width 0.4s;"></div></div>
+</div>`;
+}
 $('body').html(html);
 
 // Initialize login modal functionality
@@ -3145,26 +3110,14 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
     }
 }
 
-// =============================================================================
-// SECTION 11: DATE / TIME FORMATTING
+// Time conversion
 // Uses the user's own browser locale and timezone (not hardcoded Jakarta).
-// utc2jakarta() name kept for backward compatibility with existing call sites.
-// =============================================================================
-// PERF: Intl.DateTimeFormat cached once at startup — cheaper than toLocaleString()
-//       which creates a new formatter object internally on every invocation.
-const _localFmt = new Intl.DateTimeFormat(undefined, {
-    year:   'numeric', month:  '2-digit', day:    '2-digit',
-    hour:   '2-digit', minute: '2-digit', hour12: false
-});
+// Name kept as utc2jakarta for backward compatibility with existing call sites.
 function utc2jakarta(utc_datetime) {
     if (!utc_datetime) return '';
-    try {
-        return new Date(utc_datetime).toLocaleString();
-    } catch(e) { return utc_datetime; }
+    try { return new Date(utc_datetime).toLocaleString(); } catch(e) { return utc_datetime; }
 }
-// Keep alias for any code still calling formatDateTime
 const formatDateTime = utc2jakarta;
-const utc2delhi = utc2jakarta;
 
 // MIME type formatting
 function formatMimeType(mime) {
@@ -3214,13 +3167,9 @@ function formatFileSize(bytes) {
 }
 
 
-// =============================================================================
-// SECTION 12: STRING UTILITIES
-// =============================================================================
-
-// trimChar — trims a specific character from both ends of a string.
-// Standalone function instead of a String.prototype override (overrides can
-// break Cloudflare internals and third-party libraries).
+// ✅ FIX: Standalone trimChar utility — avoids overriding native String.prototype.trim
+// which can break browser internals and third-party libraries.
+// Usage: trimChar(str, char) — identical behaviour to the old prototype override.
 function trimChar(str, char) {
     if (char) {
         return String(str).replace(new RegExp('^\\' + char + '+|\\' + char + '+$', 'g'), '');
@@ -3229,11 +3178,6 @@ function trimChar(str, char) {
 }
 
 
-// =============================================================================
-// SECTION 13: MARKDOWN RENDERER
-// Parses and injects Markdown content (README.md / HEAD.md) into a given element.
-// =============================================================================
-
 // README.md HEAD.md support
 function markdown(el, data) {
     var html = marked.parse(data);
@@ -3241,46 +3185,39 @@ function markdown(el, data) {
 }
 
 // =============================================================================
-// SECTION 14: STORAGE QUOTA BAR
-// Fetches Drive storage usage from /:quota endpoint and renders a coloured
-// progress bar at the bottom of the page.
-// Enable: set show_quota: true in worker-tm.js uiConfig.
+// STORAGE QUOTA BAR
+// Fetches Drive storage usage and shows a coloured progress bar.
+// Enable by setting show_quota: true in worker-tm.js uiConfig.
 // =============================================================================
 function fetchQuota() {
     const cur = window.current_drive_order || 0;
     fetch(`/${cur}:quota`)
         .then(r => { if (!r.ok) throw new Error('quota fetch failed'); return r.json(); })
         .then(data => {
-            const q = data.storageQuota;
+            const q    = data.storageQuota;
             if (!q) return;
-            const used = Number(q.usage || 0);
+            const used  = Number(q.usage || 0);
             const total = Number(q.limit || 0);
-            const bar = document.getElementById('gdi-quota-bar');
-            const text = document.getElementById('gdi-quota-text');
-            const fill = document.getElementById('gdi-quota-fill');
+            const bar   = document.getElementById('gdi-quota-bar');
+            const text  = document.getElementById('gdi-quota-text');
+            const fill  = document.getElementById('gdi-quota-fill');
             if (!bar || !text || !fill) return;
-            const pct = total > 0 ? Math.min(100, (used / total) * 100) : 0;
+            const pct   = total > 0 ? Math.min(100, (used / total) * 100) : 0;
             const color = pct > 90 ? '#f44336' : pct > 70 ? '#ff9800' : '#4caf50';
             text.textContent = total > 0
                 ? `${formatFileSize(used)} used of ${formatFileSize(total)} (${pct.toFixed(1)}%)`
                 : `${formatFileSize(used)} used`;
-            fill.style.width = pct + '%';
+            fill.style.width      = pct + '%';
             fill.style.background = color;
-            bar.style.display = 'block';
+            bar.style.display     = 'block';
         })
         .catch(() => {});
 }
 
-// =============================================================================
-// SECTION 15: BREADCRUMB GENERATOR
-// Builds <li> elements for breadcrumb navigation.
-// Substitutes drive IDs with human-readable drive names from window.drive_names.
-// Truncates path segments longer than 20 characters.
-// =============================================================================
+// Generates breadcrumb <li> elements with drive name substitution
 function generateBreadcrumb(path) {
     const parts = path.split('/');
-    let htmlOut = '';
-    let built = '';
+    let htmlOut = '', built = '';
     for (let i = 0; i < parts.length; i++) {
         let part = parts[i];
         built += (i === 0 ? '' : '/') + part;
@@ -3288,8 +3225,8 @@ function generateBreadcrumb(path) {
         let decoded;
         try { decoded = decodeURIComponent(part); } catch (_) { decoded = part; }
         const rootMatch = decoded.match(/^(\d+):$/);
-        const display = rootMatch ? (window.drive_names && window.drive_names[+rootMatch[1]] || decoded) : (decoded || 'Home');
-        const label = display.length > 20 ? display.slice(0, 16) + '…' : display;
+        const display   = rootMatch ? (window.drive_names && window.drive_names[+rootMatch[1]] || decoded) : (decoded || 'Home');
+        const label     = display.length > 20 ? display.slice(0, 16) + '…' : display;
         if (isLast) {
             htmlOut += `<li class="breadcrumb-item active" title="${escHtml(display)}">${escHtml(label)}</li>`;
         } else {
@@ -3299,47 +3236,27 @@ function generateBreadcrumb(path) {
     return htmlOut;
 }
 
-// =============================================================================
-// SECTION 16: ERROR CARD RENDERER
-// Returns a Bootstrap card HTML string for load/fetch failure display.
-// Usage: $("#content").html(renderErrorCard(err, "Custom message"));
-// =============================================================================
+// Unified error card for load failures
 function renderErrorCard(error, message) {
-    return `
-    <div class="card">
-        <div class="card-header ${UI.file_view_alert_class}">
-            <i class="fas fa-exclamation-triangle fa-fw"></i> Error
-        </div>
+    return `<div class="card">
+        <div class="card-header ${UI.file_view_alert_class}"><i class="fas fa-exclamation-triangle fa-fw"></i> Error</div>
         <div class="card-body text-center">
             <div class="alert alert-danger" role="alert"><b>${escHtml(String(error))}</b></div>
             <p>${escHtml(message || 'An error occurred. Please try again.')}</p>
             <a href="/" class="btn btn-success"><i class="fas fa-home fa-fw"></i> Home</a>
-        </div>
-    </div>`;
+        </div></div>`;
 }
 
-// =============================================================================
-// SECTION 17: NAVIGATION — POPSTATE (BACK / FORWARD)
-// =============================================================================
-
-// Re-render page on browser back/forward navigation
+// Listen for fallback events
 window.onpopstate = function() {
     var path = window.location.pathname;
     render(path);
 }
 
-// =============================================================================
-// SECTION 18: ENTRY POINT
-// jQuery document-ready handler — boots the entire application.
-// Order: init() → GDIDebug.attach() → fetchQuota() → embed detect → render()
-// =============================================================================
 $(function() {
     init();
-    // Attach GDI debug panel (only active when debug_mode: true in worker-tm.js)
     if (window.UI?.debug_mode) GDIDebug.attach();
-    // Fetch and render storage quota bar (only when show_quota: true in worker-tm.js)
     if (window.UI?.show_quota) fetchQuota();
-    // Embed mode — hides nav/footer when ?embed=1 is in the URL
     if (new URLSearchParams(window.location.search).get('embed') === '1') {
         document.body.classList.add('embed-mode');
     }
@@ -3566,10 +3483,8 @@ $(document).on('click', '.gdflix-btn, .download-via-gdflix', function() {
 });
 
 // =============================================================================
-// SECTION 19: DOWNLOAD COUNTDOWN TIMER
-// Shows a 5-second SVG ring countdown overlay before a download is triggered.
-// Activated by clicking any element with class .tm-download-btn
-// and data-url / data-name attributes.
+// DOWNLOAD TIMER — 5-second countdown → trigger download → show "File Downloading..." toast
+// Everything is initialised inside $(document).ready() so body always exists.
 // =============================================================================
 
 $(document).ready(function () {
@@ -3825,10 +3740,9 @@ $(document).ready(function () {
 }); // end $(document).ready
 
 // =============================================================================
-// SECTION 20: SELECT-ALL CHECKBOX — EVENT DELEGATION
-// Single delegated listener replaces the old MutationObserver on
-// document.documentElement which fired on every DOM change site-wide
-// (very expensive). This approach is lighter and equally functional.
+// SELECT-ALL CHECKBOX — EVENT DELEGATION
+// Single delegated listener replaces the expensive MutationObserver on
+// document.documentElement which fired on every DOM change site-wide.
 // =============================================================================
 document.addEventListener('change', function(e) {
     if (e.target && e.target.id === 'select-all-checkboxes') {
