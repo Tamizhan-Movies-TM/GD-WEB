@@ -1,7 +1,6 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
 // v2.5.9
 // Changelog v2.5.9:
-//   + Dark/light theme toggle (persisted to localStorage)
 //   + GDI Debug panel (activated via UI.debug_mode)
 //   + Google Workspace export buttons in file list (Docs/Sheets/Slides)
 //   + Quota display bar (activated via UI.show_quota)
@@ -110,26 +109,6 @@ function _legacyCopy(text) {
 }
 
 // =============================================================================
-// THEME SYSTEM — dark/light toggle persisted to localStorage
-// Compatible with Bootstrap's data-bs-theme attribute
-// =============================================================================
-function applyTheme(mode) {
-    document.documentElement.setAttribute('data-bs-theme', mode);
-    const icon = document.getElementById('theme-icon');
-    if (icon) icon.className = mode === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
-}
-
-function toggleTheme() {
-    const cur = document.documentElement.getAttribute('data-bs-theme') || 'dark';
-    const next = cur === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('gdi-theme', next);
-    applyTheme(next);
-}
-
-(function initTheme() {
-    const saved = localStorage.getItem('gdi-theme') || 'dark';
-    applyTheme(saved);
-}());
 
 // =============================================================================
 // GDI DEBUG PANEL — lightweight log viewer (only when UI.debug_mode is true)
@@ -1004,8 +983,6 @@ function nav(path) {
     <a class="nav-link" href="${UI.contact_link}" target="_blank"><i class="fas fa-paper-plane fa-fw"></i>${UI.nav_link_4}</a>
     </li>
     <li class="nav-item">
-      <button class="nav-link btn btn-link" onclick="toggleTheme()" title="Toggle dark/light theme" style="border:none;background:none;cursor:pointer;padding:0.5rem;">
-        <i id="theme-icon" class="fas fa-moon"></i>
       </button>
     </li>
     ${isUserLoggedIn()
@@ -3271,7 +3248,6 @@ window.onpopstate = function() {
 $(function() {
     init();
     // Apply saved theme after init() builds DOM
-    applyTheme(localStorage.getItem('gdi-theme') || 'dark');
     // Attach debug panel if enabled
     if (window.UI && window.UI.debug_mode) GDIDebug.attach();
     // Show quota bar if enabled
