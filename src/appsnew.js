@@ -1347,15 +1347,20 @@ function list(path, id = '', fallback = false) {
 // =============================================================================
 let _folderFilterBound = false;
 function initFolderFilter() {
-    const input = document.getElementById('folder-filter');
-    if (!input || _folderFilterBound) return;
+    // Use delegated listener on document so it works even when #list is rebuilt.
+    // Bind only once for the lifetime of the page.
+    if (_folderFilterBound) return;
     _folderFilterBound = true;
-    input.addEventListener('input', function() {
-        const q = this.value.toLowerCase();
-        document.querySelectorAll('#list .list-group-item').forEach(el => {
-            const name = (el.dataset.name || el.textContent).toLowerCase();
-            el.style.display = (!q || name.includes(q)) ? '' : 'none';
+    $(document).on('input', '#folder-filter', function() {
+        const q = this.value.trim().toLowerCase();
+        $('#list .list-group-item').each(function() {
+            const name = ($(this).data('name') || $(this).find('a.countitems').first().text()).toLowerCase();
+            $(this).toggle(!q || name.includes(q));
         });
+    });
+    // Also bind Enter key on the filter input (prevents form submit / page reload)
+    $(document).on('keydown', '#folder-filter', function(e) {
+        if (e.key === 'Enter') e.preventDefault();
     });
 }
 
@@ -1710,7 +1715,6 @@ function append_files_to_list(path, files) {
     // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
     // Init folder filter and column sort after each page
-    _folderFilterBound = false;
     initFolderFilter();
     initColumnSort();
     // When it is the last page, count and display the total number of items
@@ -1952,7 +1956,6 @@ function append_search_result_to_list(files) {
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
         // Init folder filter and column sort after each page
-        _folderFilterBound = false;
         initFolderFilter();
         initColumnSort();
 
