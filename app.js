@@ -1,45 +1,58 @@
-// =============================================================================
-// GDI-tm | Frontend App Script
-// Software : GDI-tm
-// Version  : 2.6.0
-// Author   : TheFirstSpeedster (telegram.dog/TheFirstSpeedster)
-// Source   : https://www.npmjs.com/package/@googledrive/index
-// Upgrades : +debug panel, +theme toggle, +quota bar, +embed mode,
-//            +GDOC export UI, +more file types, +event delegation
-// =============================================================================
+// Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
+// v2.3.6
 
 // =============================================================================
-// SECTION 1: CONDITIONAL LOGGING
-// DEBUG flag injected by worker-tm.js via window.DEBUG.
-// To toggle: change DEBUG in worker-tm.js only — do NOT edit here.
+// OPTIMIZATION: Conditional Logging
+// DEBUG flag is injected by worker-tm.js via window.DEBUG — controlled from
+// one place only. To toggle: change DEBUG in worker-tm.js, not here.
 // =============================================================================
-const log      = (...args) => window.DEBUG && console.log(...args);
+const log = (...args) => window.DEBUG && console.log(...args);
 const logError = (...args) => window.DEBUG && console.error(...args);
 
 // =============================================================================
-// SECTION 2: SECURITY HELPERS
+// PERFORMANCE: Pre-compiled constants — created once, reused on every file render
+// =============================================================================
+const _reHash = /#/g;            // replaces _reHash inside loops
+const _reQ    = /\?/g;           // replaces _reQ inside loops
+const _origin = window.location.origin; // cached — avoids property lookup per file
+
+// O(1) extension → icon lookup (replaces 7 chained String.indexOf scans per file)
+const _iconMap = new Map(Object.entries({
+    mp4:'V', webm:'V', avi:'V', mpg:'V', mpeg:'V', mkv:'V',
+    rm:'V', rmvb:'V', mov:'V', wmv:'V', asf:'V', ts:'V', flv:'V',
+    html:'C', php:'C', css:'C', go:'C', java:'C', js:'C',
+    json:'C', txt:'C', sh:'C',
+    zip:'Z', rar:'Z', tar:'Z', '7z':'Z', gz:'Z',
+    bmp:'I', jpg:'I', jpeg:'I', png:'I', gif:'I',
+    m4a:'A', mp3:'A', flac:'A', wav:'A', ogg:'A',
+    md:'M', pdf:'P'
+}));
+function _getIcon(ext, mimeType, iconLink) {
+    const t = ext ? _iconMap.get(ext.toLowerCase()) : null;
+    if (t === 'V') return video_icon;
+    if (t === 'C') return code_icon;
+    if (t === 'Z') return zip_icon;
+    if (t === 'I') return image_icon;
+    if (t === 'A') return audio_icon;
+    if (t === 'M') return markdown_icon;
+    if (t === 'P') return pdf_icon;
+    if (mimeType && mimeType.startsWith('application/vnd.google-apps.'))
+        return '<img src="' + iconLink + '" class="d-flex" style="width:1.24rem;margin-left:.12rem;margin-right:.12rem;">';
+    return file_icon;
+}
+
+// =============================================================================
+// LOGIN DETECTION FUNCTION
 // =============================================================================
 
-// HTML escape — prevents XSS from file names containing <script> or event handlers
-function escapeHtml(str) {
-    if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g,  '&lt;')
-        .replace(/>/g,  '&gt;')
-        .replace(/"/g,  '&quot;')
-        .replace(/'/g,  '&#x27;');
-}
-// Alias — upstream code uses escHtml(), TM code uses escapeHtml(). Both work.
-const escHtml = escapeHtml;
-
-// Check if user is logged in by verifying the session cookie
+// Check if user is logged in by verifying session cookie
 function isUserLoggedIn() {
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
         const [name, value] = cookie.trim().split('=');
         if (name === 'session') {
             const sessionValue = value ? value.trim() : '';
+            // Check if session has a valid value
             if (sessionValue && sessionValue !== 'null' && sessionValue !== '' && sessionValue !== 'undefined') {
                 log('User is logged in, session:', sessionValue);
                 return true;
@@ -51,102 +64,22 @@ function isUserLoggedIn() {
 }
 
 // =============================================================================
-// SECTION 3: PERFORMANCE CONSTANTS
-// Created once at module load — reused on every file render to avoid
-// repeated property lookups and regex compilations inside hot loops.
+// SECURITY: HTML escape helper — prevents XSS from
+// file names containing <script> or event handlers
 // =============================================================================
-const _reHash  = /#/g;                         // used in URL encoding inside render loops
-const _reQ     = /\?/g;                         // used in URL encoding inside render loops
-const _origin  = window.location.origin;        // cached — avoids property lookup per file
-
-// =============================================================================
-// SECTION 4: FILE TYPE → ICON MAP  (O(1) lookup)
-// Replaces 7 chained String.indexOf() scans per file with a single Map.get().
-// Extended from original to cover all upstream file types.
-// =============================================================================
-const _iconMap = new Map(Object.entries({
-    // Video
-    mp4:'V',  webm:'V', avi:'V',  mpg:'V',  mpeg:'V', mkv:'V',
-    rm:'V',   rmvb:'V', mov:'V',  wmv:'V',  asf:'V',  ts:'V',  flv:'V',
-    '3gp':'V', m4v:'V',
-    // Audio
-    mp3:'A',  flac:'A', wav:'A',  ogg:'A',  m4a:'A',
-    aac:'A',  wma:'A',  alac:'A',
-    // Image
-    bmp:'I',  jpg:'I',  jpeg:'I', png:'I',  gif:'I',
-    svg:'I',  tiff:'I', ico:'I',
-    // Archive
-    zip:'Z',  rar:'Z',  tar:'Z',  '7z':'Z', gz:'Z',
-    // Code / Text
-    html:'C', php:'C',  css:'C',  go:'C',   java:'C', js:'C',
-    json:'C', txt:'C',  sh:'C',   xml:'C',  py:'C',   rb:'C',
-    c:'C',    cpp:'C',  h:'C',    hpp:'C',
-    // Documents
-    doc:'D',  docx:'D', xls:'D',  xlsx:'D', ppt:'D',  pptx:'D',
-    // Other
-    md:'M',
-    pdf:'P'
-}));
-
-// Return the correct icon HTML for a file based on extension, MIME type, and Drive icon URL
-function _getIcon(ext, mimeType, iconLink) {
-    const t = ext ? _iconMap.get(ext.toLowerCase()) : null;
-    if (t === 'V') return video_icon;
-    if (t === 'A') return audio_icon;
-    if (t === 'I') return image_icon;
-    if (t === 'Z') return zip_icon;
-    if (t === 'C') return code_icon;
-    if (t === 'D') return '<i class="fas fa-file-alt fa-fw" style="color:#4dabf7;"></i>';
-    if (t === 'M') return markdown_icon;
-    if (t === 'P') return pdf_icon;
-    if (mimeType && mimeType.startsWith('application/vnd.google-apps.'))
-        return '<img src="' + iconLink + '" class="d-flex" style="width:1.24rem;margin-left:.12rem;margin-right:.12rem;">';
-    return file_icon;
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
 }
 
 // =============================================================================
-// SECTION 5: GOOGLE WORKSPACE EXPORT TYPES
-// Maps Google Workspace MIME types to icons and available export formats.
-// Used by file-view to render export buttons (PDF, DOCX, XLSX, PPTX, etc.)
+// UTILITY: Legacy clipboard copy fallback
 // =============================================================================
-const GDOC_TYPES = {
-    'application/vnd.google-apps.document':     {
-        icon:    '<i class="fas fa-file-word fa-fw" style="color:#4dabf7;"></i>',
-        name:    'Google Doc',
-        formats: [{ label: 'PDF', ext: 'pdf' }, { label: 'DOCX', ext: 'docx' }, { label: 'TXT', ext: 'txt' }]
-    },
-    'application/vnd.google-apps.spreadsheet':  {
-        icon:    '<i class="fas fa-file-excel fa-fw" style="color:#51cf66;"></i>',
-        name:    'Google Sheet',
-        formats: [{ label: 'PDF', ext: 'pdf' }, { label: 'XLSX', ext: 'xlsx' }, { label: 'CSV', ext: 'csv' }]
-    },
-    'application/vnd.google-apps.presentation': {
-        icon:    '<i class="fas fa-file-powerpoint fa-fw" style="color:#ff6b6b;"></i>',
-        name:    'Google Slides',
-        formats: [{ label: 'PDF', ext: 'pdf' }, { label: 'PPTX', ext: 'pptx' }]
-    },
-};
-
-// =============================================================================
-// SECTION 6: OS DETECTION
-// Used for mobile-specific scroll threshold in infinite scroll handler.
-// =============================================================================
-const Os = {
-    isWindows: navigator.userAgent.toUpperCase().indexOf('WIN') > -1,
-    isMac:     navigator.userAgent.toUpperCase().indexOf('MAC') > -1,
-    isMacLike: /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgent),
-    isIos:     /(iPhone|iPod|iPad)/i.test(navigator.userAgent),
-    isMobile:  /Android|webOS|iPhone|iPad|iPod|iOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-};
-
-// =============================================================================
-// SECTION 7: UTILITY FUNCTIONS
-// =============================================================================
-
-// Sleep — non-blocking delay used in retry logic
-function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-
-// Legacy clipboard fallback for browsers without navigator.clipboard API
 function _legacyCopy(text) {
     const el = document.createElement('textarea');
     el.value = text;
@@ -158,142 +91,7 @@ function _legacyCopy(text) {
     alert('Selected items copied to clipboard!');
 }
 
-// =============================================================================
-// SECTION 8: THEME TOGGLE
-// Persists user's dark/light preference to localStorage under key 'tm-theme'.
-// Default is dark (set by worker-tm.js uiConfig.theme).
-// =============================================================================
-function applyTheme(mode) {
-    document.documentElement.setAttribute('data-bs-theme', mode);
-    const icon = document.getElementById('theme-icon');
-    if (icon) icon.className = mode === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
-}
-function toggleTheme() {
-    const cur  = document.documentElement.getAttribute('data-bs-theme') || 'dark';
-    const next = cur === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('tm-theme', next);
-    applyTheme(next);
-}
-// Apply saved theme immediately on script load (before DOM renders)
-(function initTheme() {
-    const saved = localStorage.getItem('tm-theme') || 'dark';
-    applyTheme(saved);
-}());
-
-// =============================================================================
-// SECTION 9: GDI DEBUG PANEL
-// Collapsible footer panel showing all fetch() API calls, response timings,
-// and JS errors. Enable by setting debug_mode: true in worker-tm.js uiConfig.
-// Disabled by default in production (debug_mode: false).
-// =============================================================================
-const GDIDebug = (() => {
-    const entries = [];
-    let _panelEl = null;
-    function _ts() { return new Date().toISOString().slice(11, 23); }
-    function _render() {
-        if (!_panelEl) _panelEl = document.getElementById('gdi-debug-log');
-        if (!_panelEl) return;
-        const COLORS = { req: '#da77f2', api: '#69db7c', error: '#ff6b6b', warn: '#ffa94d', info: '#74c0fc' };
-        const html = entries.map(e => {
-            const color = COLORS[e.type] || '#aaa';
-            const dataStr = e.data != null ? (typeof e.data === 'string' ? e.data : JSON.stringify(e.data, null, 2)) : '';
-            return `<div class="gdi-dbg-entry">` +
-                `<span class="gdi-dbg-ts">${e.ts}</span>` +
-                `<span class="gdi-dbg-badge" style="color:${color}">[${e.type.toUpperCase()}]</span>` +
-                `<span class="gdi-dbg-msg">${escHtml(e.label)}</span>` +
-                (dataStr ? `<pre class="gdi-dbg-pre">${escHtml(dataStr)}</pre>` : '') +
-                `</div>`;
-        }).join('');
-        _panelEl.innerHTML = html || '<span class="gdi-dbg-empty">No entries yet.</span>';
-        _panelEl.scrollTop = _panelEl.scrollHeight;
-        const badge = document.getElementById('gdi-dbg-count');
-        if (badge) badge.textContent = entries.length;
-    }
-    function _log(type, label, data) {
-        if (!window.UI?.debug_mode) return;
-        entries.push({ ts: _ts(), type, label, data: data !== undefined ? data : null });
-        _render();
-    }
-    function attach() {
-        _panelEl = document.getElementById('gdi-debug-log');
-        const style = document.createElement('style');
-        style.textContent = [
-            '.gdi-debug-wrap{width:100%;background:#0d1117;border-top:2px solid #f0883e;font-family:monospace;font-size:12px;margin-top:8px;}',
-            '.gdi-debug-head{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#161b22;cursor:pointer;user-select:none;color:#8b949e;}',
-            '.gdi-debug-head:hover{background:#1c2128;}',
-            '.gdi-debug-head strong{color:#f0f6fc;display:flex;align-items:center;gap:6px;}',
-            '.gdi-dbg-count{background:#1f6feb;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;}',
-            '.gdi-debug-actions{display:flex;gap:8px;}',
-            '.gdi-debug-actions button{background:none;border:1px solid #30363d;color:#8b949e;border-radius:4px;padding:2px 9px;cursor:pointer;font-size:11px;}',
-            '.gdi-debug-actions button:hover{background:#1c2128;color:#f0f6fc;}',
-            '#gdi-debug-log{max-height:280px;overflow-y:auto;padding:10px 14px;background:#0d1117;color:#e6edf3;}',
-            '#gdi-debug-log.collapsed{display:none;}',
-            '.gdi-dbg-entry{padding:3px 0;border-bottom:1px solid #21262d;line-height:1.6;}',
-            '.gdi-dbg-ts{color:#484f58;margin-right:6px;}',
-            '.gdi-dbg-badge{font-weight:bold;margin-right:6px;}',
-            '.gdi-dbg-msg{color:#e6edf3;}',
-            '.gdi-dbg-pre{margin:2px 0 2px 20px;padding:4px 8px;background:#161b22;border-left:2px solid #30363d;white-space:pre-wrap;word-break:break-all;color:#8b949e;font-size:11px;}',
-            '.gdi-dbg-empty{color:#484f58;}'
-        ].join('');
-        document.head.appendChild(style);
-        if (entries.length > 0) _render();
-        _log('info', 'TM Debug attached', {
-            path: window.location.pathname,
-            search: window.location.search,
-            drive: window.current_drive_order,
-            version: window.UI?.version
-        });
-    }
-    function clear() {
-        entries.length = 0;
-        if (_panelEl) _panelEl.innerHTML = '<span class="gdi-dbg-empty">Cleared.</span>';
-        const badge = document.getElementById('gdi-dbg-count');
-        if (badge) badge.textContent = '0';
-    }
-    return { log: _log, attach, clear };
-})();
-
-// Set up fetch + error interceptors when debug_mode is on.
-// Runs immediately so fetch calls during startup are captured.
-if (window.UI?.debug_mode) {
-    const _origFetch = window.fetch.bind(window);
-    window.fetch = async function(input, init) {
-        const url    = typeof input === 'string' ? input : (input.url || String(input));
-        const method = (init?.method || 'GET').toUpperCase();
-        let body;
-        try { body = init?.body ? JSON.parse(init.body) : undefined; } catch (_) { body = init?.body; }
-        GDIDebug.log('req', `→ ${method} ${url}`, body !== undefined ? body : null);
-        const t0 = Date.now();
-        try {
-            const res    = await _origFetch(input, init);
-            const cloned = res.clone();
-            let rb; try { rb = await cloned.json(); } catch (_) { rb = null; }
-            GDIDebug.log(res.ok ? 'api' : 'error', `← ${res.status} ${url} (${Date.now() - t0}ms)`, rb);
-            return res;
-        } catch (err) {
-            GDIDebug.log('error', `✗ FETCH FAILED: ${url}`, String(err));
-            throw err;
-        }
-    };
-    const _origCE = console.error.bind(console);
-    console.error = function(...args) {
-        GDIDebug.log('error', args.map(a =>
-            a instanceof Error ? (a.stack || a.message) : (typeof a === 'object' ? JSON.stringify(a) : String(a))
-        ).join(' '));
-        _origCE(...args);
-    };
-    window.addEventListener('error', e => {
-        GDIDebug.log('error', `Uncaught: ${e.message}`, `${e.filename}:${e.lineno}:${e.colno}`);
-    });
-    window.addEventListener('unhandledrejection', e => {
-        GDIDebug.log('error', `UnhandledPromise: ${String(e.reason)}`);
-    });
-}
-
-// =============================================================================
-// SECTION 10: PAGE INIT
-// Builds the full page skeleton (nav, login modal, content area, footer).
-// =============================================================================
+// Initialize the page
 function init() {
     document.siteName = $('title').html();
     var html = `<header>
@@ -778,22 +576,7 @@ strong {
       </script>
       </div>
     </div>
-</footer>
-${UI.show_quota ? `<div id="gdi-quota-bar" style="padding:6px 16px;background:rgba(0,0,0,0.4);font-size:12px;color:rgba(255,255,255,0.7);display:none;">
-  <span id="gdi-quota-text"></span>
-  <div style="height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin-top:4px;"><div id="gdi-quota-fill" style="height:4px;border-radius:2px;width:0%;background:#4caf50;transition:width 0.4s;"></div></div>
-</div>` : ''}
-${UI.debug_mode ? `
-<div class="gdi-debug-wrap" id="gdi-debug-wrap">
-  <div class="gdi-debug-head" onclick="document.getElementById('gdi-debug-log').classList.toggle('collapsed')">
-    <strong><i class="fas fa-bug" style="color:#f0883e;"></i> TM Debug <span id="gdi-dbg-count" class="gdi-dbg-count">0</span></strong>
-    <div class="gdi-debug-actions">
-      <button onclick="event.stopPropagation();GDIDebug.clear()">Clear</button>
-      <button onclick="event.stopPropagation();document.getElementById('gdi-debug-log').classList.toggle('collapsed')">Toggle</button>
-    </div>
-  </div>
-  <div id="gdi-debug-log" class="collapsed"></div>
-</div>` : ''}`;
+</footer>`;
 $('body').html(html);
 
 // Initialize login modal functionality
@@ -1570,11 +1353,13 @@ function append_files_to_fallback_list(path, files) {
             const total_items_count = $list.find('.countitems').length;
             const total_files_count = $list.find('.size_items').length;
             const only_folders = total_files_count === 0;
+            // .number badge
             if (only_folders) {
                 $('#count').removeClass('d-none').find('.number').text(total_items_count === 1 ? "1 item folder" : total_items_count + " item folders");
             } else {
                 $('#count').removeClass('d-none').find('.number').text("total files: " + total_files_count);
             }
+            // .totalsize badge — hide when no direct files
             if (only_folders) {
                 $('#count').find('.totalsize').text('').hide();
             } else {
@@ -1993,16 +1778,19 @@ function append_search_result_to_list(files) {
             total_size = formatFileSize(totalsize) || '0 Bytes';
             total_items = $list.find('.countitems').length;
             total_files = $list.find('.size_items').length;
-            const only_folders = total_files === 0;
-            if (only_folders) {
-                $('#count').removeClass('d-none').find('.number').text(total_items === 1 ? "1 item folder" : total_items + " item folders");
+            if (total_items == 0) {
+                $('#count').removeClass('d-none').find('.number').text("0 item");
+            } else if (total_items == 1) {
+                $('#count').removeClass('d-none').find('.number').text(total_items + " item");
             } else {
-                $('#count').removeClass('d-none').find('.number').text("total files: " + total_files);
+                $('#count').removeClass('d-none').find('.number').text(total_items + " items");
             }
-            if (only_folders) {
-                $('#count').find('.totalsize').text('').hide();
+            if (total_files == 0) {
+                $('#count').removeClass('d-none').find('.totalsize').text("0 file");
+            } else if (total_files == 1) {
+                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
             } else {
-                $('#count').removeClass('d-none').find('.totalsize').text("total size: " + total_size).show();
+                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
             }
         }
     } catch (e) {
@@ -2187,10 +1975,31 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // ===== Show GPLinks and Nowshort =====
         log('Showing GPLinks and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
+        // ── Redirect Server Rotator ────────────────────────────────────────────
+        const _rotatorServers = [
+            { base: 'https://loan.grandyojna.com/join.php',             param: 'link' },
+            { base: 'https://loan.24jobkhabar.in/open.php',             param: 'link' },
+            { base: 'https://loan.rajasthanhelp.com/new.php',           param: 'link' },
+					  { base: 'https://plasmaline.in/new.php',                    param: 'link' },
+        ];
+
+        function _extractNowshortCode(url) {
+            try {
+                const u = new URL(url);
+                const q = u.searchParams.get('link') || u.searchParams.get('code') || u.searchParams.get('id');
+                if (q) return q;
+                const parts = u.pathname.split('/').filter(Boolean);
+                return parts.length ? parts[parts.length - 1] : null;
+            } catch (_) { return null; }
+        }
+
         function _rotateNowshortUrl(nowshortUrl) {
-            // Use nowshort URL directly — no rotator
-            log('Nowshort URL:', nowshortUrl);
-            return nowshortUrl;
+            const code = _extractNowshortCode(nowshortUrl);
+            if (!code) return nowshortUrl;
+            const s = _rotatorServers[Math.floor(Math.random() * _rotatorServers.length)];
+            const rotated = `${s.base}?${s.param}=${encodeURIComponent(code)}`;
+            log('Nowshort rotator:', nowshortUrl, '→', rotated);
+            return rotated;
         }
         // ── End Rotator ───────────────────────────────────────────────────────
 
@@ -2351,13 +2160,13 @@ async function fallback(id, type) {
                     var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
                     if (mimeType.includes("video") || video.includes(fileExtension)) {
                         poster = obj.thumbnailLink ? poster : UI.poster;
-                        file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
-                        file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else if (code.includes(fileExtension)) {
                         file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else {
-                        file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     }
                 }
             })
@@ -2421,13 +2230,13 @@ async function file(path) {
                 var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
                 if (mimeType.includes("video") || video.includes(fileExtension)) {
                     poster = obj.thumbnailLink ? poster : UI.poster;
-                    file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
-                    file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else if (code.includes(fileExtension)) {
                     file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else {
-                    file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 }
             }
         })
@@ -2460,54 +2269,7 @@ function generateCopyFileBox(file_id, cookie_folder_id) {
 }
 
 // Document display |zip|.exe/others direct downloads
-// =============================================================================
-// DOWNLOAD BUTTON HELPER
-// Decides whether non-login users get a GDflix link or a direct download button.
-//
-// Logic controlled by two UI config flags (set in worker-tm.js):
-//   enable_gdflix_for_non_login        — master switch. If false → always direct download.
-//   gdflix_large_file_only             — if true → GDflix only for files ≥ threshold GB.
-//                                         if false → GDflix for ALL non-login users (old behaviour).
-//   gdflix_large_file_threshold_gb     — size threshold in GB (default 10).
-//
-// Logged-in users ALWAYS get direct download regardless of settings.
-// =============================================================================
-function getDownloadButton(url, encoded_name, file_id, bytes) {
-    // Logged-in users → always direct download
-    if (isUserLoggedIn()) {
-        return `<button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>`;
-    }
-
-    // GDflix master switch off → always direct download for everyone
-    if (!UI.enable_gdflix_for_non_login) {
-        return `<button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>`;
-    }
-
-    // Non-login user, GDflix enabled — check gdflix_large_file_only setting
-    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
-    const useGdflix = UI.gdflix_large_file_only
-        ? (bytes >= thresholdBytes)   // true → GDflix only for large files
-        : true;                        // false → GDflix for all non-login users
-
-    if (useGdflix) {
-        return `<a type="button" class="btn btn-success download-via-gdflix" data-file-id="${file_id}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </a>`;
-    } else {
-        return `<button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>`;
-    }
-}
-
-function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
     // Add the container and card elements // wait until image is loaded and then hide spinner
@@ -2523,7 +2285,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
                     <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5; opacity: 0;">
                         <span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
                         <span>Preview</span>
-                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${escapeHtml(name)}"></a>
+                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${name}"></a>
                     </div>
                 </div>` : `
                 <div class="h-100 border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;">
@@ -2573,7 +2335,15 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${getDownloadButton(url, encoded_name, file_id, bytes)}
+          ${isUserLoggedIn() || !UI.enable_gkyfilehost
+    ? `<button type="button" class="btn btn-success tm-download-btn"
+               data-url="${url}" data-name="${encoded_name}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </button>`
+    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </a>`
+    }
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2593,7 +2363,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
     // GDFlix handler is registered once at module level (see bottom of file)
 
     $('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
-    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${escapeHtml(name)}" title="Preview of ${escapeHtml(name)}">`;
+    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
     var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
     $('#modal-body-space').html(preview);
     $('#modal-body-space-buttons').html(btn);
@@ -2632,7 +2402,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                     <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5; opacity: 0;">
                         <span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
                         <span>Preview</span>
-                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${escapeHtml(name)}"></a>
+                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${name}"></a>
                     </div>` : ``}
                 </div>
             </div>
@@ -2678,7 +2448,15 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${getDownloadButton(url, encoded_name, file_id, bytes)}
+          ${isUserLoggedIn() || !UI.enable_gkyfilehost
+    ? `<button type="button" class="btn btn-success tm-download-btn"
+               data-url="${url}" data-name="${encoded_name}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </button>`
+    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </a>`
+     }
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2698,7 +2476,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     // GDFlix handler is registered once at module level (see bottom of file)
 
     $('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
-    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${escapeHtml(name)}" title="Preview of ${escapeHtml(name)}">`;
+    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
     var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
     $('#modal-body-space').html(preview);
     $('#modal-body-space-buttons').html(btn);
@@ -2741,30 +2519,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 }
 
 
-// =============================================================================
-// PLAYER VISIBILITY HELPER
-// Decides whether the inline audio/video player should be hidden.
-//
-// Logic controlled by UI config flags (set in worker-tm.js):
-//   disable_player                — master switch. If true → ALWAYS hide the player,
-//                                    regardless of file size.
-//   gdflix_large_file_threshold_gb — size threshold in GB (default 10). Files AT or
-//                                    ABOVE this size get the player hidden too — for
-//                                    EVERYONE, login and non-login — nudging large
-//                                    files towards the GDflix link instead of inline
-//                                    streaming.
-// =============================================================================
-function shouldDisablePlayer(bytes) {
-    // Master switch on → always hide, no matter the size
-    if (UI.disable_player) return true;
-
-    // Otherwise hide only for files at/above the GDflix large-file threshold
-    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
-    return bytes >= thresholdBytes;
-}
-
   // Document display video  mkv|mp4|webm|avi|
-   function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+   function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
      // Define all player icons
     const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
@@ -2791,7 +2547,7 @@ function shouldDisablePlayer(bytes) {
         _unsupportedExt.some(e => _nameLower.endsWith(e))
       );
 
-      if (!shouldDisablePlayer(bytes)) {
+      if (!UI.disable_player) {
         if (_iosCantPlay) {
             // ── Show "Open in App" card — VLC (orange) + Infuse (yellow) ─
             const _ext = _nameLower.split('.').pop().toUpperCase();
@@ -2938,7 +2694,15 @@ function shouldDisablePlayer(bytes) {
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${getDownloadButton(url, encoded_name, file_id, bytes)}
+          ${isUserLoggedIn() || !UI.enable_gkyfilehost
+    ? `<button type="button" class="btn btn-success tm-download-btn"
+               data-url="${url}" data-name="${encoded_name}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </button>`
+    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </a>`
+    }
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2958,7 +2722,7 @@ function shouldDisablePlayer(bytes) {
   // GDFlix handler is registered once at module level (see bottom of file)
 
   // Load player script — skip entirely on iOS unsupported formats
-    if (!shouldDisablePlayer(bytes) && player_js && !_iosCantPlay) {
+    if (!UI.disable_player && player_js && !_iosCantPlay) {
     var videoJsScript = document.createElement('script');
     videoJsScript.src = player_js;
     videoJsScript.onload = function() {
@@ -3020,7 +2784,7 @@ function shouldDisablePlayer(bytes) {
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
-function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
     // Add the container and card elements
@@ -3037,14 +2801,14 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
             <i class="fas fa-file-alt fa-fw"></i>File Information
         </div>
         <div class="card-body row g-3">
-            ${!shouldDisablePlayer(bytes) ? `
+            ${!UI.disable_player ? `
             <div class="col-lg-4 col-md-12">
                 <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
                     ${player}
                 </div>
             </div>
             ` : ''}
-            <div class="${shouldDisablePlayer(bytes) ? 'col-12' : 'col-lg-8 col-md-12'}">
+            <div class="${UI.disable_player ? 'col-12' : 'col-lg-8 col-md-12'}">
                 <table class="table table-dark">
                     <tbody>
                         <tr>
@@ -3075,10 +2839,15 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
                     <div class="text-center">
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
-                           <button type="button" class="btn btn-success tm-download-btn"
+                           ${isUserLoggedIn() || !UI.enable_gkyfilehost
+    ? `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>
+       </button>`
+    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </a>`
+    }
                             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split"
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="sr-only"></span>
@@ -3099,7 +2868,7 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
     $("#content").html(content);
 
     // Initialize player if enabled
-    if (!shouldDisablePlayer(bytes) && player_js) {
+    if (!UI.disable_player && player_js) {
         const script = document.createElement('script');
         script.src = player_js;
         script.onload = () => {
@@ -3145,26 +2914,24 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
     }
 }
 
-// =============================================================================
-// SECTION 11: DATE / TIME FORMATTING
-// Uses the user's own browser locale and timezone (not hardcoded Jakarta).
-// utc2jakarta() name kept for backward compatibility with existing call sites.
-// =============================================================================
-// PERF: Intl.DateTimeFormat cached once at startup — cheaper than toLocaleString()
-//       which creates a new formatter object internally on every invocation.
-const _localFmt = new Intl.DateTimeFormat(undefined, {
-    year:   'numeric', month:  '2-digit', day:    '2-digit',
-    hour:   '2-digit', minute: '2-digit', hour12: false
+// Time conversion
+// PERF: Intl.DateTimeFormat cached once at startup.
+// Old approach used toLocaleString() which creates a new formatter object
+// internally on every call — costs 10-50ms each, especially on mobile.
+const _jakartaFmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jakarta',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false
 });
 function utc2jakarta(utc_datetime) {
     if (!utc_datetime) return '';
     try {
-        return new Date(utc_datetime).toLocaleString();
+        const p = {};
+        _jakartaFmt.formatToParts(new Date(utc_datetime))
+            .forEach(function(x) { p[x.type] = x.value; });
+        return p.day + '-' + p.month + '-' + p.year + ' ' + p.hour + ':' + p.minute;
     } catch(e) { return utc_datetime; }
 }
-// Keep alias for any code still calling formatDateTime
-const formatDateTime = utc2jakarta;
-const utc2delhi = utc2jakarta;
 
 // MIME type formatting
 function formatMimeType(mime) {
@@ -3214,13 +2981,9 @@ function formatFileSize(bytes) {
 }
 
 
-// =============================================================================
-// SECTION 12: STRING UTILITIES
-// =============================================================================
-
-// trimChar — trims a specific character from both ends of a string.
-// Standalone function instead of a String.prototype override (overrides can
-// break Cloudflare internals and third-party libraries).
+// ✅ FIX: Standalone trimChar utility — avoids overriding native String.prototype.trim
+// which can break browser internals and third-party libraries.
+// Usage: trimChar(str, char) — identical behaviour to the old prototype override.
 function trimChar(str, char) {
     if (char) {
         return String(str).replace(new RegExp('^\\' + char + '+|\\' + char + '+$', 'g'), '');
@@ -3229,121 +2992,34 @@ function trimChar(str, char) {
 }
 
 
-// =============================================================================
-// SECTION 13: MARKDOWN RENDERER
-// Parses and injects Markdown content (README.md / HEAD.md) into a given element.
-// =============================================================================
-
 // README.md HEAD.md support
 function markdown(el, data) {
     var html = marked.parse(data);
     $(el).show().html(html);
 }
 
-// =============================================================================
-// SECTION 14: STORAGE QUOTA BAR
-// Fetches Drive storage usage from /:quota endpoint and renders a coloured
-// progress bar at the bottom of the page.
-// Enable: set show_quota: true in worker-tm.js uiConfig.
-// =============================================================================
-function fetchQuota() {
-    const cur = window.current_drive_order || 0;
-    fetch(`/${cur}:quota`)
-        .then(r => { if (!r.ok) throw new Error('quota fetch failed'); return r.json(); })
-        .then(data => {
-            const q = data.storageQuota;
-            if (!q) return;
-            const used = Number(q.usage || 0);
-            const total = Number(q.limit || 0);
-            const bar = document.getElementById('gdi-quota-bar');
-            const text = document.getElementById('gdi-quota-text');
-            const fill = document.getElementById('gdi-quota-fill');
-            if (!bar || !text || !fill) return;
-            const pct = total > 0 ? Math.min(100, (used / total) * 100) : 0;
-            const color = pct > 90 ? '#f44336' : pct > 70 ? '#ff9800' : '#4caf50';
-            text.textContent = total > 0
-                ? `${formatFileSize(used)} used of ${formatFileSize(total)} (${pct.toFixed(1)}%)`
-                : `${formatFileSize(used)} used`;
-            fill.style.width = pct + '%';
-            fill.style.background = color;
-            bar.style.display = 'block';
-        })
-        .catch(() => {});
-}
-
-// =============================================================================
-// SECTION 15: BREADCRUMB GENERATOR
-// Builds <li> elements for breadcrumb navigation.
-// Substitutes drive IDs with human-readable drive names from window.drive_names.
-// Truncates path segments longer than 20 characters.
-// =============================================================================
-function generateBreadcrumb(path) {
-    const parts = path.split('/');
-    let htmlOut = '';
-    let built = '';
-    for (let i = 0; i < parts.length; i++) {
-        let part = parts[i];
-        built += (i === 0 ? '' : '/') + part;
-        const isLast = (i === parts.length - 1);
-        let decoded;
-        try { decoded = decodeURIComponent(part); } catch (_) { decoded = part; }
-        const rootMatch = decoded.match(/^(\d+):$/);
-        const display = rootMatch ? (window.drive_names && window.drive_names[+rootMatch[1]] || decoded) : (decoded || 'Home');
-        const label = display.length > 20 ? display.slice(0, 16) + '…' : display;
-        if (isLast) {
-            htmlOut += `<li class="breadcrumb-item active" title="${escHtml(display)}">${escHtml(label)}</li>`;
-        } else {
-            htmlOut += `<li class="breadcrumb-item"><a href="${built ? built + '/' : '/'}" title="${escHtml(display)}">${escHtml(label)}</a></li>`;
-        }
-    }
-    return htmlOut;
-}
-
-// =============================================================================
-// SECTION 16: ERROR CARD RENDERER
-// Returns a Bootstrap card HTML string for load/fetch failure display.
-// Usage: $("#content").html(renderErrorCard(err, "Custom message"));
-// =============================================================================
-function renderErrorCard(error, message) {
-    return `
-    <div class="card">
-        <div class="card-header ${UI.file_view_alert_class}">
-            <i class="fas fa-exclamation-triangle fa-fw"></i> Error
-        </div>
-        <div class="card-body text-center">
-            <div class="alert alert-danger" role="alert"><b>${escHtml(String(error))}</b></div>
-            <p>${escHtml(message || 'An error occurred. Please try again.')}</p>
-            <a href="/" class="btn btn-success"><i class="fas fa-home fa-fw"></i> Home</a>
-        </div>
-    </div>`;
-}
-
-// =============================================================================
-// SECTION 17: NAVIGATION — POPSTATE (BACK / FORWARD)
-// =============================================================================
-
-// Re-render page on browser back/forward navigation
+// Listen for fallback events
 window.onpopstate = function() {
     var path = window.location.pathname;
     render(path);
 }
 
-// =============================================================================
-// SECTION 18: ENTRY POINT
-// jQuery document-ready handler — boots the entire application.
-// Order: init() → GDIDebug.attach() → fetchQuota() → embed detect → render()
-// =============================================================================
 $(function() {
     init();
-    // Attach GDI debug panel (only active when debug_mode: true in worker-tm.js)
-    if (window.UI?.debug_mode) GDIDebug.attach();
-    // Fetch and render storage quota bar (only when show_quota: true in worker-tm.js)
-    if (window.UI?.show_quota) fetchQuota();
-    // Embed mode — hides nav/footer when ?embed=1 is in the URL
-    if (new URLSearchParams(window.location.search).get('embed') === '1') {
-        document.body.classList.add('embed-mode');
-    }
     var path = window.location.pathname;
+    /*$("body").on("click", '.folder', function () {
+        var url = $(this).attr('href');
+        history.pushState(null, null, url);
+        render(url);
+        return false;
+    });
+    $("body").on("click", '.view', function () {
+        var url = $(this).attr('href');
+        history.pushState(null, null, url);
+        render(url);
+        return false;
+    });*/
+
     render(path);
 });
 
@@ -3534,14 +3210,180 @@ function generateGDFlixLink(fileId) {
     });
 }
 
+// Update the generateGKYFILEHOSTLink function to call the worker endpoint
+function generateGKYFILEHOSTLink(fileId, fileName) {
+    return new Promise((resolve, reject) => {
+        log('GKYFILEHOST - Received fileId:', fileId);
+        log('GKYFILEHOST - Received fileName:', fileName);
+
+        if (!fileId) {
+            logError('GKYFILEHOST - No file ID provided');
+            alert('Error: No file ID provided');
+            reject(new Error('No file ID provided'));
+            return;
+        }
+
+        fileId = String(fileId).trim();
+
+        if (fileId === '') {
+            logError('GKYFILEHOST - Empty file ID');
+            alert('Error: Empty file ID');
+            reject(new Error('Empty file ID'));
+            return;
+        }
+
+        // Try to get filename from page if not provided
+        if (!fileName) {
+            try {
+                // Try to find the filename from the page title or heading
+                const titleElement = document.querySelector('h5.card-title');
+                if (titleElement) {
+                    fileName = titleElement.textContent.trim();
+                }
+            } catch (e) {
+                log('GKYFILEHOST - Could not extract filename from page');
+            }
+        }
+
+        log('GKYFILEHOST - Final fileName:', fileName || 'download');
+        log('GKYFILEHOST - Requesting link generation from worker...');
+        log('GKYFILEHOST - File ID being sent:', fileId);
+
+        // Show a loading indicator (you can customize this)
+        const loadingMsg = 'Generating GKYFILEHOST link... Please wait...';
+        log(loadingMsg);
+
+        // Make request to worker endpoint (FIXED: Changed from /generate-gkyfilehost to /gkyfilehost)
+        fetch('/gkyfilehost', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                file_id: fileId,
+                file_name: fileName || 'download'
+            })
+        })
+        .then(response => {
+            log('GKYFILEHOST - Response status:', response.status);
+            log('GKYFILEHOST - Response OK:', response.ok);
+
+            // Try to get the response body even if status is not OK
+            return response.json().then(data => {
+                return { status: response.status, ok: response.ok, data: data };
+            }).catch(() => {
+                // If JSON parsing fails, try to get text
+                return response.text().then(text => {
+                    return { status: response.status, ok: response.ok, data: { error: text } };
+                });
+            });
+        })
+        .then(result => {
+            log('GKYFILEHOST - Full response:', result);
+
+            if (!result.ok) {
+                // Show specific error from server
+                const errorMsg = result.data.error || result.data.details || `HTTP error! status: ${result.status}`;
+                logError('GKYFILEHOST - Server error:', errorMsg);
+                throw new Error(errorMsg);
+            }
+
+            const data = result.data;
+            log('GKYFILEHOST - Worker response data:', data);
+
+            if (data.success && (data.link || data.gkyfilehost_link)) {
+                const gkyLink = data.link || data.gkyfilehost_link;
+                log('GKYFILEHOST - Generated link:', gkyLink);
+
+                // Validate the link format
+                if (!gkyLink.includes('gkyfilehost')) {
+                    logError('GKYFILEHOST - Warning: Link does not contain gkyfilehost domain');
+                }
+
+                // Open the GKYFILEHOST link directly in a new tab
+                window.open(gkyLink, '_blank');
+
+                // Show success message
+                log('✅ GKYFILEHOST link generated successfully!');
+
+                resolve(gkyLink);
+            } else {
+                const errorMsg = data.error || 'Failed to generate GKYFILEHOST link - no link in response';
+                logError('GKYFILEHOST - Error from server:', errorMsg);
+                throw new Error(errorMsg);
+            }
+        })
+        .catch(error => {
+            logError('GKYFILEHOST Error:', error);
+            logError('GKYFILEHOST Error stack:', error.stack);
+
+            // Show user-friendly error message
+            let userMessage = 'Failed to generate GKYFILEHOST link';
+
+            if (error.message.includes('Failed to login')) {
+                userMessage += '\n\n⚠️ Login to GKYFILEHOST failed.\n\nPossible solutions:\n' +
+                             '1. Check your GKYFILEHOST account credentials\n' +
+                             '2. Make sure your account is active\n' +
+                             '3. Check Cloudflare Worker logs for details';
+            } else if (error.message.includes('HTTP error! status: 500')) {
+                userMessage += '\n\nServer error (500).\n\nPlease check:\n' +
+                             '1. Cloudflare Worker logs for details\n' +
+                             '2. GKYFILEHOST credentials are correct\n' +
+                             '3. The file ID is valid';
+            } else if (error.message.includes('HTTP error! status: 400')) {
+                userMessage += '\n\nBad request (400). The file ID might be invalid.';
+            } else if (error.message.includes('Failed to fetch')) {
+                userMessage += '\n\nNetwork error. Check your internet connection.';
+            } else {
+                userMessage += ':\n\n' + error.message;
+            }
+
+            alert(userMessage);
+            reject(error);
+        });
+    });
+}
+
+// Handler for Download button to open GKYFILEHOST link
+$(document).on('click', '.download-via-gkyfilehost', function(e) {
+    e.preventDefault();
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+
+    log('Download button clicked, fileId:', fileId);
+
+    if (!fileId) {
+        alert('Error: No file ID found');
+        return;
+    }
+
+    // Show loading state
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+
+    // Call GKYFILEHOST function
+    generateGKYFILEHOSTLink(fileId)
+        .then((link) => {
+            button.prop('disabled', false).html(originalHtml);
+            log('Successfully opened GKYFILEHOST link:', link);
+        })
+        .catch((error) => {
+            button.html('<i class="fas fa-times fa-fw"></i> Failed');
+            setTimeout(() => {
+                button.prop('disabled', false).html(originalHtml);
+            }, 2000);
+            logError('Download error:', error);
+        });
+});
+
+
 // =============================================================================
 // SINGLE TOP-LEVEL GDFlix Button Handler
 // Registered once here — replaces 3 duplicate handlers that were
 // previously registered inside file_video(), file_code(), file_others()
-// on every file page load. Also handles the "Download" button shown to
-// non-login users when GDflix is gating the download (see getDownloadButton).
+// on every file page load.
 // =============================================================================
-$(document).on('click', '.gdflix-btn, .download-via-gdflix', function() {
+$(document).on('click', '.gdflix-btn', function() {
     const fileId = $(this).data('file-id');
     const button = $(this);
 
@@ -3566,10 +3408,8 @@ $(document).on('click', '.gdflix-btn, .download-via-gdflix', function() {
 });
 
 // =============================================================================
-// SECTION 19: DOWNLOAD COUNTDOWN TIMER
-// Shows a 5-second SVG ring countdown overlay before a download is triggered.
-// Activated by clicking any element with class .tm-download-btn
-// and data-url / data-name attributes.
+// DOWNLOAD TIMER — 5-second countdown → trigger download → show "File Downloading..." toast
+// Everything is initialised inside $(document).ready() so body always exists.
 // =============================================================================
 
 $(document).ready(function () {
@@ -3825,14 +3665,16 @@ $(document).ready(function () {
 }); // end $(document).ready
 
 // =============================================================================
-// SECTION 20: SELECT-ALL CHECKBOX — EVENT DELEGATION
-// Single delegated listener replaces the old MutationObserver on
-// document.documentElement which fired on every DOM change site-wide
-// (very expensive). This approach is lighter and equally functional.
-// =============================================================================
-document.addEventListener('change', function(e) {
-    if (e.target && e.target.id === 'select-all-checkboxes') {
-        const checkboxes = document.querySelectorAll('input[type="checkbox"].form-check-input');
-        checkboxes.forEach(cb => { cb.checked = e.target.checked; });
-    }
+// create a MutationObserver to listen for changes to the DOM
+const observer = new MutationObserver(() => {
+    updateCheckboxes();
 });
+
+// define the options for the observer (listen for changes to child elements)
+const options = {
+    childList: true,
+    subtree: true
+};
+
+// observe changes to the body element
+observer.observe(document.documentElement, options);
