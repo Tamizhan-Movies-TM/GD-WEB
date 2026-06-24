@@ -588,17 +588,158 @@ $('body').html(html);
 // Initialize login modal functionality
 initializeLoginModal();
 
-// ✅ IMPROVEMENT: Show password-expiry warning banner if the worker
-// injected window.PW_EXPIRES_IN (≤ 7 days remaining).
+// ✅ PASSWORD EXPIRY POPUP — shows every 12 hours for last 3 days before expiry.
+// window.PW_EXPIRES_IN is injected by worker-tm.js (number of days remaining).
 (function checkPasswordExpiryWarning() {
     const days = window.PW_EXPIRES_IN;
-    if (typeof days === 'number' && days > 0 && days <= 7) {
-        const banner = document.createElement('div');
-        banner.id = 'pw-expiry-banner';
-        banner.style.cssText = 'position:fixed;top:0;left:0;width:100%;z-index:9999;background:#856404;color:#fff;text-align:center;padding:8px 40px 8px 16px;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.4);';
-        banner.innerHTML = '⚠️ Your password expires in <strong>' + days + ' day' + (days === 1 ? '' : 's') + '</strong>. Please contact the administrator to renew it. <button onclick="document.getElementById(\'pw-expiry-banner\').remove()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#fff;font-size:18px;cursor:pointer;line-height:1;">✕</button>';
-        document.body.insertBefore(banner, document.body.firstChild);
+
+    // Only trigger popup when 3 days or fewer remain
+    if (typeof days !== 'number' || days <= 0 || days > 3) return;
+
+    // localStorage key — stores the last time popup was shown
+    const STORAGE_KEY = 'tm_pw_expiry_shown';
+    const INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+
+    // Check if 12 hours have passed since last popup
+    try {
+        const lastShown = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+        const now = Date.now();
+        if (now - lastShown < INTERVAL_MS) return; // Not 12 hours yet — skip
+        localStorage.setItem(STORAGE_KEY, String(now)); // Record this show time
+    } catch (e) {
+        // localStorage not available — show anyway
     }
+
+    // Build the popup overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'tm-pw-expiry-overlay';
+    overlay.style.cssText = [
+        'position:fixed',
+        'top:0',
+        'left:0',
+        'width:100%',
+        'height:100%',
+        'background:rgba(0,0,0,0.75)',
+        'backdrop-filter:blur(4px)',
+        '-webkit-backdrop-filter:blur(4px)',
+        'z-index:99999',
+        'display:flex',
+        'align-items:center',
+        'justify-content:center',
+        'animation:tmFadeIn 0.3s ease'
+    ].join(';');
+
+    const dayText = days === 1 ? '1 day' : days + ' days';
+    const urgentColor = days === 1 ? '#dc3545' : '#e67e22';
+    const urgentBg   = days === 1 ? 'rgba(220,53,69,0.15)' : 'rgba(230,126,34,0.12)';
+
+    overlay.innerHTML = `
+        <style>
+            @keyframes tmFadeIn { from { opacity:0; } to { opacity:1; } }
+            @keyframes tmSlideIn { from { opacity:0; transform:translateY(-24px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+            #tm-pw-expiry-card { animation: tmSlideIn 0.35s cubic-bezier(.22,.68,0,1.2); }
+            #tm-pw-expiry-ok:hover { background: ${urgentColor} !important; color:#fff !important; }
+        </style>
+        <div id="tm-pw-expiry-card" style="
+            background:rgba(20,22,35,0.97);
+            border:1.5px solid ${urgentColor};
+            border-radius:16px;
+            padding:36px 32px 28px;
+            max-width:380px;
+            width:90%;
+            text-align:center;
+            box-shadow:0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+            position:relative;
+        ">
+            <div style="
+                width:64px;height:64px;
+                border-radius:50%;
+                background:${urgentBg};
+                border:2px solid ${urgentColor};
+                display:flex;align-items:center;justify-content:center;
+                margin:0 auto 20px;
+                font-size:28px;
+            ">⚠️</div>
+
+            <h2 style="
+                color:#ffffff;
+                font-size:20px;
+                font-weight:700;
+                margin:0 0 10px;
+                letter-spacing:-0.3px;
+            ">Password Expiring Soon</h2>
+
+            <div style="
+                background:${urgentBg};
+                border:1px solid ${urgentColor};
+                border-radius:10px;
+                padding:12px 16px;
+                margin:0 0 18px;
+            ">
+                <p style="
+                    color:${urgentColor};
+                    font-size:22px;
+                    font-weight:700;
+                    margin:0 0 2px;
+                    letter-spacing:-0.5px;
+                ">${dayText} remaining</p>
+                <p style="color:rgba(255,255,255,0.6);font-size:13px;margin:0;">
+                    Your password will expire and you will be logged out.
+                </p>
+            </div>
+
+            <p style="color:rgba(255,255,255,0.55);font-size:13px;margin:0 0 24px;line-height:1.5;">
+                Please contact the administrator immediately to renew your password before it expires.
+            </p>
+
+            <div style="display:flex;gap:10px;justify-content:center;">
+                <button id="tm-pw-expiry-ok" style="
+                    background:transparent;
+                    color:${urgentColor};
+                    border:1.5px solid ${urgentColor};
+                    border-radius:8px;
+                    padding:10px 28px;
+                    font-size:14px;
+                    font-weight:600;
+                    cursor:pointer;
+                    transition:all 0.2s ease;
+                    letter-spacing:0.3px;
+                ">OK, I understand</button>
+            </div>
+
+            <p style="color:rgba(255,255,255,0.25);font-size:11px;margin:16px 0 0;">
+                This reminder appears every 12 hours
+            </p>
+        </div>
+    `;
+
+    // Close on OK button click
+    overlay.querySelector('#tm-pw-expiry-ok').addEventListener('click', function() {
+        overlay.style.animation = 'tmFadeIn 0.2s ease reverse';
+        setTimeout(function() {
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }, 200);
+    });
+
+    // Close on overlay background click
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            overlay.querySelector('#tm-pw-expiry-ok').click();
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function onEsc(e) {
+        if (e.key === 'Escape') {
+            overlay.querySelector('#tm-pw-expiry-ok').click();
+            document.removeEventListener('keydown', onEsc);
+        }
+    });
+
+    // Add to page after a short delay so page loads first
+    setTimeout(function() {
+        document.body.appendChild(overlay);
+    }, 1500);
 })();
 }
 
