@@ -941,7 +941,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
                     performRequest(remainingRetries - 1);
                 } else {
                     document.getElementById('update').innerHTML = `<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div>`;
-                    document.getElementById('list').innerHTML = `<div class='alert alert-danger' role='alert'> We were unable to get data from the server.</div>`;
+                    document.getElementById('list').innerHTML = `<div class='alert alert-danger' role='alert'> We were unable to get data from the server. ` + error + `</div>`;
                     $('#update').hide();
                 }
             });
@@ -1313,6 +1313,22 @@ function append_files_to_fallback_list(path, files) {
         }
 
 
+        /*let targetObj = {};
+        targetFiles.forEach((myFilepath, myIndex) => {
+            if (!targetObj[myFilepath]) {
+                targetObj[myFilepath] = {
+                    filepath: myFilepath,
+                    prev: myIndex === 0 ? null : targetFiles[myIndex - 1],
+                    next: myIndex === targetFiles.length - 1 ? null : targetFiles[myIndex + 1],
+                }
+            }
+        })
+        // log(targetObj)
+        if (Object.keys(targetObj).length) {
+            localStorage.setItem(path, JSON.stringify(targetObj));
+            // log(path)
+        }*/
+
         if (targetFiles.length > 0) {
             let old = localStorage.getItem(path);
             let new_children = targetFiles;
@@ -1444,6 +1460,22 @@ function append_files_to_list(path, files) {
         document.getElementById('select_items').style.display = 'block';
     }
 
+
+    /*let targetObj = {};
+    targetFiles.forEach((myFilepath, myIndex) => {
+        if (!targetObj[myFilepath]) {
+            targetObj[myFilepath] = {
+                filepath: myFilepath,
+                prev: myIndex === 0 ? null : targetFiles[myIndex - 1],
+                next: myIndex === targetFiles.length - 1 ? null : targetFiles[myIndex + 1],
+            }
+        }
+    })
+    // log(targetObj)
+    if (Object.keys(targetObj).length) {
+        localStorage.setItem(path, JSON.stringify(targetObj));
+        // log(path)
+    }*/
 
     if (targetFiles.length > 0) {
         let old = localStorage.getItem(path);
@@ -1701,7 +1733,6 @@ function append_search_result_to_list(files) {
             is_file = true;
             const rawBytesS = Number(item.size || 0);
             totalsize = totalsize + rawBytesS;
-            item['bytes'] = rawBytesS; // store raw bytes for download button threshold check in modal
             item['size'] = formatFileSize(item['size']) || '—';
             item['md5Checksum'] = item['md5Checksum'] || '—';
             const ext = item.fileExtension;
@@ -1950,16 +1981,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 <span>Open in Chrome (Direct)</span>
             </a>`;
 
-        // Build download button using file link
-        // Build full download URL (file['link'] is the raw /dl/... path from server)
-        const _dlUrl = file['link'] ? (UI.random_domain_for_dl ? UI.downloaddomain + file['link'] : window.location.origin + file['link']) : '';
-        const _dlName = encodeURIComponent(file['name'] || '');
-        const _dlBytes = Number(file['bytes'] || 0);
-        const _dlFileId = file_id || '';
-        const _dlBtn = (_dlUrl && !isFolder) ? getDownloadButton(_dlUrl, _dlName, _dlFileId, _dlBytes) : '';
-
-        // Update buttons immediately with download + Chrome link
-        $('#modal-body-space-buttons').html(_dlBtn + chromeButtonHtml + close_btn);
+        // Update buttons immediately with the direct Chrome link
+        $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
         $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
@@ -1982,13 +2005,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // Links are fetched in the background as soon as file rows render.
         // By the time user clicks, the cache is almost always already warm → instant display.
         const cached = window._shortenerCache && window._shortenerCache[directUrl];
-
-        // Store download info for use inside _buildAndShowButtons
-        // Build full download URL (file['link'] is the raw /dl/... path from server)
-        const _gpDlUrl = file['link'] ? (UI.random_domain_for_dl ? UI.downloaddomain + file['link'] : window.location.origin + file['link']) : '';
-        const _gpDlName = encodeURIComponent(file['name'] || '');
-        const _gpDlBytes = Number(file['bytes'] || 0);
-        const _gpDlFileId = file_id || '';
 
         function _buildAndShowButtons(gplinksUrl, nowshortUrl) {
             let buttonsHtml = '';
@@ -2018,9 +2034,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 buttonsHtml += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
             }
 
-            // Add download button alongside GPLinks/Nowshort
-            const _dlBtnGp = (_gpDlUrl && !isFolder) ? getDownloadButton(_gpDlUrl, _gpDlName, _gpDlFileId, _gpDlBytes) : '';
-            $('#modal-body-space-buttons').html(_dlBtnGp + buttonsHtml + close_btn);
+            $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
         }
 
         if (cached && (cached.gplinks || cached.nowshort)) {
@@ -2415,7 +2429,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             <div class="col-lg-4 col-md-12">
                 <div id="preview" class="h-100 border border-dark rounded d-flex justify-content-center align-items-center position-relative" style="--bs-border-opacity: .5;">
                     <div id="code_spinner"></div>
-                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/monokai.min.css">
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/monokai.min.css">
                     <pre id="pre" class="rounded mb-0" style="height: 251px;"><code id="editor" class="h-100" style="white-space: pre-wrap; word-wrap: break-word;"></code></pre>
                     ${bytes >= 1024 * 1024 * 2 && poster ? `
                     <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5; opacity: 0;">
@@ -3028,6 +3042,18 @@ $(function() {
     init();
     if (window.UI?.show_quota) fetchQuota();
     var path = window.location.pathname;
+    /*$("body").on("click", '.folder', function () {
+        var url = $(this).attr('href');
+        history.pushState(null, null, url);
+        render(url);
+        return false;
+    });
+    $("body").on("click", '.view', function () {
+        var url = $(this).attr('href');
+        history.pushState(null, null, url);
+        render(url);
+        return false;
+    });*/
 
     render(path);
 });
@@ -3134,7 +3160,7 @@ async function copyFile(driveid) {
         document.getElementById('spinner').style.display = 'none';
     } catch (error) {
         const copystatus = document.getElementById('copystatus');
-        copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> An error occurred. Please try again.</div>`;
+        copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> An error occurred ` + error + `</div>`;
         document.getElementById('spinner').style.display = 'none';
     }
 }
