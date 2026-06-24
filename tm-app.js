@@ -1701,6 +1701,7 @@ function append_search_result_to_list(files) {
             is_file = true;
             const rawBytesS = Number(item.size || 0);
             totalsize = totalsize + rawBytesS;
+            item['bytes'] = rawBytesS; // store raw bytes for download button threshold check in modal
             item['size'] = formatFileSize(item['size']) || '—';
             item['md5Checksum'] = item['md5Checksum'] || '—';
             const ext = item.fileExtension;
@@ -1949,8 +1950,16 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 <span>Open in Chrome (Direct)</span>
             </a>`;
 
-        // Update buttons immediately with the direct Chrome link
-        $('#modal-body-space-buttons').html(chromeButtonHtml + close_btn);
+        // Build download button using file link
+        // Build full download URL (file['link'] is the raw /dl/... path from server)
+        const _dlUrl = file['link'] ? (UI.random_domain_for_dl ? UI.downloaddomain + file['link'] : window.location.origin + file['link']) : '';
+        const _dlName = encodeURIComponent(file['name'] || '');
+        const _dlBytes = Number(file['bytes'] || 0);
+        const _dlFileId = file_id || '';
+        const _dlBtn = (_dlUrl && !isFolder) ? getDownloadButton(_dlUrl, _dlName, _dlFileId, _dlBytes) : '';
+
+        // Update buttons immediately with download + Chrome link
+        $('#modal-body-space-buttons').html(_dlBtn + chromeButtonHtml + close_btn);
         $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
@@ -1973,6 +1982,13 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // Links are fetched in the background as soon as file rows render.
         // By the time user clicks, the cache is almost always already warm → instant display.
         const cached = window._shortenerCache && window._shortenerCache[directUrl];
+
+        // Store download info for use inside _buildAndShowButtons
+        // Build full download URL (file['link'] is the raw /dl/... path from server)
+        const _gpDlUrl = file['link'] ? (UI.random_domain_for_dl ? UI.downloaddomain + file['link'] : window.location.origin + file['link']) : '';
+        const _gpDlName = encodeURIComponent(file['name'] || '');
+        const _gpDlBytes = Number(file['bytes'] || 0);
+        const _gpDlFileId = file_id || '';
 
         function _buildAndShowButtons(gplinksUrl, nowshortUrl) {
             let buttonsHtml = '';
@@ -2002,7 +2018,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 buttonsHtml += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
             }
 
-            $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
+            // Add download button alongside GPLinks/Nowshort
+            const _dlBtnGp = (_gpDlUrl && !isFolder) ? getDownloadButton(_gpDlUrl, _gpDlName, _gpDlFileId, _gpDlBytes) : '';
+            $('#modal-body-space-buttons').html(_dlBtnGp + buttonsHtml + close_btn);
         }
 
         if (cached && (cached.gplinks || cached.nowshort)) {
