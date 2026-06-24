@@ -941,7 +941,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
                     performRequest(remainingRetries - 1);
                 } else {
                     document.getElementById('update').innerHTML = `<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div>`;
-                    document.getElementById('list').innerHTML = `<div class='alert alert-danger' role='alert'> We were unable to get data from the server. ` + error + `</div>`;
+                    document.getElementById('list').innerHTML = `<div class='alert alert-danger' role='alert'> We were unable to get data from the server.</div>`;
                     $('#update').hide();
                 }
             });
@@ -1313,22 +1313,6 @@ function append_files_to_fallback_list(path, files) {
         }
 
 
-        /*let targetObj = {};
-        targetFiles.forEach((myFilepath, myIndex) => {
-            if (!targetObj[myFilepath]) {
-                targetObj[myFilepath] = {
-                    filepath: myFilepath,
-                    prev: myIndex === 0 ? null : targetFiles[myIndex - 1],
-                    next: myIndex === targetFiles.length - 1 ? null : targetFiles[myIndex + 1],
-                }
-            }
-        })
-        // log(targetObj)
-        if (Object.keys(targetObj).length) {
-            localStorage.setItem(path, JSON.stringify(targetObj));
-            // log(path)
-        }*/
-
         if (targetFiles.length > 0) {
             let old = localStorage.getItem(path);
             let new_children = targetFiles;
@@ -1460,22 +1444,6 @@ function append_files_to_list(path, files) {
         document.getElementById('select_items').style.display = 'block';
     }
 
-
-    /*let targetObj = {};
-    targetFiles.forEach((myFilepath, myIndex) => {
-        if (!targetObj[myFilepath]) {
-            targetObj[myFilepath] = {
-                filepath: myFilepath,
-                prev: myIndex === 0 ? null : targetFiles[myIndex - 1],
-                next: myIndex === targetFiles.length - 1 ? null : targetFiles[myIndex + 1],
-            }
-        }
-    })
-    // log(targetObj)
-    if (Object.keys(targetObj).length) {
-        localStorage.setItem(path, JSON.stringify(targetObj));
-        // log(path)
-    }*/
 
     if (targetFiles.length > 0) {
         let old = localStorage.getItem(path);
@@ -3042,18 +3010,6 @@ $(function() {
     init();
     if (window.UI?.show_quota) fetchQuota();
     var path = window.location.pathname;
-    /*$("body").on("click", '.folder', function () {
-        var url = $(this).attr('href');
-        history.pushState(null, null, url);
-        render(url);
-        return false;
-    });
-    $("body").on("click", '.view', function () {
-        var url = $(this).attr('href');
-        history.pushState(null, null, url);
-        render(url);
-        return false;
-    });*/
 
     render(path);
 });
@@ -3160,7 +3116,7 @@ async function copyFile(driveid) {
         document.getElementById('spinner').style.display = 'none';
     } catch (error) {
         const copystatus = document.getElementById('copystatus');
-        copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> An error occurred ` + error + `</div>`;
+        copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> An error occurred. Please try again.</div>`;
         document.getElementById('spinner').style.display = 'none';
     }
 }
