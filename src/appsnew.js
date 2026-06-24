@@ -1560,6 +1560,11 @@ function render_search_result_list() {
             <div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
             ${searchBar}
         </div>
+        <div class="d-flex align-items-center gap-2 px-3 py-1" id="tm-sort-bar" style="border-bottom:1px solid rgba(255,255,255,.1); font-size:12px; color:rgba(255,255,255,.55);">
+            <span style="flex:1;">Sort:</span>
+            <button class="btn btn-sm btn-outline-secondary py-0 tm-sort-btn" data-col="name" style="font-size:11px;">Name <span class="tm-sort-icon"></span></button>
+            <button class="btn btn-sm btn-outline-secondary py-0 tm-sort-btn" data-col="size" style="font-size:11px;">Size <span class="tm-sort-icon"></span></button>
+        </div>
         <div id="list" class="list-group list-group-flush text-break">
             <div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>
         </div>
@@ -1717,7 +1722,7 @@ function append_search_result_to_list(files) {
                 item['md5Checksum'] = '—';
                 const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
                 const folderDirectUrl = '/fallback?id=' + encodeURIComponent(item['id']);
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="${folderDirectUrl}" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${item.folderSize || 0}"><a href="${folderDirectUrl}" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
                 continue;
             }
 
@@ -1728,12 +1733,13 @@ function append_search_result_to_list(files) {
 
             // Only process files (folders handled above)
             is_file = true;
-            totalsize = totalsize + Number(item.size || 0);
+            const rawBytesS = Number(item.size || 0);
+            totalsize = totalsize + rawBytesS;
             item['size'] = formatFileSize(item['size']) || '—';
             item['md5Checksum'] = item['md5Checksum'] || '—';
             const ext = item.fileExtension;
             const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytesS}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
 
             html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1746,6 +1752,7 @@ function append_search_result_to_list(files) {
         // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+        initTMSort();
 
         // ── Background prefetch: warm _shortenerCache for all visible files ──────
         // Only runs when show_url_shortener=true and user is NOT logged in.
