@@ -587,6 +587,19 @@ $('body').html(html);
 
 // Initialize login modal functionality
 initializeLoginModal();
+
+// ✅ IMPROVEMENT: Show password-expiry warning banner if the worker
+// injected window.PW_EXPIRES_IN (≤ 7 days remaining).
+(function checkPasswordExpiryWarning() {
+    const days = window.PW_EXPIRES_IN;
+    if (typeof days === 'number' && days > 0 && days <= 7) {
+        const banner = document.createElement('div');
+        banner.id = 'pw-expiry-banner';
+        banner.style.cssText = 'position:fixed;top:0;left:0;width:100%;z-index:9999;background:#856404;color:#fff;text-align:center;padding:8px 40px 8px 16px;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.4);';
+        banner.innerHTML = '⚠️ Your password expires in <strong>' + days + ' day' + (days === 1 ? '' : 's') + '</strong>. Please contact the administrator to renew it. <button onclick="document.getElementById(\'pw-expiry-banner\').remove()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#fff;font-size:18px;cursor:pointer;line-height:1;">✕</button>';
+        document.body.insertBefore(banner, document.body.firstChild);
+    }
+})();
 }
 
 // Initialize login modal functionality
@@ -700,6 +713,12 @@ function initializeLoginModal() {
     if (error) {
         openLoginModal();
         showError(decodeURIComponent(error));
+        // ✅ FIX: Clear the ?error= param so refreshing the page doesn't
+        // re-open the modal and re-show the old error message.
+        try {
+            const cleanUrl = window.location.pathname + (urlParams.toString().replace(/error=[^&]*&?/, '').replace(/&$/, '') ? '?' + urlParams.toString().replace(/error=[^&]*&?/, '').replace(/&$/, '') : '');
+            window.history.replaceState(null, '', cleanUrl || window.location.pathname);
+        } catch (_) {}
     }
 }
 
@@ -893,12 +912,15 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
     }
 
     function performRequest(remainingRetries) {
+        // ✅ IMPROVEMENT: Add 15s timeout so a hung server doesn't stall
+        // the request until Cloudflare Worker's CPU limit is hit.
         fetch(fallback ? "/0:fallback" : path, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(requestData)
+                body: JSON.stringify(requestData),
+                signal: AbortSignal.timeout(15000)
             })
             .then(function(response) {
                 if (response.status === 500) {
