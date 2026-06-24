@@ -1033,10 +1033,10 @@ function list(path, id = '', fallback = false) {
         <div class="card-header d-flex align-items-center gap-2">
             <span>${folder_ico}</span><span class="w-100 text-truncate" id="dirname">${folder_name}</span>
         </div>
-        <div class="d-flex align-items-center gap-2 px-3 py-1" id="tm-sort-bar" style="background:#444; border-bottom:1px solid rgba(255,255,255,.1); font-size:12px; color:rgba(255,255,255,.55);">
+        <div class="d-flex align-items-center gap-2 px-3 py-1" id="tm-sort-bar" style="border-bottom:1px solid rgba(255,255,255,.1); font-size:12px; color:rgba(255,255,255,.55);">
             <span style="flex:1;">Sort:</span>
-            <button class="btn btn-sm py-0 tm-sort-btn" data-col="name" style="font-size:11px; color:#fff; border:1px solid rgba(255,255,255,.4); background:transparent;">Name <span class="tm-sort-icon"></span></button>
-            <button class="btn btn-sm py-0 tm-sort-btn" data-col="size" style="font-size:11px; color:#fff; border:1px solid rgba(255,255,255,.4); background:transparent;">Size <span class="tm-sort-icon"></span></button>
+            <button class="btn btn-sm btn-outline-secondary py-0 tm-sort-btn" data-col="name" style="font-size:11px;">Name <span class="tm-sort-icon"></span></button>
+            <button class="btn btn-sm btn-outline-secondary py-0 tm-sort-btn" data-col="size" style="font-size:11px;">Size <span class="tm-sort-icon"></span></button>
         </div>
         <div id="list" class="list-group list-group-flush text-break">
         </div>
@@ -1061,7 +1061,8 @@ function list(path, id = '', fallback = false) {
             title(res['name']);
             $('#dirname').html(res['name']);
         }
-
+        $('#sharer').attr('href', 'https://kaceku.onrender.com/f/' + res['fid']);
+        $('#sharer').removeClass('d-none');
         $('#list')
             .data('nextPageToken', res['nextPageToken'])
             .data('curPageIndex', res['curPageIndex']);
@@ -1559,10 +1560,10 @@ function render_search_result_list() {
             <div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
             ${searchBar}
         </div>
-        <div class="d-flex align-items-center gap-2 px-3 py-1" id="tm-sort-bar" style="background:#444; border-bottom:1px solid rgba(255,255,255,.1); font-size:12px; color:rgba(255,255,255,.55);">
+        <div class="d-flex align-items-center gap-2 px-3 py-1" id="tm-sort-bar" style="border-bottom:1px solid rgba(255,255,255,.1); font-size:12px; color:rgba(255,255,255,.55);">
             <span style="flex:1;">Sort:</span>
-            <button class="btn btn-sm py-0 tm-sort-btn" data-col="name" style="font-size:11px; color:#fff; border:1px solid rgba(255,255,255,.4); background:transparent;">Name <span class="tm-sort-icon"></span></button>
-            <button class="btn btn-sm py-0 tm-sort-btn" data-col="size" style="font-size:11px; color:#fff; border:1px solid rgba(255,255,255,.4); background:transparent;">Size <span class="tm-sort-icon"></span></button>
+            <button class="btn btn-sm btn-outline-secondary py-0 tm-sort-btn" data-col="name" style="font-size:11px;">Name <span class="tm-sort-icon"></span></button>
+            <button class="btn btn-sm btn-outline-secondary py-0 tm-sort-btn" data-col="size" style="font-size:11px;">Size <span class="tm-sort-icon"></span></button>
         </div>
         <div id="list" class="list-group list-group-flush text-break">
             <div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>
