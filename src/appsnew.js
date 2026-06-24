@@ -1,5 +1,5 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
-// v2.3.6
+// v2.6.0
 
 // =============================================================================
 // OPTIMIZATION: Conditional Logging
@@ -541,6 +541,12 @@ strong {
   </div>
 </div>
 <button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
+${UI.show_quota ? `<div id="tm-quota-bar" style="display:none; padding:6px 16px; background:rgba(0,0,0,0.3); font-size:12px; color:rgba(255,255,255,.7);">
+  <span id="tm-quota-text"></span>
+  <div style="height:4px; background:rgba(255,255,255,.15); border-radius:2px; margin-top:4px;">
+    <div id="tm-quota-fill" style="height:4px; border-radius:2px; width:0%; background:#4caf50; transition:width 0.4s;"></div>
+  </div>
+</div>` : ''}
 <footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
     <div class="container" style="padding-top: 15px;">
       <div class="row">
@@ -1027,17 +1033,10 @@ function list(path, id = '', fallback = false) {
         <div class="card-header d-flex align-items-center gap-2">
             <span>${folder_ico}</span><span class="w-100 text-truncate" id="dirname">${folder_name}</span>
         </div>
-        <div class="card-body py-2 px-3" style="border-bottom:1px solid rgba(255,255,255,0.08);">
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <div class="input-group flex-nowrap" style="max-width:260px;min-width:160px;flex:0 0 auto;">
-              <span class="input-group-text" style="background:transparent;border-color:rgba(140,130,115,0.13);"><i class="fas fa-search" style="margin:0;font-size:13px;"></i></span>
-              <input id="folder-filter" class="form-control" type="search" placeholder="Search files…" aria-label="Search files" autocomplete="off">
-            </div>
-            <div id="list-sort-header" class="d-flex gap-2 ms-auto flex-shrink-0">
-              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="name">Name</button>
-              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="size">Size</button>
-            </div>
-          </div>
+        <div class="d-flex align-items-center gap-2 px-3 py-1" id="tm-sort-bar" style="border-bottom:1px solid rgba(255,255,255,.1); font-size:12px; color:rgba(255,255,255,.55);">
+            <span style="flex:1;">Sort:</span>
+            <button class="btn btn-sm btn-outline-secondary py-0 tm-sort-btn" data-col="name" style="font-size:11px;">Name <span class="tm-sort-icon"></span></button>
+            <button class="btn btn-sm btn-outline-secondary py-0 tm-sort-btn" data-col="size" style="font-size:11px;">Size <span class="tm-sort-icon"></span></button>
         </div>
         <div id="list" class="list-group list-group-flush text-break">
         </div>
@@ -1079,8 +1078,6 @@ function list(path, id = '', fallback = false) {
             } else {
                 append_files_to_list(path, res['data']['files']);
             }
-            initFolderFilter();
-            initColumnSort();
         } else {
             log('doing something...')
             if (fallback) {
@@ -1088,8 +1085,6 @@ function list(path, id = '', fallback = false) {
             } else {
                 append_files_to_list(path, res['data']['files']);
             }
-            initFolderFilter();
-            initColumnSort();
             if (window.scroll_status.event_bound !== true) {
                 $(window).on('scroll', function() {
                     var scrollTop = $(this).scrollTop();
@@ -1270,14 +1265,14 @@ function append_files_to_fallback_list(path, files) {
                 // Prepare item data for modal — set size/md5 fields expected by onSearchResultItemClick
                 const _fItem = Object.assign({}, item, { size: folderSizeStr, md5Checksum: '—' });
                 const _fItemJson = JSON.stringify(_fItem).replace(/"/g, '&quot;');
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" data-name="${escapeHtml(item.name)}" data-bytes="${Number(item.folderSize || 0)}"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${item.folderSize || 0}"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
                 ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="Open Folder"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
             } else {
                 totalsize = totalsize + Number(item.size || 0);
-                item._rawBytes = Number(item.size || 0);
                 item['size'] = formatFileSize(item['size']) || '—';
                 is_file = true;
                 const epn = item.name;
+                const rawBytesF = Number(files[i].size || 0);
                 const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
                 let pn = path + epn.replace(_reHash, '%23').replace(_reQ, '%3F');
                 let c = "file";
@@ -1307,7 +1302,7 @@ function append_files_to_fallback_list(path, files) {
                 const _fileLink = _isArchive
                     ? `href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel"`
                     : `href="${p}&a=view"`;
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" data-name="${escapeHtml(item.name)}" data-bytes="${Number(item._rawBytes || 0)}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" ${_fileLink}><span>`
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytesF}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" ${_fileLink}><span>`
 
                 html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1364,6 +1359,7 @@ function append_files_to_fallback_list(path, files) {
     // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+        initTMSort();
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
             const total_size_str = formatFileSize(totalsize) || '0 Bytes';
@@ -1424,11 +1420,11 @@ function append_files_to_list(path, files) {
         // replace / with %2F
         if (item['mimeType'] == 'application/vnd.google-apps.folder') {
             const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" data-name="${escapeHtml(item.name)}" data-bytes="${Number(item.folderSize || 0)}"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${item.folderSize || 0}"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
             ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
         } else {
-            totalsize = totalsize + Number(item.size || 0);
-            item._rawBytes = Number(item.size || 0);
+            const rawBytes = Number(item.size || 0);
+            totalsize = totalsize + rawBytes;
             item['size'] = formatFileSize(item['size']) || '—';
             is_file = true;
             const epn = item.name;
@@ -1454,7 +1450,7 @@ function append_files_to_list(path, files) {
             pn += "?a=view";
             c += " view";
             //}
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" data-name="${escapeHtml(item.name)}" data-bytes="${Number(item._rawBytes || 0)}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytes}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
 
             html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1511,6 +1507,7 @@ function append_files_to_list(path, files) {
     // When it is page 1, remove the horizontal loading bar
     // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+    initTMSort();
     // When it is the last page, count and display the total number of items
     if (is_lastpage_loaded) {
         total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1533,57 +1530,6 @@ function append_files_to_list(path, files) {
 /**
  * Render the search results list. There is a lot of repetitive code, but there are different logics in it.
  */
-// =============================================================================
-// FOLDER FILTER (live search) & COLUMN SORT
-// Delegated on document so it survives DOM rebuilds on each page/search render.
-// =============================================================================
-let _folderFilterBound = false;
-function initFolderFilter() {
-    if (_folderFilterBound) return;
-    _folderFilterBound = true;
-    $(document).on('input', '#folder-filter', function() {
-        const q = this.value.trim().toLowerCase();
-        $('#list .list-group-item').each(function() {
-            const name = ($(this).data('name') || $(this).find('a.countitems').first().text()).toLowerCase();
-            $(this).toggle(!q || name.includes(q));
-        });
-    });
-    $(document).on('keydown', '#folder-filter', function(e) {
-        if (e.key === 'Enter') e.preventDefault();
-    });
-}
-
-let _sortState = { col: null, dir: 1 };
-function initColumnSort() {
-    const buttons = document.querySelectorAll('#list-sort-header .gdi-sort-btn');
-    buttons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const col = this.dataset.sort;
-            if (_sortState.col === col) _sortState.dir *= -1;
-            else { _sortState.col = col; _sortState.dir = 1; }
-            buttons.forEach(b => {
-                b.classList.remove('active');
-                b.textContent = b.dataset.sort.charAt(0).toUpperCase() + b.dataset.sort.slice(1);
-            });
-            this.classList.add('active');
-            this.textContent = col.charAt(0).toUpperCase() + col.slice(1) + (_sortState.dir === 1 ? ' ↑' : ' ↓');
-            sortFileList(col, _sortState.dir);
-        });
-    });
-}
-
-function sortFileList(col, dir) {
-    const $list = $('#list');
-    const items = $list.children('.list-group-item').toArray();
-    items.sort((a, b) => {
-        if (col === 'size') return dir * ((parseFloat($(a).data('bytes')) || 0) - (parseFloat($(b).data('bytes')) || 0));
-        const av = ($(a).data('name') || $(a).find('a.countitems').first().text() || '').toLowerCase();
-        const bv = ($(b).data('name') || $(b).find('a.countitems').first().text() || '').toLowerCase();
-        return dir * av.localeCompare(bv);
-    });
-    items.forEach(el => $list.append(el));
-}
-
 function render_search_result_list() {
     var model = window.MODEL;
 
@@ -1613,14 +1559,6 @@ function render_search_result_list() {
         <div class="card-header">
             <div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
             ${searchBar}
-        </div>
-        <div class="card-body py-1 px-3" style="border-bottom:1px solid rgba(255,255,255,0.08);">
-          <div class="d-flex justify-content-end gap-2">
-            <div id="list-sort-header" class="d-flex gap-2 flex-shrink-0">
-              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="name">Name</button>
-              <button class="btn btn-sm btn-outline-secondary gdi-sort-btn" data-sort="size">Size</button>
-            </div>
-          </div>
         </div>
         <div id="list" class="list-group list-group-flush text-break">
             <div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>
@@ -1684,8 +1622,6 @@ function render_search_result_list() {
         // Fast render with requestAnimationFrame
         requestAnimationFrame(() => {
             append_search_result_to_list(res['data']['files']);
-            initFolderFilter();
-            initColumnSort();
         });
 
         // Setup scroll only once
@@ -1781,7 +1717,7 @@ function append_search_result_to_list(files) {
                 item['md5Checksum'] = '—';
                 const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
                 const folderDirectUrl = '/fallback?id=' + encodeURIComponent(item['id']);
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${Number(item.folderSize || 0)}"><a href="${folderDirectUrl}" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="${folderDirectUrl}" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
                 continue;
             }
 
@@ -1793,12 +1729,11 @@ function append_search_result_to_list(files) {
             // Only process files (folders handled above)
             is_file = true;
             totalsize = totalsize + Number(item.size || 0);
-            item._rawBytes = Number(item.size || 0);
             item['size'] = formatFileSize(item['size']) || '—';
             item['md5Checksum'] = item['md5Checksum'] || '—';
             const ext = item.fileExtension;
             const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${Number(item._rawBytes || 0)}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
 
             html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -2386,7 +2321,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
                     <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5; opacity: 0;">
                         <span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
                         <span>Preview</span>
-                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${name}"></a>
+                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${escapeHtml(name)}"></a>
                     </div>
                 </div>` : `
                 <div class="h-100 border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;">
@@ -2456,7 +2391,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
     // GDFlix handler is registered once at module level (see bottom of file)
 
     $('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
-    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
+    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${escapeHtml(name)}" title="Preview of ${escapeHtml(name)}">`;
     var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
     $('#modal-body-space').html(preview);
     $('#modal-body-space-buttons').html(btn);
@@ -2495,7 +2430,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                     <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5; opacity: 0;">
                         <span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
                         <span>Preview</span>
-                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${name}"></a>
+                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${escapeHtml(name)}"></a>
                     </div>` : ``}
                 </div>
             </div>
@@ -2561,7 +2496,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     // GDFlix handler is registered once at module level (see bottom of file)
 
     $('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
-    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
+    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${escapeHtml(name)}" title="Preview of ${escapeHtml(name)}">`;
     var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
     $('#modal-body-space').html(preview);
     $('#modal-body-space-buttons').html(btn);
@@ -3100,6 +3035,7 @@ window.onpopstate = function() {
 
 $(function() {
     init();
+    if (window.UI?.show_quota) fetchQuota();
     var path = window.location.pathname;
     /*$("body").on("click", '.folder', function () {
         var url = $(this).attr('href');
@@ -3334,6 +3270,76 @@ $(document).on('click', '.gdflix-btn, .download-via-gdflix', function() {
             logError('GDFlix error:', error);
         });
 });
+
+// =============================================================================
+// COLUMN SORT — Name & Size only
+// =============================================================================
+let _tmSortState = { col: null, dir: 1 };
+
+function initTMSort() {
+    const bar = document.getElementById('tm-sort-bar');
+    if (!bar) return;
+    // Reset icons
+    bar.querySelectorAll('.tm-sort-btn').forEach(btn => {
+        const icon = btn.querySelector('.tm-sort-icon');
+        const col = btn.dataset.col;
+        if (icon) icon.textContent = _tmSortState.col === col ? (_tmSortState.dir === 1 ? ' ▲' : ' ▼') : '';
+        btn.onclick = function () {
+            if (_tmSortState.col === col) {
+                _tmSortState.dir *= -1;
+            } else {
+                _tmSortState.col = col;
+                _tmSortState.dir = 1;
+            }
+            tmSortList();
+            initTMSort(); // refresh icons
+        };
+    });
+}
+
+function tmSortList() {
+    const $list = $('#list');
+    const rows = $list.children('.tm-row').toArray();
+    if (!rows.length) return;
+    rows.sort((a, b) => {
+        if (_tmSortState.col === 'size') {
+            return _tmSortState.dir * ((parseFloat(a.dataset.bytes) || 0) - (parseFloat(b.dataset.bytes) || 0));
+        }
+        // name
+        const av = (a.dataset.name || '').toLowerCase();
+        const bv = (b.dataset.name || '').toLowerCase();
+        return _tmSortState.dir * av.localeCompare(bv);
+    });
+    rows.forEach(el => $list.append(el));
+}
+
+// =============================================================================
+// QUOTA DISPLAY
+// =============================================================================
+function fetchQuota() {
+    const cur = window.current_drive_order || 0;
+    fetch(`/${cur}:quota`)
+        .then(r => { if (!r.ok) throw new Error('quota fetch failed'); return r.json(); })
+        .then(data => {
+            const q = data.storageQuota;
+            if (!q) return;
+            const used = Number(q.usage || 0);
+            const total = Number(q.limit || 0);
+            const bar = document.getElementById('tm-quota-bar');
+            const text = document.getElementById('tm-quota-text');
+            const fill = document.getElementById('tm-quota-fill');
+            if (!bar || !text || !fill) return;
+            const pct = total > 0 ? Math.min(100, (used / total) * 100) : 0;
+            const color = pct > 90 ? '#f44336' : pct > 70 ? '#ff9800' : '#4caf50';
+            text.textContent = total > 0
+                ? `${formatFileSize(used)} used of ${formatFileSize(total)} (${pct.toFixed(1)}%)`
+                : `${formatFileSize(used)} used`;
+            fill.style.width = pct + '%';
+            fill.style.background = color;
+            bar.style.display = 'block';
+        })
+        .catch(() => {});
+}
 
 // =============================================================================
 // DOWNLOAD TIMER — 5-second countdown → trigger download → show "File Downloading..." toast
