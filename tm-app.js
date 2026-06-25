@@ -599,150 +599,200 @@ function checkPasswordExpiryWarning() {
     // Don't show again if already visible on this page
     if (document.getElementById('tm-pw-expiry-overlay')) return;
 
-
     // localStorage key — stores the last time popup was shown
     const STORAGE_KEY = 'tm_pw_expiry_shown';
-    const INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+    const INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 
-    // Check if 12 hours have passed since last popup
+    // Check if 6 hours have passed since last popup
     try {
         const lastShown = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
         const now = Date.now();
-        if (now - lastShown < INTERVAL_MS) return; // Not 12 hours yet — skip
+        if (now - lastShown < INTERVAL_MS) return; // Not 6 hours yet — skip
         localStorage.setItem(STORAGE_KEY, String(now)); // Record this show time
     } catch (e) {
         // localStorage not available — show anyway
     }
 
-    // Build the popup overlay
+    // Color scheme based on urgency
+    const isLastDay = days === 1;
+    const accentColor  = isLastDay ? '#ff4757' : '#ff6b35';
+    const accentGlow   = isLastDay ? 'rgba(255,71,87,0.4)'  : 'rgba(255,107,53,0.4)';
+    const accentBg     = isLastDay ? 'rgba(255,71,87,0.08)' : 'rgba(255,107,53,0.08)';
+    const accentBorder = isLastDay ? 'rgba(255,71,87,0.3)'  : 'rgba(255,107,53,0.3)';
+    const dayLabel     = isLastDay ? 'Last Day!' : days + ' Days Left';
+    const barWidth     = days === 3 ? '33%' : days === 2 ? '66%' : '100%';
+    const barColor     = isLastDay ? '#ff4757' : days === 2 ? '#ff6b35' : '#ffa502';
+
+    // Build overlay
     const overlay = document.createElement('div');
     overlay.id = 'tm-pw-expiry-overlay';
-    overlay.style.cssText = [
-        'position:fixed',
-        'top:0',
-        'left:0',
-        'width:100%',
-        'height:100%',
-        'background:rgba(0,0,0,0.75)',
-        'backdrop-filter:blur(4px)',
-        '-webkit-backdrop-filter:blur(4px)',
-        'z-index:99999',
-        'display:flex',
-        'align-items:center',
-        'justify-content:center',
-        'animation:tmFadeIn 0.3s ease'
-    ].join(';');
-
-    const dayText = days === 1 ? '1 day' : days + ' days';
-    const urgentColor = days === 1 ? '#dc3545' : '#e67e22';
-    const urgentBg   = days === 1 ? 'rgba(220,53,69,0.15)' : 'rgba(230,126,34,0.12)';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;display:flex;align-items:center;justify-content:center;';
 
     overlay.innerHTML = `
-        <style>
-            @keyframes tmFadeIn { from { opacity:0; } to { opacity:1; } }
-            @keyframes tmSlideIn { from { opacity:0; transform:translateY(-24px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
-            #tm-pw-expiry-card { animation: tmSlideIn 0.35s cubic-bezier(.22,.68,0,1.2); }
-            #tm-pw-expiry-ok:hover { background: ${urgentColor} !important; color:#fff !important; }
-        </style>
-        <div id="tm-pw-expiry-card" style="
-            background:rgba(20,22,35,0.97);
-            border:1.5px solid ${urgentColor};
-            border-radius:16px;
-            padding:36px 32px 28px;
-            max-width:380px;
-            width:90%;
-            text-align:center;
-            box-shadow:0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
-            position:relative;
+    <style>
+        @keyframes _tmBgIn   { from{opacity:0} to{opacity:1} }
+        @keyframes _tmCardIn { from{opacity:0;transform:translateY(32px) scale(0.95)} to{opacity:1;transform:translateY(0) scale(1)} }
+        @keyframes _tmPulse  { 0%,100%{box-shadow:0 0 0 0 ${accentGlow}} 50%{box-shadow:0 0 0 10px transparent} }
+        @keyframes _tmSpin   { to{transform:rotate(360deg)} }
+        @keyframes _tmBarFill{ from{width:0} to{width:${barWidth}} }
+        @keyframes _tmBlink  { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        #_tm_bg  { animation:_tmBgIn 0.3s ease forwards; }
+        #_tm_card{ animation:_tmCardIn 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+        #_tm_okbtn:hover { transform:translateY(-1px); box-shadow:0 6px 20px ${accentGlow} !important; }
+        #_tm_okbtn:active{ transform:translateY(0); }
+        #_tm_tgbtn:hover { background:rgba(255,255,255,0.08) !important; }
+        #_tm_bar_fill { animation:_tmBarFill 1.2s cubic-bezier(0.4,0,0.2,1) 0.6s both; }
+        ${isLastDay ? '#_tm_icon_ring { animation:_tmPulse 1.5s ease-in-out infinite; }' : ''}
+    </style>
+
+    <!-- Backdrop -->
+    <div id="_tm_bg" style="position:absolute;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);"></div>
+
+    <!-- Card -->
+    <div id="_tm_card" style="
+        position:relative;
+        width:92%;max-width:420px;
+        background:linear-gradient(145deg,rgba(18,20,32,0.98),rgba(24,27,42,0.98));
+        border:1px solid ${accentBorder};
+        border-radius:24px;
+        overflow:hidden;
+        box-shadow:0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.06);
+    ">
+        <!-- Top accent bar -->
+        <div style="height:3px;background:linear-gradient(90deg,transparent,${accentColor},transparent);"></div>
+
+        <!-- Header strip -->
+        <div style="
+            background:${accentBg};
+            border-bottom:1px solid ${accentBorder};
+            padding:18px 24px 16px;
+            display:flex;align-items:center;gap:14px;
         ">
-            <div style="
-                width:64px;height:64px;
+            <!-- Animated icon -->
+            <div id="_tm_icon_ring" style="
+                width:48px;height:48px;flex-shrink:0;
                 border-radius:50%;
-                background:${urgentBg};
-                border:2px solid ${urgentColor};
+                background:${accentBg};
+                border:2px solid ${accentColor};
                 display:flex;align-items:center;justify-content:center;
-                margin:0 auto 20px;
-                font-size:28px;
-            ">⚠️</div>
-
-            <h2 style="
-                color:#ffffff;
-                font-size:20px;
-                font-weight:700;
-                margin:0 0 10px;
-                letter-spacing:-0.3px;
-            ">Password Expiring Soon</h2>
-
-            <div style="
-                background:${urgentBg};
-                border:1px solid ${urgentColor};
-                border-radius:10px;
-                padding:12px 16px;
-                margin:0 0 18px;
-            ">
-                <p style="
-                    color:${urgentColor};
-                    font-size:22px;
-                    font-weight:700;
-                    margin:0 0 2px;
-                    letter-spacing:-0.5px;
-                ">${dayText} remaining</p>
-                <p style="color:rgba(255,255,255,0.6);font-size:13px;margin:0;">
-                    Your password will expire and you will be logged out.
-                </p>
+                font-size:22px;
+            ">🔐</div>
+            <div>
+                <div style="color:rgba(255,255,255,0.5);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;">Security Alert</div>
+                <div style="color:#fff;font-size:17px;font-weight:700;letter-spacing:-0.3px;">Password Expiring Soon</div>
             </div>
-
-            <p style="color:rgba(255,255,255,0.55);font-size:13px;margin:0 0 24px;line-height:1.5;">
-                Please contact the administrator immediately to renew your password before it expires.
-            </p>
-
-            <div style="display:flex;gap:10px;justify-content:center;">
-                <button id="tm-pw-expiry-ok" style="
-                    background:transparent;
-                    color:${urgentColor};
-                    border:1.5px solid ${urgentColor};
-                    border-radius:8px;
-                    padding:10px 28px;
-                    font-size:14px;
-                    font-weight:600;
-                    cursor:pointer;
-                    transition:all 0.2s ease;
-                    letter-spacing:0.3px;
-                ">OK, I understand</button>
-            </div>
-
-            <p style="color:rgba(255,255,255,0.25);font-size:11px;margin:16px 0 0;">
-                This reminder appears every 12 hours
-            </p>
+            <!-- Close X -->
+            <button id="_tm_close" style="
+                margin-left:auto;width:30px;height:30px;flex-shrink:0;
+                background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+                border-radius:50%;color:rgba(255,255,255,0.5);font-size:16px;
+                cursor:pointer;display:flex;align-items:center;justify-content:center;
+                transition:all 0.2s;line-height:1;
+            ">×</button>
         </div>
-    `;
 
-    // Close on OK button click
-    overlay.querySelector('#tm-pw-expiry-ok').addEventListener('click', function() {
-        overlay.style.animation = 'tmFadeIn 0.2s ease reverse';
+        <!-- Body -->
+        <div style="padding:24px 24px 20px;">
+
+            <!-- Countdown badge -->
+            <div style="
+                background:${accentBg};
+                border:1px solid ${accentBorder};
+                border-radius:14px;
+                padding:16px 20px;
+                margin-bottom:20px;
+                display:flex;align-items:center;gap:16px;
+            ">
+                <div style="text-align:center;flex-shrink:0;">
+                    <div style="color:${accentColor};font-size:42px;font-weight:800;line-height:1;letter-spacing:-2px;">${days}</div>
+                    <div style="color:rgba(255,255,255,0.45);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-top:2px;">DAY${days > 1 ? 'S' : ''}</div>
+                </div>
+                <div style="flex:1;border-left:1px solid ${accentBorder};padding-left:16px;">
+                    <div style="color:#fff;font-size:14px;font-weight:600;margin-bottom:4px;">${dayLabel}</div>
+                    <div style="color:rgba(255,255,255,0.45);font-size:12px;line-height:1.5;">Your password will expire and you will be automatically logged out.</div>
+                </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div style="margin-bottom:20px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:7px;">
+                    <span style="color:rgba(255,255,255,0.4);font-size:11px;font-weight:500;">Password validity</span>
+                    <span style="color:${accentColor};font-size:11px;font-weight:600;">${dayLabel}</span>
+                </div>
+                <div style="height:6px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden;">
+                    <div id="_tm_bar_fill" style="height:100%;width:0;background:linear-gradient(90deg,${barColor},${accentColor});border-radius:99px;box-shadow:0 0 8px ${accentGlow};"></div>
+                </div>
+            </div>
+
+            <!-- Info message -->
+            <div style="
+                background:rgba(255,255,255,0.03);
+                border:1px solid rgba(255,255,255,0.07);
+                border-radius:10px;
+                padding:12px 14px;
+                display:flex;gap:10px;align-items:flex-start;
+                margin-bottom:20px;
+            ">
+                <span style="font-size:15px;flex-shrink:0;margin-top:1px;">💬</span>
+                <span style="color:rgba(255,255,255,0.5);font-size:12px;line-height:1.6;">Contact the <strong style="color:rgba(255,255,255,0.75);">administrator</strong> immediately via Telegram to renew your password before it expires.</span>
+            </div>
+
+            <!-- Telegram button + OK button -->
+            <div style="display:flex;gap:10px;">
+                <a href="https://telegram.me/tamizhan_movies" target="_blank" id="_tm_tgbtn" style="
+                    flex:1;
+                    background:rgba(255,255,255,0.05);
+                    border:1px solid rgba(255,255,255,0.1);
+                    border-radius:12px;
+                    padding:12px;
+                    display:flex;align-items:center;justify-content:center;gap:8px;
+                    color:rgba(255,255,255,0.65);font-size:13px;font-weight:500;
+                    text-decoration:none;transition:all 0.2s;
+                ">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#29A8E0"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 13.667l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.978.892z"/></svg>
+                    Contact Admin
+                </a>
+                <button id="_tm_okbtn" style="
+                    flex:2;
+                    background:linear-gradient(135deg,${accentColor},${isLastDay ? '#c0392b' : '#e55a2b'});
+                    border:none;border-radius:12px;
+                    padding:12px 20px;
+                    color:#fff;font-size:14px;font-weight:700;
+                    cursor:pointer;letter-spacing:0.3px;
+                    transition:all 0.2s ease;
+                    box-shadow:0 4px 15px ${accentGlow};
+                ">✓ Got it, remind me later</button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="
+            padding:10px 24px 14px;
+            display:flex;align-items:center;justify-content:center;gap:6px;
+            border-top:1px solid rgba(255,255,255,0.05);
+        ">
+            <div style="width:6px;height:6px;border-radius:50%;background:${accentColor};opacity:0.6;"></div>
+            <span style="color:rgba(255,255,255,0.2);font-size:11px;">This reminder repeats every 6 hours</span>
+        </div>
+    </div>`;
+
+    // Close handlers
+    function closePopup() {
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.25s ease';
         setTimeout(function() {
             if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-        }, 200);
-    });
+        }, 250);
+    }
 
-    // Close on overlay background click
-    overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) {
-            overlay.querySelector('#tm-pw-expiry-ok').click();
-        }
-    });
-
-    // Close on Escape key
-    document.addEventListener('keydown', function onEsc(e) {
-        if (e.key === 'Escape') {
-            overlay.querySelector('#tm-pw-expiry-ok').click();
-            document.removeEventListener('keydown', onEsc);
-        }
-    });
-
-    // Add to page after a short delay so page loads first
     setTimeout(function() {
         document.body.appendChild(overlay);
+        overlay.querySelector('#_tm_okbtn').addEventListener('click', closePopup);
+        overlay.querySelector('#_tm_close').addEventListener('click', closePopup);
+        overlay.querySelector('#_tm_bg').addEventListener('click', closePopup);
+        document.addEventListener('keydown', function onEsc(e) {
+            if (e.key === 'Escape') { closePopup(); document.removeEventListener('keydown', onEsc); }
+        });
     }, 1500);
 }
 // Call immediately on init so it fires on every page including home/folder pages
