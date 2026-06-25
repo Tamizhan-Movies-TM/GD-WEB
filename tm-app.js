@@ -746,7 +746,7 @@ function checkPasswordExpiryWarning() {
     }, 1500);
 }
 // Call immediately on init so it fires on every page including home/folder pages
-checkPasswordExpiryWarning();
+// NOTE: checkPasswordExpiryWarning() is NOT called here — fires only on search & file info pages.
 }
 
 // Initialize login modal functionality
@@ -940,6 +940,10 @@ function render(path) {
         const can_preview = getQueryVariable('a');
         const id = getQueryVariable('id');
         if (can_preview) {
+            // ✅ Show password expiry warning only on file info page (&a=view), not folder list
+            if (typeof checkPasswordExpiryWarning === 'function') {
+                checkPasswordExpiryWarning();
+            }
             return fallback(id, true)
         } else {
             return list(null, id, true);
