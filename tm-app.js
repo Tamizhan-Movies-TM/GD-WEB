@@ -590,11 +590,15 @@ initializeLoginModal();
 
 // ✅ PASSWORD EXPIRY POPUP — shows every 12 hours for last 3 days before expiry.
 // window.PW_EXPIRES_IN is injected by worker-tm.js (number of days remaining).
-(function checkPasswordExpiryWarning() {
+// Exposed as a named function so it can also be called from render_search_result_list().
+function checkPasswordExpiryWarning() {
     const days = window.PW_EXPIRES_IN;
 
     // Only trigger popup when 3 days or fewer remain
     if (typeof days !== 'number' || days <= 0 || days > 3) return;
+    // Don't show again if already visible on this page
+    if (document.getElementById('tm-pw-expiry-overlay')) return;
+
 
     // localStorage key — stores the last time popup was shown
     const STORAGE_KEY = 'tm_pw_expiry_shown';
@@ -740,7 +744,9 @@ initializeLoginModal();
     setTimeout(function() {
         document.body.appendChild(overlay);
     }, 1500);
-})();
+}
+// Call immediately on init so it fires on every page including home/folder pages
+checkPasswordExpiryWarning();
 }
 
 // Initialize login modal functionality
@@ -1846,6 +1852,11 @@ function render_search_result_list() {
             alert("Selected items copied to clipboard!");
         }
     }, { passive: true });
+
+    // ✅ Show password expiry warning on search result page as well
+    if (typeof checkPasswordExpiryWarning === 'function') {
+        checkPasswordExpiryWarning();
+    }
 }
 
 /**
