@@ -592,38 +592,39 @@ initializeLoginModal();
 // window.PW_EXPIRES_IN is injected by worker-tm.js (number of days remaining).
 // Exposed as a named function so it can also be called from render_search_result_list().
 function checkPasswordExpiryWarning() {
+    // ✅ GUARD: Only show to logged-in users
+    if (!isUserLoggedIn()) return;
+
     const days = window.PW_EXPIRES_IN;
 
-    // Only trigger popup when 3 days or fewer remain
+    // Only trigger when 3 days or fewer remain
     if (typeof days !== 'number' || days <= 0 || days > 3) return;
-    // Don't show again if already visible on this page
+
+    // Don't show if already visible
     if (document.getElementById('tm-pw-expiry-overlay')) return;
 
-    // localStorage key — stores the last time popup was shown
+    // ✅ 6-hour throttle via localStorage
     const STORAGE_KEY = 'tm_pw_expiry_shown';
-    const INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
-
-    // Check if 6 hours have passed since last popup
+    const INTERVAL_MS = 6 * 60 * 60 * 1000;
     try {
         const lastShown = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
         const now = Date.now();
-        if (now - lastShown < INTERVAL_MS) return; // Not 6 hours yet — skip
-        localStorage.setItem(STORAGE_KEY, String(now)); // Record this show time
-    } catch (e) {
-        // localStorage not available — show anyway
-    }
+        if (now - lastShown < INTERVAL_MS) return;
+        localStorage.setItem(STORAGE_KEY, String(now));
+    } catch (e) {}
 
-    // Color scheme based on urgency
-    const isLastDay = days === 1;
-    const accentColor  = isLastDay ? '#ff4757' : '#ff6b35';
-    const accentGlow   = isLastDay ? 'rgba(255,71,87,0.4)'  : 'rgba(255,107,53,0.4)';
-    const accentBg     = isLastDay ? 'rgba(255,71,87,0.08)' : 'rgba(255,107,53,0.08)';
-    const accentBorder = isLastDay ? 'rgba(255,71,87,0.3)'  : 'rgba(255,107,53,0.3)';
-    const dayLabel     = isLastDay ? 'Last Day!' : days + ' Days Left';
-    const barWidth     = days === 3 ? '33%' : days === 2 ? '66%' : '100%';
-    const barColor     = isLastDay ? '#ff4757' : days === 2 ? '#ff6b35' : '#ffa502';
+    // Urgency theme
+    const isLastDay  = days === 1;
+    const ac   = isLastDay ? '#ff4757' : days === 2 ? '#ff6b35' : '#ffa502';
+    const acG  = isLastDay ? 'rgba(255,71,87,0.42)'  : days === 2 ? 'rgba(255,107,53,0.42)' : 'rgba(255,165,2,0.38)';
+    const acBg = isLastDay ? 'rgba(255,71,87,0.09)'  : days === 2 ? 'rgba(255,107,53,0.09)' : 'rgba(255,165,2,0.08)';
+    const acBd = isLastDay ? 'rgba(255,71,87,0.32)'  : days === 2 ? 'rgba(255,107,53,0.30)' : 'rgba(255,165,2,0.28)';
+    const acG2 = isLastDay ? '#c0392b' : '#c0502b';
+    const label  = isLastDay ? 'Last Day!' : days + ' Days Left';
+    const barW   = days === 3 ? '33%' : days === 2 ? '66%' : '100%';
+    const barGrd = days === 3 ? 'linear-gradient(90deg,#f9ca24,#ffa502)' : days === 2 ? 'linear-gradient(90deg,#ffa502,#ff6b35)' : 'linear-gradient(90deg,#ff6b35,#ff4757)';
+    const cardBg = isLastDay ? 'linear-gradient(150deg,#140e0e,#1a1010)' : days === 2 ? 'linear-gradient(150deg,#14100d,#1a140f)' : 'linear-gradient(150deg,#111320,#161926)';
 
-    // Build overlay
     const overlay = document.createElement('div');
     overlay.id = 'tm-pw-expiry-overlay';
     overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;display:flex;align-items:center;justify-content:center;';
@@ -631,172 +632,94 @@ function checkPasswordExpiryWarning() {
     overlay.innerHTML = `
     <style>
         @keyframes _tmBgIn   { from{opacity:0} to{opacity:1} }
-        @keyframes _tmCardIn { from{opacity:0;transform:translateY(32px) scale(0.95)} to{opacity:1;transform:translateY(0) scale(1)} }
-        @keyframes _tmPulse  { 0%,100%{box-shadow:0 0 0 0 ${accentGlow}} 50%{box-shadow:0 0 0 10px transparent} }
-        @keyframes _tmSpin   { to{transform:rotate(360deg)} }
-        @keyframes _tmBarFill{ from{width:0} to{width:${barWidth}} }
-        @keyframes _tmBlink  { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        #_tm_bg  { animation:_tmBgIn 0.3s ease forwards; }
-        #_tm_card{ animation:_tmCardIn 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards; }
-        #_tm_okbtn:hover { transform:translateY(-1px); box-shadow:0 6px 20px ${accentGlow} !important; }
-        #_tm_okbtn:active{ transform:translateY(0); }
-        #_tm_tgbtn:hover { background:rgba(255,255,255,0.08) !important; }
-        #_tm_bar_fill { animation:_tmBarFill 1.2s cubic-bezier(0.4,0,0.2,1) 0.6s both; }
-        ${isLastDay ? '#_tm_icon_ring { animation:_tmPulse 1.5s ease-in-out infinite; }' : ''}
+        @keyframes _tmCardIn { from{opacity:0;transform:translateY(28px) scale(0.95)} to{opacity:1;transform:translateY(0) scale(1)} }
+        @keyframes _tmBarFill{ from{width:0} to{width:${barW}} }
+        @keyframes _tmPulse  { 0%,100%{box-shadow:0 0 0 0 ${acG}} 60%{box-shadow:0 0 0 9px transparent} }
+        #_tm_bg   { animation:_tmBgIn 0.3s ease forwards; }
+        #_tm_card { animation:_tmCardIn 0.42s cubic-bezier(0.34,1.46,0.64,1) forwards; }
+        #_tm_bar  { animation:_tmBarFill 1.1s cubic-bezier(0.4,0,0.2,1) 0.5s both; }
+        ${isLastDay ? '#_tm_icon { animation:_tmPulse 1.8s ease-in-out infinite; }' : ''}
+        #_tm_ok:hover  { filter:brightness(1.12);transform:translateY(-1px); }
+        #_tm_ok:active { transform:translateY(0); }
+        #_tm_tg:hover  { background:rgba(255,255,255,0.1) !important;color:#fff !important; }
+        #_tm_cls:hover { background:rgba(255,255,255,0.14) !important;color:#fff !important; }
     </style>
 
-    <!-- Backdrop -->
     <div id="_tm_bg" style="position:absolute;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);"></div>
 
-    <!-- Card -->
-    <div id="_tm_card" style="
-        position:relative;
-        width:92%;max-width:420px;
-        background:linear-gradient(145deg,rgba(18,20,32,0.98),rgba(24,27,42,0.98));
-        border:1px solid ${accentBorder};
-        border-radius:24px;
-        overflow:hidden;
-        box-shadow:0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.06);
-    ">
-        <!-- Top accent bar -->
-        <div style="height:3px;background:linear-gradient(90deg,transparent,${accentColor},transparent);"></div>
+    <div id="_tm_card" style="position:relative;width:92%;max-width:410px;background:${cardBg};border:1px solid ${acBd};border-radius:22px;overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,0.85),0 0 0 1px rgba(255,255,255,0.04);">
 
-        <!-- Header strip -->
-        <div style="
-            background:${accentBg};
-            border-bottom:1px solid ${accentBorder};
-            padding:18px 24px 16px;
-            display:flex;align-items:center;gap:14px;
-        ">
-            <!-- Animated icon -->
-            <div id="_tm_icon_ring" style="
-                width:48px;height:48px;flex-shrink:0;
-                border-radius:50%;
-                background:${accentBg};
-                border:2px solid ${accentColor};
-                display:flex;align-items:center;justify-content:center;
-                font-size:22px;
-            ">🔐</div>
+        <div style="height:3px;background:linear-gradient(90deg,transparent,${ac},transparent);"></div>
+
+        <div style="background:${acBg};border-bottom:1px solid ${acBd};padding:18px 22px 15px;display:flex;align-items:center;gap:13px;">
+            <div id="_tm_icon" style="width:46px;height:46px;flex-shrink:0;border-radius:50%;background:${acBg};border:2px solid ${ac};display:flex;align-items:center;justify-content:center;font-size:21px;">🔐</div>
             <div>
-                <div style="color:rgba(255,255,255,0.5);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;">Security Alert</div>
-                <div style="color:#fff;font-size:17px;font-weight:700;letter-spacing:-0.3px;">Password Expiring Soon</div>
+                <div style="color:${ac};font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;">Security Alert</div>
+                <div style="color:#fff;font-size:16px;font-weight:700;">Password Expiring Soon</div>
             </div>
-            <!-- Close X -->
-            <button id="_tm_close" style="
-                margin-left:auto;width:30px;height:30px;flex-shrink:0;
-                background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
-                border-radius:50%;color:rgba(255,255,255,0.5);font-size:16px;
-                cursor:pointer;display:flex;align-items:center;justify-content:center;
-                transition:all 0.2s;line-height:1;
-            ">×</button>
+            <button id="_tm_cls" style="margin-left:auto;width:28px;height:28px;flex-shrink:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:50%;color:rgba(255,255,255,0.45);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.18s;line-height:1;">×</button>
         </div>
 
-        <!-- Body -->
-        <div style="padding:24px 24px 20px;">
+        <div style="padding:20px 22px 16px;">
 
-            <!-- Countdown badge -->
-            <div style="
-                background:${accentBg};
-                border:1px solid ${accentBorder};
-                border-radius:14px;
-                padding:16px 20px;
-                margin-bottom:20px;
-                display:flex;align-items:center;gap:16px;
-            ">
-                <div style="text-align:center;flex-shrink:0;">
-                    <div style="color:${accentColor};font-size:42px;font-weight:800;line-height:1;letter-spacing:-2px;">${days}</div>
-                    <div style="color:rgba(255,255,255,0.45);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-top:2px;">DAY${days > 1 ? 'S' : ''}</div>
+            <div style="background:${acBg};border:1px solid ${acBd};border-radius:14px;padding:15px 18px;margin-bottom:16px;display:flex;align-items:center;gap:0;">
+                <div style="text-align:center;flex-shrink:0;min-width:52px;">
+                    <div style="color:${ac};font-size:48px;font-weight:900;line-height:1;letter-spacing:-3px;">${days}</div>
+                    <div style="color:rgba(255,255,255,0.42);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-top:2px;">DAY${days > 1 ? 'S' : ''}</div>
                 </div>
-                <div style="flex:1;border-left:1px solid ${accentBorder};padding-left:16px;">
-                    <div style="color:#fff;font-size:14px;font-weight:600;margin-bottom:4px;">${dayLabel}</div>
-                    <div style="color:rgba(255,255,255,0.45);font-size:12px;line-height:1.5;">Your password will expire and you will be automatically logged out.</div>
+                <div style="width:1px;height:46px;background:${acBd};flex-shrink:0;margin:0 16px;"></div>
+                <div style="flex:1;">
+                    <div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:3px;">${label}</div>
+                    <div style="color:rgba(255,255,255,0.42);font-size:11px;line-height:1.55;">Your password will expire and you will be automatically logged out.</div>
                 </div>
             </div>
 
-            <!-- Progress bar -->
-            <div style="margin-bottom:20px;">
-                <div style="display:flex;justify-content:space-between;margin-bottom:7px;">
-                    <span style="color:rgba(255,255,255,0.4);font-size:11px;font-weight:500;">Password validity</span>
-                    <span style="color:${accentColor};font-size:11px;font-weight:600;">${dayLabel}</span>
-                </div>
-                <div style="height:6px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden;">
-                    <div id="_tm_bar_fill" style="height:100%;width:0;background:linear-gradient(90deg,${barColor},${accentColor});border-radius:99px;box-shadow:0 0 8px ${accentGlow};"></div>
-                </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <span style="color:rgba(255,255,255,0.32);font-size:11px;">Password validity</span>
+                <span style="color:${ac};font-size:11px;font-weight:700;">${label}</span>
+            </div>
+            <div style="height:5px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden;margin-bottom:16px;">
+                <div id="_tm_bar" style="height:100%;width:0;background:${barGrd};border-radius:99px;"></div>
             </div>
 
-            <!-- Info message -->
-            <div style="
-                background:rgba(255,255,255,0.03);
-                border:1px solid rgba(255,255,255,0.07);
-                border-radius:10px;
-                padding:12px 14px;
-                display:flex;gap:10px;align-items:flex-start;
-                margin-bottom:20px;
-            ">
-                <span style="font-size:15px;flex-shrink:0;margin-top:1px;">💬</span>
-                <span style="color:rgba(255,255,255,0.5);font-size:12px;line-height:1.6;">Contact the <strong style="color:rgba(255,255,255,0.75);">administrator</strong> immediately via Telegram to renew your password before it expires.</span>
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:11px 13px;display:flex;gap:9px;align-items:flex-start;margin-bottom:16px;">
+                <span style="font-size:14px;flex-shrink:0;margin-top:1px;">💬</span>
+                <span style="color:rgba(255,255,255,0.45);font-size:11px;line-height:1.6;">Contact the <strong style="color:rgba(255,255,255,0.78);">administrator</strong> immediately via Telegram to renew your password before it expires.</span>
             </div>
 
-            <!-- Telegram button + OK button -->
-            <div style="display:flex;gap:10px;">
-                <a href="https://telegram.me/tamizhan_movies" target="_blank" id="_tm_tgbtn" style="
-                    flex:1;
-                    background:rgba(255,255,255,0.05);
-                    border:1px solid rgba(255,255,255,0.1);
-                    border-radius:12px;
-                    padding:12px;
-                    display:flex;align-items:center;justify-content:center;gap:8px;
-                    color:rgba(255,255,255,0.65);font-size:13px;font-weight:500;
-                    text-decoration:none;transition:all 0.2s;
-                ">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#29A8E0"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 13.667l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.978.892z"/></svg>
+            <div style="display:flex;gap:9px;">
+                <a href="https://telegram.me/tamizhan_movies" target="_blank" id="_tm_tg" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:11px;padding:11px;display:flex;align-items:center;justify-content:center;gap:7px;color:rgba(255,255,255,0.58);font-size:12px;font-weight:500;text-decoration:none;transition:all 0.18s;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#29A8E0"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 13.667l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.978.892z"/></svg>
                     Contact Admin
                 </a>
-                <button id="_tm_okbtn" style="
-                    flex:2;
-                    background:linear-gradient(135deg,${accentColor},${isLastDay ? '#c0392b' : '#e55a2b'});
-                    border:none;border-radius:12px;
-                    padding:12px 20px;
-                    color:#fff;font-size:14px;font-weight:700;
-                    cursor:pointer;letter-spacing:0.3px;
-                    transition:all 0.2s ease;
-                    box-shadow:0 4px 15px ${accentGlow};
-                ">✓ Got it, remind me later</button>
+                <button id="_tm_ok" style="flex:2;background:linear-gradient(135deg,${ac},${acG2});border:none;border-radius:11px;padding:12px 18px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.2px;transition:all 0.18s;box-shadow:0 4px 16px ${acG};">✓ Got it, remind me later</button>
             </div>
         </div>
 
-        <!-- Footer -->
-        <div style="
-            padding:10px 24px 14px;
-            display:flex;align-items:center;justify-content:center;gap:6px;
-            border-top:1px solid rgba(255,255,255,0.05);
-        ">
-            <div style="width:6px;height:6px;border-radius:50%;background:${accentColor};opacity:0.6;"></div>
-            <span style="color:rgba(255,255,255,0.2);font-size:11px;">This reminder repeats every 6 hours</span>
+        <div style="padding:9px 22px 13px;display:flex;align-items:center;justify-content:center;gap:6px;border-top:1px solid rgba(255,255,255,0.05);">
+            <div style="width:5px;height:5px;border-radius:50%;background:${ac};opacity:.55;"></div>
+            <span style="color:rgba(255,255,255,0.2);font-size:10px;">Reminder repeats every 6 hours · Logged-in users only</span>
         </div>
     </div>`;
 
-    // Close handlers
     function closePopup() {
         overlay.style.opacity = '0';
-        overlay.style.transition = 'opacity 0.25s ease';
-        setTimeout(function() {
-            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-        }, 250);
+        overlay.style.transition = 'opacity 0.22s ease';
+        setTimeout(function() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 230);
     }
 
     setTimeout(function() {
         document.body.appendChild(overlay);
-        overlay.querySelector('#_tm_okbtn').addEventListener('click', closePopup);
-        overlay.querySelector('#_tm_close').addEventListener('click', closePopup);
+        overlay.querySelector('#_tm_ok').addEventListener('click', closePopup);
+        overlay.querySelector('#_tm_cls').addEventListener('click', closePopup);
         overlay.querySelector('#_tm_bg').addEventListener('click', closePopup);
         document.addEventListener('keydown', function onEsc(e) {
             if (e.key === 'Escape') { closePopup(); document.removeEventListener('keydown', onEsc); }
         });
     }, 1500);
 }
-// Call immediately on init so it fires on every page including home/folder pages
-// NOTE: checkPasswordExpiryWarning() is NOT called here — fires only on search & file info pages.
+// ✅ Fires on EVERY page — home, folder, search, file info
+checkPasswordExpiryWarning();
 }
 
 // Initialize login modal functionality
