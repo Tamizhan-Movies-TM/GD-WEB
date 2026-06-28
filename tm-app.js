@@ -2528,7 +2528,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${getDownloadButton(url, encoded_name, file_id, bytes)}
-            ${isUserLoggedIn() ? `
+            ${isUserLoggedIn() && UI.show_player_menu !== false ? `
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2634,7 +2634,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${getDownloadButton(url, encoded_name, file_id, bytes)}
-            ${isUserLoggedIn() ? `
+            ${isUserLoggedIn() && UI.show_player_menu !== false ? `
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2893,7 +2893,7 @@ function shouldDisablePlayer(bytes) {
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${getDownloadButton(url, encoded_name, file_id, bytes)}
-            ${isUserLoggedIn() ? `
+            ${isUserLoggedIn() && UI.show_player_menu !== false ? `
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -3034,7 +3034,7 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </button>
-                            ${isUserLoggedIn() ? `
+                            ${isUserLoggedIn() && UI.show_player_menu !== false ? `
                             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split"
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="sr-only"></span>
