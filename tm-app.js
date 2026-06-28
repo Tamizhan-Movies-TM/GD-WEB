@@ -2296,7 +2296,7 @@ async function fallback(id, type) {
                     window.location.href = window.location.pathname + "/";
                 } else if (fileExtension) {
                     const name = obj.name;
-                    const bytes = obj.size || 0;
+                    const bytes = Number(obj.size) || 0;  // obj.size is a string from API — must coerce to Number for >= comparison
                     const md5Checksum = obj.md5Checksum || '—';
                     const size = formatFileSize(obj.size) || '—';
                     const encoded_name = encodeURIComponent(name);
@@ -2366,7 +2366,7 @@ async function file(path) {
                 window.location.href = window.location.pathname + "/";
             } else if (fileExtension) {
                 const name = obj.name;
-                const bytes = obj.size || 0;
+                const bytes = Number(obj.size) || 0;  // obj.size is a string from API — must coerce to Number for >= comparison
                 const md5Checksum = obj.md5Checksum || '—';
                 const size = formatFileSize(obj.size) || '—';
                 const encoded_name = encodeURIComponent(name);
