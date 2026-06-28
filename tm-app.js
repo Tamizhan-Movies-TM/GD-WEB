@@ -2416,26 +2416,37 @@ function generateCopyFileBox(file_id, cookie_folder_id) {
 // Document display |zip|.exe/others direct downloads
 // =============================================================================
 // DOWNLOAD BUTTON HELPER
-// Decides whether non-login users get a GDflix link or a direct download button.
+// Decides whether users get a GDflix link or a direct download button.
 //
 // Logic controlled by two UI config flags (set in worker-tm.js):
-//   enable_gdflix_for_non_login        — master switch. If false → always direct download.
-//   gdflix_large_file_only             — if true → GDflix only for files ≥ threshold GB.
-//                                         if false → GDflix for ALL non-login users (old behaviour).
-//   gdflix_large_file_threshold_gb     — size threshold in GB (default 10).
+//   enable_gdflix_for_non_login        — master switch for non-login users. If false → always direct download for non-login.
+//   gdflix_large_file_only             — if true → GDflix only for files ≥ threshold GB (applies to ALL users).
+//                                         if false → GDflix for all non-login users; login users always get direct download.
+//   gdflix_large_file_threshold_gb     — size threshold in GB (default 5).
 //
-// Logged-in users ALWAYS get direct download regardless of settings.
+// Logged-in users: below threshold → direct download, at/above threshold → GDflix link.
 // =============================================================================
 function getDownloadButton(url, encoded_name, file_id, bytes) {
-    // Logged-in users → always direct download
+    // Shared threshold — applies to ALL users (login + non-login)
+    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 5) * 1024 * 1024 * 1024;
+    const isLargeFile = UI.gdflix_large_file_only ? (bytes >= thresholdBytes) : false;
+
+    // Logged-in users:
+    //   • Large file (above threshold) → GDflix link
+    //   • Small file (below threshold) → direct download
     if (isUserLoggedIn()) {
+        if (isLargeFile) {
+            return `<a type="button" class="btn btn-success download-via-gdflix" data-file-id="${file_id}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </a>`;
+        }
         return `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </button>`;
     }
 
-    // GDflix master switch off → always direct download for everyone
+    // GDflix master switch off → always direct download for non-login users
     if (!UI.enable_gdflix_for_non_login) {
         return `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
@@ -2443,11 +2454,10 @@ function getDownloadButton(url, encoded_name, file_id, bytes) {
        </button>`;
     }
 
-    // Non-login user, GDflix enabled — check gdflix_large_file_only setting
-    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
-    const useGdflix = UI.gdflix_large_file_only
-        ? (bytes >= thresholdBytes)   // true → GDflix only for large files
-        : true;                        // false → GDflix for all non-login users
+    // Non-login user, GDflix enabled:
+    //   • gdflix_large_file_only true  → GDflix only for files ≥ threshold
+    //   • gdflix_large_file_only false → GDflix for ALL non-login users
+    const useGdflix = UI.gdflix_large_file_only ? isLargeFile : true;
 
     if (useGdflix) {
         return `<a type="button" class="btn btn-success download-via-gdflix" data-file-id="${file_id}">
@@ -2711,7 +2721,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 function shouldDisablePlayer(bytes) {
     if (UI.disable_player) return true;
     // Master switch on → always hide, no matter the size
-    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
+    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 5) * 1024 * 1024 * 1024;
     return bytes >= thresholdBytes;
 }
 
