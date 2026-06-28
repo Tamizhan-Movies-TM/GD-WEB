@@ -655,7 +655,7 @@ function checkPasswordExpiryWarning() {
             <div id="_tm_icon" style="width:46px;height:46px;flex-shrink:0;border-radius:50%;background:${acBg};border:2px solid ${ac};display:flex;align-items:center;justify-content:center;font-size:21px;">🔐</div>
             <div>
                 <div style="color:${ac};font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;">Security Alert</div>
-                <div style="color:#fff;font-size:16px;font-weight:700;">Password  Expiring  Soon</div>
+                <div style="color:#fff;font-size:16px;font-weight:700;">Password &nbsp;Expiring &nbsp;Soon</div>
             </div>
             <button id="_tm_cls" style="margin-left:auto;width:28px;height:28px;flex-shrink:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:50%;color:rgba(255,255,255,0.45);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.18s;line-height:1;">×</button>
         </div>
@@ -684,7 +684,7 @@ function checkPasswordExpiryWarning() {
 
             <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:11px 13px;display:flex;gap:9px;align-items:flex-start;margin-bottom:16px;">
                 <span style="font-size:14px;flex-shrink:0;margin-top:1px;">💬</span>
-                <span style="color:rgba(255,255,255,0.45);font-size:11px;line-height:1.6;">Contact the <strong style="color:rgba(255,255,255,0.78);">administrator</strong> immediately via Telegram to renew your password before it expires.</span>
+                <span style="color:rgba(255,255,255,0.45);font-size:11px;line-height:1.6;">Contact the <strong style="color:rgba(255,255,255,0.78);">&nbsp;administrator</strong> immediately via Telegram to renew your password before it expires.</span>
             </div>
 
             <div style="display:flex;gap:9px;">
