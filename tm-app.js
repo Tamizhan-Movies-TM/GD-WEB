@@ -2416,37 +2416,26 @@ function generateCopyFileBox(file_id, cookie_folder_id) {
 // Document display |zip|.exe/others direct downloads
 // =============================================================================
 // DOWNLOAD BUTTON HELPER
-// Decides whether users get a GDflix link or a direct download button.
+// Decides whether non-login users get a GDflix link or a direct download button.
 //
 // Logic controlled by two UI config flags (set in worker-tm.js):
-//   enable_gdflix_for_non_login        — master switch for non-login users. If false → always direct download for non-login.
-//   gdflix_large_file_only             — if true → GDflix only for files ≥ threshold GB (applies to ALL users).
-//                                         if false → GDflix for all non-login users; login users always get direct download.
-//   gdflix_large_file_threshold_gb     — size threshold in GB (default 5).
+//   enable_gdflix_for_non_login        — master switch. If false → always direct download.
+//   gdflix_large_file_only             — if true → GDflix only for files ≥ threshold GB.
+//                                         if false → GDflix for ALL non-login users (old behaviour).
+//   gdflix_large_file_threshold_gb     — size threshold in GB (default 10).
 //
-// Logged-in users: below threshold → direct download, at/above threshold → GDflix link.
+// Logged-in users ALWAYS get direct download regardless of settings.
 // =============================================================================
 function getDownloadButton(url, encoded_name, file_id, bytes) {
-    // Shared threshold — applies to ALL users (login + non-login)
-    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 5) * 1024 * 1024 * 1024;
-    const isLargeFile = UI.gdflix_large_file_only ? (bytes >= thresholdBytes) : false;
-
-    // Logged-in users:
-    //   • Large file (above threshold) → GDflix link
-    //   • Small file (below threshold) → direct download
+    // Logged-in users → always direct download
     if (isUserLoggedIn()) {
-        if (isLargeFile) {
-            return `<a type="button" class="btn btn-success download-via-gdflix" data-file-id="${file_id}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </a>`;
-        }
         return `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </button>`;
     }
 
-    // GDflix master switch off → always direct download for non-login users
+    // GDflix master switch off → always direct download for everyone
     if (!UI.enable_gdflix_for_non_login) {
         return `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
@@ -2454,10 +2443,11 @@ function getDownloadButton(url, encoded_name, file_id, bytes) {
        </button>`;
     }
 
-    // Non-login user, GDflix enabled:
-    //   • gdflix_large_file_only true  → GDflix only for files ≥ threshold
-    //   • gdflix_large_file_only false → GDflix for ALL non-login users
-    const useGdflix = UI.gdflix_large_file_only ? isLargeFile : true;
+    // Non-login user, GDflix enabled — check gdflix_large_file_only setting
+    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
+    const useGdflix = UI.gdflix_large_file_only
+        ? (bytes >= thresholdBytes)   // true → GDflix only for large files
+        : true;                        // false → GDflix for all non-login users
 
     if (useGdflix) {
         return `<a type="button" class="btn btn-success download-via-gdflix" data-file-id="${file_id}">
@@ -2538,6 +2528,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${getDownloadButton(url, encoded_name, file_id, bytes)}
+            ${isUserLoggedIn() ? `
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2546,7 +2537,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-                        </div>
+                        </div>` : ''}
           </div>
         </div>
       </div>`}
@@ -2643,6 +2634,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${getDownloadButton(url, encoded_name, file_id, bytes)}
+            ${isUserLoggedIn() ? `
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2651,7 +2643,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-                     </div>
+                     </div>` : ''}
           </div>
         </div>
       </div>`}
@@ -2721,7 +2713,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 function shouldDisablePlayer(bytes) {
     if (UI.disable_player) return true;
     // Master switch on → always hide, no matter the size
-    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 5) * 1024 * 1024 * 1024;
+    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
     return bytes >= thresholdBytes;
 }
 
@@ -2901,6 +2893,7 @@ function shouldDisablePlayer(bytes) {
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${getDownloadButton(url, encoded_name, file_id, bytes)}
+            ${isUserLoggedIn() ? `
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2910,7 +2903,7 @@ function shouldDisablePlayer(bytes) {
               <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
-             </div>
+             </div>` : ''}
            </div>
          </div>`}
        </div>
@@ -3041,6 +3034,7 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </button>
+                            ${isUserLoggedIn() ? `
                             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split"
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="sr-only"></span>
@@ -3050,7 +3044,7 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
                                 <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
                                 <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
                                 <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
-                            </div>
+                            </div>` : ''}
                         </div>
                     </div>
                 </div>
