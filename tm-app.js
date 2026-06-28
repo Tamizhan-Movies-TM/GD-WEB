@@ -2416,49 +2416,25 @@ function generateCopyFileBox(file_id, cookie_folder_id) {
 // Document display |zip|.exe/others direct downloads
 // =============================================================================
 // DOWNLOAD BUTTON HELPER
-// Decides whether non-login users get a GDflix link or a direct download button.
-//
-// Logic controlled by two UI config flags (set in worker-tm.js):
-//   enable_gdflix_for_non_login        — master switch. If false → always direct download.
-//   gdflix_large_file_only             — if true → GDflix only for files ≥ threshold GB.
-//                                         if false → GDflix for ALL non-login users (old behaviour).
-//   gdflix_large_file_threshold_gb     — size threshold in GB (default 10).
-//
-// Logged-in users ALWAYS get direct download regardless of settings.
+// enable_drivehub: true  + file >= drivehub_large_file_threshold_gb
+//   → DriveHub button for ALL users (login & non-login)
+// enable_drivehub: false OR file below threshold
+//   → Direct download for ALL users (login & non-login)
 // =============================================================================
 function getDownloadButton(url, encoded_name, file_id, bytes) {
-    // Logged-in users → always direct download
-    if (isUserLoggedIn()) {
-        return `<button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
+    // enable_drivehub: true  + file >= drivehub_large_file_threshold_gb → DriveHub (all users)
+    // enable_drivehub: false OR file < threshold                         → direct download (all users)
+    const thresholdBytes = (UI.drivehub_large_file_threshold_gb || 5) * 1024 * 1024 * 1024;
+    if (UI.enable_drivehub && bytes >= thresholdBytes) {
+        return `<button type="button" class="btn btn-success tm-drivehub-btn"
+               data-file-id="${file_id}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </button>`;
     }
-
-    // GDflix master switch off → always direct download for everyone
-    if (!UI.enable_gdflix_for_non_login) {
-        return `<button type="button" class="btn btn-success tm-download-btn"
+    return `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </button>`;
-    }
-
-    // Non-login user, GDflix enabled — check gdflix_large_file_only setting
-    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
-    const useGdflix = UI.gdflix_large_file_only
-        ? (bytes >= thresholdBytes)   // true → GDflix only for large files
-        : true;                        // false → GDflix for all non-login users
-
-    if (useGdflix) {
-        return `<a type="button" class="btn btn-success download-via-gdflix" data-file-id="${file_id}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </a>`;
-    } else {
-        return `<button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>`;
-    }
 }
 
 function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
@@ -2699,21 +2675,15 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 // PLAYER VISIBILITY HELPER
 // Decides whether the inline audio/video player should be hidden.
 //
-// Logic controlled by UI config flags (set in worker-tm.js):
-//   disable_player                — master switch. If true → ALWAYS hide the player,
-//                                    regardless of file size.
-//   gdflix_large_file_threshold_gb — size threshold in GB (default 10). Files AT or
-//                                    ABOVE this size get the player hidden too — for
-//                                    EVERYONE, login and non-login — nudging large
-//                                    files towards the GDflix link instead of inline
-//                                    streaming.
+// Logic controlled by UI config flags (set in worker.js):
+//   disable_player                    — master switch. true → ALWAYS hide the player.
+//   drivehub_large_file_threshold_gb  — files AT or ABOVE this size get the player
+//                                       hidden for everyone, pushing large files
+//                                       towards the GDFlix link instead of streaming.
 // =============================================================================
 function shouldDisablePlayer(bytes) {
-    // Master switch on → always hide, no matter the size
     if (UI.disable_player) return true;
-
-    // Otherwise hide only for files at/above the GDflix large-file threshold
-    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
+    const thresholdBytes = (UI.drivehub_large_file_threshold_gb || 5) * 1024 * 1024 * 1024;
     return bytes >= thresholdBytes;
 }
 
@@ -3425,6 +3395,78 @@ $(document).on('click', '.gdflix-btn, .download-via-gdflix', function() {
             button.prop('disabled', false).html(originalHtml);
             logError('GDFlix error:', error);
         });
+});
+
+// =============================================================================
+// DriveHub Link Generation Function
+// Called by the Download button (.tm-drivehub-btn) when
+// UI.enable_drivehub is true and file is above threshold.
+// Works for BOTH login and non-login users.
+// =============================================================================
+function generateDriveHubLink(fileId) {
+    return new Promise((resolve, reject) => {
+        log('DriveHub - fileId:', fileId);
+
+        if (!fileId || String(fileId).trim() === '') {
+            reject(new Error('No file ID provided'));
+            return;
+        }
+        fileId = String(fileId).trim();
+
+        // Safari: pre-open blank tab synchronously to avoid popup blocker
+        const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        var newTab = _isSafari ? window.open('', '_blank') : null;
+
+        fetch('/generate-drivehub', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ file_id: fileId })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            log('DriveHub - response:', data);
+            if (data.success && data.drivehub_link) {
+                if (_isSafari) {
+                    if (newTab && !newTab.closed) { newTab.location.href = data.drivehub_link; }
+                    else { window.open(data.drivehub_link, '_blank'); }
+                } else {
+                    window.open(data.drivehub_link, '_blank');
+                }
+                resolve(data.drivehub_link);
+            } else {
+                if (newTab && !newTab.closed) { newTab.close(); }
+                reject(new Error(data.error || 'Failed to generate DriveHub link'));
+            }
+        })
+        .catch(error => {
+            logError('DriveHub Error:', error);
+            if (newTab && !newTab.closed) { newTab.close(); }
+            alert('Failed to generate DriveHub link: ' + error.message);
+            reject(error);
+        });
+    });
+}
+
+// =============================================================================
+// DriveHub Download Button Handler (.tm-drivehub-btn)
+// Same visual as the normal Download button — only the click action differs.
+// Registered once at module level.
+// =============================================================================
+$(document).on('click', '.tm-drivehub-btn', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+
+    if (!fileId) { alert('Error: No file ID found'); return; }
+
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Loading...');
+
+    generateDriveHubLink(fileId)
+        .then(() => { button.prop('disabled', false).html(originalHtml); })
+        .catch(() => { button.prop('disabled', false).html(originalHtml); });
 });
 
 // =============================================================================
