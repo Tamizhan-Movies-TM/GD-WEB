@@ -2793,43 +2793,6 @@ function shouldDisablePlayer(bytes) {
       let player_js = '';
       let player_css = '';
 
-      // ── Browser-compatible MIME type mapping ──────────────────────────────
-      // Browsers reject non-standard MIME types like video/x-matroska even when
-      // they can actually decode the codec (H.264 in MKV plays fine in Chrome).
-      // Map Drive MIME types → the closest browser-supported type so the player
-      // does not refuse to load before even trying the stream.
-      function _browserVideoMime(driveType, fileName) {
-        const ext = (fileName || '').toLowerCase().split('.').pop();
-        // Explicit MIME overrides
-        const mimeMap = {
-          'video/x-matroska': 'video/mp4',   // MKV → mp4 container hint (Chrome plays H.264 MKV)
-          'video/x-msvideo':  'video/mp4',   // AVI
-          'video/avi':        'video/mp4',
-          'video/divx':       'video/mp4',
-          'video/x-divx':     'video/mp4',
-          'video/x-flv':      'video/mp4',   // FLV
-          'video/x-ms-wmv':   'video/mp4',   // WMV
-          'video/x-ms-asf':   'video/mp4',
-          'video/quicktime':  'video/mp4',   // MOV
-          'video/3gpp':       'video/mp4',
-          'video/3gpp2':      'video/mp4',
-        };
-        if (mimeMap[driveType]) return mimeMap[driveType];
-        // Extension fallback when MIME is generic/missing
-        const extMap = {
-          mkv: 'video/mp4', avi: 'video/mp4', flv: 'video/mp4',
-          wmv: 'video/mp4', mov: 'video/mp4', rm:  'video/mp4',
-          rmvb:'video/mp4', asf: 'video/mp4', ts:  'video/mp4',
-          '3gp':'video/mp4', m4v: 'video/mp4', divx:'video/mp4',
-          mp4: 'video/mp4', webm:'video/webm', ogv: 'video/ogg',
-        };
-        if (extMap[ext]) return extMap[ext];
-        // Already a standard browser type
-        if (driveType && driveType.startsWith('video/')) return driveType;
-        return 'video/mp4'; // safe fallback
-      }
-      const _srcMime = _browserVideoMime(mimeType, name);
-
       // ── iOS Detection ─────────────────────────────────────────────────────
       // Safari on iPhone/iPad cannot play MKV, AVI, FLV, WMV — hardware limit.
       // Only MP4 (H.264/HEVC), MOV, M4V are natively supported by Safari.
@@ -2913,14 +2876,17 @@ function shouldDisablePlayer(bytes) {
         } else if (player_config.player == "plyr") {
             // ✅ FIX: webkit-playsinline — required for older iOS inline playback
             player = `<video id="player" playsinline webkit-playsinline controls data-poster="${poster}">
-      <source src="${url}" type="${_srcMime}" />
+      <source src="${url}" type="video/mp4" />
+      <source src="${url}" type="video/webm" />
         </video>`
             player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
             player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
         } else if (player_config.player == "videojs") {
             // ✅ FIX: webkit-playsinline — required for older iOS inline playback
             player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" playsinline webkit-playsinline width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
-      <source src="${url}" type="${_srcMime}" />
+      <source src="${url}" type="video/mp4" />
+      <source src="${url}" type="video/webm" />
+      <source src="${url}" type="video/avi" />
     </video>`
             player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
             player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
@@ -3075,161 +3041,12 @@ function shouldDisablePlayer(bytes) {
 function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
-    // ── Browser-compatible audio MIME mapping ─────────────────────────────────
-    // Maps Drive MIME types / extensions to what browsers actually accept.
-    // FLAC, M4A, AAC, WMA etc. are not universally supported — map to closest.
-    function _browserAudioMime(driveType, fileName) {
-        const ext = (fileName || '').toLowerCase().split('.').pop();
-        const mimeMap = {
-            'audio/x-flac':          'audio/flac',
-            'audio/x-m4a':           'audio/mp4',
-            'audio/m4a':             'audio/mp4',
-            'audio/x-aac':           'audio/aac',
-            'audio/x-ms-wma':        'audio/mpeg',  // WMA → fallback to mpeg
-            'audio/x-wav':           'audio/wav',
-            'audio/x-ogg':           'audio/ogg',
-            'audio/vnd.wave':        'audio/wav',
-            'audio/mpeg3':           'audio/mpeg',
-            'audio/x-mpeg-3':        'audio/mpeg',
-            'audio/x-mp3':           'audio/mpeg',
-            'audio/alac':            'audio/mp4',
-            'audio/x-alac':          'audio/mp4',
-        };
-        if (mimeMap[driveType]) return mimeMap[driveType];
-        const extMap = {
-            mp3:  'audio/mpeg',
-            flac: 'audio/flac',
-            wav:  'audio/wav',
-            ogg:  'audio/ogg',
-            m4a:  'audio/mp4',
-            aac:  'audio/aac',
-            wma:  'audio/mpeg',
-            alac: 'audio/mp4',
-            opus: 'audio/ogg',
-            aiff: 'audio/aiff',
-            aif:  'audio/aiff',
-        };
-        if (extMap[ext]) return extMap[ext];
-        if (driveType && driveType.startsWith('audio/')) return driveType;
-        return 'audio/mpeg'; // safe fallback
-    }
-    const _srcAudioMime = _browserAudioMime(mimeType, name);
-
-    // ── Player setup ─────────────────────────────────────────────────────────
-    let player_js  = '';
-    let player_css = '';
-
-    if (player_config.player === 'plyr') {
-        player_js  = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js';
-        player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css';
-    } else if (player_config.player === 'videojs') {
-        player_js  = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js';
-        player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css';
-    }
-    // dplayer and jwplayer have no native audio-only mode — fall back to browser <audio>
-
-    // ── Player HTML ───────────────────────────────────────────────────────────
-    // Use a native <audio> element as the base — it works in ALL browsers
-    // without any JS library and handles FLAC, M4A, AAC, WAV, OGG natively.
-    // Video.js and Plyr both recognise and enhance <audio> elements automatically.
-    var player = `<audio id="aplayer"
-        controls
-        preload="none"
-        style="width:100%;border-radius:8px;margin-top:8px;"
-        poster="${UI.audioposter}">
-        <source src="${url}" type="${_srcAudioMime}" />
-    </audio>`;
-
-    const content = `
-    <div class="card">
-        <div class="card-header ${UI.file_view_alert_class}">
-            ${copyFileBox}
-            <i class="fas fa-file-alt fa-fw"></i>File Information
-        </div>
-        <div class="card-body row g-3">
-            ${!shouldDisablePlayer(bytes) ? `
-            <div class="col-lg-4 col-md-12">
-                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-                    ${player}
-                </div>
-            </div>
-            ` : ''}
-            <div class="${shouldDisablePlayer(bytes) ? 'col-12' : 'col-lg-8 col-md-12'}">
-                <table class="table table-dark">
-                    <tbody>
-                        <tr>
-                            <th><i class="fa-regular fa-folder-closed fa-fw"></i><span class="tth">Name</span></th>
-                            <td>${escapeHtml(name)}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-regular fa-clock fa-fw"></i><span class="tth">Datetime</span></th>
-                            <td>${createdTime}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-solid fa-tag fa-fw"></i><span class="tth">Type</span></th>
-                            <td>${formatMimeType(mimeType)}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-solid fa-box-archive fa-fw"></i><span class="tth">Size</span></th>
-                            <td>${size}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-solid fa-file-circle-check fa-fw"></i><span class="tth">Checksum</span></th>
-                            <td>MD5: <code>${md5Checksum}</code></td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                ${UI.disable_video_download ? '' : `
-                <div class="col-md-12">
-                    <div class="text-center">
-                        <p class="mb-2">Download via</p>
-                        <div class="btn-group text-center">
-                           <button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>
-                            ${_canSeePlayerMenu(bytes) ? `
-                            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split"
-                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span class="sr-only"></span>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=audio/*;S.title=${encoded_name};end">Playit</a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=audio/*;S.title=${encoded_name};end">MX Player</a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=audio/*;S.title=${encoded_name};end">VLC Player</a>
-                            </div>` : ''}
-                        </div>
-                    </div>
-                </div>
-                `}
-            </div>
-        </div>
-    </div>`;
-    $("#content").html(content);
-
-    // ── Player enhancement (optional — native <audio> works without JS) ───────
-    // Plyr and Video.js enhance the native <audio> element if configured.
-    if (!shouldDisablePlayer(bytes) && player_js) {
-        const script = document.createElement('script');
-        script.src = player_js;
-        script.onload = () => {
-            if (player_config.player === 'plyr') {
-                new Plyr('#aplayer');
-            } else if (player_config.player === 'videojs') {
-                videojs('aplayer', { fill: true });
-            }
-        };
-        document.head.appendChild(script);
-
-        if (player_css) {
-            const css = document.createElement('link');
-            css.href = player_css;
-            css.rel = 'stylesheet';
-            document.head.appendChild(css);
-        }
-    }
-}
+    // Add the container and card elements
+    var player = `<video id="aplayer" poster="${UI.audioposter}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; object-fit: cover; min-height: 200px;">
+                    <source src="${url}" type="audio/mpeg" />
+                    <source src="${url}" type="audio/ogg" />
+                    <source src="${url}" type="audio/wav" />
+                </video>`;
 
     const content = `
     <div class="card">
