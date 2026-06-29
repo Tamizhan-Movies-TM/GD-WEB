@@ -226,6 +226,28 @@ function init() {
     border-color: #007bff;
 }
 
+.pw-field-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.pw-field-wrap .form-input {
+    padding-right: 44px;
+}
+.pw-toggle-btn {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.45);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+}
+.pw-toggle-btn:hover { color: rgba(255,255,255,0.85); }
+
 .submit-btn {
     width: 100%;
     background: #007bff;
@@ -474,13 +496,18 @@ strong {
                 <label class="form-label" for="password">
                     <i class="fas fa-lock"></i> Password
                 </label>
-                <input
-                    type="password"
-                    id="password"
-                    class="form-input"
-                    placeholder="Enter your password"
-                    required
-                >
+                <div class="pw-field-wrap">
+                    <input
+                        type="password"
+                        id="password"
+                        class="form-input"
+                        placeholder="Enter your password"
+                        required
+                    >
+                    <button type="button" class="pw-toggle-btn" id="togglePw" tabindex="-1" title="Show/hide password">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="submit-btn" id="submitBtn">
@@ -773,6 +800,19 @@ function initializeLoginModal() {
 
     // Close button click
     closeModalBtn.addEventListener('click', closeLoginModal);
+
+    // Password show/hide toggle
+    document.getElementById('togglePw').addEventListener('click', function() {
+        const pw = document.getElementById('password');
+        const icon = document.getElementById('eyeIcon');
+        if (pw.type === 'password') {
+            pw.type = 'text';
+            icon.className = 'fas fa-eye-slash';
+        } else {
+            pw.type = 'password';
+            icon.className = 'fas fa-eye';
+        }
+    });
 
     // Close on backdrop click
     loginModal.addEventListener('click', (e) => {
