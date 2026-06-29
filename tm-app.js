@@ -49,10 +49,7 @@ function _getIcon(ext, mimeType, iconLink) {
 function isUserLoggedIn() {
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
-        const eqIdx = cookie.trim().indexOf('=');
-        if (eqIdx === -1) continue;
-        const name = cookie.trim().slice(0, eqIdx);
-        const value = cookie.trim().slice(eqIdx + 1);
+        const [name, value] = cookie.trim().split('=');
         if (name === 'session') {
             const sessionValue = value ? value.trim() : '';
             // Check if session has a valid value
@@ -765,7 +762,7 @@ function checkPasswordExpiryWarning() {
         document.body.appendChild(overlay);
         overlay.querySelector('#_tm_ok').addEventListener('click', closePopup);
         overlay.querySelector('#_tm_cls').addEventListener('click', closePopup);
-        overlay.querySelector('#_tm_bg').addEventListener('click', function(e) { if (e.target === this) closePopup(); });
+        overlay.querySelector('#_tm_bg').addEventListener('click', closePopup);
         document.addEventListener('keydown', function onEsc(e) {
             if (e.key === 'Escape') { closePopup(); document.removeEventListener('keydown', onEsc); }
         });
@@ -902,10 +899,8 @@ function initializeLoginModal() {
         // ✅ FIX: Clear the ?error= param so refreshing the page doesn't
         // re-open the modal and re-show the old error message.
         try {
-            urlParams.delete('error');
-            const remaining = urlParams.toString();
-            const cleanUrl = window.location.pathname + (remaining ? '?' + remaining : '');
-            window.history.replaceState(null, '', cleanUrl);
+            const cleanUrl = window.location.pathname + (urlParams.toString().replace(/error=[^&]*&?/, '').replace(/&$/, '') ? '?' + urlParams.toString().replace(/error=[^&]*&?/, '').replace(/&$/, '') : '');
+            window.history.replaceState(null, '', cleanUrl || window.location.pathname);
         } catch (_) {}
     }
 }
@@ -1661,9 +1656,8 @@ function append_files_to_list(path, files) {
             //targetFiles.push(filepath);
             pn += "?a=view";
             c += " view";
-            targetFiles.push(pn);
             //}
-            html += `<div class="list-group-item
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytes}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
 
             html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -2210,7 +2204,12 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // ===== Show GPLinks and Nowshort =====
         log('Showing GPLinks and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
-        // ── End URL shortener section ─────────────────────────────────────────
+        function _rotateNowshortUrl(nowshortUrl) {
+            // Use nowshort URL directly — no rotator
+            log('Nowshort URL:', nowshortUrl);
+            return nowshortUrl;
+        }
+        // ── End Rotator ───────────────────────────────────────────────────────
 
         // Style adjustments
         $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
@@ -2237,8 +2236,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             }
 
             if (nowshortUrl) {
+                const rotatedNowshortUrl = _rotateNowshortUrl(nowshortUrl);
                 buttonsHtml += `
-                    <a href="${getChromeOpenUrl(nowshortUrl)}"
+                    <a href="${getChromeOpenUrl(rotatedNowshortUrl)}"
                        class="btn btn-success d-flex align-items-center gap-2"
                        target="_blank"
                        title="Open via Nowshort">
@@ -2272,13 +2272,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 </button>`;
             $('#modal-body-space-buttons').html(loadingButtons + close_btn);
 
-            // Fetch both in parallel — abortable so closing the modal cancels stale requests
-            const _shortUrlAbortCtrl = new AbortController();
-            const _shortUrlSignal = _shortUrlAbortCtrl.signal;
-
-            // Cancel any in-flight shortener fetches when the modal is dismissed
-            $('#SearchModel').one('hide.bs.modal', function() { _shortUrlAbortCtrl.abort(); });
-
+            // Fetch both in parallel
             const _fetchShortUrl = async (endpoint) => {
                 let retries = 3;
                 while (retries > 0) {
@@ -2286,17 +2280,13 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                         const response = await fetch(endpoint, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ url: directUrl }),
-                            signal: _shortUrlSignal
+                            body: JSON.stringify({ url: directUrl })
                         });
                         if (response.ok) {
                             const data = await response.json();
                             if (data.success && data.short_url) return data.short_url;
                         }
-                    } catch (e) {
-                        if (e.name === 'AbortError') return null;
-                        logError(endpoint + ' error:', e);
-                    }
+                    } catch (e) { logError(endpoint + ' error:', e); }
                     retries--;
                     if (retries > 0) await new Promise(r => setTimeout(r, 2000));
                 }
@@ -2588,7 +2578,6 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
                 <span class="tth">Size</span>
                 </th>
                 <td>${size}</td>
-               </td>
                         </tr>
                     </tbody>
                 </table>
@@ -2694,7 +2683,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                  <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
-                  </td>
                            </tr>
                      </tbody>
                  </table>
@@ -3831,7 +3819,7 @@ $(document).ready(function () {
 // =============================================================================
 // create a MutationObserver to listen for changes to the DOM
 const observer = new MutationObserver(() => {
-    if (typeof updateCheckboxes === 'function') updateCheckboxes();
+    updateCheckboxes();
 });
 
 // define the options for the observer (listen for changes to child elements)
