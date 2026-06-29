@@ -2793,6 +2793,43 @@ function shouldDisablePlayer(bytes) {
       let player_js = '';
       let player_css = '';
 
+      // ── Browser-compatible MIME type mapping ──────────────────────────────
+      // Browsers reject non-standard MIME types like video/x-matroska even when
+      // they can actually decode the codec (H.264 in MKV plays fine in Chrome).
+      // Map Drive MIME types → the closest browser-supported type so the player
+      // does not refuse to load before even trying the stream.
+      function _browserVideoMime(driveType, fileName) {
+        const ext = (fileName || '').toLowerCase().split('.').pop();
+        // Explicit MIME overrides
+        const mimeMap = {
+          'video/x-matroska': 'video/mp4',   // MKV → mp4 container hint (Chrome plays H.264 MKV)
+          'video/x-msvideo':  'video/mp4',   // AVI
+          'video/avi':        'video/mp4',
+          'video/divx':       'video/mp4',
+          'video/x-divx':     'video/mp4',
+          'video/x-flv':      'video/mp4',   // FLV
+          'video/x-ms-wmv':   'video/mp4',   // WMV
+          'video/x-ms-asf':   'video/mp4',
+          'video/quicktime':  'video/mp4',   // MOV
+          'video/3gpp':       'video/mp4',
+          'video/3gpp2':      'video/mp4',
+        };
+        if (mimeMap[driveType]) return mimeMap[driveType];
+        // Extension fallback when MIME is generic/missing
+        const extMap = {
+          mkv: 'video/mp4', avi: 'video/mp4', flv: 'video/mp4',
+          wmv: 'video/mp4', mov: 'video/mp4', rm:  'video/mp4',
+          rmvb:'video/mp4', asf: 'video/mp4', ts:  'video/mp4',
+          '3gp':'video/mp4', m4v: 'video/mp4', divx:'video/mp4',
+          mp4: 'video/mp4', webm:'video/webm', ogv: 'video/ogg',
+        };
+        if (extMap[ext]) return extMap[ext];
+        // Already a standard browser type
+        if (driveType && driveType.startsWith('video/')) return driveType;
+        return 'video/mp4'; // safe fallback
+      }
+      const _srcMime = _browserVideoMime(mimeType, name);
+
       // ── iOS Detection ─────────────────────────────────────────────────────
       // Safari on iPhone/iPad cannot play MKV, AVI, FLV, WMV — hardware limit.
       // Only MP4 (H.264/HEVC), MOV, M4V are natively supported by Safari.
@@ -2876,17 +2913,14 @@ function shouldDisablePlayer(bytes) {
         } else if (player_config.player == "plyr") {
             // ✅ FIX: webkit-playsinline — required for older iOS inline playback
             player = `<video id="player" playsinline webkit-playsinline controls data-poster="${poster}">
-      <source src="${url}" type="video/mp4" />
-      <source src="${url}" type="video/webm" />
+      <source src="${url}" type="${_srcMime}" />
         </video>`
             player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
             player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
         } else if (player_config.player == "videojs") {
             // ✅ FIX: webkit-playsinline — required for older iOS inline playback
             player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" playsinline webkit-playsinline width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
-      <source src="${url}" type="video/mp4" />
-      <source src="${url}" type="video/webm" />
-      <source src="${url}" type="video/avi" />
+      <source src="${url}" type="${_srcMime}" />
     </video>`
             player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
             player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
