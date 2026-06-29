@@ -2331,7 +2331,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${isUserLoggedIn() || !UI.enable_extralink
+          ${!UI.enable_extralink
     ? `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
@@ -2444,7 +2444,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${isUserLoggedIn() || !UI.enable_extralink
+          ${!UI.enable_extralink
     ? `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
@@ -2690,7 +2690,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${isUserLoggedIn() || !UI.enable_extralink
+          ${!UI.enable_extralink
     ? `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
@@ -2835,7 +2835,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                     <div class="text-center">
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
-                           ${isUserLoggedIn() || !UI.enable_extralink
+                           ${!UI.enable_extralink
     ? `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
@@ -3324,8 +3324,12 @@ function generateExtraLinkURL(fileId, fileName) {
 }
 
 // Click handler for .download-via-extralink buttons
+// e.stopImmediatePropagation() ensures the tm-download-btn 5-second timer
+// overlay never fires — ExtraLink opens its own page directly instead.
 $(document).on('click', '.download-via-extralink', function(e) {
     e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
     const fileId = $(this).data('file-id');
     const button = $(this);
 
