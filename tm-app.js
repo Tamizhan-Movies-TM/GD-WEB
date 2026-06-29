@@ -49,7 +49,11 @@ function _getIcon(ext, mimeType, iconLink) {
 function isUserLoggedIn() {
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
+        const trimmed = cookie.trim();
+        const eqIdx = trimmed.indexOf('=');
+        if (eqIdx === -1) continue;
+        const name = trimmed.slice(0, eqIdx);
+        const value = trimmed.slice(eqIdx + 1);
         if (name === 'session') {
             const sessionValue = value ? value.trim() : '';
             // Check if session has a valid value
@@ -697,7 +701,7 @@ function checkPasswordExpiryWarning() {
 
     <div id="_tm_bg" style="position:absolute;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);"></div>
 
-    <div id="_tm_card" style="position:relative;width:92%;max-width:410px;background:${cardBg};border:1px solid ${acBd};border-radius:22px;overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,0.85),0 0 0 1px rgba(255,255,255,0.04);">
+    <div id="_tm_card" onclick="event.stopPropagation()" style="position:relative;width:92%;max-width:410px;background:${cardBg};border:1px solid ${acBd};border-radius:22px;overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,0.85),0 0 0 1px rgba(255,255,255,0.04);">
 
         <div style="height:3px;background:linear-gradient(90deg,transparent,${ac},transparent);"></div>
 
@@ -762,7 +766,7 @@ function checkPasswordExpiryWarning() {
         document.body.appendChild(overlay);
         overlay.querySelector('#_tm_ok').addEventListener('click', closePopup);
         overlay.querySelector('#_tm_cls').addEventListener('click', closePopup);
-        overlay.querySelector('#_tm_bg').addEventListener('click', closePopup);
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closePopup(); });
         document.addEventListener('keydown', function onEsc(e) {
             if (e.key === 'Escape') { closePopup(); document.removeEventListener('keydown', onEsc); }
         });
@@ -899,8 +903,9 @@ function initializeLoginModal() {
         // ✅ FIX: Clear the ?error= param so refreshing the page doesn't
         // re-open the modal and re-show the old error message.
         try {
-            const cleanUrl = window.location.pathname + (urlParams.toString().replace(/error=[^&]*&?/, '').replace(/&$/, '') ? '?' + urlParams.toString().replace(/error=[^&]*&?/, '').replace(/&$/, '') : '');
-            window.history.replaceState(null, '', cleanUrl || window.location.pathname);
+            urlParams.delete('error');
+            const qs = urlParams.toString();
+            window.history.replaceState(null, '', window.location.pathname + (qs ? '?' + qs : ''));
         } catch (_) {}
     }
 }
@@ -2204,11 +2209,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // ===== Show GPLinks and Nowshort =====
         log('Showing GPLinks and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
-        function _rotateNowshortUrl(nowshortUrl) {
-            // Use nowshort URL directly — no rotator
-            log('Nowshort URL:', nowshortUrl);
-            return nowshortUrl;
-        }
         // ── End Rotator ───────────────────────────────────────────────────────
 
         // Style adjustments
@@ -2236,9 +2236,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             }
 
             if (nowshortUrl) {
-                const rotatedNowshortUrl = _rotateNowshortUrl(nowshortUrl);
                 buttonsHtml += `
-                    <a href="${getChromeOpenUrl(rotatedNowshortUrl)}"
+                    <a href="${getChromeOpenUrl(nowshortUrl)}"
                        class="btn btn-success d-flex align-items-center gap-2"
                        target="_blank"
                        title="Open via Nowshort">
@@ -2317,7 +2316,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
 function get_file(path, file, callback) {
     var key = "file_path_" + path + file['createdTime'];
     var data = localStorage.getItem(key);
-    if (data != undefined) {
+    if (data !== null) {
         return callback(data);
     } else {
         $.get(path, function(d) {
@@ -2578,7 +2577,6 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
                 <span class="tth">Size</span>
                 </th>
                 <td>${size}</td>
-               </td>
                         </tr>
                     </tbody>
                 </table>
@@ -2684,7 +2682,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                  <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
-                  </td>
                            </tr>
                      </tbody>
                  </table>
@@ -2943,7 +2940,6 @@ function shouldDisablePlayer(bytes) {
                   <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
-                    </td>
                              </tr>
                          </tbody>
                     </table>
@@ -3124,7 +3120,7 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
         script.onload = () => {
         switch(player_config.player) {
         case "plyr":
-        new Plyr('#player');
+        new Plyr('#aplayer');
         break;
         case "videojs":
         videojs('vplayer', {fill: true});
@@ -3822,7 +3818,7 @@ $(document).ready(function () {
 // =============================================================================
 // create a MutationObserver to listen for changes to the DOM
 const observer = new MutationObserver(() => {
-    updateCheckboxes();
+    if (typeof updateCheckboxes === 'function') updateCheckboxes();
 });
 
 // define the options for the observer (listen for changes to child elements)
