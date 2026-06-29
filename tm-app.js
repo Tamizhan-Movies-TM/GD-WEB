@@ -49,11 +49,7 @@ function _getIcon(ext, mimeType, iconLink) {
 function isUserLoggedIn() {
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
-        const trimmed = cookie.trim();
-        const eqIdx = trimmed.indexOf('=');
-        if (eqIdx === -1) continue;
-        const name = trimmed.slice(0, eqIdx);
-        const value = trimmed.slice(eqIdx + 1);
+        const [name, value] = cookie.trim().split('=');
         if (name === 'session') {
             const sessionValue = value ? value.trim() : '';
             // Check if session has a valid value
@@ -701,7 +697,7 @@ function checkPasswordExpiryWarning() {
 
     <div id="_tm_bg" style="position:absolute;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);"></div>
 
-    <div id="_tm_card" onclick="event.stopPropagation()" style="position:relative;width:92%;max-width:410px;background:${cardBg};border:1px solid ${acBd};border-radius:22px;overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,0.85),0 0 0 1px rgba(255,255,255,0.04);">
+    <div id="_tm_card" style="position:relative;width:92%;max-width:410px;background:${cardBg};border:1px solid ${acBd};border-radius:22px;overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,0.85),0 0 0 1px rgba(255,255,255,0.04);">
 
         <div style="height:3px;background:linear-gradient(90deg,transparent,${ac},transparent);"></div>
 
@@ -766,7 +762,7 @@ function checkPasswordExpiryWarning() {
         document.body.appendChild(overlay);
         overlay.querySelector('#_tm_ok').addEventListener('click', closePopup);
         overlay.querySelector('#_tm_cls').addEventListener('click', closePopup);
-        overlay.addEventListener('click', function(e) { if (e.target === overlay) closePopup(); });
+        overlay.querySelector('#_tm_bg').addEventListener('click', closePopup);
         document.addEventListener('keydown', function onEsc(e) {
             if (e.key === 'Escape') { closePopup(); document.removeEventListener('keydown', onEsc); }
         });
@@ -903,9 +899,8 @@ function initializeLoginModal() {
         // ✅ FIX: Clear the ?error= param so refreshing the page doesn't
         // re-open the modal and re-show the old error message.
         try {
-            urlParams.delete('error');
-            const qs = urlParams.toString();
-            window.history.replaceState(null, '', window.location.pathname + (qs ? '?' + qs : ''));
+            const cleanUrl = window.location.pathname + (urlParams.toString().replace(/error=[^&]*&?/, '').replace(/&$/, '') ? '?' + urlParams.toString().replace(/error=[^&]*&?/, '').replace(/&$/, '') : '');
+            window.history.replaceState(null, '', cleanUrl || window.location.pathname);
         } catch (_) {}
     }
 }
@@ -2209,6 +2204,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // ===== Show GPLinks and Nowshort =====
         log('Showing GPLinks and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
+        function _rotateNowshortUrl(nowshortUrl) {
+            // Use nowshort URL directly — no rotator
+            log('Nowshort URL:', nowshortUrl);
+            return nowshortUrl;
+        }
         // ── End Rotator ───────────────────────────────────────────────────────
 
         // Style adjustments
@@ -2236,8 +2236,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             }
 
             if (nowshortUrl) {
+                const rotatedNowshortUrl = _rotateNowshortUrl(nowshortUrl);
                 buttonsHtml += `
-                    <a href="${getChromeOpenUrl(nowshortUrl)}"
+                    <a href="${getChromeOpenUrl(rotatedNowshortUrl)}"
                        class="btn btn-success d-flex align-items-center gap-2"
                        target="_blank"
                        title="Open via Nowshort">
@@ -2316,7 +2317,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
 function get_file(path, file, callback) {
     var key = "file_path_" + path + file['createdTime'];
     var data = localStorage.getItem(key);
-    if (data !== null) {
+    if (data != undefined) {
         return callback(data);
     } else {
         $.get(path, function(d) {
@@ -2577,6 +2578,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
                 <span class="tth">Size</span>
                 </th>
                 <td>${size}</td>
+               </td>
                         </tr>
                     </tbody>
                 </table>
@@ -2682,6 +2684,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                  <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
+                  </td>
                            </tr>
                      </tbody>
                  </table>
@@ -2887,6 +2890,12 @@ function shouldDisablePlayer(bytes) {
     </video>`
             player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
             player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
+        } else if (player_config.player == "artplayer") {
+            // ✅ Artplayer + mpegts.js — supports MKV, AVI, FLV, AC3, EAC3, DTS audio in browser
+            // mpegts.js demuxes the container in WebAssembly so browser codec restrictions are bypassed.
+            player = `<div id="artplayer-container" style="width:100%;min-height:200px;height:100%;border-radius:0.375rem;overflow:hidden;background:#000;"></div>`
+            player_js = ''   // loaded manually in onload chain below
+            player_css = ''
         } else if (player_config.player == "dplayer") {
             player = `<div id="player-container"></div>`
             player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js'
@@ -2940,6 +2949,7 @@ function shouldDisablePlayer(bytes) {
                   <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
+                    </td>
                              </tr>
                          </tbody>
                     </table>
@@ -2972,7 +2982,99 @@ function shouldDisablePlayer(bytes) {
   // GDFlix handler is registered once at module level (see bottom of file)
 
   // Load player script — skip entirely on iOS unsupported formats
-    if (!shouldDisablePlayer(bytes) && player_js && !_iosCantPlay) {
+    if (!shouldDisablePlayer(bytes) && !_iosCantPlay) {
+
+    // ── Artplayer (MKV / AC3 / EAC3 / DTS full support) ─────────────────────
+    if (player_config.player == "artplayer") {
+        function _loadScript(src, cb) {
+            var s = document.createElement('script');
+            s.src = src;
+            s.onload = cb;
+            s.onerror = function() { console.error('Failed to load:', src); };
+            document.head.appendChild(s);
+        }
+        function _loadStyle(href) {
+            var l = document.createElement('link');
+            l.rel = 'stylesheet'; l.href = href;
+            document.head.appendChild(l);
+        }
+
+        // Load Artplayer CSS
+        _loadStyle('https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.css');
+
+        // Load Artplayer → then mpegts.js → then init
+        _loadScript('https://cdn.jsdelivr.net/npm/artplayer/dist/artplayer.js', function() {
+            _loadScript('https://cdn.jsdelivr.net/npm/mpegts.js/dist/mpegts.js', function() {
+
+                var art = new Artplayer({
+                    container: '#artplayer-container',
+                    url:       url,
+                    poster:    poster || '',
+                    volume:    1,
+                    autoplay:  false,
+                    playbackRate: true,
+                    aspectRatio:  true,
+                    fullscreen:   true,
+                    fullscreenWeb: true,
+                    pip:       true,
+                    screenshot: false,
+                    theme:     '#22c55e',
+                    lang:      'en',
+                    // ✅ mpegts.js customType — handles MKV, FLV, TS, AVI containers
+                    // and decodes AC3, EAC3, DTS, TrueHD audio that browsers can't natively play
+                    customType: {
+                        mkv: function(video, src) {
+                            if (mpegts.isSupported()) {
+                                var player = mpegts.createPlayer({
+                                    type: 'mkv',
+                                    url:  src,
+                                    isLive: false,
+                                    enableWorker: true,
+                                    lazyLoadMaxDuration: 3 * 60,
+                                    seekType: 'range',
+                                }, {
+                                    enableWorker:         true,
+                                    enableStashBuffer:    false,
+                                    stashInitialSize:     128,
+                                    autoCleanupSourceBuffer: true,
+                                });
+                                player.attachMediaElement(video);
+                                player.load();
+                                art.on('destroy', function() { player.destroy(); });
+                            } else {
+                                // Fallback: direct src assign (Chrome may still play H.264+AAC MKVs natively)
+                                video.src = src;
+                            }
+                        },
+                        avi: function(video, src) {
+                            if (mpegts.isSupported()) {
+                                var player = mpegts.createPlayer({ type: 'avi', url: src, isLive: false });
+                                player.attachMediaElement(video);
+                                player.load();
+                                art.on('destroy', function() { player.destroy(); });
+                            } else { video.src = src; }
+                        },
+                        flv: function(video, src) {
+                            if (mpegts.isSupported()) {
+                                var player = mpegts.createPlayer({ type: 'flv', url: src, isLive: false });
+                                player.attachMediaElement(video);
+                                player.load();
+                                art.on('destroy', function() { player.destroy(); });
+                            } else { video.src = src; }
+                        },
+                    },
+                });
+
+                // ✅ If mpegts doesn't support the format, show a friendly notice
+                art.on('error', function(err) {
+                    log('Artplayer error:', err);
+                });
+
+            }); // mpegts loaded
+        }); // artplayer loaded
+
+    } else if (player_js) {
+    // ── Legacy players (videojs / plyr / dplayer / jwplayer) ─────────────────
     var videoJsScript = document.createElement('script');
     videoJsScript.src = player_js;
     videoJsScript.onload = function() {
@@ -3030,7 +3132,8 @@ function shouldDisablePlayer(bytes) {
     videoJsStylesheet.rel = 'stylesheet';
     document.head.appendChild(videoJsStylesheet);
     }
-    }
+    } // end else if (player_js)
+    } // end if (!shouldDisablePlayer && !_iosCantPlay)
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
@@ -3120,7 +3223,7 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
         script.onload = () => {
         switch(player_config.player) {
         case "plyr":
-        new Plyr('#aplayer');
+        new Plyr('#player');
         break;
         case "videojs":
         videojs('vplayer', {fill: true});
@@ -3818,7 +3921,7 @@ $(document).ready(function () {
 // =============================================================================
 // create a MutationObserver to listen for changes to the DOM
 const observer = new MutationObserver(() => {
-    if (typeof updateCheckboxes === 'function') updateCheckboxes();
+    updateCheckboxes();
 });
 
 // define the options for the observer (listen for changes to child elements)
