@@ -64,6 +64,29 @@ function isUserLoggedIn() {
 }
 
 // =============================================================================
+// PLAYER MENU VISIBILITY HELPER
+// Centralises the show_player_menu logic so all 4 call sites stay in sync.
+//
+// UI.show_player_menu behaviour:
+//   false   → show menu for everyone (no restriction)
+//   true    → show menu for logged-in users only
+//   "size"  → show menu for logged-in users always PLUS non-login users whose
+//              file is strictly below UI.player_menu_free_threshold_gb (default 5 GB)
+//
+// bytes — file size in bytes passed in from the file render functions.
+// =============================================================================
+function _canSeePlayerMenu(bytes) {
+    const setting = UI.show_player_menu;
+    if (setting === false) return true;                    // everyone
+    if (isUserLoggedIn()) return true;                     // always show to logged-in
+    if (setting === 'size') {
+        const thresholdBytes = (UI.player_menu_free_threshold_gb || 5) * 1024 * 1024 * 1024;
+        return bytes < thresholdBytes;                     // non-login: only below threshold
+    }
+    return false;                                          // true → logged-in only, non-login blocked
+}
+
+// =============================================================================
 // SECURITY: HTML escape helper — prevents XSS from
 // file names containing <script> or event handlers
 // =============================================================================
@@ -2528,7 +2551,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${getDownloadButton(url, encoded_name, file_id, bytes)}
-            ${UI.show_player_menu === false || isUserLoggedIn() ? `
+            ${_canSeePlayerMenu(bytes) ? `
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2634,7 +2657,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${getDownloadButton(url, encoded_name, file_id, bytes)}
-            ${UI.show_player_menu === false || isUserLoggedIn() ? `
+            ${_canSeePlayerMenu(bytes) ? `
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2893,7 +2916,7 @@ function shouldDisablePlayer(bytes) {
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${getDownloadButton(url, encoded_name, file_id, bytes)}
-            ${UI.show_player_menu === false || isUserLoggedIn() ? `
+            ${_canSeePlayerMenu(bytes) ? `
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -3034,7 +3057,7 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </button>
-                            ${UI.show_player_menu === false || isUserLoggedIn() ? `
+                            ${_canSeePlayerMenu(bytes) ? `
                             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split"
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="sr-only"></span>
