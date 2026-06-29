@@ -482,7 +482,7 @@ strong {
         </div>
         <div class="card-body d-flex align-items-center justify-content-center">
         <div class="donate btn p-0">
-           <a class="btn" href="https://t.me/tamizhan_updates/266" title="Watch Video Clearly" target="_blank">
+           <a class="btn" href="${UI.company_link}/266" title="Watch Video Clearly" target="_blank">
          <strong>
              <i class="fa-solid fa-eye"></i>WATCH VIDEO
          </strong>
@@ -507,16 +507,16 @@ strong {
         ${telegram_icon}&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
       </div>
       <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
-        <a href="https://cutt.ly/zrMe2JpH" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪑⅈꫀડ">
+        <a href="${UI.telegram_channel_main}" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪑⅈꫀડ">
             <img class="image" alt="tamizhan" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tm-icon.png">
         </a>
-        <a href="https://cutt.ly/ZrBTy6LJ" target="_blank" title="Hollywood Tamizhan Movies">
+        <a href="${UI.telegram_channel_hollywood}" target="_blank" title="Hollywood Tamizhan Movies">
             <img class="image" alt="Movies" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/htm-icon.png">
         </a>
-        <a href="https://cutt.ly/irMe1nkm" target="_blank" title="Tamizhan Web Series">
+        <a href="${UI.telegram_channel_series}" target="_blank" title="Tamizhan Web Series">
             <img class="image" alt="Series" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tws-icon.png">
         </a>
-        <a href="https://cutt.ly/ZrMe1emr" target="_blank" title="Tamizhan Movies Backup">
+        <a href="${UI.telegram_channel_backup}" target="_blank" title="Tamizhan Movies Backup">
             <img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/telegram.png">
         </a>
       </div>
@@ -554,7 +554,7 @@ ${UI.show_quota ? `<div id="tm-quota-bar" style="display:none; padding:6px 16px;
       <i class="fa-brands fa-pied-piper-alt"></i> ${new Date().getFullYear()} - <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
         </div>
       <div class="col-lg-4 col-md-12">
-      <a href="https://cutt.ly/cr9jPsvc" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a>
+      <a href="/dmca" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a>
       ${UI.credit ? '<span>© All Copy Rights Reserved ®™</span>' : ''}
       </div>
        <div class="col-lg-4 col-md-12 text-lg-end">
@@ -688,7 +688,7 @@ function checkPasswordExpiryWarning() {
             </div>
 
             <div style="display:flex;gap:9px;">
-                <a href="https://telegram.me/tamizhan_movies" target="_blank" id="_tm_tg" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:11px;padding:11px;display:flex;align-items:center;justify-content:center;gap:7px;color:rgba(255,255,255,0.58);font-size:12px;font-weight:500;text-decoration:none;transition:all 0.18s;">
+                <a href="${window.UI.contact_link}" target="_blank" id="_tm_tg" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:11px;padding:11px;display:flex;align-items:center;justify-content:center;gap:7px;color:rgba(255,255,255,0.58);font-size:12px;font-weight:500;text-decoration:none;transition:all 0.18s;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="#29A8E0"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 13.667l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.978.892z"/></svg>
                     Contact Admin
                 </a>
@@ -984,10 +984,11 @@ function nav(path) {
     ${isUserLoggedIn()
         ? '<li class="nav-item"><a class="nav-link" href="/logout"><i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>Logout</a></li>'
         : '<li class="nav-item"><a class="nav-link" href="#" id="openLoginModal" style="cursor: pointer;"><i class="fa-solid fa-user fa-fw"></i>Login</a></li>'
-    }</ul>`;
+    }`;
 
     var search_text = model.is_search_page ? (model.q || '') : '';
     var search_bar = `
+</ul>
 <form class="d-flex" id="search_bar_form" method="get" action="/${cur}:search">
 <div class="input-group">
     <input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${search_text}" style="border-right:0;" required>
@@ -2481,7 +2482,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
                 </div>` : `
                 <div class="h-100 border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;">
                     <span><img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/zip-icon.png" alt="Zip Icon" style="max-width: 200px; height: auto; object-fit: contain;"></span>
-                    <span><a href="https://telegram.me/tamizhan_updates/51" target="_blank" style="text-decoration: none; color: #00d4ff;">👉🏻 How to Extract Zip file ✅</a></span>
+                    <span><a href="${UI.telegram_guide_zip}" target="_blank" style="text-decoration: none; color: #00d4ff;">👉🏻 How to Extract Zip file ✅</a></span>
                 </div>`}
             </div>
             <div class="col-lg-8 col-md-12">
