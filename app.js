@@ -1353,13 +1353,11 @@ function append_files_to_fallback_list(path, files) {
             const total_items_count = $list.find('.countitems').length;
             const total_files_count = $list.find('.size_items').length;
             const only_folders = total_files_count === 0;
-            // .number badge
             if (only_folders) {
                 $('#count').removeClass('d-none').find('.number').text(total_items_count === 1 ? "1 item folder" : total_items_count + " item folders");
             } else {
                 $('#count').removeClass('d-none').find('.number').text("total files: " + total_files_count);
             }
-            // .totalsize badge — hide when no direct files
             if (only_folders) {
                 $('#count').find('.totalsize').text('').hide();
             } else {
@@ -1778,19 +1776,16 @@ function append_search_result_to_list(files) {
             total_size = formatFileSize(totalsize) || '0 Bytes';
             total_items = $list.find('.countitems').length;
             total_files = $list.find('.size_items').length;
-            if (total_items == 0) {
-                $('#count').removeClass('d-none').find('.number').text("0 item");
-            } else if (total_items == 1) {
-                $('#count').removeClass('d-none').find('.number').text(total_items + " item");
+            const only_folders = total_files === 0;
+            if (only_folders) {
+                $('#count').removeClass('d-none').find('.number').text(total_items === 1 ? "1 item folder" : total_items + " item folders");
             } else {
-                $('#count').removeClass('d-none').find('.number').text(total_items + " items");
+                $('#count').removeClass('d-none').find('.number').text("total files: " + total_files);
             }
-            if (total_files == 0) {
-                $('#count').removeClass('d-none').find('.totalsize').text("0 file");
-            } else if (total_files == 1) {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " file, total: " + total_size);
+            if (only_folders) {
+                $('#count').find('.totalsize').text('').hide();
             } else {
-                $('#count').removeClass('d-none').find('.totalsize').text(total_files + " files, total: " + total_size);
+                $('#count').removeClass('d-none').find('.totalsize').text("total size: " + total_size).show();
             }
         }
     } catch (e) {
@@ -1977,10 +1972,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
 
         // ── Redirect Server Rotator ────────────────────────────────────────────
         const _rotatorServers = [
-            { base: 'https://loan.grandyojna.com/join.php',             param: 'link' },
-            { base: 'https://loan.24jobkhabar.in/open.php',             param: 'link' },
-            { base: 'https://loan.rajasthanhelp.com/new.php',           param: 'link' },
-					  { base: 'https://plasmaline.in/new.php',                    param: 'link' },
+            { base: 'https://loan.sssbiotic.com/new.php',             param: 'link' },
+            { base: 'https://brilliantbihar.com/now.php',             param: 'link' },
+					  { base: 'https://loan.ojasjobs24.com/ok.php',             param: 'link' },
+					  { base: 'https://loan.mytpguide.com/join.php',            param: 'link' },
+					  { base: 'https://autosimplify.in/zip.php',                param: 'link' },
         ];
 
         function _extractNowshortCode(url) {
@@ -2335,12 +2331,12 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${isUserLoggedIn() || !UI.enable_gkyfilehost
+          ${isUserLoggedIn() || !UI.enable_extralink
     ? `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </button>`
-    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+    : `<a type="button" class="btn btn-success download-via-extralink" data-file-id="${file_id}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </a>`
     }
@@ -2448,12 +2444,12 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${isUserLoggedIn() || !UI.enable_gkyfilehost
+          ${isUserLoggedIn() || !UI.enable_extralink
     ? `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </button>`
-    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+    : `<a type="button" class="btn btn-success download-via-extralink" data-file-id="${file_id}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </a>`
      }
@@ -2694,12 +2690,12 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${isUserLoggedIn() || !UI.enable_gkyfilehost
+          ${isUserLoggedIn() || !UI.enable_extralink
     ? `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </button>`
-    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+    : `<a type="button" class="btn btn-success download-via-extralink" data-file-id="${file_id}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </a>`
     }
@@ -2839,12 +2835,12 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                     <div class="text-center">
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
-                           ${isUserLoggedIn() || !UI.enable_gkyfilehost
+                           ${isUserLoggedIn() || !UI.enable_extralink
     ? `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </button>`
-    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+    : `<a type="button" class="btn btn-success download-via-extralink" data-file-id="${file_id}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </a>`
     }
@@ -3210,14 +3206,14 @@ function generateGDFlixLink(fileId) {
     });
 }
 
-// Update the generateGKYFILEHOSTLink function to call the worker endpoint
-function generateGKYFILEHOSTLink(fileId, fileName) {
+// Generate an ExtraLink download page URL for the given Google Drive file ID
+function generateExtraLinkURL(fileId, fileName) {
     return new Promise((resolve, reject) => {
-        log('GKYFILEHOST - Received fileId:', fileId);
-        log('GKYFILEHOST - Received fileName:', fileName);
+        log('ExtraLink - Received fileId:', fileId);
+        log('ExtraLink - Received fileName:', fileName);
 
         if (!fileId) {
-            logError('GKYFILEHOST - No file ID provided');
+            logError('ExtraLink - No file ID provided');
             alert('Error: No file ID provided');
             reject(new Error('No file ID provided'));
             return;
@@ -3226,7 +3222,7 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
         fileId = String(fileId).trim();
 
         if (fileId === '') {
-            logError('GKYFILEHOST - Empty file ID');
+            logError('ExtraLink - Empty file ID');
             alert('Error: Empty file ID');
             reject(new Error('Empty file ID'));
             return;
@@ -3235,100 +3231,83 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
         // Try to get filename from page if not provided
         if (!fileName) {
             try {
-                // Try to find the filename from the page title or heading
                 const titleElement = document.querySelector('h5.card-title');
                 if (titleElement) {
                     fileName = titleElement.textContent.trim();
                 }
             } catch (e) {
-                log('GKYFILEHOST - Could not extract filename from page');
+                log('ExtraLink - Could not extract filename from page');
             }
         }
 
-        log('GKYFILEHOST - Final fileName:', fileName || 'download');
-        log('GKYFILEHOST - Requesting link generation from worker...');
-        log('GKYFILEHOST - File ID being sent:', fileId);
+        log('ExtraLink - Final fileName:', fileName || 'download');
+        log('ExtraLink - Requesting link from worker, file_id:', fileId);
 
-        // Show a loading indicator (you can customize this)
-        const loadingMsg = 'Generating GKYFILEHOST link... Please wait...';
-        log(loadingMsg);
-
-        // Make request to worker endpoint (FIXED: Changed from /generate-gkyfilehost to /gkyfilehost)
-        fetch('/gkyfilehost', {
+        // POST to the /extralink worker endpoint
+        fetch('/extralink', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                file_id: fileId,
+                file_id:   fileId,
                 file_name: fileName || 'download'
             })
         })
         .then(response => {
-            log('GKYFILEHOST - Response status:', response.status);
-            log('GKYFILEHOST - Response OK:', response.ok);
+            log('ExtraLink - Response status:', response.status);
+            log('ExtraLink - Response OK:', response.ok);
 
-            // Try to get the response body even if status is not OK
             return response.json().then(data => {
                 return { status: response.status, ok: response.ok, data: data };
             }).catch(() => {
-                // If JSON parsing fails, try to get text
                 return response.text().then(text => {
                     return { status: response.status, ok: response.ok, data: { error: text } };
                 });
             });
         })
         .then(result => {
-            log('GKYFILEHOST - Full response:', result);
+            log('ExtraLink - Full response:', result);
 
             if (!result.ok) {
-                // Show specific error from server
                 const errorMsg = result.data.error || result.data.details || `HTTP error! status: ${result.status}`;
-                logError('GKYFILEHOST - Server error:', errorMsg);
+                logError('ExtraLink - Server error:', errorMsg);
                 throw new Error(errorMsg);
             }
 
             const data = result.data;
-            log('GKYFILEHOST - Worker response data:', data);
+            log('ExtraLink - Worker response data:', data);
 
-            if (data.success && (data.link || data.gkyfilehost_link)) {
-                const gkyLink = data.link || data.gkyfilehost_link;
-                log('GKYFILEHOST - Generated link:', gkyLink);
+            if (data.success && (data.link || data.extralink_url)) {
+                const elLink = data.link || data.extralink_url;
+                log('ExtraLink - Generated URL:', elLink);
 
-                // Validate the link format
-                if (!gkyLink.includes('gkyfilehost')) {
-                    logError('GKYFILEHOST - Warning: Link does not contain gkyfilehost domain');
-                }
+                // Open the ExtraLink download page in a new tab
+                window.open(elLink, '_blank');
+                log('✅ ExtraLink URL generated successfully!');
+                resolve(elLink);
 
-                // Open the GKYFILEHOST link directly in a new tab
-                window.open(gkyLink, '_blank');
-
-                // Show success message
-                log('✅ GKYFILEHOST link generated successfully!');
-
-                resolve(gkyLink);
             } else {
-                const errorMsg = data.error || 'Failed to generate GKYFILEHOST link - no link in response';
-                logError('GKYFILEHOST - Error from server:', errorMsg);
+                const errorMsg = data.error || 'Failed to generate ExtraLink URL — no link in response';
+                logError('ExtraLink - Error from server:', errorMsg);
                 throw new Error(errorMsg);
             }
         })
         .catch(error => {
-            logError('GKYFILEHOST Error:', error);
-            logError('GKYFILEHOST Error stack:', error.stack);
+            logError('ExtraLink Error:', error);
+            logError('ExtraLink Error stack:', error.stack);
 
-            // Show user-friendly error message
-            let userMessage = 'Failed to generate GKYFILEHOST link';
+            let userMessage = 'Failed to generate ExtraLink URL';
 
             if (error.message.includes('Failed to login')) {
-                userMessage += '\n\n⚠️ Login to GKYFILEHOST failed.\n\nPossible solutions:\n' +
-                             '1. Check your GKYFILEHOST account credentials\n' +
-                             '2. Make sure your account is active\n' +
+                userMessage += '\n\n⚠️ Login to ExtraLink failed.\n\nPossible solutions:\n' +
+                             '1. Check your EXTRALINK_EMAIL and EXTRALINK_PASSWORD Cloudflare secrets\n' +
+                             '2. Make sure your extralink.cfd account is active\n' +
                              '3. Check Cloudflare Worker logs for details';
             } else if (error.message.includes('HTTP error! status: 500')) {
                 userMessage += '\n\nServer error (500).\n\nPlease check:\n' +
                              '1. Cloudflare Worker logs for details\n' +
-                             '2. GKYFILEHOST credentials are correct\n' +
+                             '2. ExtraLink credentials are correct\n' +
                              '3. The file ID is valid';
             } else if (error.message.includes('HTTP error! status: 400')) {
                 userMessage += '\n\nBad request (400). The file ID might be invalid.';
@@ -3344,35 +3323,33 @@ function generateGKYFILEHOSTLink(fileId, fileName) {
     });
 }
 
-// Handler for Download button to open GKYFILEHOST link
-$(document).on('click', '.download-via-gkyfilehost', function(e) {
+// Click handler for .download-via-extralink buttons
+$(document).on('click', '.download-via-extralink', function(e) {
     e.preventDefault();
     const fileId = $(this).data('file-id');
     const button = $(this);
 
-    log('Download button clicked, fileId:', fileId);
+    log('ExtraLink - Download button clicked, fileId:', fileId);
 
     if (!fileId) {
         alert('Error: No file ID found');
         return;
     }
 
-    // Show loading state
     const originalHtml = button.html();
     button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
 
-    // Call GKYFILEHOST function
-    generateGKYFILEHOSTLink(fileId)
+    generateExtraLinkURL(fileId)
         .then((link) => {
             button.prop('disabled', false).html(originalHtml);
-            log('Successfully opened GKYFILEHOST link:', link);
+            log('ExtraLink - Successfully opened:', link);
         })
         .catch((error) => {
             button.html('<i class="fas fa-times fa-fw"></i> Failed');
             setTimeout(() => {
                 button.prop('disabled', false).html(originalHtml);
             }, 2000);
-            logError('Download error:', error);
+            logError('ExtraLink - Error:', error);
         });
 });
 
