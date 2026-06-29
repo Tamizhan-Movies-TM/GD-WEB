@@ -984,11 +984,10 @@ function nav(path) {
     ${isUserLoggedIn()
         ? '<li class="nav-item"><a class="nav-link" href="/logout"><i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>Logout</a></li>'
         : '<li class="nav-item"><a class="nav-link" href="#" id="openLoginModal" style="cursor: pointer;"><i class="fa-solid fa-user fa-fw"></i>Login</a></li>'
-    }`;
+    }</ul>`;
 
     var search_text = model.is_search_page ? (model.q || '') : '';
     var search_bar = `
-</ul>
 <form class="d-flex" id="search_bar_form" method="get" action="/${cur}:search">
 <div class="input-group">
     <input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${search_text}" style="border-right:0;" required>
