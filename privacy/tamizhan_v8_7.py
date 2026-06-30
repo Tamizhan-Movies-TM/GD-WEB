@@ -1531,6 +1531,14 @@ def _fetch_chunk(url, start, end, cb, dst_path=None, cancel_event=None):
                 raise RuntimeError(
                     f"Chunk {start}-{end}: {r.status_code} — Range rejected"
                 )
+            if r.status_code in (429, 500, 502, 503, 504):
+                r.close()
+                if attempt == MAX_RETRY:
+                    raise RuntimeError(
+                        f"Chunk {start}-{end}: {r.status_code} — Server busy"
+                    )
+                time.sleep(attempt * 2)
+                continue
             r.raise_for_status()
 
             if dst_path is not None:
@@ -1733,7 +1741,8 @@ def _download_external(url, idx, total):
                         fut.result()
                     except RuntimeError as ce:
                         if any(c in str(ce) for c in
-                               ("405", "501", "520", "521", "522", "523", "524")):
+                               ("405", "501", "520", "521", "522", "523", "524",
+                                "429", "500", "502", "503", "504")):
                             _cancel.set()
                             bar._alive = False
                             time.sleep(0.3)
