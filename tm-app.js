@@ -768,6 +768,14 @@ function checkPasswordExpiryWarning() {
         });
     }, 1500);
 }
+// SCOPING FIX: this function is defined inside init(), but render() and
+// render_search_result_list() also try to call it via a
+// `typeof checkPasswordExpiryWarning === 'function'` guard. From their
+// top-level scope the nested name is invisible, so those guards always failed
+// and the re-trigger never fired. Exposing it on window (same pattern this file
+// already uses for UI/MODEL/current_drive_order) makes the bare identifier
+// resolve at those call sites — no change needed there.
+window.checkPasswordExpiryWarning = checkPasswordExpiryWarning;
 // ✅ Fires on EVERY page — home, folder, search, file info
 checkPasswordExpiryWarning();
 }
@@ -1347,7 +1355,7 @@ function list(path, id = '', fallback = false) {
                 password: password
             },
             handleSuccessResult,
-            null, null, true);
+            null, 3, true);
     } else {
         log("handling this")
         requestListPath(path, {
@@ -2578,6 +2586,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
                 <span class="tth">Size</span>
                 </th>
                 <td>${size}</td>
+               </td>
                         </tr>
                     </tbody>
                 </table>
@@ -2683,6 +2692,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                  <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
+                  </td>
                            </tr>
                      </tbody>
                  </table>
@@ -2941,6 +2951,7 @@ function shouldDisablePlayer(bytes) {
                   <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
+                    </td>
                              </tr>
                          </tbody>
                     </table>
@@ -3121,7 +3132,7 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
         script.onload = () => {
         switch(player_config.player) {
         case "plyr":
-        new Plyr('#aplayer');
+        new Plyr('#player');
         break;
         case "videojs":
         videojs('vplayer', {fill: true});
