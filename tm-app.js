@@ -768,14 +768,6 @@ function checkPasswordExpiryWarning() {
         });
     }, 1500);
 }
-// SCOPING FIX: this function is defined inside init(), but render() and
-// render_search_result_list() also try to call it via a
-// `typeof checkPasswordExpiryWarning === 'function'` guard. From their
-// top-level scope the nested name is invisible, so those guards always failed
-// and the re-trigger never fired. Exposing it on window (same pattern this file
-// already uses for UI/MODEL/current_drive_order) makes the bare identifier
-// resolve at those call sites — no change needed there.
-window.checkPasswordExpiryWarning = checkPasswordExpiryWarning;
 // ✅ Fires on EVERY page — home, folder, search, file info
 checkPasswordExpiryWarning();
 }
@@ -1355,7 +1347,7 @@ function list(path, id = '', fallback = false) {
                 password: password
             },
             handleSuccessResult,
-            null, 3, true);
+            null, null, true);
     } else {
         log("handling this")
         requestListPath(path, {
@@ -1982,7 +1974,7 @@ function append_search_result_to_list(files) {
                 const _shouldPrefetch = typeof UI !== 'undefined' && UI.show_url_shortener === true && !isUserLoggedIn();
                 if (!_shouldPrefetch) return;
                 if (!window._shortenerCache) window._shortenerCache = {};
-                const _publicOrigin = (typeof UI !== 'undefined' && UI.public_origin) ? UI.public_origin : 'https://tm.play-streams.workers.dev';
+                const _publicOrigin = 'https://tm.play-streams.workers.dev';
 
                 files.forEach(function(item) {
                     if (item['mimeType'] === 'application/vnd.google-apps.folder') return;
@@ -2051,7 +2043,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     // window.location.origin is tamizhan-movies.site (login-protected) — shorteners
     // must point to the public workers.dev domain so unauthenticated users can open them.
     const encodedFileId = encodeURIComponent(file_id);
-    const _publicOrigin = (typeof UI !== 'undefined' && UI.public_origin) ? UI.public_origin : 'https://tm.play-streams.workers.dev';
+    const _publicOrigin = 'https://tm.play-streams.workers.dev';
     const isFolder = file['mimeType'] === 'application/vnd.google-apps.folder';
     const directUrl = isFolder
         ? `${_publicOrigin}/fallback?id=${encodedFileId}`
