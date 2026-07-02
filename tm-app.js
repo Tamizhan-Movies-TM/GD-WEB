@@ -1,5 +1,5 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
-// v2.6.1
+// v2.6.0
 
 // =============================================================================
 // OPTIMIZATION: Conditional Logging
@@ -1017,9 +1017,9 @@ function title(path) {
     // $('title').html(document.siteName + ' - ' + path);
     var model = window.MODEL;
     if (model.is_search_page)
-        $('title').html(`Search: ${escapeHtml(model.q)} - ${UI.siteName}`);
+        $('title').html(`Search: ${model.q} - ${UI.siteName}`);
     else
-        $('title').html(`${escapeHtml(drive_name)}: ${escapeHtml(path)} - ${UI.siteName}`);
+        $('title').html(`${drive_name}: ${path} - ${UI.siteName}`);
 }
 
 // Render the navigation bar
@@ -1049,7 +1049,7 @@ function nav(path) {
         : '<li class="nav-item"><a class="nav-link" href="#" id="openLoginModal" style="cursor: pointer;"><i class="fa-solid fa-user fa-fw"></i>Login</a></li>'
     }`;
 
-    var search_text = escapeHtml(model.is_search_page ? (model.q || '') : '');
+    var search_text = model.is_search_page ? (model.q || '') : '';
     var search_bar = `
 </ul>
 <form class="d-flex" id="search_bar_form" method="get" action="/${cur}:search">
@@ -1240,7 +1240,7 @@ function list(path, id = '', fallback = false) {
     </div>
     <div class="card">
         <div class="card-header d-flex align-items-center gap-2">
-            <span>${folder_ico}</span><span class="w-100 text-truncate" id="dirname">${escapeHtml(folder_name)}</span>
+            <span>${folder_ico}</span><span class="w-100 text-truncate" id="dirname">${folder_name}</span>
         </div>
         <div class="d-flex align-items-center gap-2 px-3 py-1" id="tm-sort-bar" style="background:rgba(0,0,0,0.4); border-bottom:1px solid rgba(255,255,255,.1); font-size:12px; color:rgba(255,255,255,.55);">
             <span style="flex:1;">Sort:</span>
@@ -1744,7 +1744,7 @@ function render_search_result_list() {
     var searchBar = `
     <form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:search">
         <div class="input-group">
-            <input class="form-control bg-white text-dark" name="q" type="search" placeholder="Search to Type Movies Name + Year" aria-label="Search" value="${escapeHtml(model.q)}" style="border-right:0;" required>
+            <input class="form-control bg-white text-dark" name="q" type="search" placeholder="Search to Type Movies Name + Year" aria-label="Search" value="${model.q}" style="border-right:0;" required>
               <button class="btn btn-success" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;">
                 <i class="fas fa-search" style="margin: 0"></i>
             </button>
@@ -1764,7 +1764,7 @@ function render_search_result_list() {
     </div>
     <div class="card">
         <div class="card-header">
-            <div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${escapeHtml(model.q)}</code></div>
+            <div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
             ${searchBar}
         </div>
         <div class="d-flex align-items-center gap-2 px-3 py-1" id="tm-sort-bar" style="background:rgba(0,0,0,0.4); border-bottom:1px solid rgba(255,255,255,.1); font-size:12px; color:rgba(255,255,255,.55);">
