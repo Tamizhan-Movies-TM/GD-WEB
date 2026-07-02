@@ -1,8 +1,13 @@
 # ╔══════════════════════════════════════════════════════════════════════╗
-# ║   TAMIZHAN MOVIES — ULTRA DOWNLOADER + AUTO-FIX  v8.7                ║
-# ║   Menu [1] Download→Fix→Upload  [2] Direct ZIP  [3] GDrive ZIP       ║
-# ║   [4] GDrive Clone→Remux→Patch  [5] Folder/File Auto-Fix             ║
-# ║   [6] Manual Edit Tracks→Remux→Upload                                ║
+# ║   TAMIZHAN MOVIES — ULTRA DOWNLOADER + AUTO-FIX  v8.9                ║
+# ║                                                                       ║
+# ║  ALL MENUS NOW USE FULL PARALLEL PIPELINES (up to 6 slots):          ║
+# ║   [1] ⚡ Direct URL  → parallel Download+Remux+Upload                 ║
+# ║   [2] ⚡ Direct ZIP  → Download→Extract→parallel Remux+Upload         ║
+# ║   [3] ⚡ GDrive ZIP  → Download→Extract→parallel Remux+Upload         ║
+# ║   [4] ⚡ GDrive Clone→ parallel Clone+Remux→parallel PATCH back       ║
+# ║   [5] ⚡ Drive URL   → parallel Download+Remux+Upload                 ║
+# ║   [6]   Manual Edit Tracks → Remux → Upload                          ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 import copy
@@ -1993,6 +1998,203 @@ def _process_video_files_from_dir(extract_dir, folder_name, new_folder_id, tok,
 
 
 # ══════════════════════════════════════════════════════════════════════
+#  PARALLEL VIDEO PROCESSOR  (shared by Menus [2] [3] [4] [5])
+#
+#  Pipeline inside a ZIP / folder:
+#    Stage-A  Remux workers  (up to 6 simultaneous mkvmerge/ffmpeg jobs)
+#             ──────────────────────────────────────────────────────►
+#                             up_queue
+#             ──────────────────────────────────────────────────────►
+#    Stage-B  Upload worker  (1 dedicated thread — runs while remuxing)
+# ══════════════════════════════════════════════════════════════════════
+def _process_video_files_parallel(video_files, folder_name, folder_id, tok,
+                                  source_label="FILES", max_remux=6,
+                                  get_drive_dest=None):
+    """
+    Remux up to `max_remux` videos simultaneously, then upload each one
+    as soon as its remux is done (upload runs in a dedicated thread).
+
+    video_files  : list of Path objects (already on local NVMe)
+    folder_name  : human label for log messages
+    folder_id    : Drive folder ID to upload into (None → use _upload_to_drive)
+    tok          : current OAuth token (refreshed inside as needed)
+    source_label : shown in log lines
+    get_drive_dest : optional callable(vf) → Path; if given, _upload_to_drive
+                     is used with that path (for Menu [4] in-place PATCH)
+    Returns (ok_count, fail_count).
+    """
+    if not video_files:
+        print(f"  {Y}⚠ No video files to process ({source_label}).{X}")
+        return 0, 1
+
+    n           = len(video_files)
+    _plock      = threading.Lock()
+    ok_cnt      = [0]
+    fail_cnt    = [0]
+    _DONE_SIG   = object()
+
+    def _plog(*args, **kw):
+        with _plock:
+            print(*args, **kw)
+
+    # ── Probe all files in parallel (ffprobe is cheap) ────────────────
+    _plog(f"\n  {M}⚡ Probing {n} file(s) in parallel...{X}")
+    def _probe(vf):
+        with ThreadPoolExecutor(max_workers=2) as _e:
+            a = _e.submit(_audio_tracks, vf).result()
+            s = _e.submit(_sub_tracks,   vf).result()
+        return a, s
+
+    with ThreadPoolExecutor(max_workers=min(n, 8)) as _px:
+        probes = list(_px.map(_probe, video_files))
+
+    # Print contents table
+    _plog(f"\n  {M}{'─' * 66}{X}")
+    _plog(f"  {M}📋 {source_label} — {n} video file(s){X}")
+    _plog(f"  {M}{'─' * 66}{X}")
+    meta_cache = []
+    for i, vf in enumerate(video_files):
+        aud, subs = probes[i]
+        sorted_a  = sorted(aud, key=lambda t: _lang_pri(t["language"]))
+        langs     = " + ".join(t["language"] for t in sorted_a) if sorted_a else "?"
+        engine    = "mkv" if vf.suffix.lower() == ".mkv" else "ff"
+        sub_col   = f"{G}{len(subs)}sub✔{X}" if subs else f"{D} — {X}"
+        sz        = vf.stat().st_size if vf.exists() else 0
+        meta_cache.append((aud, subs, sorted_a))
+        _plog(
+            f"  {G}[{i + 1}]{X} {Y}{_fmt_size(sz):>9}{X} {D}{engine:>3}{X}  "
+            f"{C}{langs[:22]:<22}{X}  sub:{sub_col}  {W}{vf.name[:42]}{X}"
+        )
+    _plog(f"  {M}{'─' * 66}{X}\n")
+    _plog(f"  {M}🚀 Launching parallel pipeline "
+          f"({min(n, max_remux)} remux slots + 1 upload thread)...{X}\n")
+
+    # ── Stage-B: upload worker ─────────────────────────────────────────
+    up_queue         = _queue_mod.Queue()
+    _upload_done_evt = threading.Event()
+
+    def _up_worker():
+        while True:
+            item = up_queue.get()
+            if item is _DONE_SIG:
+                up_queue.task_done()
+                break
+            tmp_path, drive_dest_path, fid_patch, label = item
+            _plog(f"\n  {B}☁  [UPLOAD] {label[:55]}{X}")
+            try:
+                if fid_patch:
+                    # Menu [4] in-place PATCH
+                    ok = _upload_to_drive(tmp_path, drive_dest_path, fid_patch)
+                elif folder_id:
+                    try:
+                        _tok = _token()
+                    except Exception:
+                        _tok = tok
+                    ok = _upload_file_to_folder(tmp_path, folder_id, _tok)
+                else:
+                    ok = _upload_to_drive(tmp_path, drive_dest_path, None)
+            except Exception as _e:
+                _plog(f"  {R}✘ Upload exception: {_e}{X}")
+                ok = False
+            finally:
+                try:
+                    if tmp_path.exists():
+                        sz = tmp_path.stat().st_size
+                        tmp_path.unlink(missing_ok=True)
+                        _plog(f"  {D}🗑 Temp freed after upload ({_fmt_size(sz)}){X}")
+                except Exception:
+                    pass
+            if ok:
+                _plog(f"  {G}✔ [UPLOAD DONE] {label[:55]}{X}")
+                with _plock:
+                    ok_cnt[0] += 1
+            else:
+                _plog(f"  {R}✘ [UPLOAD FAILED] {label[:55]}{X}")
+                with _plock:
+                    fail_cnt[0] += 1
+            up_queue.task_done()
+        _upload_done_evt.set()
+
+    up_thread = threading.Thread(target=_up_worker, daemon=True)
+    up_thread.start()
+
+    # ── Stage-A: remux workers (ThreadPoolExecutor, max_remux slots) ──
+    def _remux_one(args):
+        vi, vf = args
+        label  = f"[{vi + 1}/{n}] {vf.name[:50]}"
+        aud, subs, sorted_a = meta_cache[vi]
+
+        if not aud:
+            _plog(f"  {Y}⚠ {label} — no audio, skipped.{X}")
+            vf.unlink(missing_ok=True)
+            with _plock:
+                fail_cnt[0] += 1
+            return
+
+        out_name  = _clean_filename(vf.name)
+        engine    = "mkvmerge" if vf.suffix.lower() == ".mkv" else "ffmpeg"
+        remux_tmp = Path("/content") / (Path(out_name).stem[:55] + "_PPAR_TMP" + Path(out_name).suffix)
+
+        _plog(f"  {C}⚙  {label}{X}  [{engine}]  "
+              f"top:{sorted_a[0]['language'] if sorted_a else '?'}  "
+              f"{len(subs)}sub(s)")
+
+        ok = _run_remux(vf, remux_tmp, sorted_a, subs, engine)
+
+        # Free source immediately after remux
+        try:
+            if vf.exists() and str(vf).startswith("/content"):
+                sz = vf.stat().st_size
+                vf.unlink(missing_ok=True)
+                _plog(f"  {D}🗑 Source freed ({_fmt_size(sz)}) after remux — queuing upload{X}")
+        except Exception:
+            pass
+
+        if not ok:
+            _plog(f"  {R}✘ Remux failed: {label}{X}")
+            remux_tmp.unlink(missing_ok=True)
+            with _plock:
+                fail_cnt[0] += 1
+            return
+
+        # Rename to clean name
+        final_tmp = remux_tmp.parent / out_name
+        if remux_tmp != final_tmp:
+            try:
+                remux_tmp.rename(final_tmp)
+                remux_tmp = final_tmp
+            except Exception:
+                pass
+
+        # Determine Drive destination
+        if get_drive_dest is not None:
+            drive_dest_path = get_drive_dest(vf)
+            fid_patch       = None   # caller sets patch fid via get_drive_dest
+        else:
+            drive_dest_path = Path(FOLDER) / out_name
+            fid_patch       = None
+
+        up_queue.put((remux_tmp, drive_dest_path, fid_patch, out_name))
+        _plog(f"  {G}✔ Remux done — queued for upload: {out_name[:50]}{X}")
+
+    with ThreadPoolExecutor(max_workers=min(n, max_remux)) as remux_pool:
+        futs = [remux_pool.submit(_remux_one, (vi, vf))
+                for vi, vf in enumerate(video_files)]
+        for fut in as_completed(futs):
+            try:
+                fut.result()
+            except Exception as _e:
+                _plog(f"  {R}✘ Remux worker exception: {_e}{X}")
+
+    # Signal upload worker to stop and wait for it
+    up_queue.put(_DONE_SIG)
+    _plog(f"\n  {D}All remuxes done — waiting for uploads to finish...{X}")
+    _upload_done_evt.wait()
+
+    return ok_cnt[0], fail_cnt[0]
+
+
+# ══════════════════════════════════════════════════════════════════════
 #  DRIVE ZIP DOWNLOAD  (parallel + fallback — for Menu [3])
 # ══════════════════════════════════════════════════════════════════════
 def _download_zip_from_drive(fid, fname, size, dest):
@@ -2499,14 +2701,31 @@ def _manual_edit_all_tracks(audio_tracks, sub_tracks):
 
 
 # ══════════════════════════════════════════════════════════════════════
-#  MENU [1] — Download → Auto-Rename → Auto-Fix → Upload
+#  MENU [1] — Parallel Pipeline: Download + Remux + Upload simultaneously
+#
+#  Architecture (3-stage producer→consumer pipeline):
+#
+#   Stage-1 workers  ─────►  dl_queue  ─────►  Stage-2 workers
+#   (download N files                          (remux, 1 per file)
+#    concurrently)
+#                                     ─────►  up_queue  ─────►  Stage-3 workers
+#                                                                (upload N files
+#                                                                 concurrently)
+#
+#  All three stages run at the same time, so while file-2 is still
+#  downloading, file-1 is already being remuxed and file-0 is uploading.
+#  Colab's NVMe is fast enough that this gives a big overall speedup.
 # ══════════════════════════════════════════════════════════════════════
+import queue as _queue_mod   # local alias so it doesn't shadow anything
+
+
 def run_fix_and_upload():
     if not _install_tools():
         return
 
     print(f"\n{M}{'═' * 68}{X}")
-    print(f"  {M}📥 Download → Auto-Rename → Auto-Fix → Upload to Drive{X}")
+    print(f"  {M}📥⚡ PARALLEL Download + Remux + Upload to Drive{X}")
+    print(f"  {W}All files download, remux and upload at the same time!{X}")
     print(f"  {W}Enter URLs (one per line). Blank line to start  "
           f"{D}(type 0 to cancel):{X}")
     print(f"{M}{'═' * 68}{X}\n")
@@ -2532,30 +2751,187 @@ def run_fix_and_upload():
         print(f"\n{Y}No URLs entered.{X}")
         return
 
-    print(f"\n{G}✔ {len(urls)} URL(s) queued.{X}\n{'─' * 68}\n")
-    ok = fail = 0
+    n = len(urls)
+    print(f"\n{G}✔ {n} URL(s) queued — launching parallel pipeline...{X}\n{'─' * 68}\n")
 
-    for i, url in enumerate(urls):
-        local_path, drive_path = _download_external(url, i, len(urls))
+    # ── Thread-safe counters & print lock ─────────────────────────────
+    _print_lock = threading.Lock()
+    ok_count    = [0]
+    fail_count  = [0]
+    _cnt_lock   = threading.Lock()
+
+    def _plog(*args, **kw):
+        """Thread-safe print."""
+        with _print_lock:
+            print(*args, **kw)
+
+    def _inc_ok():
+        with _cnt_lock:
+            ok_count[0] += 1
+
+    def _inc_fail():
+        with _cnt_lock:
+            fail_count[0] += 1
+
+    # ── Sentinel object that signals workers to stop ──────────────────
+    _DONE = object()
+
+    # ── Queue between Stage-2 (remux) and Stage-3 (upload) ───────────
+    # Stage-1→2 is implicit: we just fire one remux thread per download.
+    up_queue = _queue_mod.Queue()   # items: (tmp_path, drive_path) | _DONE
+
+    # ── Stage-3: Upload worker (single thread, serialised uploads) ────
+    # Uploads are Drive API resumable calls — running many in parallel
+    # doesn't help much and can saturate the Drive quota, so we keep
+    # one dedicated upload thread but it runs concurrently with ongoing
+    # downloads + remuxes.
+    upload_results   = []
+    _upload_finished = threading.Event()
+
+    def _upload_worker():
+        while True:
+            item = up_queue.get()
+            if item is _DONE:
+                up_queue.task_done()
+                break
+            tmp_path, drive_path, label = item
+            _plog(f"\n  {B}☁  [UPLOAD] {label[:50]}{X}")
+            try:
+                ok = _upload_to_drive(tmp_path, drive_path, known_fid=None)
+            except Exception as e:
+                _plog(f"  {R}✘ Upload exception: {e}{X}")
+                ok = False
+            finally:
+                # Always clean up the remuxed temp file after upload attempt
+                try:
+                    if tmp_path.exists():
+                        sz = tmp_path.stat().st_size
+                        tmp_path.unlink(missing_ok=True)
+                        _plog(f"  {D}🗑 Temp freed after upload ({_fmt_size(sz)}){X}")
+                except Exception:
+                    pass
+            if ok:
+                _plog(f"  {G}✔ [UPLOAD DONE] {drive_path.name[:55]}{X}")
+                _inc_ok()
+            else:
+                _plog(f"  {R}✘ [UPLOAD FAILED] {drive_path.name[:55]}{X}")
+                _inc_fail()
+            up_queue.task_done()
+        _upload_finished.set()
+
+    upload_thread = threading.Thread(target=_upload_worker, daemon=True)
+    upload_thread.start()
+
+    # ── Stage-1+2: Download then immediately remux (one thread per URL)
+    def _download_and_remux(idx, url):
+        label = f"[{idx + 1}/{n}]"
+        _plog(f"\n{W}{label}{X}  {C}{url[:68]}{X}")
+
+        # ── Stage 1: Download ─────────────────────────────────────────
+        try:
+            local_path, drive_path = _download_external(url, idx, n)
+        except Exception as e:
+            _plog(f"  {R}✘ {label} Download exception: {e}{X}")
+            _inc_fail()
+            return
+
         if local_path is None:
-            fail += 1
-            print(f"\n{'─' * 68}")
-            continue
-        print(f"  {G}✔ File: {Y}{local_path.name}{X}")
-        print(f"\n  {C}🤖 Auto-Fix:{X} {Y}{local_path.name}{X}")
-        if auto_fix_v5(local_path, known_fid=None, drive_dest=drive_path):
-            ok += 1
-        else:
-            fail += 1
-        print(f"\n{'─' * 68}")
+            _plog(f"  {R}✘ {label} Download failed — skipped.{X}")
+            _inc_fail()
+            return
 
+        _plog(f"  {G}✔ {label} Downloaded: {Y}{local_path.name[:55]}{X}")
+
+        # ── Stage 2: Probe + Remux ────────────────────────────────────
+        try:
+            fp = Path(local_path)
+
+            with ThreadPoolExecutor(max_workers=2) as _ex:
+                a_tracks = _ex.submit(_audio_tracks, fp).result()
+                s_tracks = _ex.submit(_sub_tracks,   fp).result()
+
+            if not a_tracks:
+                _plog(f"  {Y}⚠ {label} No audio tracks — skipped.{X}")
+                fp.unlink(missing_ok=True)
+                _inc_fail()
+                return
+
+            sorted_audio = sorted(a_tracks, key=lambda t: _lang_pri(t["language"]))
+            engine       = "mkvmerge" if fp.suffix.lower() == ".mkv" else "ffmpeg"
+            tmp          = Path("/content") / (fp.stem[:55] + "_PFIXP_TMP" + fp.suffix)
+
+            _plog(f"  {C}⚙  {label} Remuxing [{engine}] — "
+                  f"top audio: {sorted_audio[0]['language']} — "
+                  f"{len(s_tracks)} sub(s){X}")
+
+            ok = _run_remux(fp, tmp, sorted_audio, s_tracks, engine)
+
+            # Free the downloaded source immediately to reclaim NVMe
+            try:
+                if fp.exists() and str(fp).startswith("/content"):
+                    sz = fp.stat().st_size
+                    fp.unlink(missing_ok=True)
+                    _plog(f"  {D}🗑 {label} Source freed ({_fmt_size(sz)}) — queuing upload{X}")
+            except Exception:
+                pass
+
+            if not ok:
+                _plog(f"  {R}✘ {label} Remux failed.{X}")
+                tmp.unlink(missing_ok=True)
+                _inc_fail()
+                return
+
+            # ── Enqueue for Stage 3: Upload ───────────────────────────
+            drive_fp = Path(drive_path) if drive_path else Path(FOLDER) / tmp.name
+            up_queue.put((tmp, drive_fp, fp.name))
+            _plog(f"  {G}✔ {label} Remux done — queued for upload.{X}")
+
+        except Exception as e:
+            _plog(f"  {R}✘ {label} Remux exception: {e}{X}")
+            try:
+                local_path.unlink(missing_ok=True)
+            except Exception:
+                pass
+            _inc_fail()
+
+    # ── Launch all download+remux threads simultaneously ──────────────
+    # We use a ThreadPoolExecutor so we don't spin up more OS threads
+    # than there are URLs (could be many).  Each thread does its own
+    # download at full 32-chunk parallelism internally, so the outer
+    # pool just needs 1 slot per URL.
+    max_concurrent_dl = min(n, 4)   # cap at 4 simultaneous downloads
+    # (more than 4 parallel 4 GB downloads on Colab NVMe can thrash I/O)
+    _plog(f"  {M}🚀 Launching {n} file(s) across {max_concurrent_dl} parallel download slots...{X}\n")
+
+    with ThreadPoolExecutor(max_workers=max_concurrent_dl) as dl_pool:
+        futs = [dl_pool.submit(_download_and_remux, i, u) for i, u in enumerate(urls)]
+        for fut in as_completed(futs):
+            try:
+                fut.result()
+            except Exception as e:
+                _plog(f"  {R}✘ Worker exception: {e}{X}")
+
+    # All downloads+remuxes done — send sentinel to upload worker
+    up_queue.put(_DONE)
+    _plog(f"\n  {D}All downloads/remuxes complete — waiting for uploads to finish...{X}")
+    _upload_finished.wait()  # Block until the upload worker exits cleanly
+
+    # ── Summary ───────────────────────────────────────────────────────
     print(f"\n{'═' * 68}")
-    print(f"  {G}✔ Done: {ok}{X}   {R}✘ Failed: {fail}{X}   Saved to: {Y}{FOLDER}{X}")
+    print(f"  {G}✔ Done: {ok_count[0]}{X}   {R}✘ Failed: {fail_count[0]}{X}"
+          f"   Saved to: {Y}{FOLDER}{X}")
     print(f"{'═' * 68}\n")
 
 
 # ══════════════════════════════════════════════════════════════════════
-#  MENU [2] — Direct ZIP URL → Download → Extract → Remux → Upload
+#  MENU [2] — Direct ZIP URL → Download → Extract → ⚡Parallel Remux+Upload
+#
+#  Pipeline:
+#    For EACH ZIP sequentially (can't extract two ZIPs into same NVMe):
+#      1. Download ZIP (32-thread parallel chunks)
+#      2. Extract ZIP
+#      3. _process_video_files_parallel → up to 6 simultaneous remuxes
+#                                       + 1 upload thread running alongside
 # ══════════════════════════════════════════════════════════════════════
 def direct_zip_downloader():
     if not _install_tools():
@@ -2563,7 +2939,8 @@ def direct_zip_downloader():
     _ensure_unzip()
 
     print(f"\n{M}{'═' * 68}{X}")
-    print(f"  {M}📦 DIRECT ZIP URL → EXTRACT → REMUX → UPLOAD{X}")
+    print(f"  {M}📦⚡ DIRECT ZIP URL → EXTRACT → PARALLEL Remux+Upload{X}")
+    print(f"  {W}All videos inside each ZIP remux+upload simultaneously!{X}")
     print(f"  {W}Paste direct ZIP URLs (one per line). "
           f"Blank line to start  {D}(type 0 to cancel):{X}")
     print(f"{M}{'═' * 68}{X}\n")
@@ -2617,6 +2994,10 @@ def direct_zip_downloader():
     total_ok = total_fail = 0
 
     for zip_idx, url in enumerate(zip_urls):
+        print(f"\n{M}{'═' * 68}{X}")
+        print(f"  {M}📦 ZIP [{zip_idx + 1}/{len(zip_urls)}]: {D}{url[:60]}{X}")
+        print(f"{M}{'═' * 68}{X}\n")
+
         zip_name = _safe_name(url)
         if not zip_name.lower().endswith(".zip"):
             zip_name = Path(zip_name).stem + ".zip"
@@ -2639,7 +3020,7 @@ def direct_zip_downloader():
         else:
             bar = LiveBar(size or 1, zip_name[:26], phase="↓ ZIP DL")
 
-            # Stage 1: parallel chunks
+            # Attempt 1: parallel 32-chunk
             if parallel and size > 0:
                 try:
                     cs     = size // THREADS
@@ -2669,13 +3050,13 @@ def direct_zip_downloader():
                     bar._alive = False
                     time.sleep(0.3)
                     tmp_zip.unlink(missing_ok=True)
-                    bar.done   = 0;  bar._lb   = 0;  bar._spd = 0.0
-                    bar._t0    = time.time(); bar._lt = time.time()
-                    bar.phase  = "↓ Multi-Stream"
+                    bar.done = 0; bar._lb = 0; bar._spd = 0.0
+                    bar._t0  = time.time(); bar._lt = time.time()
+                    bar.phase = "↓ Multi-Stream"
                     bar._alive = True
                     threading.Thread(target=bar._loop, daemon=True).start()
 
-            # Stage 2: multi-stream
+            # Attempt 2: multi-stream
             if not dl_ok:
                 try:
                     _multistream_dl(url, tmp_zip, size, bar, STREAM_CONNS)
@@ -2686,13 +3067,13 @@ def direct_zip_downloader():
                     bar._alive = False
                     time.sleep(0.25)
                     tmp_zip.unlink(missing_ok=True)
-                    bar.done   = 0;  bar._lb   = 0;  bar._spd = 0.0
-                    bar._t0    = time.time(); bar._lt = time.time()
-                    bar.phase  = "↓ Stream"
+                    bar.done = 0; bar._lb = 0; bar._spd = 0.0
+                    bar._t0  = time.time(); bar._lt = time.time()
+                    bar.phase = "↓ Stream"
                     bar._alive = True
                     threading.Thread(target=bar._loop, daemon=True).start()
 
-            # Stage 3: single stream
+            # Attempt 3: single stream
             if not dl_ok:
                 try:
                     _stream_dl(url, tmp_zip, bar)
@@ -2714,13 +3095,27 @@ def direct_zip_downloader():
 
         if not _extract_zip_with_progress(local_zip, extract_dir):
             local_zip.unlink(missing_ok=True)
+            shutil.rmtree(extract_dir, ignore_errors=True)
             total_fail += 1
             print(f"\n{'─' * 68}")
             continue
 
         local_zip.unlink(missing_ok=True)
-        z_ok, z_fail = _process_video_files_from_dir(
-            extract_dir, folder_name, new_folder_id, tok
+
+        # Collect video files and run parallel remux+upload pipeline
+        VIDEO_EXTS  = {".mkv", ".mp4", ".avi", ".mov", ".ts", ".m4v", ".webm"}
+        video_files = sorted(
+            f for f in extract_dir.rglob("*")
+            if f.is_file() and f.suffix.lower() in VIDEO_EXTS
+        )
+        try:
+            tok = _token()
+        except Exception:
+            pass
+
+        z_ok, z_fail = _process_video_files_parallel(
+            video_files, folder_name, new_folder_id, tok,
+            source_label=f"ZIP-{zip_idx + 1}", max_remux=6,
         )
         total_ok   += z_ok
         total_fail += z_fail
@@ -2735,7 +3130,12 @@ def direct_zip_downloader():
 
 
 # ══════════════════════════════════════════════════════════════════════
-#  MENU [3] — G-Drive ZIP → Extract → Remux → Upload
+#  MENU [3] — G-Drive ZIP → Extract → ⚡Parallel Remux+Upload
+#
+#  Same pipeline as Menu [2] but downloads ZIPs from Google Drive
+#  instead of direct URLs.  Each ZIP is downloaded sequentially
+#  (can't extract two ZIPs at the same time), but the videos inside
+#  each ZIP all remux and upload in parallel (up to 6 at once).
 # ══════════════════════════════════════════════════════════════════════
 def gdrive_zip_extractor():
     if not _install_tools():
@@ -2743,7 +3143,8 @@ def gdrive_zip_extractor():
     _ensure_unzip()
 
     print(f"\n{M}{'═' * 68}{X}")
-    print(f"  {M}🗜  G-DRIVE ZIP EXTRACTOR → REMUX → UPLOAD{X}")
+    print(f"  {M}🗜⚡ G-DRIVE ZIP EXTRACTOR → PARALLEL Remux+Upload{X}")
+    print(f"  {W}All videos inside each ZIP remux+upload simultaneously!{X}")
     print(f"  {W}Paste Drive ZIP share URLs (one per line). "
           f"Blank line to start  {D}(type 0 to cancel):{X}")
     print(f"{M}{'═' * 68}{X}\n")
@@ -2799,7 +3200,10 @@ def gdrive_zip_extractor():
     total_ok = total_fail = 0
 
     for zip_idx, fid in enumerate(zip_entries):
-        print(f"\n{W}[ZIP {zip_idx + 1}/{len(zip_entries)}]{X}  {C}ID: {fid}{X}")
+        print(f"\n{M}{'═' * 68}{X}")
+        print(f"  {M}🗃️  ZIP [{zip_idx + 1}/{len(zip_entries)}]  {C}ID: {fid}{X}")
+        print(f"{M}{'═' * 68}{X}\n")
+
         fname = _get_fname(fid)
         if not fname:
             print(f"  {R}✘ Could not resolve ZIP filename — skipped.{X}")
@@ -2808,7 +3212,11 @@ def gdrive_zip_extractor():
         print(f"  {G}✔ {fname}{X}")
 
         local_zip = Path("/content") / fname
-        r_meta    = _SESSION.get(
+        try:
+            tok = _token()
+        except Exception:
+            pass
+        r_meta = _SESSION.get(
             f"https://www.googleapis.com/drive/v3/files/{fid}",
             params={"fields": "size", **_DRIVE_PARAMS},
             headers={"Authorization": f"Bearer {tok}"},
@@ -2825,12 +3233,26 @@ def gdrive_zip_extractor():
 
         if not _extract_zip_with_progress(local_zip, extract_dir):
             local_zip.unlink(missing_ok=True)
+            shutil.rmtree(extract_dir, ignore_errors=True)
             total_fail += 1
             continue
 
         local_zip.unlink(missing_ok=True)
-        z_ok, z_fail = _process_video_files_from_dir(
-            extract_dir, folder_name, new_folder_id, tok
+
+        # Collect video files and run parallel remux+upload pipeline
+        VIDEO_EXTS  = {".mkv", ".mp4", ".avi", ".mov", ".ts", ".m4v", ".webm"}
+        video_files = sorted(
+            f for f in extract_dir.rglob("*")
+            if f.is_file() and f.suffix.lower() in VIDEO_EXTS
+        )
+        try:
+            tok = _token()
+        except Exception:
+            pass
+
+        z_ok, z_fail = _process_video_files_parallel(
+            video_files, folder_name, new_folder_id, tok,
+            source_label=f"GDZIP-{zip_idx + 1}", max_remux=6,
         )
         total_ok   += z_ok
         total_fail += z_fail
@@ -2845,12 +3267,21 @@ def gdrive_zip_extractor():
 
 
 # ══════════════════════════════════════════════════════════════════════
-#  MENU [4] — GDrive Clone → Auto-Remux → PATCH back to Drive
+#  MENU [4] — GDrive Clone → ⚡Parallel Remux → PATCH back to Drive
+#
+#  Pipeline for each URL:
+#    1. Scan the folder / resolve the file (API)
+#    2. Clone ALL files to Colab NVMe simultaneously
+#       (up to 6 parallel _clone_single_to_colab calls)
+#    3. Remux up to 6 files at the same time
+#    4. Upload worker PATCHes each remuxed file back in-place as soon
+#       as it is ready (runs concurrently with ongoing remuxes)
 # ══════════════════════════════════════════════════════════════════════
 def gdrive_clone_to_colab():
-    """[4] Clone Drive file(s)/folder → remux → PATCH back in-place. Supports multiple URLs."""
+    """[4] Clone Drive file(s)/folder → ⚡parallel remux → PATCH back in-place."""
     print(f"\n{M}{'═' * 68}{X}")
-    print(f"  {M}📂 [4] GDRIVE CLONE → REMUX → PATCH BACK TO DRIVE  v8.6{X}")
+    print(f"  {M}♻️ ⚡ [4] GDRIVE CLONE → PARALLEL REMUX → PATCH BACK{X}")
+    print(f"  {W}All files clone, remux and upload to Drive simultaneously!{X}")
     print(f"  {W}Paste Google Drive FILE or FOLDER share URLs.{X}")
     print(f"  {D}One URL per line · blank line = start · type 0 to cancel{X}")
     print(f"{M}{'═' * 68}{X}\n")
@@ -2882,15 +3313,15 @@ def gdrive_clone_to_colab():
 
     _install_tools()
 
-    grand_ok        = grand_fail    = 0
-    t_grand_start   = time.time()
+    grand_ok      = grand_fail  = 0
+    t_grand_start = time.time()
 
     for url_idx, raw in enumerate(raw_urls):
         print(f"\n{M}{'═' * 68}{X}")
         print(f"  {M}🔗 URL [{url_idx + 1}/{len(raw_urls)}]:{X} {C}{raw[:65]}{X}")
         print(f"{M}{'═' * 68}{X}\n")
 
-        # Resolve Drive ID (file or folder)
+        # ── Resolve Drive ID ──────────────────────────────────────────
         fid = _extract_fid(raw)
         if not fid:
             m = re.search(r"/folders/([a-zA-Z0-9_-]{20,})", raw)
@@ -2909,7 +3340,7 @@ def gdrive_clone_to_colab():
             grand_fail += 1
             continue
 
-        r_meta    = _drive_get(f"files/{fid}", {"fields": "id,name,size,mimeType"}, tok)
+        r_meta = _drive_get(f"files/{fid}", {"fields": "id,name,size,mimeType"}, tok)
         if r_meta.status_code != 200:
             print(f"  {R}✘ Drive API error {r_meta.status_code} — skipped.{X}")
             grand_fail += 1
@@ -2928,16 +3359,16 @@ def gdrive_clone_to_colab():
         if is_folder:
             print(f"\n  {D}Scanning folder tree...{X}", end="", flush=True)
             all_files   = _gdrive_list_folder_recursive(fid, tok)
-            video_files = [f for f in all_files if _is_video_file(f)]
-            if not video_files:
+            video_files_meta = [f for f in all_files if _is_video_file(f)]
+            if not video_files_meta:
                 print(f"\r  {Y}No video files found in this folder — skipped.{X}")
                 continue
-            print(f"\r  {G}✔ Found {len(video_files)} video file(s):{X}")
-            for i, fi in enumerate(video_files[:40], 1):
+            print(f"\r  {G}✔ Found {len(video_files_meta)} video file(s):{X}")
+            for i, fi in enumerate(video_files_meta[:40], 1):
                 print(f"    {G}[{i}]{X} {Y}{fi['rel_path'][:55]}{X}  "
                       f"{D}{_fmt_size(fi['size'])}{X}")
-            if len(video_files) > 40:
-                print(f"    {D}... and {len(video_files) - 40} more{X}")
+            if len(video_files_meta) > 40:
+                print(f"    {D}... and {len(video_files_meta) - 40} more{X}")
         else:
             fi_single = {
                 "fid": fid, "name": item_name, "size": item_size,
@@ -2947,73 +3378,158 @@ def gdrive_clone_to_colab():
                 print(f"  {Y}⚠ Not a video file — skipped.{X}")
                 grand_fail += 1
                 continue
-            video_files = [fi_single]
+            video_files_meta = [fi_single]
             print(f"  {G}✔ Found 1 video file: {item_name[:55]}{X}")
 
-        total_bytes = sum(f["size"] for f in video_files)
-        print(f"\n  {W}Action : {G}Clone → Auto-Remux → PATCH back to Drive{X}")
-        print(f"  {W}Files  : {G}{len(video_files)}{X}  "
-              f"{D}({_fmt_size(total_bytes)} total){X}")
+        total_bytes = sum(f["size"] for f in video_files_meta)
+        n_vids      = len(video_files_meta)
+        print(f"\n  {W}Action : {G}Clone → ⚡ Parallel Remux → PATCH back to Drive{X}")
+        print(f"  {W}Files  : {G}{n_vids}{X}  {D}({_fmt_size(total_bytes)} total){X}")
         print(f"  {Y}⚠ Drive files will be overwritten in-place (PATCH same file ID).{X}")
+        print(f"  {M}🚀 Up to 6 files clone simultaneously, then parallel remux+upload.{X}")
         print(f"  {G}✔ Auto-proceeding...{X}\n{'─' * 68}")
 
-        ok_count = fail_count = 0
-        t_start  = time.time()
+        t_start    = time.time()
+        _plock4    = threading.Lock()
+        ok_count   = [0]
+        fail_count = [0]
+        _DONE4     = object()
 
-        for idx, fi in enumerate(video_files):
+        def _plog4(*args, **kw):
+            with _plock4:
+                print(*args, **kw)
+
+        # Build local_path map for each Drive file
+        def _local_path_for(fi):
+            fname = fi["name"]
+            if is_folder:
+                return dest_base / fi["rel_path"]
+            return dest_base if dest_base.suffix else dest_base / fname
+
+        # ── Stage-B4: upload / PATCH worker ───────────────────────────
+        up4_queue    = _queue_mod.Queue()
+        _up4_done    = threading.Event()
+
+        def _up4_worker():
+            while True:
+                item = up4_queue.get()
+                if item is _DONE4:
+                    up4_queue.task_done()
+                    break
+                tmp_path, drive_dest_path, src_fid4, label4 = item
+                _plog4(f"\n  {B}☁  [PATCH] {label4[:55]}{X}")
+                try:
+                    ok = _upload_to_drive(tmp_path, drive_dest_path, src_fid4)
+                except Exception as _e:
+                    _plog4(f"  {R}✘ PATCH exception: {_e}{X}")
+                    ok = False
+                finally:
+                    try:
+                        if tmp_path.exists():
+                            sz = tmp_path.stat().st_size
+                            tmp_path.unlink(missing_ok=True)
+                            _plog4(f"  {D}🗑 Temp freed ({_fmt_size(sz)}){X}")
+                    except Exception:
+                        pass
+                if ok:
+                    _plog4(f"  {G}✔ [PATCHED IN-PLACE] {label4[:55]}{X}")
+                    with _plock4:
+                        ok_count[0] += 1
+                else:
+                    _plog4(f"  {R}✘ [PATCH FAILED] {label4[:55]}{X}")
+                    with _plock4:
+                        fail_count[0] += 1
+                up4_queue.task_done()
+            _up4_done.set()
+
+        up4_thread = threading.Thread(target=_up4_worker, daemon=True)
+        up4_thread.start()
+
+        # ── Stage-A4: clone + remux worker (1 per file, pool=6) ───────
+        def _clone_and_remux(fi):
             fname      = fi["name"]
             fsize      = fi["size"]
-            src_fid    = fi["fid"]
-            local_path = (
-                dest_base / fi["rel_path"] if is_folder
-                else (dest_base if dest_base.suffix else dest_base / fname)
-            )
-            print(f"\n{W}[{idx + 1}/{len(video_files)}]{X} "
-                  f"{Y}{fi['rel_path'][:60]}{X}  {D}{_fmt_size(fsize)}{X}")
+            src_fid4   = fi["fid"]
+            local_path = _local_path_for(fi)
+            label4     = fi["rel_path"][:55]
 
-            # Refresh token every 10 files
-            if idx % 10 == 0:
-                try:
-                    tok = _token()
-                except Exception:
-                    pass
+            _plog4(f"\n  {C}⬇  [CLONE] {label4}  {D}{_fmt_size(fsize)}{X}")
 
-            if not _clone_single_to_colab(src_fid, fname, fsize, local_path, tok):
-                print(f"  {R}✘ Clone failed — skipping.{X}")
-                fail_count += 1
-                print(f"{'─' * 68}")
-                continue
-
-            drive_dest = Path(FOLDER) / fname
-            print(f"\n  {C}🤖 Auto-Fix:{X} {Y}{fname}{X}")
+            # Refresh token per-worker
             try:
-                success = auto_fix_v5(local_path, known_fid=src_fid,
-                                      drive_dest=drive_dest)
-            except Exception as e:
-                print(f"  {R}✘ Auto-Fix exception: {e}{X}")
-                success = False
+                _tok4 = _token()
+            except Exception:
+                _tok4 = tok
 
-            if local_path.exists():
-                try:
+            if not _clone_single_to_colab(src_fid4, fname, fsize, local_path, _tok4):
+                _plog4(f"  {R}✘ Clone failed — skipping: {label4}{X}")
+                with _plock4:
+                    fail_count[0] += 1
+                return
+
+            _plog4(f"  {G}✔ Cloned: {label4}{X}  {C}→ remuxing...{X}")
+
+            # Probe
+            with ThreadPoolExecutor(max_workers=2) as _px:
+                a_tracks = _px.submit(_audio_tracks, local_path).result()
+                s_tracks = _px.submit(_sub_tracks,   local_path).result()
+
+            if not a_tracks:
+                _plog4(f"  {Y}⚠ No audio — skipping: {label4}{X}")
+                local_path.unlink(missing_ok=True)
+                with _plock4:
+                    fail_count[0] += 1
+                return
+
+            sorted_audio = sorted(a_tracks, key=lambda t: _lang_pri(t["language"]))
+            engine       = "mkvmerge" if local_path.suffix.lower() == ".mkv" else "ffmpeg"
+            out_name     = _clean_filename(fname)
+            tmp4         = Path("/content") / (Path(out_name).stem[:55] + "_P4TMP" + Path(out_name).suffix)
+
+            _plog4(f"  {C}⚙  [{engine}] {label4}  "
+                   f"top:{sorted_audio[0]['language']}  {len(s_tracks)}sub(s){X}")
+
+            ok = _run_remux(local_path, tmp4, sorted_audio, s_tracks, engine)
+
+            # Free cloned source
+            try:
+                if local_path.exists():
                     sz = local_path.stat().st_size
                     local_path.unlink(missing_ok=True)
-                    print(f"  {D}🗑 Local clone freed ({_fmt_size(sz)}).{X}")
-                except Exception:
-                    pass
+                    _plog4(f"  {D}🗑 Clone freed ({_fmt_size(sz)}) — queuing PATCH{X}")
+            except Exception:
+                pass
 
-            if success:
-                ok_count += 1
-                print(f"  {G}✔ Done — Drive file patched in-place.{X}")
-            else:
-                fail_count += 1
-            print(f"{'─' * 68}")
+            if not ok:
+                _plog4(f"  {R}✘ Remux failed: {label4}{X}")
+                tmp4.unlink(missing_ok=True)
+                with _plock4:
+                    fail_count[0] += 1
+                return
+
+            drive_dest4 = Path(FOLDER) / out_name
+            up4_queue.put((tmp4, drive_dest4, src_fid4, out_name))
+            _plog4(f"  {G}✔ Remux done — queued for PATCH: {out_name[:50]}{X}")
+
+        with ThreadPoolExecutor(max_workers=min(n_vids, 6)) as clone_pool:
+            futs4 = [clone_pool.submit(_clone_and_remux, fi) for fi in video_files_meta]
+            for fut4 in as_completed(futs4):
+                try:
+                    fut4.result()
+                except Exception as _e:
+                    _plog4(f"  {R}✘ Clone/remux worker exception: {_e}{X}")
+
+        # Signal upload worker to stop
+        up4_queue.put(_DONE4)
+        _plog4(f"\n  {D}All clones/remuxes done — waiting for PATCHes...{X}")
+        _up4_done.wait()
 
         ela = time.time() - t_start
-        print(f"\n  {G}✔ Fixed: {ok_count}{X}   {R}✘ Failed: {fail_count}{X}   "
-              f"Total: {len(video_files)}")
+        print(f"\n  {G}✔ Fixed: {ok_count[0]}{X}   {R}✘ Failed: {fail_count[0]}{X}   "
+              f"Total: {n_vids}")
         print(f"  Time: {int(ela)}s  ({int(ela) // 60}m {int(ela) % 60}s)")
-        grand_ok   += ok_count
-        grand_fail += fail_count
+        grand_ok   += ok_count[0]
+        grand_fail += fail_count[0]
 
         if is_folder and dest_base.exists():
             try:
@@ -3032,15 +3548,23 @@ def gdrive_clone_to_colab():
 
 
 # ══════════════════════════════════════════════════════════════════════
-#  MENU [5] — Auto-Fix via Google Drive URL (Folder or File)
+#  MENU [5] — ⚡ Parallel Auto-Fix via Google Drive URL (Folder or File)
+#
+#  Pipeline:
+#    Folders: list videos → download all (up to 6 parallel) →
+#             remux all (up to 6 parallel) → upload as each finishes
+#    Files:   same but for the individual file list entered
+#
+#  Both use _process_video_files_parallel after downloading to NVMe.
 # ══════════════════════════════════════════════════════════════════════
 def auto_fix_smart():
-    """[5] Auto-Fix via Drive URL — accepts Folder URL(s) and/or File URL(s)."""
+    """[5] ⚡ Parallel Auto-Fix via Drive URL — Folder URL(s) and/or File URL(s)."""
     if not _install_tools():
         return
 
     print(f"\n{M}{'=' * 68}{X}")
-    print(f"  {M}🤖 AUTO-FIX via Google Drive URL{X}")
+    print(f"  {M}🤖⚡ PARALLEL AUTO-FIX via Google Drive URL{X}")
+    print(f"  {W}All files download, remux and upload simultaneously!{X}")
     print(f"  {W}Paste a Drive FOLDER URL  — fixes every video inside it.{X}")
     print(f"  {W}Paste Drive FILE URL(s)   — fixes each file individually.{X}")
     print(f"  {D}(one URL per line · blank line = start · type 0 to cancel){X}")
@@ -3080,9 +3604,43 @@ def auto_fix_smart():
             print(f"  {R}⚠ Could not parse Drive ID — skipped: {raw[:60]}{X}")
 
     print()
-    ok = fail = skip = 0
+    grand_ok = grand_fail = 0
 
-    # ── Process folders ────────────────────────────────────────────────
+    # ── Helper: parallel download N Drive files to NVMe ───────────────
+    def _parallel_download_all(items, max_dl=6):
+        """
+        Download each Drive file in items to /content/<fname>.
+        Returns list of (local_path, fid, fname) tuples for successes.
+        """
+        _plock5  = threading.Lock()
+        results  = []
+
+        def _dl_one(it):
+            fid5   = it["id"]
+            fname5 = it["name"]
+            size5  = int(it.get("size", 0))
+            with _plock5:
+                print(f"  {C}⬇  Downloading: {fname5[:55]}  {D}{_fmt_size(size5)}{X}")
+            lp = _drive_download_local(fid5, fname5, size5)
+            if lp:
+                with _plock5:
+                    results.append((lp, fid5, fname5))
+                    print(f"  {G}✔ Downloaded: {fname5[:55]}{X}")
+            else:
+                with _plock5:
+                    print(f"  {R}✘ Download failed: {fname5[:55]}{X}")
+            return lp
+
+        with ThreadPoolExecutor(max_workers=min(len(items), max_dl)) as _dp:
+            futs5 = [_dp.submit(_dl_one, it) for it in items]
+            for f5 in as_completed(futs5):
+                try:
+                    f5.result()
+                except Exception as _e:
+                    print(f"  {R}✘ Download worker exception: {_e}{X}")
+        return results
+
+    # ── Process Drive FOLDERS ──────────────────────────────────────────
     for folder_fid in folder_entries:
         print(f"\n{C}{'─' * 68}{X}")
         print(f"  {C}📂 Folder ID: {folder_fid}{X}")
@@ -3091,7 +3649,7 @@ def auto_fix_smart():
             items = _list_videos_in_drive_folder(folder_fid, tok)
         except Exception as e:
             print(f"  {R}✘ API error: {e}{X}")
-            fail += 1
+            grand_fail += 1
             continue
 
         if not items:
@@ -3110,88 +3668,73 @@ def auto_fix_smart():
         if ans != "yes":
             print(f"  {D}Skipped folder.{X}")
             continue
-        print(f"\n{'─' * 68}\n")
 
-        for i, it in enumerate(items):
-            fid   = it["id"]
-            fname = it["name"]
-            size  = int(it.get("size", 0))
-            print(f"{W}[{i + 1}/{len(items)}]{X} {Y}{fname[:55]}{X}  "
-                  f"{C}id:{fid[:20]}{X}")
-            local_fp = _drive_download_local(fid, fname, size)
-            if not local_fp:
-                print(f"  {R}✘ Download failed — skipped.{X}")
-                fail += 1
-                print(f"\n{'─' * 68}")
-                continue
-            if not _audio_tracks(local_fp):
-                print(f"  {D}No audio tracks — skipped.{X}")
-                skip += 1
-                local_fp.unlink(missing_ok=True)
-                print(f"\n{'─' * 68}")
-                continue
-            drive_dest = Path(FOLDER) / fname
-            if auto_fix_v5(local_fp, known_fid=fid, drive_dest=drive_dest):
-                ok += 1
-            else:
-                fail += 1
-                local_fp.unlink(missing_ok=True)
-            print(f"\n{'─' * 68}")
+        print(f"\n  {M}🚀 Downloading all {len(items)} file(s) in parallel...{X}")
+        dl_results = _parallel_download_all(items, max_dl=6)
 
-    # ── Process individual files ───────────────────────────────────────
+        if not dl_results:
+            print(f"  {R}✘ No files downloaded successfully.{X}")
+            grand_fail += len(items)
+            continue
+
+        local_paths = [r[0] for r in dl_results]
+        print(f"\n  {M}⚡ Starting parallel remux+upload pipeline...{X}")
+        f_ok, f_fail = _process_video_files_parallel(
+            local_paths, "AutoFix-Folder", folder_id=None, tok=tok,
+            source_label="FOLDER", max_remux=6,
+        )
+        grand_ok   += f_ok
+        grand_fail += f_fail + (len(items) - len(dl_results))
+        print(f"\n{'─' * 68}")
+
+    # ── Process individual Drive FILES ─────────────────────────────────
     if file_entries:
         print(f"\n{C}{'─' * 68}{X}")
-        print(f"  {C}🎬 Processing {len(file_entries)} file(s)...{X}\n{'─' * 68}\n")
+        print(f"  {C}🎬 Fetching metadata for {len(file_entries)} file(s)...{X}\n")
 
-        for i, (url, fid) in enumerate(file_entries):
-            print(f"{W}[{i + 1}/{len(file_entries)}]{X}  {C}{fid}{X}")
+        items5 = []
+        for url5, fid5 in file_entries:
             try:
                 tok    = _token()
-                r_meta = _drive_get(f"files/{fid}", {"fields": "name,size"}, tok)
+                r_meta = _drive_get(f"files/{fid5}", {"fields": "name,size"}, tok)
                 if r_meta.status_code != 200:
-                    print(f"  {R}✘ API error {r_meta.status_code} — skipped.{X}")
-                    fail += 1
-                    print(f"\n{'─' * 68}")
+                    print(f"  {R}✘ API error {r_meta.status_code} — skipped: {fid5}{X}")
+                    grand_fail += 1
                     continue
-                info  = r_meta.json()
-                fname = info.get("name", "")
-                size  = int(info.get("size", 0))
-            except Exception as e:
-                print(f"  {R}✘ Metadata fetch failed: {e}{X}")
-                fail += 1
-                print(f"\n{'─' * 68}")
-                continue
+                info   = r_meta.json()
+                fname5 = info.get("name", "")
+                size5  = int(info.get("size", 0))
+                if not fname5:
+                    print(f"  {R}✘ Could not resolve filename for {fid5} — skipped.{X}")
+                    grand_fail += 1
+                    continue
+                items5.append({"id": fid5, "name": fname5, "size": size5})
+                print(f"  {G}✔ {fname5}  {D}({_fmt_size(size5)}){X}")
+            except Exception as e5:
+                print(f"  {R}✘ Metadata error: {e5}{X}")
+                grand_fail += 1
 
-            if not fname:
-                print(f"  {R}✘ Could not resolve filename.{X}")
-                fail += 1
-                print(f"\n{'─' * 68}")
-                continue
+        if items5:
+            print(f"\n  {M}🚀 Downloading all {len(items5)} file(s) in parallel...{X}")
+            dl_results5 = _parallel_download_all(items5, max_dl=6)
 
-            print(f"  {G}✔ {fname}  {D}({_fmt_size(size)}){X}")
-            local_fp = _drive_download_local(fid, fname, size)
-            if not local_fp:
-                print(f"  {R}✘ Download failed — skipped.{X}")
-                fail += 1
-                print(f"\n{'─' * 68}")
-                continue
-            if not _audio_tracks(local_fp):
-                print(f"  {D}No audio tracks — skipped.{X}")
-                local_fp.unlink(missing_ok=True)
-                fail += 1
-                print(f"\n{'─' * 68}")
-                continue
-
-            drive_dest = Path(FOLDER) / fname
-            if auto_fix_v5(local_fp, known_fid=fid, drive_dest=drive_dest):
-                ok += 1
+            if dl_results5:
+                local_paths5 = [r[0] for r in dl_results5]
+                print(f"\n  {M}⚡ Starting parallel remux+upload pipeline...{X}")
+                f_ok5, f_fail5 = _process_video_files_parallel(
+                    local_paths5, "AutoFix-Files", folder_id=None, tok=tok,
+                    source_label="FILES", max_remux=6,
+                )
+                grand_ok   += f_ok5
+                grand_fail += f_fail5 + (len(items5) - len(dl_results5))
             else:
-                fail += 1
-                local_fp.unlink(missing_ok=True)
-            print(f"\n{'─' * 68}")
+                print(f"  {R}✘ No files downloaded successfully.{X}")
+                grand_fail += len(items5)
+
+        print(f"\n{'─' * 68}")
 
     print(f"\n{'=' * 68}")
-    print(f"  {G}✔ Fixed: {ok}{X}  {R}✘ Failed: {fail}{X}  {D}Skipped: {skip}{X}")
+    print(f"  {G}✔ Fixed: {grand_ok}{X}  {R}✘ Failed: {grand_fail}{X}")
     print(f"{'=' * 68}\n")
 
 
@@ -3346,8 +3889,8 @@ def manual_edit_and_upload():
 def _banner():
     print(f"""{C}
 ╔══════════════════════════════════════════════════════════════╗
-║    🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v8.7       ║
-║   Direct Download → Fix → Upload to Drive (Maximum Speed)    ║
+║   🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v8.9        ║
+║   ⚡ ALL 5 menus run parallel pipelines (up to 6 slots)      ║
 ╚══════════════════════════════════════════════════════════════╝{X}
   Folder  : {Y}{FOLDER}{X}
   Threads : {G}{THREADS}{X}   Chunk: {G}{CHUNK_MB} MB{X}  Pool: {G}128 connections{X}  Stream-conns: {G}{STREAM_CONNS}{X}
@@ -3366,11 +3909,11 @@ def main_menu():
         print(f"""{C}╔══════════════════════════════════════════════════════╗
 ║              MAIN MENU — What to do?                 ║
 ╚══════════════════════════════════════════════════════╝{X}
-  {G}[1]{X} 📥  Download → Auto-Rename → Auto-Fix → Upload to Drive  {D}(paste any direct URL & CDN URL){X}
-  {G}[2]{X} 📦  Direct ZIP file URL → Download → Extract → Remux → Upload to Drive  {D}(paste any direct ZIP URL){X}
-  {G}[3]{X} 🗃️  G-Drive ZIP file Extractor → Remux → Upload to Drive  {D}(paste G-Drive ZIP share URL){X}
-  {G}[4]{X} ♻️  GDrive Clone to Colab → Auto-Remux → PATCH back to Drive  {D}(folder or file URL — in-place){X}
-  {G}[5]{X} 🤖  Auto-Fix via Drive URL — Folder or File(s)  {D}(paste any Drive folder/file URL){X}
+  {G}[1]{X} ⚡  PARALLEL Download+Remux+Upload (all at once!)  {D}(paste any direct URL & CDN URL){X}
+  {G}[2]{X} 📦⚡ ZIP URL → Download → Extract → PARALLEL Remux+Upload  {D}(paste any direct ZIP URL){X}
+  {G}[3]{X} 🗃️⚡ G-Drive ZIP → Extract → PARALLEL Remux+Upload  {D}(paste G-Drive ZIP share URL){X}
+  {G}[4]{X} ♻️⚡ GDrive Clone → PARALLEL Remux+Upload → PATCH back  {D}(folder or file URL — in-place){X}
+  {G}[5]{X} 🤖⚡ Auto-Fix Drive URL — PARALLEL Download+Remux+Upload  {D}(paste any Drive folder/file URL){X}
   {G}[6]{X} ✏️  Manual Edit Tracks → Remux → Upload  {D}(edit audio+sub title & lang before remux){X}
   {G}[0]{X} ⏻  Exit
 """)
@@ -3433,5 +3976,5 @@ try:
 except Exception:
     pass
 
-print(f"{G}✔ Tamizhan v8.7 loaded — all 6 menus ready.{X}")
+print(f"{G}✔ Tamizhan v8.9 loaded — all 6 menus ready.  ⚡ Menus [1-5] = full parallel pipelines.{X}")
 main_menu()
