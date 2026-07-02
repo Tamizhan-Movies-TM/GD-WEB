@@ -1,12 +1,12 @@
 # ╔══════════════════════════════════════════════════════════════════════╗
 # ║   TAMIZHAN MOVIES — ULTRA DOWNLOADER + AUTO-FIX  v8.9                ║
-# ║                                                                       ║
+# ║                                                                      ║
 # ║  ALL MENUS NOW USE FULL PARALLEL PIPELINES (up to 6 slots):          ║
-# ║   [1] ⚡ Direct URL  → parallel Download+Remux+Upload                 ║
-# ║   [2] ⚡ Direct ZIP  → Download→Extract→parallel Remux+Upload         ║
-# ║   [3] ⚡ GDrive ZIP  → Download→Extract→parallel Remux+Upload         ║
-# ║   [4] ⚡ GDrive Clone→ parallel Clone+Remux→parallel PATCH back       ║
-# ║   [5] ⚡ Drive URL   → parallel Download+Remux+Upload                 ║
+# ║   [1] ⚡ Direct URL  → parallel Download+Remux+Upload                ║
+# ║   [2] ⚡ Direct ZIP  → Download→Extract→parallel Remux+Upload        ║
+# ║   [3] ⚡ GDrive ZIP  → Download→Extract→parallel Remux+Upload        ║
+# ║   [4] ⚡ GDrive Clone→ parallel Clone+Remux→parallel PATCH back      ║
+# ║   [5] ⚡ Drive URL   → parallel Download+Remux+Upload                ║
 # ║   [6]   Manual Edit Tracks → Remux → Upload                          ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
@@ -3909,7 +3909,7 @@ def main_menu():
         print(f"""{C}╔══════════════════════════════════════════════════════╗
 ║              MAIN MENU — What to do?                 ║
 ╚══════════════════════════════════════════════════════╝{X}
-  {G}[1]{X} ⚡  PARALLEL Download+Remux+Upload (all at once!)  {D}(paste any direct URL & CDN URL){X}
+  {G}[1]{X} 📥⚡ PARALLEL Download+Remux+Upload (all at once!)  {D}(paste any direct URL & CDN URL){X}
   {G}[2]{X} 📦⚡ ZIP URL → Download → Extract → PARALLEL Remux+Upload  {D}(paste any direct ZIP URL){X}
   {G}[3]{X} 🗃️⚡ G-Drive ZIP → Extract → PARALLEL Remux+Upload  {D}(paste G-Drive ZIP share URL){X}
   {G}[4]{X} ♻️⚡ GDrive Clone → PARALLEL Remux+Upload → PATCH back  {D}(folder or file URL — in-place){X}
