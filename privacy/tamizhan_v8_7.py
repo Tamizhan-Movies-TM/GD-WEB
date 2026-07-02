@@ -269,7 +269,7 @@ class LiveBar:
         with self._lock:
             pct    = min(self.done / self.total, 1.0)
             filled = int(self.BAR_WIDTH * pct)
-            bar    = f"{G}{'▣' * filled}{D}{'▢' * (self.BAR_WIDTH - filled)}{X}"
+            bar    = f"{G}{'▰' * filled}{D}{'▱' * (self.BAR_WIDTH - filled)}{X}"
             spd    = self._spd
             spd_s  = f"{spd / 1_048_576:7.1f} MB/s" if spd > 0 else "    ?.? MB/s"
             eta    = (self.total - self.done) / spd if spd > 0 else 0
