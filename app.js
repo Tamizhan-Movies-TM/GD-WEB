@@ -1,5 +1,5 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
-// v2.3.6
+// v2.6.0
 
 // =============================================================================
 // OPTIMIZATION: Conditional Logging
@@ -15,6 +15,18 @@ const logError = (...args) => window.DEBUG && console.error(...args);
 const _reHash = /#/g;            // replaces _reHash inside loops
 const _reQ    = /\?/g;           // replaces _reQ inside loops
 const _origin = window.location.origin; // cached — avoids property lookup per file
+
+// ✅ FIX: Capped shortener cache — prevents unbounded memory growth during long sessions.
+// Entries are evicted FIFO once the cap is reached (oldest key removed first).
+const _SHORTENER_CACHE_MAX = 200;
+function _setShortenerCache(url, val) {
+    if (!window._shortenerCache) window._shortenerCache = {};
+    const keys = Object.keys(window._shortenerCache);
+    if (keys.length >= _SHORTENER_CACHE_MAX) {
+        delete window._shortenerCache[keys[0]]; // evict oldest
+    }
+    window._shortenerCache[url] = val;
+}
 
 // O(1) extension → icon lookup (replaces 7 chained String.indexOf scans per file)
 const _iconMap = new Map(Object.entries({
@@ -61,6 +73,29 @@ function isUserLoggedIn() {
     }
     log('User is not logged in');
     return false;
+}
+
+// =============================================================================
+// PLAYER MENU VISIBILITY HELPER
+// Centralises the show_player_menu logic so all 4 call sites stay in sync.
+//
+// UI.show_player_menu behaviour:
+//   false   → show menu for everyone (no restriction)
+//   true    → show menu for logged-in users only
+//   "size"  → show menu for logged-in users always PLUS non-login users whose
+//              file is strictly below UI.player_menu_free_threshold_gb (default 5 GB)
+//
+// bytes — file size in bytes passed in from the file render functions.
+// =============================================================================
+function _canSeePlayerMenu(bytes) {
+    const setting = UI.show_player_menu;
+    if (setting === false) return true;                    // everyone
+    if (isUserLoggedIn()) return true;                     // always show to logged-in
+    if (setting === 'size') {
+        const thresholdBytes = (UI.player_menu_free_threshold_gb || 5) * 1024 * 1024 * 1024;
+        return bytes < thresholdBytes;                     // non-login: only below threshold
+    }
+    return false;                                          // true → logged-in only, non-login blocked
 }
 
 // =============================================================================
@@ -202,6 +237,28 @@ function init() {
     outline: none;
     border-color: #007bff;
 }
+
+.pw-field-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.pw-field-wrap .form-input {
+    padding-right: 44px;
+}
+.pw-toggle-btn {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.45);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+}
+.pw-toggle-btn:hover { color: rgba(255,255,255,0.85); }
 
 .submit-btn {
     width: 100%;
@@ -451,13 +508,18 @@ strong {
                 <label class="form-label" for="password">
                     <i class="fas fa-lock"></i> Password
                 </label>
-                <input
-                    type="password"
-                    id="password"
-                    class="form-input"
-                    placeholder="Enter your password"
-                    required
-                >
+                <div class="pw-field-wrap">
+                    <input
+                        type="password"
+                        id="password"
+                        class="form-input"
+                        placeholder="Enter your password"
+                        required
+                    >
+                    <button type="button" class="pw-toggle-btn" id="togglePw" tabindex="-1" title="Show/hide password">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="submit-btn" id="submitBtn">
@@ -482,7 +544,7 @@ strong {
         </div>
         <div class="card-body d-flex align-items-center justify-content-center">
         <div class="donate btn p-0">
-           <a class="btn" href="https://t.me/tamizhan_updates/266" title="Watch Video Clearly" target="_blank">
+           <a class="btn" href="${UI.company_link}/266" title="Watch Video Clearly" target="_blank">
          <strong>
              <i class="fa-solid fa-eye"></i>WATCH VIDEO
          </strong>
@@ -507,16 +569,16 @@ strong {
         ${telegram_icon}&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
       </div>
       <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
-        <a href="https://cutt.ly/zrMe2JpH" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪑⅈꫀડ">
+        <a href="${UI.telegram_channel_main}" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪑⅈꫀડ">
             <img class="image" alt="tamizhan" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tm-icon.png">
         </a>
-        <a href="https://cutt.ly/ZrBTy6LJ" target="_blank" title="Hollywood Tamizhan Movies">
+        <a href="${UI.telegram_channel_hollywood}" target="_blank" title="Hollywood Tamizhan Movies">
             <img class="image" alt="Movies" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/htm-icon.png">
         </a>
-        <a href="https://cutt.ly/irMe1nkm" target="_blank" title="Tamizhan Web Series">
+        <a href="${UI.telegram_channel_series}" target="_blank" title="Tamizhan Web Series">
             <img class="image" alt="Series" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tws-icon.png">
         </a>
-        <a href="https://cutt.ly/ZrMe1emr" target="_blank" title="Tamizhan Movies Backup">
+        <a href="${UI.telegram_channel_backup}" target="_blank" title="Tamizhan Movies Backup">
             <img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/telegram.png">
         </a>
       </div>
@@ -541,6 +603,12 @@ strong {
   </div>
 </div>
 <button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
+${UI.show_quota ? `<div id="tm-quota-bar" style="display:none; padding:6px 16px; background:rgba(0,0,0,0.3); font-size:12px; color:rgba(255,255,255,.7);">
+  <span id="tm-quota-text"></span>
+  <div style="height:4px; background:rgba(255,255,255,.15); border-radius:2px; margin-top:4px;">
+    <div id="tm-quota-fill" style="height:4px; border-radius:2px; width:0%; background:#4caf50; transition:width 0.4s;"></div>
+  </div>
+</div>` : ''}
 <footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
     <div class="container" style="padding-top: 15px;">
       <div class="row">
@@ -548,7 +616,7 @@ strong {
       <i class="fa-brands fa-pied-piper-alt"></i> ${new Date().getFullYear()} - <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
         </div>
       <div class="col-lg-4 col-md-12">
-      <a href="https://cutt.ly/cr9jPsvc" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a>
+      <a href="/dmca" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a>
       ${UI.credit ? '<span>© All Copy Rights Reserved ®™</span>' : ''}
       </div>
        <div class="col-lg-4 col-md-12 text-lg-end">
@@ -581,6 +649,139 @@ $('body').html(html);
 
 // Initialize login modal functionality
 initializeLoginModal();
+
+// ✅ PASSWORD EXPIRY POPUP — shows every 12 hours for last 3 days before expiry.
+// window.PW_EXPIRES_IN is injected by worker-tm.js (number of days remaining).
+// Exposed as a named function so it can also be called from render_search_result_list().
+function checkPasswordExpiryWarning() {
+    // ✅ GUARD: Only show to logged-in users
+    if (!isUserLoggedIn()) return;
+
+    const days = window.PW_EXPIRES_IN;
+
+    // Only trigger when 3 days or fewer remain
+    if (typeof days !== 'number' || days <= 0 || days > 3) return;
+
+    // Don't show if already visible
+    if (document.getElementById('tm-pw-expiry-overlay')) return;
+
+    // ✅ 6-hour throttle via localStorage
+    const STORAGE_KEY = 'tm_pw_expiry_shown';
+    const INTERVAL_MS = 6 * 60 * 60 * 1000;
+    try {
+        const lastShown = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+        const now = Date.now();
+        if (now - lastShown < INTERVAL_MS) return;
+        localStorage.setItem(STORAGE_KEY, String(now));
+    } catch (e) {}
+
+    // Urgency theme
+    const isLastDay  = days === 1;
+    const ac   = isLastDay ? '#ff4757' : days === 2 ? '#ff6b35' : '#ffa502';
+    const acG  = isLastDay ? 'rgba(255,71,87,0.42)'  : days === 2 ? 'rgba(255,107,53,0.42)' : 'rgba(255,165,2,0.38)';
+    const acBg = isLastDay ? 'rgba(255,71,87,0.09)'  : days === 2 ? 'rgba(255,107,53,0.09)' : 'rgba(255,165,2,0.08)';
+    const acBd = isLastDay ? 'rgba(255,71,87,0.32)'  : days === 2 ? 'rgba(255,107,53,0.30)' : 'rgba(255,165,2,0.28)';
+    const acG2 = isLastDay ? '#c0392b' : '#c0502b';
+    const label  = isLastDay ? 'Last Day!' : days + ' Days Left';
+    const barW   = days === 3 ? '33%' : days === 2 ? '66%' : '100%';
+    const barGrd = days === 3 ? 'linear-gradient(90deg,#f9ca24,#ffa502)' : days === 2 ? 'linear-gradient(90deg,#ffa502,#ff6b35)' : 'linear-gradient(90deg,#ff6b35,#ff4757)';
+    const cardBg = isLastDay ? 'linear-gradient(150deg,#140e0e,#1a1010)' : days === 2 ? 'linear-gradient(150deg,#14100d,#1a140f)' : 'linear-gradient(150deg,#111320,#161926)';
+
+    const overlay = document.createElement('div');
+    overlay.id = 'tm-pw-expiry-overlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;display:flex;align-items:center;justify-content:center;';
+
+    overlay.innerHTML = `
+    <style>
+        @keyframes _tmBgIn   { from{opacity:0} to{opacity:1} }
+        @keyframes _tmCardIn { from{opacity:0;transform:translateY(28px) scale(0.95)} to{opacity:1;transform:translateY(0) scale(1)} }
+        @keyframes _tmBarFill{ from{width:0} to{width:${barW}} }
+        @keyframes _tmPulse  { 0%,100%{box-shadow:0 0 0 0 ${acG}} 60%{box-shadow:0 0 0 9px transparent} }
+        #_tm_bg   { animation:_tmBgIn 0.3s ease forwards; }
+        #_tm_card { animation:_tmCardIn 0.42s cubic-bezier(0.34,1.46,0.64,1) forwards; }
+        #_tm_bar  { animation:_tmBarFill 1.1s cubic-bezier(0.4,0,0.2,1) 0.5s both; }
+        ${isLastDay ? '#_tm_icon { animation:_tmPulse 1.8s ease-in-out infinite; }' : ''}
+        #_tm_ok:hover  { filter:brightness(1.12);transform:translateY(-1px); }
+        #_tm_ok:active { transform:translateY(0); }
+        #_tm_tg:hover  { background:rgba(255,255,255,0.1) !important;color:#fff !important; }
+        #_tm_cls:hover { background:rgba(255,255,255,0.14) !important;color:#fff !important; }
+    </style>
+
+    <div id="_tm_bg" style="position:absolute;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);"></div>
+
+    <div id="_tm_card" style="position:relative;width:92%;max-width:410px;background:${cardBg};border:1px solid ${acBd};border-radius:22px;overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,0.85),0 0 0 1px rgba(255,255,255,0.04);">
+
+        <div style="height:3px;background:linear-gradient(90deg,transparent,${ac},transparent);"></div>
+
+        <div style="background:${acBg};border-bottom:1px solid ${acBd};padding:18px 22px 15px;display:flex;align-items:center;gap:13px;">
+            <div id="_tm_icon" style="width:46px;height:46px;flex-shrink:0;border-radius:50%;background:${acBg};border:2px solid ${ac};display:flex;align-items:center;justify-content:center;font-size:21px;">🔐</div>
+            <div>
+                <div style="color:${ac};font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;">Security Alert</div>
+                <div style="color:#fff;font-size:16px;font-weight:700;">Password &nbsp;Expiring &nbsp;Soon</div>
+            </div>
+            <button id="_tm_cls" style="margin-left:auto;width:28px;height:28px;flex-shrink:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:50%;color:rgba(255,255,255,0.45);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.18s;line-height:1;">×</button>
+        </div>
+
+        <div style="padding:20px 22px 16px;">
+
+            <div style="background:${acBg};border:1px solid ${acBd};border-radius:14px;padding:15px 18px;margin-bottom:16px;display:flex;align-items:center;gap:0;">
+                <div style="text-align:center;flex-shrink:0;min-width:52px;">
+                    <div style="color:${ac};font-size:48px;font-weight:900;line-height:1;letter-spacing:-3px;">${days}</div>
+                    <div style="color:rgba(255,255,255,0.42);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-top:2px;">DAY${days > 1 ? 'S' : ''}</div>
+                </div>
+                <div style="width:1px;height:46px;background:${acBd};flex-shrink:0;margin:0 16px;"></div>
+                <div style="flex:1;">
+                    <div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:3px;">${label}</div>
+                    <div style="color:rgba(255,255,255,0.42);font-size:11px;line-height:1.55;">Your password will expire and you will be automatically logged out.</div>
+                </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <span style="color:rgba(255,255,255,0.32);font-size:11px;">Password validity</span>
+                <span style="color:${ac};font-size:11px;font-weight:700;">${label}</span>
+            </div>
+            <div style="height:5px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden;margin-bottom:16px;">
+                <div id="_tm_bar" style="height:100%;width:0;background:${barGrd};border-radius:99px;"></div>
+            </div>
+
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:11px 13px;display:flex;gap:9px;align-items:flex-start;margin-bottom:16px;">
+                <span style="font-size:14px;flex-shrink:0;margin-top:1px;">💬</span>
+                <span style="color:rgba(255,255,255,0.45);font-size:11px;line-height:1.6;">Contact the <strong style="color:rgba(255,255,255,0.78);">&nbsp;administrator</strong> immediately via Telegram to renew your password before it expires.</span>
+            </div>
+
+            <div style="display:flex;gap:9px;">
+                <a href="${window.UI.contact_link}" target="_blank" id="_tm_tg" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:11px;padding:11px;display:flex;align-items:center;justify-content:center;gap:7px;color:rgba(255,255,255,0.58);font-size:12px;font-weight:500;text-decoration:none;transition:all 0.18s;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#29A8E0"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 13.667l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.978.892z"/></svg>
+                    Contact Admin
+                </a>
+                <button id="_tm_ok" style="flex:2;background:linear-gradient(135deg,${ac},${acG2});border:none;border-radius:11px;padding:12px 18px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.2px;transition:all 0.18s;box-shadow:0 4px 16px ${acG};">✓ Got it, remind me later</button>
+            </div>
+        </div>
+
+        <div style="padding:9px 22px 13px;display:flex;align-items:center;justify-content:center;gap:6px;border-top:1px solid rgba(255,255,255,0.05);">
+            <div style="width:5px;height:5px;border-radius:50%;background:${ac};opacity:.55;"></div>
+            <span style="color:rgba(255,255,255,0.2);font-size:10px;">Reminder repeats every 6 hours · Logged-in users only</span>
+        </div>
+    </div>`;
+
+    function closePopup() {
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.22s ease';
+        setTimeout(function() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 230);
+    }
+
+    setTimeout(function() {
+        document.body.appendChild(overlay);
+        overlay.querySelector('#_tm_ok').addEventListener('click', closePopup);
+        overlay.querySelector('#_tm_cls').addEventListener('click', closePopup);
+        overlay.querySelector('#_tm_bg').addEventListener('click', closePopup);
+        document.addEventListener('keydown', function onEsc(e) {
+            if (e.key === 'Escape') { closePopup(); document.removeEventListener('keydown', onEsc); }
+        });
+    }, 1500);
+}
+// ✅ Fires on EVERY page — home, folder, search, file info
+checkPasswordExpiryWarning();
 }
 
 // Initialize login modal functionality
@@ -611,6 +812,19 @@ function initializeLoginModal() {
 
     // Close button click
     closeModalBtn.addEventListener('click', closeLoginModal);
+
+    // Password show/hide toggle
+    document.getElementById('togglePw').addEventListener('click', function() {
+        const pw = document.getElementById('password');
+        const icon = document.getElementById('eyeIcon');
+        if (pw.type === 'password') {
+            pw.type = 'text';
+            icon.className = 'fas fa-eye-slash';
+        } else {
+            pw.type = 'password';
+            icon.className = 'fas fa-eye';
+        }
+    });
 
     // Close on backdrop click
     loginModal.addEventListener('click', (e) => {
@@ -660,7 +874,9 @@ function initializeLoginModal() {
                     window.location.href = '/';
                 }, 1000);
             } else {
-                showError('Invalid username or password');
+                // ✅ FIX: Show actual server error (e.g. "Password expired", "Too many attempts")
+                const errMsg = data.error || 'Invalid username or password';
+                showError(errMsg);
             }
         } catch (error) {
             showError('Network error. Please try again.');
@@ -694,6 +910,12 @@ function initializeLoginModal() {
     if (error) {
         openLoginModal();
         showError(decodeURIComponent(error));
+        // ✅ FIX: Clear the ?error= param so refreshing the page doesn't
+        // re-open the modal and re-show the old error message.
+        try {
+            const cleanUrl = window.location.pathname + (urlParams.toString().replace(/error=[^&]*&?/, '').replace(/&$/, '') ? '?' + urlParams.toString().replace(/error=[^&]*&?/, '').replace(/&$/, '') : '');
+            window.history.replaceState(null, '', cleanUrl || window.location.pathname);
+        } catch (_) {}
     }
 }
 
@@ -768,6 +990,10 @@ function render(path) {
         const can_preview = getQueryVariable('a');
         const id = getQueryVariable('id');
         if (can_preview) {
+            // ✅ Show password expiry warning only on file info page (&a=view), not folder list
+            if (typeof checkPasswordExpiryWarning === 'function') {
+                checkPasswordExpiryWarning();
+            }
             return fallback(id, true)
         } else {
             return list(null, id, true);
@@ -887,12 +1113,15 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
     }
 
     function performRequest(remainingRetries) {
+        // ✅ IMPROVEMENT: Add 15s timeout so a hung server doesn't stall
+        // the request until Cloudflare Worker's CPU limit is hit.
         fetch(fallback ? "/0:fallback" : path, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(requestData)
+                body: JSON.stringify(requestData),
+                signal: AbortSignal.timeout(15000)
             })
             .then(function(response) {
                 if (response.status === 500) {
@@ -1027,6 +1256,11 @@ function list(path, id = '', fallback = false) {
         <div class="card-header d-flex align-items-center gap-2">
             <span>${folder_ico}</span><span class="w-100 text-truncate" id="dirname">${folder_name}</span>
         </div>
+        <div class="d-flex align-items-center gap-2 px-3 py-1" id="tm-sort-bar" style="background:rgba(0,0,0,0.4); border-bottom:1px solid rgba(255,255,255,.1); font-size:12px; color:rgba(255,255,255,.55);">
+            <span style="flex:1;">Sort:</span>
+            <button class="btn btn-sm py-0 tm-sort-btn" data-col="name" style="font-size:11px; color:#fff; border:1px solid rgba(255,255,255,.4); background:transparent;">Name <span class="tm-sort-icon"></span></button>
+            <button class="btn btn-sm py-0 tm-sort-btn" data-col="size" style="font-size:11px; color:#fff; border:1px solid rgba(255,255,255,.4); background:transparent;">Size <span class="tm-sort-icon"></span></button>
+        </div>
         <div id="list" class="list-group list-group-flush text-break">
         </div>
         <div class="card-footer text-muted d-flex align-items-center gap-2" id="count">
@@ -1050,8 +1284,6 @@ function list(path, id = '', fallback = false) {
             title(res['name']);
             $('#dirname').html(res['name']);
         }
-        $('#sharer').attr('href', 'https://kaceku.onrender.com/f/' + res['fid']);
-        $('#sharer').removeClass('d-none');
         $('#list')
             .data('nextPageToken', res['nextPageToken'])
             .data('curPageIndex', res['curPageIndex']);
@@ -1254,13 +1486,14 @@ function append_files_to_fallback_list(path, files) {
                 // Prepare item data for modal — set size/md5 fields expected by onSearchResultItemClick
                 const _fItem = Object.assign({}, item, { size: folderSizeStr, md5Checksum: '—' });
                 const _fItemJson = JSON.stringify(_fItem).replace(/"/g, '&quot;');
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${item.folderSize || 0}"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
                 ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="Open Folder"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
             } else {
                 totalsize = totalsize + Number(item.size || 0);
                 item['size'] = formatFileSize(item['size']) || '—';
                 is_file = true;
                 const epn = item.name;
+                const rawBytesF = Number(files[i].size || 0);
                 const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
                 let pn = path + epn.replace(_reHash, '%23').replace(_reQ, '%3F');
                 let c = "file";
@@ -1290,7 +1523,7 @@ function append_files_to_fallback_list(path, files) {
                 const _fileLink = _isArchive
                     ? `href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel"`
                     : `href="${p}&a=view"`;
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" ${_fileLink}><span>`
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytesF}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" ${_fileLink}><span>`
 
                 html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1339,14 +1572,52 @@ function append_files_to_fallback_list(path, files) {
             try {
                 localStorage.setItem(path, JSON.stringify(new_children));
             } catch (e) {
-                // QuotaExceededError: clear cache and retry once
-                try { localStorage.clear(); localStorage.setItem(path, JSON.stringify(new_children)); } catch (_) { /* ignore */ }
+                // 2705 FIX: On QuotaExceededError, only evict path caches 2014 NOT password entries.
+                // localStorage.clear() would wipe password + path keys, locking users out of
+                // encrypted folders and forcing them to re-enter passwords on every reload.
+                try {
+                    Object.keys(localStorage)
+                        .filter(k => !k.startsWith('password') && !k.startsWith('tm_pw_expiry'))
+                        .forEach(k => localStorage.removeItem(k));
+                    localStorage.setItem(path, JSON.stringify(new_children));
+                } catch (_) { /* ignore 2014 storage unavailable */ }
             }
         }
 
     // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+        initTMSort();
+
+        // ✅ FIX: Prefetch shortener links for fallback folder view too.
+        // Previously only search results were prefetched — clicking any file in a folder
+        // always showed a spinner. Now links are warmed in the background immediately.
+        (function _prefetchFallbackShorteners() {
+            try {
+                const _shouldPrefetch = typeof UI !== 'undefined' && UI.show_url_shortener === true && !isUserLoggedIn();
+                if (!_shouldPrefetch) return;
+                if (!window._shortenerCache) window._shortenerCache = {};
+                const _publicOrigin = 'https://tm.play-streams.workers.dev';
+                files.forEach(function(item) {
+                    if (item['mimeType'] === 'application/vnd.google-apps.folder') return;
+                    const encodedId = encodeURIComponent(item.id);
+                    const url = _publicOrigin + '/fallback?id=' + encodedId + '&a=view';
+                    if (window._shortenerCache[url]) return;
+                    _setShortenerCache(url, { _pending: true });
+                    var _fs = function(ep) {
+                        return fetch(ep, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: url }) })
+                            .then(function(r) { return r.ok ? r.json() : null; })
+                            .then(function(d) { return (d && d.success && d.short_url) ? d.short_url : null; })
+                            .catch(function() { return null; });
+                    };
+                    Promise.all([_fs('/generate-gplinks'), _fs('/generate-nowshort')]).then(function(results) {
+                        _setShortenerCache(url, { gplinks: results[0], nowshort: results[1] });
+                        log('Fallback prefetch cached:', url);
+                    });
+                });
+            } catch(e) { /* silent */ }
+        })();
+
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
             const total_size_str = formatFileSize(totalsize) || '0 Bytes';
@@ -1407,10 +1678,11 @@ function append_files_to_list(path, files) {
         // replace / with %2F
         if (item['mimeType'] == 'application/vnd.google-apps.folder') {
             const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${item.folderSize || 0}"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
             ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
         } else {
-            totalsize = totalsize + Number(item.size || 0);
+            const rawBytes = Number(item.size || 0);
+            totalsize = totalsize + rawBytes;
             item['size'] = formatFileSize(item['size']) || '—';
             is_file = true;
             const epn = item.name;
@@ -1436,7 +1708,7 @@ function append_files_to_list(path, files) {
             pn += "?a=view";
             c += " view";
             //}
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytes}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
 
             html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1485,14 +1757,22 @@ function append_files_to_list(path, files) {
         try {
             localStorage.setItem(path, JSON.stringify(new_children));
         } catch (e) {
-            // QuotaExceededError: clear cache and retry once
-            try { localStorage.clear(); localStorage.setItem(path, JSON.stringify(new_children)); } catch (_) { /* ignore */ }
+            // ✅ FIX: On QuotaExceededError, only evict path caches — NOT password entries.
+            // localStorage.clear() would wipe password + path keys, locking users out of
+            // encrypted folders and forcing them to re-enter passwords on every reload.
+            try {
+                Object.keys(localStorage)
+                    .filter(k => !k.startsWith('password') && !k.startsWith('tm_pw_expiry'))
+                    .forEach(k => localStorage.removeItem(k));
+                localStorage.setItem(path, JSON.stringify(new_children));
+            } catch (_) { /* ignore — storage unavailable */ }
         }
     }
 
     // When it is page 1, remove the horizontal loading bar
     // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+    initTMSort();
     // When it is the last page, count and display the total number of items
     if (is_lastpage_loaded) {
         total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1544,6 +1824,11 @@ function render_search_result_list() {
         <div class="card-header">
             <div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
             ${searchBar}
+        </div>
+        <div class="d-flex align-items-center gap-2 px-3 py-1" id="tm-sort-bar" style="background:rgba(0,0,0,0.4); border-bottom:1px solid rgba(255,255,255,.1); font-size:12px; color:rgba(255,255,255,.55);">
+            <span style="flex:1;">Sort:</span>
+            <button class="btn btn-sm py-0 tm-sort-btn" data-col="name" style="font-size:11px; color:#fff; border:1px solid rgba(255,255,255,.4); background:transparent;">Name <span class="tm-sort-icon"></span></button>
+            <button class="btn btn-sm py-0 tm-sort-btn" data-col="size" style="font-size:11px; color:#fff; border:1px solid rgba(255,255,255,.4); background:transparent;">Size <span class="tm-sort-icon"></span></button>
         </div>
         <div id="list" class="list-group list-group-flush text-break">
             <div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>
@@ -1665,6 +1950,11 @@ function render_search_result_list() {
             alert("Selected items copied to clipboard!");
         }
     }, { passive: true });
+
+    // ✅ Show password expiry warning on search result page as well
+    if (typeof checkPasswordExpiryWarning === 'function') {
+        checkPasswordExpiryWarning();
+    }
 }
 
 /**
@@ -1702,7 +1992,7 @@ function append_search_result_to_list(files) {
                 item['md5Checksum'] = '—';
                 const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
                 const folderDirectUrl = '/fallback?id=' + encodeURIComponent(item['id']);
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="${folderDirectUrl}" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${item.folderSize || 0}"><a href="${folderDirectUrl}" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
                 continue;
             }
 
@@ -1713,12 +2003,13 @@ function append_search_result_to_list(files) {
 
             // Only process files (folders handled above)
             is_file = true;
-            totalsize = totalsize + Number(item.size || 0);
+            const rawBytesS = Number(item.size || 0);
+            totalsize = totalsize + rawBytesS;
             item['size'] = formatFileSize(item['size']) || '—';
             item['md5Checksum'] = item['md5Checksum'] || '—';
             const ext = item.fileExtension;
             const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytesS}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
 
             html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1731,6 +2022,7 @@ function append_search_result_to_list(files) {
         // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
+        initTMSort();
 
         // ── Background prefetch: warm _shortenerCache for all visible files ──────
         // Only runs when show_url_shortener=true and user is NOT logged in.
@@ -1748,7 +2040,7 @@ function append_search_result_to_list(files) {
                     const url = _publicOrigin + '/fallback?id=' + encodedId + '&a=view';
                     // Skip if already fetched or currently in-flight
                     if (window._shortenerCache[url]) return;
-                    window._shortenerCache[url] = { _pending: true };
+                    _setShortenerCache(url, { _pending: true });
 
                     var _fetchShort = function(endpoint) {
                         return fetch(endpoint, {
@@ -1764,7 +2056,7 @@ function append_search_result_to_list(files) {
                         _fetchShort('/generate-gplinks'),
                         _fetchShort('/generate-nowshort')
                     ]).then(function(results) {
-                        window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
+                        _setShortenerCache(url, { gplinks: results[0], nowshort: results[1] });
                         log('Prefetch cached:', url);
                     });
                 });
@@ -1970,32 +2262,10 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // ===== Show GPLinks and Nowshort =====
         log('Showing GPLinks and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
-        // ── Redirect Server Rotator ────────────────────────────────────────────
-        const _rotatorServers = [
-            { base: 'https://loan.sssbiotic.com/new.php',             param: 'link' },
-            { base: 'https://brilliantbihar.com/now.php',             param: 'link' },
-					  { base: 'https://loan.ojasjobs24.com/ok.php',             param: 'link' },
-					  { base: 'https://loan.mytpguide.com/join.php',            param: 'link' },
-					  { base: 'https://autosimplify.in/zip.php',                param: 'link' },
-        ];
-
-        function _extractNowshortCode(url) {
-            try {
-                const u = new URL(url);
-                const q = u.searchParams.get('link') || u.searchParams.get('code') || u.searchParams.get('id');
-                if (q) return q;
-                const parts = u.pathname.split('/').filter(Boolean);
-                return parts.length ? parts[parts.length - 1] : null;
-            } catch (_) { return null; }
-        }
-
         function _rotateNowshortUrl(nowshortUrl) {
-            const code = _extractNowshortCode(nowshortUrl);
-            if (!code) return nowshortUrl;
-            const s = _rotatorServers[Math.floor(Math.random() * _rotatorServers.length)];
-            const rotated = `${s.base}?${s.param}=${encodeURIComponent(code)}`;
-            log('Nowshort rotator:', nowshortUrl, '→', rotated);
-            return rotated;
+            // Use nowshort URL directly — no rotator
+            log('Nowshort URL:', nowshortUrl);
+            return nowshortUrl;
         }
         // ── End Rotator ───────────────────────────────────────────────────────
 
@@ -2087,7 +2357,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             ]).then(([gplinksUrl, nowshortUrl]) => {
                 // Store in cache for next time this file is clicked
                 if (!window._shortenerCache) window._shortenerCache = {};
-                window._shortenerCache[directUrl] = { gplinks: gplinksUrl, nowshort: nowshortUrl };
+                _setShortenerCache(directUrl, { gplinks: gplinksUrl, nowshort: nowshortUrl });
                 log('Shortener cache stored for:', directUrl);
                 _buildAndShowButtons(gplinksUrl, nowshortUrl);
             });
@@ -2147,7 +2417,7 @@ async function fallback(id, type) {
                     window.location.href = window.location.pathname + "/";
                 } else if (fileExtension) {
                     const name = obj.name;
-                    const bytes = obj.size || 0;
+                    const bytes = Number(obj.size) || 0;  // obj.size is a string from API — must coerce to Number for >= comparison
                     const md5Checksum = obj.md5Checksum || '—';
                     const size = formatFileSize(obj.size) || '—';
                     const encoded_name = encodeURIComponent(name);
@@ -2156,13 +2426,13 @@ async function fallback(id, type) {
                     var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
                     if (mimeType.includes("video") || video.includes(fileExtension)) {
                         poster = obj.thumbnailLink ? poster : UI.poster;
-                        file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
-                        file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else if (code.includes(fileExtension)) {
                         file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else {
-                        file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     }
                 }
             })
@@ -2217,7 +2487,7 @@ async function file(path) {
                 window.location.href = window.location.pathname + "/";
             } else if (fileExtension) {
                 const name = obj.name;
-                const bytes = obj.size || 0;
+                const bytes = Number(obj.size) || 0;  // obj.size is a string from API — must coerce to Number for >= comparison
                 const md5Checksum = obj.md5Checksum || '—';
                 const size = formatFileSize(obj.size) || '—';
                 const encoded_name = encodeURIComponent(name);
@@ -2226,13 +2496,13 @@ async function file(path) {
                 var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
                 if (mimeType.includes("video") || video.includes(fileExtension)) {
                     poster = obj.thumbnailLink ? poster : UI.poster;
-                    file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
-                    file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else if (code.includes(fileExtension)) {
                     file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else {
-                    file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 }
             }
         })
@@ -2265,7 +2535,54 @@ function generateCopyFileBox(file_id, cookie_folder_id) {
 }
 
 // Document display |zip|.exe/others direct downloads
-function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+// =============================================================================
+// DOWNLOAD BUTTON HELPER
+// Decides whether non-login users get a GDflix link or a direct download button.
+//
+// Logic controlled by two UI config flags (set in worker-tm.js):
+//   enable_gdflix_for_non_login        — master switch. If false → always direct download.
+//   gdflix_large_file_only             — if true → GDflix only for files ≥ threshold GB.
+//                                         if false → GDflix for ALL non-login users (old behaviour).
+//   gdflix_large_file_threshold_gb     — size threshold in GB (default 10).
+//
+// Logged-in users ALWAYS get direct download regardless of settings.
+// =============================================================================
+function getDownloadButton(url, encoded_name, file_id, bytes) {
+    // Logged-in users → always direct download
+    if (isUserLoggedIn()) {
+        return `<button type="button" class="btn btn-success tm-download-btn"
+               data-url="${url}" data-name="${encoded_name}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </button>`;
+    }
+
+    // GDflix master switch off → always direct download for everyone
+    if (!UI.enable_gdflix_for_non_login) {
+        return `<button type="button" class="btn btn-success tm-download-btn"
+               data-url="${url}" data-name="${encoded_name}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </button>`;
+    }
+
+    // Non-login user, GDflix enabled — check gdflix_large_file_only setting
+    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
+    const useGdflix = UI.gdflix_large_file_only
+        ? (bytes >= thresholdBytes)   // true → GDflix only for large files
+        : true;                        // false → GDflix for all non-login users
+
+    if (useGdflix) {
+        return `<a type="button" class="btn btn-success download-via-gdflix" data-file-id="${file_id}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </a>`;
+    } else {
+        return `<button type="button" class="btn btn-success tm-download-btn"
+               data-url="${url}" data-name="${encoded_name}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </button>`;
+    }
+}
+
+function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
     // Add the container and card elements // wait until image is loaded and then hide spinner
@@ -2281,12 +2598,12 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
                     <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5; opacity: 0;">
                         <span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
                         <span>Preview</span>
-                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${name}"></a>
+                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${escapeHtml(name)}"></a>
                     </div>
                 </div>` : `
                 <div class="h-100 border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;">
                     <span><img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/zip-icon.png" alt="Zip Icon" style="max-width: 200px; height: auto; object-fit: contain;"></span>
-                    <span><a href="https://telegram.me/tamizhan_updates/51" target="_blank" style="text-decoration: none; color: #00d4ff;">👉🏻 How to Extract Zip file ✅</a></span>
+                    <span><a href="${UI.telegram_guide_zip}" target="_blank" style="text-decoration: none; color: #00d4ff;">👉🏻 How to Extract Zip file ✅</a></span>
                 </div>`}
             </div>
             <div class="col-lg-8 col-md-12">
@@ -2331,15 +2648,8 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${!UI.enable_extralink
-    ? `<button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>`
-    : `<a type="button" class="btn btn-success download-via-extralink" data-file-id="${file_id}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </a>`
-    }
+          ${getDownloadButton(url, encoded_name, file_id, bytes)}
+            ${_canSeePlayerMenu(bytes) ? `
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2348,7 +2658,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-                        </div>
+                        </div>` : ''}
           </div>
         </div>
       </div>`}
@@ -2359,7 +2669,7 @@ function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksu
     // GDFlix handler is registered once at module level (see bottom of file)
 
     $('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
-    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
+    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${escapeHtml(name)}" title="Preview of ${escapeHtml(name)}">`;
     var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
     $('#modal-body-space').html(preview);
     $('#modal-body-space-buttons').html(btn);
@@ -2392,13 +2702,13 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             <div class="col-lg-4 col-md-12">
                 <div id="preview" class="h-100 border border-dark rounded d-flex justify-content-center align-items-center position-relative" style="--bs-border-opacity: .5;">
                     <div id="code_spinner"></div>
-                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/monokai.min.css">
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/monokai.min.css">
                     <pre id="pre" class="rounded mb-0" style="height: 251px;"><code id="editor" class="h-100" style="white-space: pre-wrap; word-wrap: break-word;"></code></pre>
                     ${bytes >= 1024 * 1024 * 2 && poster ? `
                     <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5; opacity: 0;">
                         <span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
                         <span>Preview</span>
-                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${name}"></a>
+                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${escapeHtml(name)}"></a>
                     </div>` : ``}
                 </div>
             </div>
@@ -2444,15 +2754,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${!UI.enable_extralink
-    ? `<button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>`
-    : `<a type="button" class="btn btn-success download-via-extralink" data-file-id="${file_id}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </a>`
-     }
+          ${getDownloadButton(url, encoded_name, file_id, bytes)}
+            ${_canSeePlayerMenu(bytes) ? `
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2461,7 +2764,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-                     </div>
+                     </div>` : ''}
           </div>
         </div>
       </div>`}
@@ -2472,7 +2775,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     // GDFlix handler is registered once at module level (see bottom of file)
 
     $('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
-    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
+    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${escapeHtml(name)}" title="Preview of ${escapeHtml(name)}">`;
     var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
     $('#modal-body-space').html(preview);
     $('#modal-body-space-buttons').html(btn);
@@ -2515,8 +2818,28 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 }
 
 
+// =============================================================================
+// PLAYER VISIBILITY HELPER
+// Decides whether the inline audio/video player should be hidden.
+//
+// Logic controlled by UI config flags (set in worker-tm.js):
+//   disable_player                — master switch. If true → ALWAYS hide the player,
+//                                    regardless of file size.
+//   gdflix_large_file_threshold_gb — size threshold in GB (default 10). Files AT or
+//                                    ABOVE this size get the player hidden too — for
+//                                    EVERYONE, login and non-login — nudging large
+//                                    files towards the GDflix link instead of inline
+//                                    streaming.
+// =============================================================================
+function shouldDisablePlayer(bytes) {
+    if (UI.disable_player) return true;
+    // Master switch on → always hide, no matter the size
+    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
+    return bytes >= thresholdBytes;
+}
+
   // Document display video  mkv|mp4|webm|avi|
-   function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+   function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
      // Define all player icons
     const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
@@ -2543,7 +2866,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
         _unsupportedExt.some(e => _nameLower.endsWith(e))
       );
 
-      if (!UI.disable_player) {
+      if (!shouldDisablePlayer(bytes)) {
         if (_iosCantPlay) {
             // ── Show "Open in App" card — VLC (orange) + Infuse (yellow) ─
             const _ext = _nameLower.split('.').pop().toUpperCase();
@@ -2690,15 +3013,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${!UI.enable_extralink
-    ? `<button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>`
-    : `<a type="button" class="btn btn-success download-via-extralink" data-file-id="${file_id}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </a>`
-    }
+          ${getDownloadButton(url, encoded_name, file_id, bytes)}
+            ${_canSeePlayerMenu(bytes) ? `
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2708,7 +3024,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
               <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
-             </div>
+             </div>` : ''}
            </div>
          </div>`}
        </div>
@@ -2718,7 +3034,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
   // GDFlix handler is registered once at module level (see bottom of file)
 
   // Load player script — skip entirely on iOS unsupported formats
-    if (!UI.disable_player && player_js && !_iosCantPlay) {
+    if (!shouldDisablePlayer(bytes) && player_js && !_iosCantPlay) {
     var videoJsScript = document.createElement('script');
     videoJsScript.src = player_js;
     videoJsScript.onload = function() {
@@ -2780,7 +3096,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
-function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
     // Add the container and card elements
@@ -2797,14 +3113,14 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
             <i class="fas fa-file-alt fa-fw"></i>File Information
         </div>
         <div class="card-body row g-3">
-            ${!UI.disable_player ? `
+            ${!shouldDisablePlayer(bytes) ? `
             <div class="col-lg-4 col-md-12">
                 <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
                     ${player}
                 </div>
             </div>
             ` : ''}
-            <div class="${UI.disable_player ? 'col-12' : 'col-lg-8 col-md-12'}">
+            <div class="${shouldDisablePlayer(bytes) ? 'col-12' : 'col-lg-8 col-md-12'}">
                 <table class="table table-dark">
                     <tbody>
                         <tr>
@@ -2835,15 +3151,11 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                     <div class="text-center">
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
-                           ${!UI.enable_extralink
-    ? `<button type="button" class="btn btn-success tm-download-btn"
+                           <button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>`
-    : `<a type="button" class="btn btn-success download-via-extralink" data-file-id="${file_id}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </a>`
-    }
+       </button>
+                            ${_canSeePlayerMenu(bytes) ? `
                             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split"
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="sr-only"></span>
@@ -2853,7 +3165,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
                                 <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
                                 <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
                                 <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
-                            </div>
+                            </div>` : ''}
                         </div>
                     </div>
                 </div>
@@ -2864,7 +3176,7 @@ function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, create
     $("#content").html(content);
 
     // Initialize player if enabled
-    if (!UI.disable_player && player_js) {
+    if (!shouldDisablePlayer(bytes) && player_js) {
         const script = document.createElement('script');
         script.src = player_js;
         script.onload = () => {
@@ -3002,6 +3314,7 @@ window.onpopstate = function() {
 
 $(function() {
     init();
+    if (window.UI?.show_quota) fetchQuota();
     var path = window.location.pathname;
     /*$("body").on("click", '.folder', function () {
         var url = $(this).attr('href');
@@ -3206,165 +3519,14 @@ function generateGDFlixLink(fileId) {
     });
 }
 
-// Generate an ExtraLink download page URL for the given Google Drive file ID
-function generateExtraLinkURL(fileId, fileName) {
-    return new Promise((resolve, reject) => {
-        log('ExtraLink - Received fileId:', fileId);
-        log('ExtraLink - Received fileName:', fileName);
-
-        if (!fileId) {
-            logError('ExtraLink - No file ID provided');
-            alert('Error: No file ID provided');
-            reject(new Error('No file ID provided'));
-            return;
-        }
-
-        fileId = String(fileId).trim();
-
-        if (fileId === '') {
-            logError('ExtraLink - Empty file ID');
-            alert('Error: Empty file ID');
-            reject(new Error('Empty file ID'));
-            return;
-        }
-
-        // Try to get filename from page if not provided
-        if (!fileName) {
-            try {
-                const titleElement = document.querySelector('h5.card-title');
-                if (titleElement) {
-                    fileName = titleElement.textContent.trim();
-                }
-            } catch (e) {
-                log('ExtraLink - Could not extract filename from page');
-            }
-        }
-
-        log('ExtraLink - Final fileName:', fileName || 'download');
-        log('ExtraLink - Requesting link from worker, file_id:', fileId);
-
-        // POST to the /extralink worker endpoint
-        fetch('/extralink', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                file_id:   fileId,
-                file_name: fileName || 'download'
-            })
-        })
-        .then(response => {
-            log('ExtraLink - Response status:', response.status);
-            log('ExtraLink - Response OK:', response.ok);
-
-            return response.json().then(data => {
-                return { status: response.status, ok: response.ok, data: data };
-            }).catch(() => {
-                return response.text().then(text => {
-                    return { status: response.status, ok: response.ok, data: { error: text } };
-                });
-            });
-        })
-        .then(result => {
-            log('ExtraLink - Full response:', result);
-
-            if (!result.ok) {
-                const errorMsg = result.data.error || result.data.details || `HTTP error! status: ${result.status}`;
-                logError('ExtraLink - Server error:', errorMsg);
-                throw new Error(errorMsg);
-            }
-
-            const data = result.data;
-            log('ExtraLink - Worker response data:', data);
-
-            if (data.success && (data.link || data.extralink_url)) {
-                const elLink = data.link || data.extralink_url;
-                log('ExtraLink - Generated URL:', elLink);
-
-                // Open the ExtraLink download page in a new tab
-                window.open(elLink, '_blank');
-                log('✅ ExtraLink URL generated successfully!');
-                resolve(elLink);
-
-            } else {
-                const errorMsg = data.error || 'Failed to generate ExtraLink URL — no link in response';
-                logError('ExtraLink - Error from server:', errorMsg);
-                throw new Error(errorMsg);
-            }
-        })
-        .catch(error => {
-            logError('ExtraLink Error:', error);
-            logError('ExtraLink Error stack:', error.stack);
-
-            let userMessage = 'Failed to generate ExtraLink URL';
-
-            if (error.message.includes('Failed to login')) {
-                userMessage += '\n\n⚠️ Login to ExtraLink failed.\n\nPossible solutions:\n' +
-                             '1. Check your EXTRALINK_EMAIL and EXTRALINK_PASSWORD Cloudflare secrets\n' +
-                             '2. Make sure your extralink.cfd account is active\n' +
-                             '3. Check Cloudflare Worker logs for details';
-            } else if (error.message.includes('HTTP error! status: 500')) {
-                userMessage += '\n\nServer error (500).\n\nPlease check:\n' +
-                             '1. Cloudflare Worker logs for details\n' +
-                             '2. ExtraLink credentials are correct\n' +
-                             '3. The file ID is valid';
-            } else if (error.message.includes('HTTP error! status: 400')) {
-                userMessage += '\n\nBad request (400). The file ID might be invalid.';
-            } else if (error.message.includes('Failed to fetch')) {
-                userMessage += '\n\nNetwork error. Check your internet connection.';
-            } else {
-                userMessage += ':\n\n' + error.message;
-            }
-
-            alert(userMessage);
-            reject(error);
-        });
-    });
-}
-
-// Click handler for .download-via-extralink buttons
-// e.stopImmediatePropagation() ensures the tm-download-btn 5-second timer
-// overlay never fires — ExtraLink opens its own page directly instead.
-$(document).on('click', '.download-via-extralink', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    const fileId = $(this).data('file-id');
-    const button = $(this);
-
-    log('ExtraLink - Download button clicked, fileId:', fileId);
-
-    if (!fileId) {
-        alert('Error: No file ID found');
-        return;
-    }
-
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
-
-    generateExtraLinkURL(fileId)
-        .then((link) => {
-            button.prop('disabled', false).html(originalHtml);
-            log('ExtraLink - Successfully opened:', link);
-        })
-        .catch((error) => {
-            button.html('<i class="fas fa-times fa-fw"></i> Failed');
-            setTimeout(() => {
-                button.prop('disabled', false).html(originalHtml);
-            }, 2000);
-            logError('ExtraLink - Error:', error);
-        });
-});
-
-
 // =============================================================================
 // SINGLE TOP-LEVEL GDFlix Button Handler
 // Registered once here — replaces 3 duplicate handlers that were
 // previously registered inside file_video(), file_code(), file_others()
-// on every file page load.
+// on every file page load. Also handles the "Download" button shown to
+// non-login users when GDflix is gating the download (see getDownloadButton).
 // =============================================================================
-$(document).on('click', '.gdflix-btn', function() {
+$(document).on('click', '.gdflix-btn, .download-via-gdflix', function() {
     const fileId = $(this).data('file-id');
     const button = $(this);
 
@@ -3387,6 +3549,76 @@ $(document).on('click', '.gdflix-btn', function() {
             logError('GDFlix error:', error);
         });
 });
+
+// =============================================================================
+// COLUMN SORT — Name & Size only
+// =============================================================================
+let _tmSortState = { col: null, dir: 1 };
+
+function initTMSort() {
+    const bar = document.getElementById('tm-sort-bar');
+    if (!bar) return;
+    // Reset icons
+    bar.querySelectorAll('.tm-sort-btn').forEach(btn => {
+        const icon = btn.querySelector('.tm-sort-icon');
+        const col = btn.dataset.col;
+        if (icon) icon.textContent = _tmSortState.col === col ? (_tmSortState.dir === 1 ? ' ▲' : ' ▼') : '';
+        btn.onclick = function () {
+            if (_tmSortState.col === col) {
+                _tmSortState.dir *= -1;
+            } else {
+                _tmSortState.col = col;
+                _tmSortState.dir = 1;
+            }
+            tmSortList();
+            initTMSort(); // refresh icons
+        };
+    });
+}
+
+function tmSortList() {
+    const $list = $('#list');
+    const rows = $list.children('.tm-row').toArray();
+    if (!rows.length) return;
+    rows.sort((a, b) => {
+        if (_tmSortState.col === 'size') {
+            return _tmSortState.dir * ((parseFloat(a.dataset.bytes) || 0) - (parseFloat(b.dataset.bytes) || 0));
+        }
+        // name
+        const av = (a.dataset.name || '').toLowerCase();
+        const bv = (b.dataset.name || '').toLowerCase();
+        return _tmSortState.dir * av.localeCompare(bv);
+    });
+    rows.forEach(el => $list.append(el));
+}
+
+// =============================================================================
+// QUOTA DISPLAY
+// =============================================================================
+function fetchQuota() {
+    const cur = window.current_drive_order || 0;
+    fetch(`/${cur}:quota`)
+        .then(r => { if (!r.ok) throw new Error('quota fetch failed'); return r.json(); })
+        .then(data => {
+            const q = data.storageQuota;
+            if (!q) return;
+            const used = Number(q.usage || 0);
+            const total = Number(q.limit || 0);
+            const bar = document.getElementById('tm-quota-bar');
+            const text = document.getElementById('tm-quota-text');
+            const fill = document.getElementById('tm-quota-fill');
+            if (!bar || !text || !fill) return;
+            const pct = total > 0 ? Math.min(100, (used / total) * 100) : 0;
+            const color = pct > 90 ? '#f44336' : pct > 70 ? '#ff9800' : '#4caf50';
+            text.textContent = total > 0
+                ? `${formatFileSize(used)} used of ${formatFileSize(total)} (${pct.toFixed(1)}%)`
+                : `${formatFileSize(used)} used`;
+            fill.style.width = pct + '%';
+            fill.style.background = color;
+            bar.style.display = 'block';
+        })
+        .catch(() => {});
+}
 
 // =============================================================================
 // DOWNLOAD TIMER — 5-second countdown → trigger download → show "File Downloading..." toast
