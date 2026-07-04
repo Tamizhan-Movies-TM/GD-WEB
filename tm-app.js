@@ -1,5 +1,5 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
-// v2.6.0
+// v2.6.1
 
 // =============================================================================
 // OPTIMIZATION: Conditional Logging
@@ -1123,7 +1123,10 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
                     </div><br>
                   </div>`;
                     $('#update').hide();
-                    return 500
+                    // ✅ FIX: throw instead of return 500 — returning a number lets the
+                    // next .then(res => res.data) run with res=500, silently swallowing
+                    // the error. Throwing routes it to .catch() where retries are handled.
+                    throw new Error('500');
                 }
                 if (!response.ok) {
                     throw new Error('Request failed');
@@ -2775,20 +2778,24 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 // =============================================================================
 function shouldDisablePlayer(bytes) {
     if (UI.disable_player) return true;
-    // Master switch on → always hide, no matter the size
-    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
+    // ✅ IMPROVE: use player_disable_threshold_gb when set, fall back to
+    // gdflix_large_file_threshold_gb for backwards compatibility, then 10 GB.
+    // Previously only the gdflix key was used here which is semantically wrong —
+    // the two thresholds can diverge independently.
+    const thresholdGb = UI.player_disable_threshold_gb || UI.gdflix_large_file_threshold_gb || 10;
+    const thresholdBytes = thresholdGb * 1024 * 1024 * 1024;
     return bytes >= thresholdBytes;
 }
 
-  // Document display video  mkv|mp4|webm|avi|
-   function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-     // Define all player icons
+// Document display video  mkv|mp4|webm|avi|
+function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+    // Define all player icons
     const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
-      const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
+    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
       let player = '';
       let player_js = '';
       let player_css = '';
@@ -3168,8 +3175,11 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
 // PERF: Intl.DateTimeFormat cached once at startup.
 // Old approach used toLocaleString() which creates a new formatter object
 // internally on every call — costs 10-50ms each, especially on mobile.
+// ✅ IMPROVE: timezone is now read from UI.display_timezone (set in uiConfig),
+// falling back to 'Asia/Jakarta' for backwards compatibility.
+const _displayTimezone = (window.UI && window.UI.display_timezone) ? window.UI.display_timezone : 'Asia/Jakarta';
 const _jakartaFmt = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Jakarta',
+    timeZone: _displayTimezone,
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', hour12: false
 });
@@ -3210,24 +3220,17 @@ function formatMimeType(mime) {
   return mime;
 }
 
-// bytes adaptive conversion to KB, MB, GB
+// bytes adaptive conversion to KB, MB, GB, TB
+// ✅ IMPROVE: each branch returns directly — avoids reassigning a numeric
+// param to a string which is confusing and prevents reusing the original value.
 function formatFileSize(bytes) {
-    if (bytes >= 1099511627776) {
-        bytes = (bytes / 1099511627776).toFixed(2) + ' TB';
-    } else if (bytes >= 1073741824) {
-        bytes = (bytes / 1073741824).toFixed(2) + ' GB';
-    } else if (bytes >= 1048576) {
-        bytes = (bytes / 1048576).toFixed(2) + ' MB';
-    } else if (bytes >= 1024) {
-        bytes = (bytes / 1024).toFixed(2) + ' KB';
-    } else if (bytes > 1) {
-        bytes = bytes + ' bytes';
-    } else if (bytes === 1) {
-        bytes = bytes + ' byte';
-    } else {
-        bytes = '';
-    }
-    return bytes;
+    if (bytes >= 1099511627776) return (bytes / 1099511627776).toFixed(2) + ' TB';
+    if (bytes >= 1073741824)    return (bytes / 1073741824).toFixed(2) + ' GB';
+    if (bytes >= 1048576)       return (bytes / 1048576).toFixed(2) + ' MB';
+    if (bytes >= 1024)          return (bytes / 1024).toFixed(2) + ' KB';
+    if (bytes > 1)              return bytes + ' bytes';
+    if (bytes === 1)            return '1 byte';
+    return '';
 }
 
 
@@ -3287,6 +3290,9 @@ function copyFunction() {
         })
         .catch(function(error) {
             logError("Failed to copy text: ", error);
+            // ✅ FIX: navigator.clipboard is only available in secure contexts (HTTPS).
+            // Fall back to the legacy execCommand copy so the user still gets feedback.
+            _legacyCopy(copyText.value);
         });
 }
 
