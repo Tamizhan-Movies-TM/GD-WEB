@@ -16,18 +16,6 @@ const _reHash = /#/g;            // replaces _reHash inside loops
 const _reQ    = /\?/g;           // replaces _reQ inside loops
 const _origin = window.location.origin; // cached — avoids property lookup per file
 
-// ✅ FIX: Capped shortener cache — prevents unbounded memory growth during long sessions.
-// Entries are evicted FIFO once the cap is reached (oldest key removed first).
-const _SHORTENER_CACHE_MAX = 200;
-function _setShortenerCache(url, val) {
-    if (!window._shortenerCache) window._shortenerCache = {};
-    const keys = Object.keys(window._shortenerCache);
-    if (keys.length >= _SHORTENER_CACHE_MAX) {
-        delete window._shortenerCache[keys[0]]; // evict oldest
-    }
-    window._shortenerCache[url] = val;
-}
-
 // O(1) extension → icon lookup (replaces 7 chained String.indexOf scans per file)
 const _iconMap = new Map(Object.entries({
     mp4:'V', webm:'V', avi:'V', mpg:'V', mpeg:'V', mkv:'V',
@@ -874,9 +862,7 @@ function initializeLoginModal() {
                     window.location.href = '/';
                 }, 1000);
             } else {
-                // ✅ FIX: Show actual server error (e.g. "Password expired", "Too many attempts")
-                const errMsg = data.error || 'Invalid username or password';
-                showError(errMsg);
+                showError('Invalid username or password');
             }
         } catch (error) {
             showError('Network error. Please try again.');
@@ -1137,7 +1123,10 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
                     </div><br>
                   </div>`;
                     $('#update').hide();
-                    return 500
+                    // ✅ FIX: throw instead of return 500 — returning a number lets the
+                    // next .then(res => res.data) run with res=500, silently swallowing
+                    // the error. Throwing routes it to .catch() where retries are handled.
+                    throw new Error('500');
                 }
                 if (!response.ok) {
                     throw new Error('Request failed');
@@ -1572,15 +1561,8 @@ function append_files_to_fallback_list(path, files) {
             try {
                 localStorage.setItem(path, JSON.stringify(new_children));
             } catch (e) {
-                // 2705 FIX: On QuotaExceededError, only evict path caches 2014 NOT password entries.
-                // localStorage.clear() would wipe password + path keys, locking users out of
-                // encrypted folders and forcing them to re-enter passwords on every reload.
-                try {
-                    Object.keys(localStorage)
-                        .filter(k => !k.startsWith('password') && !k.startsWith('tm_pw_expiry'))
-                        .forEach(k => localStorage.removeItem(k));
-                    localStorage.setItem(path, JSON.stringify(new_children));
-                } catch (_) { /* ignore 2014 storage unavailable */ }
+                // QuotaExceededError: clear cache and retry once
+                try { localStorage.clear(); localStorage.setItem(path, JSON.stringify(new_children)); } catch (_) { /* ignore */ }
             }
         }
 
@@ -1588,36 +1570,6 @@ function append_files_to_fallback_list(path, files) {
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
         initTMSort();
-
-        // ✅ FIX: Prefetch shortener links for fallback folder view too.
-        // Previously only search results were prefetched — clicking any file in a folder
-        // always showed a spinner. Now links are warmed in the background immediately.
-        (function _prefetchFallbackShorteners() {
-            try {
-                const _shouldPrefetch = typeof UI !== 'undefined' && UI.show_url_shortener === true && !isUserLoggedIn();
-                if (!_shouldPrefetch) return;
-                if (!window._shortenerCache) window._shortenerCache = {};
-                const _publicOrigin = 'https://tm.play-streams.workers.dev';
-                files.forEach(function(item) {
-                    if (item['mimeType'] === 'application/vnd.google-apps.folder') return;
-                    const encodedId = encodeURIComponent(item.id);
-                    const url = _publicOrigin + '/fallback?id=' + encodedId + '&a=view';
-                    if (window._shortenerCache[url]) return;
-                    _setShortenerCache(url, { _pending: true });
-                    var _fs = function(ep) {
-                        return fetch(ep, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: url }) })
-                            .then(function(r) { return r.ok ? r.json() : null; })
-                            .then(function(d) { return (d && d.success && d.short_url) ? d.short_url : null; })
-                            .catch(function() { return null; });
-                    };
-                    Promise.all([_fs('/generate-gplinks'), _fs('/generate-nowshort')]).then(function(results) {
-                        _setShortenerCache(url, { gplinks: results[0], nowshort: results[1] });
-                        log('Fallback prefetch cached:', url);
-                    });
-                });
-            } catch(e) { /* silent */ }
-        })();
-
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
             const total_size_str = formatFileSize(totalsize) || '0 Bytes';
@@ -1757,15 +1709,8 @@ function append_files_to_list(path, files) {
         try {
             localStorage.setItem(path, JSON.stringify(new_children));
         } catch (e) {
-            // ✅ FIX: On QuotaExceededError, only evict path caches — NOT password entries.
-            // localStorage.clear() would wipe password + path keys, locking users out of
-            // encrypted folders and forcing them to re-enter passwords on every reload.
-            try {
-                Object.keys(localStorage)
-                    .filter(k => !k.startsWith('password') && !k.startsWith('tm_pw_expiry'))
-                    .forEach(k => localStorage.removeItem(k));
-                localStorage.setItem(path, JSON.stringify(new_children));
-            } catch (_) { /* ignore — storage unavailable */ }
+            // QuotaExceededError: clear cache and retry once
+            try { localStorage.clear(); localStorage.setItem(path, JSON.stringify(new_children)); } catch (_) { /* ignore */ }
         }
     }
 
@@ -2040,7 +1985,7 @@ function append_search_result_to_list(files) {
                     const url = _publicOrigin + '/fallback?id=' + encodedId + '&a=view';
                     // Skip if already fetched or currently in-flight
                     if (window._shortenerCache[url]) return;
-                    _setShortenerCache(url, { _pending: true });
+                    window._shortenerCache[url] = { _pending: true };
 
                     var _fetchShort = function(endpoint) {
                         return fetch(endpoint, {
@@ -2056,7 +2001,7 @@ function append_search_result_to_list(files) {
                         _fetchShort('/generate-gplinks'),
                         _fetchShort('/generate-nowshort')
                     ]).then(function(results) {
-                        _setShortenerCache(url, { gplinks: results[0], nowshort: results[1] });
+                        window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
                         log('Prefetch cached:', url);
                     });
                 });
@@ -2357,7 +2302,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             ]).then(([gplinksUrl, nowshortUrl]) => {
                 // Store in cache for next time this file is clicked
                 if (!window._shortenerCache) window._shortenerCache = {};
-                _setShortenerCache(directUrl, { gplinks: gplinksUrl, nowshort: nowshortUrl });
+                window._shortenerCache[directUrl] = { gplinks: gplinksUrl, nowshort: nowshortUrl };
                 log('Shortener cache stored for:', directUrl);
                 _buildAndShowButtons(gplinksUrl, nowshortUrl);
             });
@@ -2833,20 +2778,24 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 // =============================================================================
 function shouldDisablePlayer(bytes) {
     if (UI.disable_player) return true;
-    // Master switch on → always hide, no matter the size
-    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
+    // ✅ IMPROVE: use player_disable_threshold_gb when set, fall back to
+    // gdflix_large_file_threshold_gb for backwards compatibility, then 10 GB.
+    // Previously only the gdflix key was used here which is semantically wrong —
+    // the two thresholds can diverge independently.
+    const thresholdGb = UI.player_disable_threshold_gb || UI.gdflix_large_file_threshold_gb || 10;
+    const thresholdBytes = thresholdGb * 1024 * 1024 * 1024;
     return bytes >= thresholdBytes;
 }
 
-  // Document display video  mkv|mp4|webm|avi|
-   function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-     // Define all player icons
+// Document display video  mkv|mp4|webm|avi|
+function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+    // Define all player icons
     const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
-      const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
+    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
       let player = '';
       let player_js = '';
       let player_css = '';
@@ -3226,8 +3175,11 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
 // PERF: Intl.DateTimeFormat cached once at startup.
 // Old approach used toLocaleString() which creates a new formatter object
 // internally on every call — costs 10-50ms each, especially on mobile.
+// ✅ IMPROVE: timezone is now read from UI.display_timezone (set in uiConfig),
+// falling back to 'Asia/Jakarta' for backwards compatibility.
+const _displayTimezone = (window.UI && window.UI.display_timezone) ? window.UI.display_timezone : 'Asia/Jakarta';
 const _jakartaFmt = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Jakarta',
+    timeZone: _displayTimezone,
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', hour12: false
 });
@@ -3268,24 +3220,17 @@ function formatMimeType(mime) {
   return mime;
 }
 
-// bytes adaptive conversion to KB, MB, GB
+// bytes adaptive conversion to KB, MB, GB, TB
+// ✅ IMPROVE: each branch returns directly — avoids reassigning a numeric
+// param to a string which is confusing and prevents reusing the original value.
 function formatFileSize(bytes) {
-    if (bytes >= 1099511627776) {
-        bytes = (bytes / 1099511627776).toFixed(2) + ' TB';
-    } else if (bytes >= 1073741824) {
-        bytes = (bytes / 1073741824).toFixed(2) + ' GB';
-    } else if (bytes >= 1048576) {
-        bytes = (bytes / 1048576).toFixed(2) + ' MB';
-    } else if (bytes >= 1024) {
-        bytes = (bytes / 1024).toFixed(2) + ' KB';
-    } else if (bytes > 1) {
-        bytes = bytes + ' bytes';
-    } else if (bytes === 1) {
-        bytes = bytes + ' byte';
-    } else {
-        bytes = '';
-    }
-    return bytes;
+    if (bytes >= 1099511627776) return (bytes / 1099511627776).toFixed(2) + ' TB';
+    if (bytes >= 1073741824)    return (bytes / 1073741824).toFixed(2) + ' GB';
+    if (bytes >= 1048576)       return (bytes / 1048576).toFixed(2) + ' MB';
+    if (bytes >= 1024)          return (bytes / 1024).toFixed(2) + ' KB';
+    if (bytes > 1)              return bytes + ' bytes';
+    if (bytes === 1)            return '1 byte';
+    return '';
 }
 
 
@@ -3345,6 +3290,9 @@ function copyFunction() {
         })
         .catch(function(error) {
             logError("Failed to copy text: ", error);
+            // ✅ FIX: navigator.clipboard is only available in secure contexts (HTTPS).
+            // Fall back to the legacy execCommand copy so the user still gets feedback.
+            _legacyCopy(copyText.value);
         });
 }
 
