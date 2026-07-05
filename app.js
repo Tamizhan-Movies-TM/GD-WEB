@@ -2962,7 +2962,7 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
       <div class="col-md-12">
         <div class="text-center">
           <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-          <div class="btn-group text-center" style="position:relative;">
+          <div class="btn-group text-center">
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
@@ -2972,7 +2972,7 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
             </button>
-            <div class="dropdown-menu w-100" style="min-width:100%;left:0;right:0;">
+            <div class="dropdown-menu dropdown-menu-end">
               <h6 class="dropdown-header"><i class="fa-brands fa-android"></i> Android Players</h6>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
