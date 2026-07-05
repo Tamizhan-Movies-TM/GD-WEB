@@ -3442,10 +3442,10 @@ def _show_log():
 def _banner():
     print(f"""{C}
 ╔════════════════════════════════════════════════════════════════╗
-║   🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v{VERSION:<8}  ║
-║   Direct Download → Fix → Upload to Drive (Maximum Speed)      ║
+║   🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v{VERSION:<8}   ║
+║   Direct Download → Fix → Upload to Drive (Maximum Speed)     ║
 ║   🔒 Thread-safe token  🛡 Upload retry  💾 Disk check       ║
-║   ⚡ Smart remux skip   🔁 Resume  📋 JSON log               ║
+║   ⚡ Smart remux skip   🔁 Resume  📋 JSON log              ║
 ╚════════════════════════════════════════════════════════════════╝{X}
   Folder  : {Y}{FOLDER}{X}
   Threads : {G}{THREADS}{X}   Chunk: {G}{CHUNK_MB} MB{X}  Pool: {G}128 connections{X}  Stream-conns: {G}{STREAM_CONNS}{X}
