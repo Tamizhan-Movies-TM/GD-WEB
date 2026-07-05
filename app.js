@@ -2973,13 +2973,13 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
               <span class="sr-only"></span>
             </button>
             <div class="dropdown-menu dropdown-menu-end">
-              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-android" style="color:#3ddc84;"></i>&nbsp;Android Players</h6>
+              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-android" style="color:#3ddc84;"></i>&nbsp;&nbsp;Android&nbsp; Players</h6>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
               <div class="dropdown-divider"></div>
-              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-apple" style="color:#fff;"></i>&nbsp;iPhone Players</h6>
+              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-apple" style="color:#fff;"></i>&nbsp;&nbsp;iPhone&nbsp; Players</h6>
               <a class="dropdown-item" href="vlc-x-callback://x-callback-url/stream?url=${encodeURIComponent(url)}">${vlc_ios_icon} VLC (iOS)</a>
               <a class="dropdown-item" href="infuse://x-callback-url/play?url=${encodeURIComponent(url)}">${infuse_icon} Infuse</a>
              </div>` : ''}
