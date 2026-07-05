@@ -4,7 +4,7 @@
 # ║   [4] GDrive Clone→Remux→Patch  [5] Folder/File Auto-Fix             ║
 # ║   [6] Manual Edit Tracks→Remux→Upload  [7] Operation Log             ║
 # ║   v9.0: 🔒 Thread-safe token  🛡 Upload retry  💾 Disk check        ║
-# ║          🔁 Resume fixed  ♻ Session reuse  📋 JSON log             ║
+# ║          🔁 Resume fixed  ♻ Session reuse  📋 JSON log              ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 VERSION = "9.0.0"
@@ -302,7 +302,15 @@ def _safe_name(url):
 #  LIVE PROGRESS BAR
 # ══════════════════════════════════════════════════════════════════════
 class LiveBar:
-    """Thread-safe animated progress bar with speed and ETA display."""
+    """Thread-safe animated progress bar — ONE background thread, always.
+
+    Key design rules that prevent double-bar output:
+      • The draw thread is started ONLY inside _start_thread().
+      • reset() fully joins the old thread before starting a new one —
+        so there is never more than one active draw thread at any time.
+      • All info prints (parallel/stream mode announcements) must happen
+        BEFORE constructing LiveBar, not after.
+    """
 
     BAR_WIDTH = 28
 
@@ -317,18 +325,15 @@ class LiveBar:
         self._lt    = time.time()
         self._spd   = 0.0
         self._alive = True
-        threading.Thread(target=self._loop, daemon=True).start()
+        self._thread = None
+        self._start_thread()
 
-    def update(self, n):
-        """Add n bytes to the completed count and refresh speed."""
-        with self._lock:
-            self.done += n
-            now = time.time()
-            dt  = now - self._lt
-            if dt >= 0.25:
-                self._spd = (self.done - self._lb) / dt
-                self._lb  = self.done
-                self._lt  = now
+    # ── Internal ───────────────────────────────────────────────────────
+    def _start_thread(self):
+        """Start exactly one draw thread. Call only when _thread is None or dead."""
+        self._alive  = True
+        self._thread = threading.Thread(target=self._loop, daemon=True)
+        self._thread.start()
 
     def _loop(self):
         while self._alive:
@@ -336,20 +341,18 @@ class LiveBar:
             time.sleep(0.2)
 
     def _draw(self):
-        # Snapshot all values under lock, then print OUTSIDE the lock.
-        # Holding the lock during print() risks deadlock if another thread
-        # calls bar.update() while stdout is blocking.
+        # Snapshot under lock, print OUTSIDE to avoid deadlock.
         with self._lock:
-            done   = self.done
-            total  = self.total
-            spd    = self._spd
-            phase  = self.phase
-            label  = self.label
-            t0     = self._t0
+            done  = self.done
+            total = self.total
+            spd   = self._spd
+            phase = self.phase
+            label = self.label
+            t0    = self._t0
 
         pct    = min(done / total, 1.0)
         filled = int(self.BAR_WIDTH * pct)
-        bar    = f"{G}{'▣' * filled}{D}{'▢' * (self.BAR_WIDTH - filled)}{X}"
+        bar    = f"{G}{chr(9635) * filled}{D}{chr(9634) * (self.BAR_WIDTH - filled)}{X}"
         spd_s  = f"{spd / 1_048_576:7.1f} MB/s" if spd > 0 else "    ?.? MB/s"
         eta    = (total - done) / spd if spd > 0 else 0
         ela    = int(time.time() - t0)
@@ -361,9 +364,48 @@ class LiveBar:
             end="", flush=True,
         )
 
-    def finish(self, ok=True):
+    # ── Public API ─────────────────────────────────────────────────────
+    def update(self, n):
+        """Add n bytes to the completed count and refresh speed."""
+        with self._lock:
+            self.done += n
+            now = time.time()
+            dt  = now - self._lt
+            if dt >= 0.25:
+                self._spd = (self.done - self._lb) / dt
+                self._lb  = self.done
+                self._lt  = now
+
+    def reset(self, new_phase, new_total=None):
+        """Stop the current draw thread, reset counters, restart with a new phase.
+        Guaranteed single thread: joins the old thread before starting the new one.
+        Use this instead of the old bar._alive=False / threading.Thread() pattern.
+        """
+        # 1. Signal old thread to stop
         self._alive = False
-        time.sleep(0.25)
+        if self._thread and self._thread.is_alive():
+            self._thread.join(timeout=0.5)   # wait up to 0.5 s for clean exit
+
+        # 2. Reset all counters atomically
+        with self._lock:
+            self.phase  = new_phase
+            if new_total is not None:
+                self.total = max(new_total, 1)
+            self.done   = 0
+            self._lb    = 0
+            self._spd   = 0.0
+            self._t0    = time.time()
+            self._lt    = time.time()
+
+        # 3. Start exactly one new thread
+        self._start_thread()
+
+    def finish(self, ok=True):
+        """Stop the draw thread and print the final summary line."""
+        self._alive = False
+        if self._thread and self._thread.is_alive():
+            self._thread.join(timeout=0.5)
+
         ela = time.time() - self._t0
         avg = self.total / ela / 1_048_576 if ela else 0
         ph  = f" {D}{self.phase}{X}" if self.phase else ""
@@ -1001,13 +1043,16 @@ def _probe(fp, sel):
 
 
 def _probe_all(fp):
-    """Run audio, subtitle, and video probes in parallel (3× faster)."""
+    """Run audio, subtitle, and video probes in parallel (3x faster).
+    Returns (audio_tracks, sub_tracks, vid_streams) where audio_tracks and
+    sub_tracks are fully-processed dicts (same as _audio_tracks/_sub_tracks),
+    and vid_streams is the raw ffprobe stream list (used for counts/indexes).
+    """
     with ThreadPoolExecutor(max_workers=3) as ex:
-        fa = ex.submit(_probe, fp, "a")
-        fs = ex.submit(_probe, fp, "s")
-        fv = ex.submit(_probe, fp, "v")
+        fa = ex.submit(_audio_tracks, fp)
+        fs = ex.submit(_sub_tracks,   fp)
+        fv = ex.submit(_probe,        fp, "v")
         return fa.result(), fs.result(), fv.result()
-
 
 def _audio_tracks(fp):
     """Return a list of audio-track dicts for the given file."""
@@ -2012,8 +2057,6 @@ def _download_external(url, idx, total):
                                ("405", "501", "520", "521", "522", "523", "524",
                                 "429", "500", "502", "503", "504")):
                             _cancel.set()
-                            bar._alive = False
-                            time.sleep(0.3)
                             print(
                                 f"\r{' ' * 110}\r"
                                 f"  {Y}⚠ CDN rejected Range — switching to stream...{X}",
@@ -2026,32 +2069,20 @@ def _download_external(url, idx, total):
 
             if not parallel_ok:
                 # Reset bar and retry with multi-stream
-                bar.done   = 0;  bar._lb   = 0;  bar._spd = 0.0
-                bar._t0    = time.time(); bar._lt = time.time()
-                bar.phase  = f"↓ Multi-Stream ({STREAM_CONNS})"
-                bar._alive = True
-                threading.Thread(target=bar._loop, daemon=True).start()
+                bar.reset(f"↓ Multi-Stream ({STREAM_CONNS})")
                 tmp.unlink(missing_ok=True)
                 try:
                     _multistream_dl(url, tmp, size, bar, STREAM_CONNS)
                 except RuntimeError:
-                    bar._alive = False
-                    time.sleep(0.25)
                     tmp.unlink(missing_ok=True)
-                    bar.done   = 0;  bar._lb   = 0;  bar._spd = 0.0
-                    bar._t0    = time.time(); bar._lt = time.time()
-                    bar.phase  = "↓ Stream"
-                    bar._alive = True
-                    threading.Thread(target=bar._loop, daemon=True).start()
+                    bar.reset("↓ Stream")
                     _stream_dl(url, tmp, bar)
         else:
             try:
                 _multistream_dl(url, tmp, size, bar, STREAM_CONNS)
             except RuntimeError:
                 tmp.unlink(missing_ok=True)
-                bar.done   = 0;  bar._lb   = 0;  bar._spd = 0.0
-                bar._t0    = time.time(); bar._lt = time.time()
-                bar.phase  = "↓ Stream"
+                bar.reset("↓ Stream")
                 _stream_dl(url, tmp, bar)
 
         tmp.replace(dest)
@@ -2180,9 +2211,8 @@ def _process_video_files_from_dir(extract_dir, folder_name, new_folder_id, tok,
     print(f"  {M}{'─' * 66}{X}")
 
     def _probe_file(vf):
-        with ThreadPoolExecutor(max_workers=2) as _ex:
-            return _ex.submit(_audio_tracks, vf).result(), \
-                   _ex.submit(_sub_tracks,   vf).result()
+        a, s, _ = _probe_all(vf)
+        return a, s
 
     with ThreadPoolExecutor(max_workers=min(len(video_files), 8)) as _pex:
         probe_results = list(_pex.map(_probe_file, video_files))
@@ -2338,8 +2368,8 @@ def _clone_single_to_colab(fid, fname, fsize, dest_path, tok):
         return False
 
     tmp = dest_path.with_suffix(dest_path.suffix + ".part")
-    bar = LiveBar(fsize or 1, fname[:26], phase="↓ Clone")
     print(f"  {G}✔ Parallel ({THREADS} threads){X}  {_fmt_size(fsize)}")
+    bar = LiveBar(fsize or 1, fname[:26], phase="↓ Clone")
 
     try:
         ok = _drive_parallel_download(fid, fsize, tmp, bar, "↓ Clone")
@@ -2729,14 +2759,8 @@ def direct_zip_downloader():
                     bar.finish(True)
                     dl_ok = True
                 except Exception:
-                    bar._alive = False
-                    time.sleep(0.3)
                     tmp_zip.unlink(missing_ok=True)
-                    bar.done   = 0;  bar._lb   = 0;  bar._spd = 0.0
-                    bar._t0    = time.time(); bar._lt = time.time()
-                    bar.phase  = "↓ Multi-Stream"
-                    bar._alive = True
-                    threading.Thread(target=bar._loop, daemon=True).start()
+                    bar.reset("↓ Multi-Stream")
 
             # Stage 2: multi-stream
             if not dl_ok:
@@ -2746,14 +2770,8 @@ def direct_zip_downloader():
                     bar.finish(True)
                     dl_ok = True
                 except Exception:
-                    bar._alive = False
-                    time.sleep(0.25)
                     tmp_zip.unlink(missing_ok=True)
-                    bar.done   = 0;  bar._lb   = 0;  bar._spd = 0.0
-                    bar._t0    = time.time(); bar._lt = time.time()
-                    bar.phase  = "↓ Stream"
-                    bar._alive = True
-                    threading.Thread(target=bar._loop, daemon=True).start()
+                    bar.reset("↓ Stream")
 
             # Stage 3: single stream
             if not dl_ok:
@@ -3344,10 +3362,8 @@ def manual_edit_and_upload():
             fail += 1
             continue
 
-        # ── Probe tracks ─────────────────────────────────────────────
-        with ThreadPoolExecutor(max_workers=2) as _ex:
-            a_tracks = _ex.submit(_audio_tracks, local_fp).result()
-            s_tracks = _ex.submit(_sub_tracks,   local_fp).result()
+        # ── Probe tracks (parallel) ──────────────────────────────────────
+        a_tracks, s_tracks, _ = _probe_all(local_fp)
 
         if not a_tracks:
             print(f"  {Y}⚠ No audio tracks — skipped.{X}")
@@ -3445,7 +3461,7 @@ def _banner():
 ║   🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v{VERSION:<8} ║
 ║   Direct Download → Fix → Upload to Drive (Maximum Speed)      ║
 ║   🔒 Thread-safe token  🛡 Upload retry  💾 Disk check        ║
-║   ⚡ Smart remux skip   🔁 Resume  📋 JSON log                ║
+║   ⚡ Smart remux skip   🔁 Resume  📋 JSON log               ║
 ╚════════════════════════════════════════════════════════════════╝{X}
   Folder  : {Y}{FOLDER}{X}
   Threads : {G}{THREADS}{X}   Chunk: {G}{CHUNK_MB} MB{X}  Pool: {G}128 connections{X}  Stream-conns: {G}{STREAM_CONNS}{X}
