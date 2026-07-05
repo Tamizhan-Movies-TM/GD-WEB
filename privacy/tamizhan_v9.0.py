@@ -3442,10 +3442,10 @@ def _show_log():
 def _banner():
     print(f"""{C}
 ╔════════════════════════════════════════════════════════════════╗
-║   🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v{VERSION:<8} ║
+║   🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v{VERSION:<8}  ║
 ║   Direct Download → Fix → Upload to Drive (Maximum Speed)      ║
-║   🔒 Thread-safe token  🛡 Upload retry  💾 Disk check        ║
-║   ⚡ Smart remux skip   🔁 Resume  📋 JSON log                ║
+║   🔒 Thread-safe token  🛡 Upload retry  💾 Disk check       ║
+║   ⚡ Smart remux skip   🔁 Resume  📋 JSON log               ║
 ╚════════════════════════════════════════════════════════════════╝{X}
   Folder  : {Y}{FOLDER}{X}
   Threads : {G}{THREADS}{X}   Chunk: {G}{CHUNK_MB} MB{X}  Pool: {G}128 connections{X}  Stream-conns: {G}{STREAM_CONNS}{X}
@@ -3463,7 +3463,7 @@ def main_menu():
     _banner()
     while True:
         print(f"""{C}╔══════════════════════════════════════════════════════╗
-║         MAIN MENU — Tamizhan v{VERSION:<20}   ║
+║         MAIN MENU — Tamizhan v{VERSION:<20}    ║
 ╚══════════════════════════════════════════════════════╝{X}
   {G}[1]{X} 📥  Download → Auto-Rename → Auto-Fix → Upload to Drive  {D}(paste any direct URL & CDN URL){X}
   {G}[2]{X} 📦  Direct ZIP file URL → Download → Extract → Remux → Upload to Drive  {D}(paste any direct ZIP URL){X}
