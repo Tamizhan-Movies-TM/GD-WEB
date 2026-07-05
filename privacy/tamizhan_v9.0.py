@@ -61,8 +61,10 @@ _UPLOAD_CHUNK_LARGE = 512 * 1024 * 1024   # ≥2 GB files  (current default)
 _PROBE_TIMEOUT_SEC  = 60
 _VALID_FID_RE       = re.compile(r'^[A-Za-z0-9_-]{25,}$')
 
-# Operation log (written to Drive folder so it survives Colab resets)
-LOG_FILE = Path(FOLDER) / ".tamizhan_log.json"
+# Operation log stored on Colab NVMe (/content) — always writable regardless
+# of Drive mount state. A copy is attempted to Drive after each operation.
+LOG_FILE       = Path("/content/tamizhan_log.json")
+LOG_FILE_DRIVE = Path(FOLDER) / ".tamizhan_log.json"
 
 DL_HEADERS = {
     "User-Agent": (
@@ -81,7 +83,10 @@ _adapter = requests.adapters.HTTPAdapter(
 _SESSION.mount("http://",  _adapter)
 _SESSION.mount("https://", _adapter)
 
-os.makedirs(FOLDER, exist_ok=True)
+try:
+    os.makedirs(FOLDER, exist_ok=True)
+except OSError:
+    pass   # Drive may not be mounted yet — folder is created on first use
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -99,18 +104,14 @@ X = "\033[0m"    # Reset
 
 
 # ══════════════════════════════════════════════════════════════════════
-#  KEEP-ALIVE THREAD  (logs free disk every 60 s — real Colab keep-alive
-#  requires JS interaction from the notebook cell itself)
+#  KEEP-ALIVE THREAD
+#  Just keeps the Python process active. A print()-based keepalive cannot
+#  prevent Colab UI timeout (that needs JS) and corrupts \r progress bars.
+#  Disk free is only shown in _check_disk_space() when actually needed.
 # ══════════════════════════════════════════════════════════════════════
 def _keepalive_loop():
     while True:
-        try:
-            free = shutil.disk_usage("/content").free
-            # Print on a blank line so it doesn't clobber the progress bar
-            print(f"\r  {D}[♥] /content free: {_fmt_size(free)}{X}   ", end="", flush=True)
-        except Exception:
-            pass
-        time.sleep(60)
+        time.sleep(55)   # silent — just keeps thread scheduler busy
 
 
 if not globals().get("_KA"):
@@ -140,14 +141,17 @@ signal.signal(signal.SIGINT, _sigint_handler)
 #  OPERATION LOG
 # ══════════════════════════════════════════════════════════════════════
 def _log_op(action, filename, status, size_bytes=0, elapsed=0.0):
-    """Append one operation record to the JSON log in the Drive folder."""
+    """Append one operation record to the local JSON log (/content).
+    After writing locally, silently attempts to mirror the log to Drive.
+    Log failure never breaks the main pipeline.
+    """
     entry = {
-        "ts":       time.strftime("%Y-%m-%d %H:%M:%S"),
-        "version":  VERSION,
-        "action":   action,
-        "file":     filename,
-        "status":   status,
-        "size_mb":  round(size_bytes / 1_048_576, 1),
+        "ts":        time.strftime("%Y-%m-%d %H:%M:%S"),
+        "version":   VERSION,
+        "action":    action,
+        "file":      filename,
+        "status":    status,
+        "size_mb":   round(size_bytes / 1_048_576, 1),
         "elapsed_s": round(elapsed, 1),
     }
     try:
@@ -159,7 +163,14 @@ def _log_op(action, filename, status, size_bytes=0, elapsed=0.0):
         else:
             log = []
         log.append(entry)
-        LOG_FILE.write_text(json.dumps(log, indent=2, ensure_ascii=False), encoding="utf-8")
+        data = json.dumps(log, indent=2, ensure_ascii=False)
+        LOG_FILE.write_text(data, encoding="utf-8")
+        # Mirror to Drive if it is mounted and writable
+        try:
+            if LOG_FILE_DRIVE.parent.exists():
+                LOG_FILE_DRIVE.write_text(data, encoding="utf-8")
+        except Exception:
+            pass
     except Exception:
         pass  # log failure must never break the main pipeline
 
@@ -422,6 +433,7 @@ class LiveBar:
 def _check_disk_space(required_bytes, path="/content"):
     """Check that `path` has enough free space for the operation.
     We require 2× the file size to accommodate source + remux temp file.
+    Prints a warning only when space is critically low (< 10 GB headroom after reserve).
     Returns True if space is sufficient, False otherwise.
     """
     try:
@@ -433,7 +445,10 @@ def _check_disk_space(required_bytes, path="/content"):
                 f"{_fmt_size(free)} free, need ~{_fmt_size(needed)}{X}"
             )
             return False
-        print(f"  {D}💾 Disk OK: {_fmt_size(free)} free  (need ~{_fmt_size(needed)}){X}")
+        # Warn quietly only if headroom after this op is under 10 GB
+        headroom = free - needed
+        if headroom < 10 * 1024 * 1024 * 1024:
+            print(f"  {Y}⚠ Low disk: {_fmt_size(free)} free after this op ~{_fmt_size(headroom)} remain{X}")
         return True
     except Exception:
         return True   # if we can't check, proceed and let the OS error naturally
@@ -589,8 +604,10 @@ def _get_folder_id(tok):
 
     parent = "root"
     for part in parts:
+        # Escape single quotes in folder name for the Drive query
+        safe_part = part.replace("'", "\'")
         q = (
-            f"name='{part}' and mimeType='application/vnd.google-apps.folder'"
+            f"name='{safe_part}' and mimeType='application/vnd.google-apps.folder'"
             f" and '{parent}' in parents and trashed=false"
         )
         fid = None
@@ -612,10 +629,36 @@ def _get_folder_id(tok):
                     tok = _token()
             except Exception:
                 pass
+            if fid:
+                break
             time.sleep(attempt)
+
         if not fid:
-            print(f"  {R}✘ Drive folder '{part}' not found under parent '{parent}'.{X}")
-            print(f"  {Y}  Tip: Verify FOLDER = '{FOLDER}' exists in your Google Drive.{X}")
+            # Broader fallback: search without parent constraint
+            # (catches cases where the folder is in a shared drive)
+            q_broad = (
+                f"name='{safe_part}' and mimeType='application/vnd.google-apps.folder'"
+                f" and trashed=false"
+            )
+            try:
+                r2 = _SESSION.get(
+                    "https://www.googleapis.com/drive/v3/files",
+                    params={**_DRIVE_PARAMS, "q": q_broad,
+                            "fields": "files(id,name,parents)", "pageSize": "5"},
+                    headers={"Authorization": f"Bearer {tok}"},
+                    timeout=15,
+                )
+                if r2.status_code == 200:
+                    for cand in r2.json().get("files", []):
+                        fid = cand["id"]
+                        break
+            except Exception:
+                pass
+
+        if not fid:
+            print(f"  {R}✘ Drive folder '{part}' not found (checked under '{parent}' and all drives).{X}")
+            print(f"  {Y}  Tip: Make sure FOLDER='{FOLDER}' exists in your Drive{X}")
+            print(f"  {Y}  and that Google Drive is mounted at /content/drive.{X}")
             return None
         parent = fid
 
@@ -3425,7 +3468,7 @@ def manual_edit_and_upload():
 def _show_log():
     """Display the last 20 operations from the JSON log."""
     print(f"\n{C}{'═' * 68}{X}")
-    print(f"  {C}📋 OPERATION LOG — {LOG_FILE}{X}")
+    print(f"  {C}📋 OPERATION LOG — {LOG_FILE}  {D}(mirrored to Drive on each op){X}")
     print(f"{C}{'═' * 68}{X}\n")
     try:
         if not LOG_FILE.exists():
@@ -3457,15 +3500,15 @@ def _show_log():
 # ══════════════════════════════════════════════════════════════════════
 def _banner():
     print(f"""{C}
-╔════════════════════════════════════════════════════════════════╗
-║   🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v{VERSION:<8} ║
-║   Direct Download → Fix → Upload to Drive (Maximum Speed)      ║
-║   🔒 Thread-safe token  🛡 Upload retry  💾 Disk check        ║
+╔══════════════════════════════════════════════════════════════╗
+║   🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v{VERSION:<8}  ║
+║   Direct Download → Fix → Upload to Drive (Maximum Speed)    ║
+║   🔒 Thread-safe token  🛡 Upload retry  💾 Disk check       ║
 ║   ⚡ Smart remux skip   🔁 Resume  📋 JSON log               ║
-╚════════════════════════════════════════════════════════════════╝{X}
+╚══════════════════════════════════════════════════════════════╝{X}
   Folder  : {Y}{FOLDER}{X}
   Threads : {G}{THREADS}{X}   Chunk: {G}{CHUNK_MB} MB{X}  Pool: {G}128 connections{X}  Stream-conns: {G}{STREAM_CONNS}{X}
-  Log     : {D}{LOG_FILE}{X}
+  Log     : {D}{LOG_FILE}{X}  {D}(+ Drive mirror){X}
 
   Auto-Fix rules:
     🎬 Video      → default = {G}YES{X}
@@ -3479,7 +3522,7 @@ def main_menu():
     _banner()
     while True:
         print(f"""{C}╔══════════════════════════════════════════════════════╗
-║         MAIN MENU — Tamizhan v{VERSION:<20}   ║
+║         MAIN MENU — Tamizhan v{VERSION:<20}  ║
 ╚══════════════════════════════════════════════════════╝{X}
   {G}[1]{X} 📥  Download → Auto-Rename → Auto-Fix → Upload to Drive  {D}(paste any direct URL & CDN URL){X}
   {G}[2]{X} 📦  Direct ZIP file URL → Download → Extract → Remux → Upload to Drive  {D}(paste any direct ZIP URL){X}
@@ -3487,7 +3530,7 @@ def main_menu():
   {G}[4]{X} ♻️  GDrive Clone to Colab → Auto-Remux → PATCH back to Drive  {D}(folder or file URL — in-place){X}
   {G}[5]{X} 🤖  Auto-Fix via Drive URL — Folder or File(s)  {D}(paste any Drive folder/file URL){X}
   {G}[6]{X} ✏️  Manual Edit Tracks → Remux → Upload  {D}(edit audio+sub title & lang before remux){X}
-  {G}[7]{X} 📋  View Operation Log  {D}(last 20 operations from {LOG_FILE.name}){X}
+  {G}[7]{X} 📋  View Operation Log  {D}(stored at {LOG_FILE}, mirrored to Drive){X}
   {G}[0]{X} ⏻  Exit
 """)
         try:
