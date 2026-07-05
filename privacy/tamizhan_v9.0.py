@@ -4,7 +4,7 @@
 # ║   [4] GDrive Clone→Remux→Patch  [5] Folder/File Auto-Fix             ║
 # ║   [6] Manual Edit Tracks→Remux→Upload  [7] Operation Log             ║
 # ║   v9.0: 🔒 Thread-safe token  🛡 Upload retry  💾 Disk check        ║
-# ║          🔁 Resume fixed  ♻ Session reuse  📋 JSON log              ║
+# ║          🔁 Resume fixed  ♻ Session reuse  📋 JSON log             ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 VERSION = "9.0.0"
@@ -3442,9 +3442,9 @@ def _show_log():
 def _banner():
     print(f"""{C}
 ╔══════════════════════════════════════════════════════════════╗
-║   🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v{VERSION:<8}  ║
-║   Direct Download → Fix → Upload to Drive (Maximum Speed)    ║
-║   🔒 Thread-safe token  🛡 Upload retry  💾 Disk check       ║
+║   🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v{VERSION:<8} ║
+║   Direct Download → Fix → Upload to Drive (Maximum Speed)      ║
+║   🔒 Thread-safe token  🛡 Upload retry  💾 Disk check        ║
 ║   ⚡ Smart remux skip   🔁 Resume  📋 JSON log               ║
 ╚══════════════════════════════════════════════════════════════╝{X}
   Folder  : {Y}{FOLDER}{X}
@@ -3463,7 +3463,7 @@ def main_menu():
     _banner()
     while True:
         print(f"""{C}╔══════════════════════════════════════════════════════╗
-║         MAIN MENU — Tamizhan v{VERSION:<20}  ║
+║         MAIN MENU — Tamizhan v{VERSION:<20}   ║
 ╚══════════════════════════════════════════════════════╝{X}
   {G}[1]{X} 📥  Download → Auto-Rename → Auto-Fix → Upload to Drive  {D}(paste any direct URL & CDN URL){X}
   {G}[2]{X} 📦  Direct ZIP file URL → Download → Extract → Remux → Upload to Drive  {D}(paste any direct ZIP URL){X}
