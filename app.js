@@ -2798,10 +2798,7 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
     // iPhone player icons
     const vlc_ios_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC for iOS" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const infuse_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Infuse.png" alt="Infuse" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    // PC / Laptop player icons (using emoji fallback for universal support)
-    const vlc_pc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC PC" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const potplayer_icon = `<span style="display:inline-flex;align-items:center;justify-content:center;height:32px;width:32px;margin-right:5px;font-size:20px;">🎬</span>`;
-    const mpv_icon = `<span style="display:inline-flex;align-items:center;justify-content:center;height:32px;width:32px;margin-right:5px;font-size:20px;">🖥️</span>`;
+
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
       let player = '';
       let player_js = '';
@@ -2965,7 +2962,7 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
       <div class="col-md-12">
         <div class="text-center">
           <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-          <div class="btn-group text-center">
+          <div class="btn-group text-center" style="position:relative;">
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
@@ -2975,7 +2972,7 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
             </button>
-            <div class="dropdown-menu">
+            <div class="dropdown-menu w-100" style="min-width:100%;left:0;right:0;">
               <h6 class="dropdown-header"><i class="fa-brands fa-android"></i> Android Players</h6>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
@@ -2985,11 +2982,6 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
               <h6 class="dropdown-header"><i class="fa-brands fa-apple"></i> iPhone Players</h6>
               <a class="dropdown-item" href="vlc-x-callback://x-callback-url/stream?url=${encodeURIComponent(url)}">${vlc_ios_icon} VLC (iOS)</a>
               <a class="dropdown-item" href="infuse://x-callback-url/play?url=${encodeURIComponent(url)}">${infuse_icon} Infuse</a>
-              <div class="dropdown-divider"></div>
-              <h6 class="dropdown-header"><i class="fa-solid fa-laptop"></i> PC / Laptop Players</h6>
-              <a class="dropdown-item" href="${url}" onclick="navigator.clipboard&&navigator.clipboard.writeText('${url}');return false;" title="Copy link — paste in VLC: Media › Open Network Stream">${vlc_pc_icon} VLC (Copy Link)</a>
-              <a class="dropdown-item" href="${url}" onclick="navigator.clipboard&&navigator.clipboard.writeText('${url}');return false;" title="Copy link — paste in PotPlayer: Open › Open URL">${potplayer_icon} PotPlayer (Copy Link)</a>
-              <a class="dropdown-item" href="${url}" onclick="navigator.clipboard&&navigator.clipboard.writeText('${url}');return false;" title="Copy link — paste in MPV player">${mpv_icon} MPV (Copy Link)</a>
              </div>` : ''}
            </div>
          </div>`}
