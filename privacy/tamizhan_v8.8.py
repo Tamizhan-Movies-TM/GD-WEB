@@ -3,7 +3,7 @@
 # ║   Menu [1] Download→Fix→Upload  [2] Direct ZIP  [3] GDrive ZIP       ║
 # ║   [4] GDrive Clone→Remux→Patch  [5] Folder/File Auto-Fix             ║
 # ║   [6] Manual Edit Tracks→Remux→Upload                                ║
-# ║   v8.8: ⚡ Smart remux skip  🔁 Resume broken downloads              ║
+# ║   v8.8: ⚡ Smart remux skip  🔁 Resume broken downloads             ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 import copy
@@ -3007,7 +3007,7 @@ def gdrive_zip_extractor():
 def gdrive_clone_to_colab():
     """[4] Clone Drive file(s)/folder → remux → PATCH back in-place. Supports multiple URLs."""
     print(f"\n{M}{'═' * 68}{X}")
-    print(f"  {M}📂 [4] GDRIVE CLONE → REMUX → PATCH BACK TO DRIVE  v8.6{X}")
+    print(f"  {M}📂 [4] GDRIVE CLONE → REMUX → PATCH BACK TO DRIVE  v8.8{X}")
     print(f"  {W}Paste Google Drive FILE or FOLDER share URLs.{X}")
     print(f"  {D}One URL per line · blank line = start · type 0 to cancel{X}")
     print(f"{M}{'═' * 68}{X}\n")
@@ -3505,7 +3505,7 @@ def _banner():
 ╔══════════════════════════════════════════════════════════════╗
 ║    🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v8.8       ║
 ║   Direct Download → Fix → Upload to Drive (Maximum Speed)    ║
-║   ⚡ Smart remux skip  🔁 Resume broken downloads            ║
+║   ⚡ Smart remux skip  🔁 Resume broken downloads           ║
 ╚══════════════════════════════════════════════════════════════╝{X}
   Folder  : {Y}{FOLDER}{X}
   Threads : {G}{THREADS}{X}   Chunk: {G}{CHUNK_MB} MB{X}  Pool: {G}128 connections{X}  Stream-conns: {G}{STREAM_CONNS}{X}
