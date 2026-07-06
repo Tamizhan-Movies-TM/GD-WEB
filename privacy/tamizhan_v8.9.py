@@ -1,14 +1,10 @@
 # ╔══════════════════════════════════════════════════════════════════════╗
-# ║   TAMIZHAN MOVIES — ULTRA DOWNLOADER + AUTO-FIX  v9.0                ║
+# ║   TAMIZHAN MOVIES — ULTRA DOWNLOADER + AUTO-FIX  v8.8                ║
 # ║   Menu [1] Download→Fix→Upload  [2] Direct ZIP  [3] GDrive ZIP       ║
 # ║   [4] GDrive Clone→Remux→Patch  [5] Folder/File Auto-Fix             ║
-# ║   [6] Manual Edit Tracks→Remux→Upload  [7] Operation Log             ║
-# ║   v9.0: 🔒 Thread-safe token  🛡 Upload retry  💾 Disk check        ║
-# ║          🔁 Resume fixed  ♻ Session reuse  📋 JSON log              ║
+# ║   [6] Manual Edit Tracks→Remux→Upload                                ║
+# ║   v8.8: ⚡ Smart remux skip  🔁 Resume broken downloads             ║
 # ╚══════════════════════════════════════════════════════════════════════╝
-
-VERSION = "9.0.0"
-BUILD   = "2025-07"
 
 import copy
 import hashlib
@@ -16,7 +12,6 @@ import json
 import os
 import re
 import shutil
-import signal
 import subprocess
 import threading
 import time
@@ -52,20 +47,6 @@ CHUNK_MB     = 16
 MAX_RETRY    = 3
 TIMEOUT      = (10, 300)
 
-# ── Named constants (no more magic numbers) ───────────────────────────
-_SECONDS_PER_DAY    = 86_400          # used in _fmt_eta
-_TOKEN_TTL_SEC      = 3_000           # refresh token 100 s before OAuth expiry
-_UPLOAD_CHUNK_SMALL = 64  * 1024 * 1024   # <256 MB files
-_UPLOAD_CHUNK_MED   = 256 * 1024 * 1024   # <2 GB files
-_UPLOAD_CHUNK_LARGE = 512 * 1024 * 1024   # ≥2 GB files  (current default)
-_PROBE_TIMEOUT_SEC  = 60
-_VALID_FID_RE       = re.compile(r'^[A-Za-z0-9_-]{25,}$')
-
-# Operation log stored on Colab NVMe (/content) — always writable regardless
-# of Drive mount state. A copy is attempted to Drive after each operation.
-LOG_FILE       = Path("/content/tamizhan_log.json")
-LOG_FILE_DRIVE = Path(FOLDER) / ".tamizhan_log.json"
-
 DL_HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -83,10 +64,7 @@ _adapter = requests.adapters.HTTPAdapter(
 _SESSION.mount("http://",  _adapter)
 _SESSION.mount("https://", _adapter)
 
-try:
-    os.makedirs(FOLDER, exist_ok=True)
-except OSError:
-    pass   # Drive may not be mounted yet — folder is created on first use
+os.makedirs(FOLDER, exist_ok=True)
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -104,75 +82,17 @@ X = "\033[0m"    # Reset
 
 
 # ══════════════════════════════════════════════════════════════════════
-#  KEEP-ALIVE THREAD
-#  Just keeps the Python process active. A print()-based keepalive cannot
-#  prevent Colab UI timeout (that needs JS) and corrupts \r progress bars.
-#  Disk free is only shown in _check_disk_space() when actually needed.
+#  KEEP-ALIVE THREAD  (prevents Colab session timeout)
 # ══════════════════════════════════════════════════════════════════════
 def _keepalive_loop():
     while True:
-        time.sleep(55)   # silent — just keeps thread scheduler busy
+        time.sleep(30)
 
 
 if not globals().get("_KA"):
     _KA = True
     threading.Thread(target=_keepalive_loop, daemon=True).start()
     print(f"{G}✔ Keep-alive started.{X}")
-
-
-# ══════════════════════════════════════════════════════════════════════
-#  CTRL-C CLEANUP HANDLER
-# ══════════════════════════════════════════════════════════════════════
-def _sigint_handler(sig, frame):
-    print(f"\n\n{Y}⚠ Interrupted — cleaning up .part files...{X}")
-    for p in Path("/content").glob("*.part"):
-        try:
-            p.unlink(missing_ok=True)
-            print(f"  {D}🗑 Removed: {p.name}{X}")
-        except Exception:
-            pass
-    print(f"{Y}Goodbye.{X}")
-    raise SystemExit(0)
-
-signal.signal(signal.SIGINT, _sigint_handler)
-
-
-# ══════════════════════════════════════════════════════════════════════
-#  OPERATION LOG
-# ══════════════════════════════════════════════════════════════════════
-def _log_op(action, filename, status, size_bytes=0, elapsed=0.0):
-    """Append one operation record to the local JSON log (/content).
-    After writing locally, silently attempts to mirror the log to Drive.
-    Log failure never breaks the main pipeline.
-    """
-    entry = {
-        "ts":        time.strftime("%Y-%m-%d %H:%M:%S"),
-        "version":   VERSION,
-        "action":    action,
-        "file":      filename,
-        "status":    status,
-        "size_mb":   round(size_bytes / 1_048_576, 1),
-        "elapsed_s": round(elapsed, 1),
-    }
-    try:
-        if LOG_FILE.exists():
-            try:
-                log = json.loads(LOG_FILE.read_text(encoding="utf-8"))
-            except Exception:
-                log = []
-        else:
-            log = []
-        log.append(entry)
-        data = json.dumps(log, indent=2, ensure_ascii=False)
-        LOG_FILE.write_text(data, encoding="utf-8")
-        # Mirror to Drive if it is mounted and writable
-        try:
-            if LOG_FILE_DRIVE.parent.exists():
-                LOG_FILE_DRIVE.write_text(data, encoding="utf-8")
-        except Exception:
-            pass
-    except Exception:
-        pass  # log failure must never break the main pipeline
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -189,7 +109,7 @@ def _fmt_size(b):
 
 def _fmt_eta(seconds):
     """Format seconds into HH:MM:SS or MM:SS string."""
-    if seconds <= 0 or seconds > _SECONDS_PER_DAY:
+    if seconds <= 0 or seconds > 86400:
         return "--:--"
     m, s = divmod(int(seconds), 60)
     h, m = divmod(m, 60)
@@ -313,15 +233,7 @@ def _safe_name(url):
 #  LIVE PROGRESS BAR
 # ══════════════════════════════════════════════════════════════════════
 class LiveBar:
-    """Thread-safe animated progress bar — ONE background thread, always.
-
-    Key design rules that prevent double-bar output:
-      • The draw thread is started ONLY inside _start_thread().
-      • reset() fully joins the old thread before starting a new one —
-        so there is never more than one active draw thread at any time.
-      • All info prints (parallel/stream mode announcements) must happen
-        BEFORE constructing LiveBar, not after.
-    """
+    """Thread-safe animated progress bar with speed and ETA display."""
 
     BAR_WIDTH = 28
 
@@ -336,46 +248,8 @@ class LiveBar:
         self._lt    = time.time()
         self._spd   = 0.0
         self._alive = True
-        self._thread = None
-        self._start_thread()
+        threading.Thread(target=self._loop, daemon=True).start()
 
-    # ── Internal ───────────────────────────────────────────────────────
-    def _start_thread(self):
-        """Start exactly one draw thread. Call only when _thread is None or dead."""
-        self._alive  = True
-        self._thread = threading.Thread(target=self._loop, daemon=True)
-        self._thread.start()
-
-    def _loop(self):
-        while self._alive:
-            self._draw()
-            time.sleep(0.2)
-
-    def _draw(self):
-        # Snapshot under lock, print OUTSIDE to avoid deadlock.
-        with self._lock:
-            done  = self.done
-            total = self.total
-            spd   = self._spd
-            phase = self.phase
-            label = self.label
-            t0    = self._t0
-
-        pct    = min(done / total, 1.0)
-        filled = int(self.BAR_WIDTH * pct)
-        bar    = f"{G}{chr(9635) * filled}{D}{chr(9634) * (self.BAR_WIDTH - filled)}{X}"
-        spd_s  = f"{spd / 1_048_576:7.1f} MB/s" if spd > 0 else "    ?.? MB/s"
-        eta    = (total - done) / spd if spd > 0 else 0
-        ela    = int(time.time() - t0)
-        ph     = f" {D}{phase}{X}" if phase else ""
-        print(
-            f"\r  {C}{label:<26}{X}{ph} [{bar}] "
-            f"{pct * 100:5.1f}%  {_fmt_size(done)}/{_fmt_size(total)}  "
-            f"{Y}{spd_s}{X}  ETA {_fmt_eta(eta)}  {ela}s   ",
-            end="", flush=True,
-        )
-
-    # ── Public API ─────────────────────────────────────────────────────
     def update(self, n):
         """Add n bytes to the completed count and refresh speed."""
         with self._lock:
@@ -387,36 +261,31 @@ class LiveBar:
                 self._lb  = self.done
                 self._lt  = now
 
-    def reset(self, new_phase, new_total=None):
-        """Stop the current draw thread, reset counters, restart with a new phase.
-        Guaranteed single thread: joins the old thread before starting the new one.
-        Use this instead of the old bar._alive=False / threading.Thread() pattern.
-        """
-        # 1. Signal old thread to stop
-        self._alive = False
-        if self._thread and self._thread.is_alive():
-            self._thread.join(timeout=0.5)   # wait up to 0.5 s for clean exit
+    def _loop(self):
+        while self._alive:
+            self._draw()
+            time.sleep(0.2)
 
-        # 2. Reset all counters atomically
+    def _draw(self):
         with self._lock:
-            self.phase  = new_phase
-            if new_total is not None:
-                self.total = max(new_total, 1)
-            self.done   = 0
-            self._lb    = 0
-            self._spd   = 0.0
-            self._t0    = time.time()
-            self._lt    = time.time()
-
-        # 3. Start exactly one new thread
-        self._start_thread()
+            pct    = min(self.done / self.total, 1.0)
+            filled = int(self.BAR_WIDTH * pct)
+            bar    = f"{G}{'▣' * filled}{D}{'▢' * (self.BAR_WIDTH - filled)}{X}"
+            spd    = self._spd
+            spd_s  = f"{spd / 1_048_576:7.1f} MB/s" if spd > 0 else "    ?.? MB/s"
+            eta    = (self.total - self.done) / spd if spd > 0 else 0
+            ela    = int(time.time() - self._t0)
+            ph     = f" {D}{self.phase}{X}" if self.phase else ""
+            print(
+                f"\r  {C}{self.label:<26}{X}{ph} [{bar}] "
+                f"{pct * 100:5.1f}%  {_fmt_size(self.done)}/{_fmt_size(self.total)}  "
+                f"{Y}{spd_s}{X}  ETA {_fmt_eta(eta)}  {ela}s   ",
+                end="", flush=True,
+            )
 
     def finish(self, ok=True):
-        """Stop the draw thread and print the final summary line."""
         self._alive = False
-        if self._thread and self._thread.is_alive():
-            self._thread.join(timeout=0.5)
-
+        time.sleep(0.25)
         ela = time.time() - self._t0
         avg = self.total / ela / 1_048_576 if ela else 0
         ph  = f" {D}{self.phase}{X}" if self.phase else ""
@@ -430,41 +299,6 @@ class LiveBar:
 # ══════════════════════════════════════════════════════════════════════
 #  TOOL INSTALLATION  (mkvtoolnix, ffmpeg)
 # ══════════════════════════════════════════════════════════════════════
-def _check_disk_space(required_bytes, path="/content"):
-    """Check that `path` has enough free space for the operation.
-    We require 2× the file size to accommodate source + remux temp file.
-    Prints a warning only when space is critically low (< 10 GB headroom after reserve).
-    Returns True if space is sufficient, False otherwise.
-    """
-    try:
-        free   = shutil.disk_usage(path).free
-        needed = required_bytes * 2
-        if free < needed:
-            print(
-                f"  {R}✘ Not enough disk space on {path}: "
-                f"{_fmt_size(free)} free, need ~{_fmt_size(needed)}{X}"
-            )
-            return False
-        # Warn quietly only if headroom after this op is under 10 GB
-        headroom = free - needed
-        if headroom < 10 * 1024 * 1024 * 1024:
-            print(f"  {Y}⚠ Low disk: {_fmt_size(free)} free after this op ~{_fmt_size(headroom)} remain{X}")
-        return True
-    except Exception:
-        return True   # if we can't check, proceed and let the OS error naturally
-
-
-def _optimal_upload_chunk(file_size):
-    """Return the best upload chunk size for a given file size.
-    Small files use smaller chunks to avoid holding the whole file in RAM.
-    """
-    if file_size < 256 * 1024 * 1024:
-        return _UPLOAD_CHUNK_SMALL
-    if file_size < 2 * 1024 * 1024 * 1024:
-        return _UPLOAD_CHUNK_MED
-    return _UPLOAD_CHUNK_LARGE
-
-
 def _install_tools():
     """Install mkvmerge and ffmpeg via apt if not already present. Returns True on success."""
     ok = True
@@ -499,13 +333,8 @@ def _ensure_unzip():
 # ══════════════════════════════════════════════════════════════════════
 #  GOOGLE AUTH + TOKEN
 # ══════════════════════════════════════════════════════════════════════
-_AUTH_DONE     = False
-_AUTH_LOCK     = threading.Lock()
-# ── Thread-safe token refresh ─────────────────────────────────────────
-# Single lock prevents multiple threads racing to refresh at the same time.
-_TOKEN_LOCK    = threading.Lock()
-_tok_issued_at = 0.0        # epoch seconds when the current token was fetched
-_current_tok   = ""         # cached token string
+_AUTH_DONE = False
+_AUTH_LOCK = threading.Lock()
 
 
 def _colab_auth():
@@ -523,34 +352,15 @@ def _colab_auth():
 
 
 def _token():
-    """Return a valid Google OAuth2 access token.
-    Refreshes only when the token is older than _TOKEN_TTL_SEC (3000 s).
-    The TOKEN_LOCK ensures only one thread refreshes at a time — no races.
-    """
-    global _current_tok, _tok_issued_at
+    """Return a fresh Google OAuth2 access token via gcloud."""
     _colab_auth()
-    with _TOKEN_LOCK:
-        age = time.time() - _tok_issued_at
-        if age < _TOKEN_TTL_SEC and _current_tok:
-            return _current_tok
-        # Fetch a fresh token
-        try:
-            tok = subprocess.check_output(
-                ["gcloud", "auth", "print-access-token"],
-                stderr=subprocess.DEVNULL, timeout=15,
-            ).decode().strip()
-            _current_tok   = tok
-            _tok_issued_at = time.time()
-            return tok
-        except subprocess.CalledProcessError as e:
-            raise RuntimeError(f"gcloud token fetch failed (exit {e.returncode})") from e
-
-
-def _force_refresh_token():
-    """Force-expire the cached token so the next _token() call fetches fresh."""
-    global _tok_issued_at
-    with _TOKEN_LOCK:
-        _tok_issued_at = 0.0
+    try:
+        return subprocess.check_output(
+            ["gcloud", "auth", "print-access-token"],
+            stderr=subprocess.DEVNULL, timeout=15,
+        ).decode().strip()
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"gcloud token fetch failed (exit {e.returncode})") from e
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -604,10 +414,8 @@ def _get_folder_id(tok):
 
     parent = "root"
     for part in parts:
-        # Escape single quotes in folder name for the Drive query
-        safe_part = part.replace("'", "\'")
         q = (
-            f"name='{safe_part}' and mimeType='application/vnd.google-apps.folder'"
+            f"name='{part}' and mimeType='application/vnd.google-apps.folder'"
             f" and '{parent}' in parents and trashed=false"
         )
         fid = None
@@ -629,36 +437,8 @@ def _get_folder_id(tok):
                     tok = _token()
             except Exception:
                 pass
-            if fid:
-                break
             time.sleep(attempt)
-
         if not fid:
-            # Broader fallback: search without parent constraint
-            # (catches cases where the folder is in a shared drive)
-            q_broad = (
-                f"name='{safe_part}' and mimeType='application/vnd.google-apps.folder'"
-                f" and trashed=false"
-            )
-            try:
-                r2 = _SESSION.get(
-                    "https://www.googleapis.com/drive/v3/files",
-                    params={**_DRIVE_PARAMS, "q": q_broad,
-                            "fields": "files(id,name,parents)", "pageSize": "5"},
-                    headers={"Authorization": f"Bearer {tok}"},
-                    timeout=15,
-                )
-                if r2.status_code == 200:
-                    for cand in r2.json().get("files", []):
-                        fid = cand["id"]
-                        break
-            except Exception:
-                pass
-
-        if not fid:
-            print(f"  {R}✘ Drive folder '{part}' not found (checked under '{parent}' and all drives).{X}")
-            print(f"  {Y}  Tip: Make sure FOLDER='{FOLDER}' exists in your Drive{X}")
-            print(f"  {Y}  and that Google Drive is mounted at /content/drive.{X}")
             return None
         parent = fid
 
@@ -699,9 +479,7 @@ def _resolve_folder_id_via_file(tok):
 
 
 def _extract_fid(url):
-    """Extract a Google Drive file ID from any share/view URL.
-    Validates the extracted ID matches the known Drive format (25+ alphanum chars).
-    """
+    """Extract a Google Drive file ID from any share/view URL."""
     for pattern in [
         r"/file/d/([a-zA-Z0-9_-]{20,})",
         r"[?&]id=([a-zA-Z0-9_-]{20,})",
@@ -709,9 +487,7 @@ def _extract_fid(url):
     ]:
         m = re.search(pattern, url)
         if m:
-            fid = m.group(1)
-            if _VALID_FID_RE.match(fid):
-                return fid
+            return m.group(1)
     return None
 
 
@@ -869,15 +645,13 @@ def _start_resumable_session(tok, mime, file_size, file_name, file_id, folder_id
 
 def _upload_chunks(local_tmp, upload_url, file_size, label, tok):
     """
-    Send a local file to Drive using the given resumable upload URL.
-    Chunk size is chosen adaptively based on file size (64/256/512 MB).
-    Token is refreshed based on time (every ~50 min) rather than chunk count.
-    Each chunk is retried up to MAX_RETRY times on transient errors.
-    Returns True on success.
+    Send a local file to Drive in 512 MB chunks using the given resumable URL.
+    Refreshes the token every 5 chunks. Returns True on success.
     """
-    CHUNK = _optimal_upload_chunk(file_size)
+    CHUNK = 512 * 1024 * 1024
     bar   = LiveBar(file_size, label, phase="☁ Upload")
     sent  = 0
+    chunk_num = 0
 
     try:
         with open(local_tmp, "rb") as fh:
@@ -885,46 +659,28 @@ def _upload_chunks(local_tmp, upload_url, file_size, label, tok):
                 data = fh.read(CHUNK)
                 if not data:
                     break
-
-                # Time-based token refresh (safe: _token() uses a lock internally)
-                tok = _token()
-
-                end = sent + len(data) - 1
-
-                # Per-chunk retry loop — handles transient 5xx / network blips
-                uploaded = False
-                for attempt in range(1, MAX_RETRY + 1):
-                    resp = _SESSION.put(
-                        upload_url,
-                        headers={
-                            "Authorization":  f"Bearer {tok}",
-                            "Content-Range":  f"bytes {sent}-{end}/{file_size}",
-                            "Content-Length": str(len(data)),
-                        },
-                        data=data,
-                        timeout=3600,
-                    )
-                    if resp.status_code in (200, 201, 308):
-                        uploaded = True
-                        break
-                    if resp.status_code == 401:
-                        _force_refresh_token()
+                chunk_num += 1
+                if chunk_num % 5 == 0:
+                    try:
                         tok = _token()
-                    elif attempt < MAX_RETRY:
-                        wait = attempt * 3
-                        print(f"\n  {Y}⚠ Upload chunk HTTP {resp.status_code} — "
-                              f"retry {attempt}/{MAX_RETRY} in {wait}s...{X}")
-                        time.sleep(wait)
-
-                if not uploaded:
+                    except Exception:
+                        pass
+                end  = sent + len(data) - 1
+                resp = _SESSION.put(
+                    upload_url,
+                    headers={
+                        "Authorization":  f"Bearer {tok}",
+                        "Content-Range":  f"bytes {sent}-{end}/{file_size}",
+                        "Content-Length": str(len(data)),
+                    },
+                    data=data,
+                    timeout=3600,
+                )
+                if resp.status_code not in (200, 201, 308):
                     bar.finish(False)
-                    print(f"\n  {R}✘ Upload chunk failed after {MAX_RETRY} retries "
-                          f"(HTTP {resp.status_code}){X}")
                     return False
-
                 bar.update(len(data))
                 sent += len(data)
-
         bar.finish(True)
         return True
     except Exception as e:
@@ -1086,16 +842,13 @@ def _probe(fp, sel):
 
 
 def _probe_all(fp):
-    """Run audio, subtitle, and video probes in parallel (3x faster).
-    Returns (audio_tracks, sub_tracks, vid_streams) where audio_tracks and
-    sub_tracks are fully-processed dicts (same as _audio_tracks/_sub_tracks),
-    and vid_streams is the raw ffprobe stream list (used for counts/indexes).
-    """
+    """Run audio, subtitle, and video probes in parallel (3× faster)."""
     with ThreadPoolExecutor(max_workers=3) as ex:
-        fa = ex.submit(_audio_tracks, fp)
-        fs = ex.submit(_sub_tracks,   fp)
-        fv = ex.submit(_probe,        fp, "v")
+        fa = ex.submit(_probe, fp, "a")
+        fs = ex.submit(_probe, fp, "s")
+        fv = ex.submit(_probe, fp, "v")
         return fa.result(), fs.result(), fv.result()
+
 
 def _audio_tracks(fp):
     """Return a list of audio-track dicts for the given file."""
@@ -1112,6 +865,7 @@ def _audio_tracks(fp):
             "codec":      s.get("codec_name", "?"),
             "channels":   s.get("channels", "?"),
             "is_default": bool(s.get("disposition", {}).get("default", 0)),
+            "is_forced":  bool(s.get("disposition", {}).get("forced",  0)),
         })
     return out
 
@@ -1164,7 +918,7 @@ def _mkvpropedit_clean(fp, sorted_audio, eng_subs):
             "--set",  "name=",
             "--set",  f"language={t['language']}",
             "--set",  f"flag-default={'1' if i == 0 else '0'}",
-            "--set",  "flag-forced=0",
+            "--set",  f"flag-forced={'1' if i == 0 else '0'}",
         ]
     for i, s in enumerate(eng_subs):
         args += [
@@ -1202,7 +956,7 @@ def _build_remux_cmd(src, tmp, sorted_audio, eng_subs, engine):
             sid = str(t["idx"])
             audio_args += [
                 "--default-track-flag", f"{sid}:{'yes' if i == 0 else 'no'}",
-                "--forced-display-flag", f"{sid}:no",
+                "--forced-display-flag", f"{sid}:{'yes' if i == 0 else 'no'}",
                 "--track-name",          f"{sid}:",
                 "--language",            f"{sid}:{t['language']}",
             ]
@@ -1252,7 +1006,7 @@ def _build_remux_cmd(src, tmp, sorted_audio, eng_subs, engine):
                 f"-metadata:s:a:{i}", "title=",
                 f"-metadata:s:a:{i}", f"language={t['language']}",
             ]
-            disp_args += [f"-disposition:a:{i}", "default" if i == 0 else "0"]
+            disp_args += [f"-disposition:a:{i}", "default+forced" if i == 0 else "0"]
 
         sub_disp = []
         for i, s in enumerate(eng_subs):
@@ -1285,7 +1039,8 @@ def _tracks_need_fix(fp, sorted_audio, eng_subs):
       • audio tracks in the correct language order
       • correct language tags on every audio track
       • correct language tags on every subtitle track
-      • correct default flag (track 0 = default, rest = no)
+      • correct default flag (track 0 = True, rest = False)
+      • correct forced flag (track 0 = True, rest = False)
       • no stale container/video title
 
     If everything is already perfect the caller can skip remux entirely.
@@ -1293,7 +1048,6 @@ def _tracks_need_fix(fp, sorted_audio, eng_subs):
     try:
         a_tracks = _audio_tracks(fp)
         s_tracks = _sub_tracks(fp)
-        v_streams = _probe(fp, "v")
     except Exception as e:
         return True, f"probe failed: {e}"
 
@@ -1311,6 +1065,10 @@ def _tracks_need_fix(fp, sorted_audio, eng_subs):
         if bool(on_disk["is_default"]) != want_default:
             return True, (f"audio[{i}] default flag wrong "
                           f"(is {on_disk['is_default']}, want {want_default})")
+        want_forced = (i == 0)
+        if bool(on_disk.get("is_forced", False)) != want_forced:
+            return True, (f"audio[{i}] forced flag wrong "
+                          f"(is {on_disk.get('is_forced', False)}, want {want_forced})")
 
     # ── 3. Subtitle count must match ─────────────────────────────────
     if len(s_tracks) != len(eng_subs):
@@ -1417,7 +1175,7 @@ def _run_remux_with_titles(src, tmp, sorted_audio, eng_subs, engine):
             tname = t.get("title") or ""
             audio_args += [
                 "--default-track-flag", f"{sid}:{'yes' if i == 0 else 'no'}",
-                "--forced-display-flag", f"{sid}:no",
+                "--forced-display-flag", f"{sid}:{'yes' if i == 0 else 'no'}",
                 "--track-name",          f"{sid}:{tname}",
                 "--language",            f"{sid}:{t['language']}",
             ]
@@ -1471,7 +1229,7 @@ def _run_remux_with_titles(src, tmp, sorted_audio, eng_subs, engine):
                 f"-metadata:s:a:{i}", f"title={tname}",
                 f"-metadata:s:a:{i}", f"language={t['language']}",
             ]
-            disp_args += [f"-disposition:a:{i}", "default" if i == 0 else "0"]
+            disp_args += [f"-disposition:a:{i}", "default+forced" if i == 0 else "0"]
 
         for i, s in enumerate(eng_subs):
             map_args  += ["-map", f"0:{s['abs_index']}"]
@@ -1543,7 +1301,7 @@ def _run_remux_with_titles(src, tmp, sorted_audio, eng_subs, engine):
                     "--set",  f"name={tname}",
                     "--set",  f"language={t['language']}",
                     "--set",  f"flag-default={'1' if i == 0 else '0'}",
-                    "--set",  "flag-forced=0",
+                    "--set",  f"flag-forced={'1' if i == 0 else '0'}",
                 ]
             for i, s in enumerate(eng_subs):
                 sname = s.get("title") or ""
@@ -1576,140 +1334,11 @@ def _run_remux_with_titles(src, tmp, sorted_audio, eng_subs, engine):
 # ══════════════════════════════════════════════════════════════════════
 #  DRIVE DOWNLOAD TO LOCAL NVMe  (3-stage: parallel → stream → fallback)
 # ══════════════════════════════════════════════════════════════════════
-def _drive_parallel_download(fid, size, tmp_path, bar, label="⬇ DL"):
-    """
-    Shared parallel Drive downloader used by all three Drive-download scenarios.
-    Eliminates ~300 lines of copy-pasted code from _drive_download_local,
-    _download_zip_from_drive, and _clone_single_to_colab.
-
-    Downloads `fid` into `tmp_path` using parallel Range requests.
-    Thread-safe token refresh via _token() (uses _TOKEN_LOCK internally).
-    Returns True on success, False on failure.
-    """
-    tok      = _token()
-    base_url = f"https://www.googleapis.com/drive/v3/files/{fid}"
-    dl_params = {"alt": "media", "acknowledgeAbuse": "true", **_DRIVE_PARAMS}
-
-    # Probe Range support
-    try:
-        probe = _SESSION.get(
-            base_url, params=dl_params,
-            headers={"Authorization": f"Bearer {tok}", "Range": "bytes=0-0"},
-            stream=True, timeout=(15, 60),
-        )
-        try:
-            for _ in probe.iter_content(16):
-                break
-        finally:
-            probe.close()
-    except Exception as e:
-        print(f"  {R}✘ Range probe failed: {e}{X}")
-        return False
-
-    range_ok = probe.status_code == 206
-    if range_ok:
-        cr = probe.headers.get("Content-Range", "")
-        try:
-            real_size = int(cr.split("/")[-1])
-        except Exception:
-            real_size = size
-    else:
-        real_size = size
-
-    if not range_ok or real_size <= 0:
-        # Fall back to single-stream
-        bar.phase = "⬇ Stream"
-        try:
-            r = _SESSION.get(
-                base_url, params=dl_params,
-                headers={"Authorization": f"Bearer {tok}"},
-                stream=True, timeout=(15, 600),
-            )
-            r.raise_for_status()
-            if "text/html" in r.headers.get("Content-Type", ""):
-                print(f"\n  {R}✘ Got HTML response — Drive blocked download.{X}")
-                return False
-            with open(tmp_path, "wb") as fh:
-                for chunk in r.iter_content(CHUNK_MB * 1_048_576):
-                    if chunk:
-                        fh.write(chunk)
-                        bar.update(len(chunk))
-            return True
-        except Exception as e:
-            print(f"\n  {R}✘ Stream fallback failed: {e}{X}")
-            return False
-
-    # ── Parallel chunk download ───────────────────────────────────────
-    n      = THREADS
-    cs     = real_size // n
-    ranges = [
-        (i * cs, real_size - 1 if i == n - 1 else (i + 1) * cs - 1)
-        for i in range(n)
-    ]
-
-    if not tmp_path.exists():
-        with open(tmp_path, "wb") as fh:
-            fh.seek(real_size - 1)
-            fh.write(b"\x00")
-
-    errors = []
-
-    def _par_chunk(start, end):
-        """Download one byte range. Token is fetched via thread-safe _token()."""
-        for attempt in range(1, MAX_RETRY + 1):
-            try:
-                cur_tok = _token()   # always fresh — lock is inside _token()
-                hdrs    = {
-                    "Authorization": f"Bearer {cur_tok}",
-                    "Range":         f"bytes={start}-{end}",
-                }
-                r = _SESSION.get(base_url, params=dl_params,
-                                 headers=hdrs, stream=True, timeout=(15, 600))
-                if r.status_code == 401:
-                    r.close()
-                    _force_refresh_token()
-                    cur_tok = _token()
-                    hdrs["Authorization"] = f"Bearer {cur_tok}"
-                    r = _SESSION.get(base_url, params=dl_params,
-                                     headers=hdrs, stream=True, timeout=(15, 600))
-                r.raise_for_status()
-                fd  = os.open(str(tmp_path), os.O_WRONLY)
-                pos = start
-                try:
-                    for c in r.iter_content(CHUNK_MB * 1_048_576):
-                        if c:
-                            os.pwrite(fd, c, pos)
-                            pos += len(c)
-                            bar.update(len(c))
-                finally:
-                    os.close(fd)
-                    r.close()
-                return
-            except Exception as e:
-                if attempt == MAX_RETRY:
-                    errors.append(f"Chunk {start}-{end}: {e}")
-                    return
-                time.sleep(attempt)
-
-    with ThreadPoolExecutor(max_workers=n) as ex:
-        futs = [ex.submit(_par_chunk, s, e) for s, e in ranges]
-        for f in as_completed(futs):
-            pass   # exceptions are collected in errors[]
-
-    if errors:
-        tmp_path.unlink(missing_ok=True)
-        print(f"  {R}✘ Parallel DL error: {errors[0]}{X}")
-        return False
-
-    return True
-
-
 def _drive_download_local(fid, fname, size):
     """
     Download a Drive file to /content (Colab NVMe) as fast as possible.
-    Stage 1: parallel Range requests (THREADS connections) via _drive_parallel_download.
+    Stage 1: parallel Range requests (THREADS connections).
     Stage 2: single-stream fallback.
-    Supports resume from an existing .part file.
     Returns the local Path on success, or None on failure.
     """
     local = Path("/content") / fname
@@ -1719,12 +1348,8 @@ def _drive_download_local(fid, fname, size):
         print(f"  {G}✔ Already cached locally.{X}")
         return local
 
-    # Disk space check before allocating anything
-    if size > 0 and not _check_disk_space(size):
-        return None
-
-    # ── Resume support ────────────────────────────────────────────────
-    _part          = local.with_suffix(local.suffix + ".part")
+    # ── v8.8: check for resumable .part file ─────────────────────────
+    _part = local.with_suffix(local.suffix + ".part")
     _drive_resumed = 0
     if _part.exists() and size > 0:
         _ps = _part.stat().st_size
@@ -1743,19 +1368,187 @@ def _drive_download_local(fid, fname, size):
             bar._lb  = _drive_resumed
 
     try:
-        ok = _drive_parallel_download(fid, size, _part, bar, phase_label)
-        if ok:
-            _part.replace(local)
+        tok       = _token()
+        base_url  = f"https://www.googleapis.com/drive/v3/files/{fid}"
+        dl_params = {"alt": "media", **_DRIVE_PARAMS}
+
+        # ── Stage 1: probe Range support ─────────────────────────────
+        probe = _SESSION.get(
+            base_url, params=dl_params,
+            headers={"Authorization": f"Bearer {tok}", "Range": "bytes=0-0"},
+            stream=True, timeout=(15, 60),
+        )
+        try:
+            for _ in probe.iter_content(16):
+                break
+        finally:
+            probe.close()
+
+        range_ok = probe.status_code == 206
+        if range_ok:
+            cr = probe.headers.get("Content-Range", "")
+            try:
+                real_size = int(cr.split("/")[-1])
+            except Exception:
+                real_size = size
+        else:
+            real_size = size
+
+        if range_ok and real_size > 0:
+            # ── Parallel chunk download with resume ───────────────────
+            n  = THREADS
+            cs = real_size // n
+            # Skip segments already present in the .part file
+            ranges = []
+            for i in range(n):
+                seg_s = i * cs
+                seg_e = real_size - 1 if i == n - 1 else (i + 1) * cs - 1
+                if seg_e < _drive_resumed:
+                    bar.update(seg_e - seg_s + 1)
+                    continue
+                if seg_s < _drive_resumed:
+                    seg_s = _drive_resumed
+                ranges.append((seg_s, seg_e))
+
+            tmp     = _part
+            if not tmp.exists():
+                with open(tmp, "wb") as fh:
+                    fh.seek(real_size - 1)
+                    fh.write(b"\x00")
+
+            tok_ref = [tok]
+            errors  = []
+
+            def _par_chunk(start, end):
+                for attempt in range(1, MAX_RETRY + 1):
+                    try:
+                        hdrs = {
+                            "Authorization": f"Bearer {tok_ref[0]}",
+                            "Range": f"bytes={start}-{end}",
+                        }
+                        r = _SESSION.get(base_url, params=dl_params,
+                                         headers=hdrs, stream=True, timeout=(15, 600))
+                        if r.status_code == 401:
+                            r.close()
+                            try:
+                                tok_ref[0] = _token()
+                            except Exception:
+                                pass
+                            hdrs["Authorization"] = f"Bearer {tok_ref[0]}"
+                            r = _SESSION.get(base_url, params=dl_params,
+                                             headers=hdrs, stream=True, timeout=(15, 600))
+                        r.raise_for_status()
+                        fd  = os.open(str(tmp), os.O_WRONLY)
+                        pos = start
+                        try:
+                            for c in r.iter_content(CHUNK_MB * 1_048_576):
+                                if c:
+                                    os.pwrite(fd, c, pos)
+                                    pos += len(c)
+                                    bar.update(len(c))
+                        finally:
+                            os.close(fd)
+                            r.close()
+                        return
+                    except Exception as e:
+                        if attempt == MAX_RETRY:
+                            errors.append(f"Chunk {start}-{end}: {e}")
+                            return
+                        time.sleep(attempt)
+
+            with ThreadPoolExecutor(max_workers=n) as ex:
+                futs = [ex.submit(_par_chunk, s, e) for s, e in ranges]
+                for f in as_completed(futs):
+                    pass
+
+            if errors:
+                tmp.unlink(missing_ok=True)
+                bar.finish(False)
+                print(f"  {R}✘ Parallel DL errors: {errors[0]}{X}")
+                return None
+
+            tmp.replace(local)
             bar.finish(True)
-            _log_op("download_drive", fname, "ok", local.stat().st_size)
             return local
-        bar.finish(False)
-        _part.unlink(missing_ok=True)
-        return None
+
+        # ── Stage 2: single-stream fallback ──────────────────────────
+        for attempt in range(1, MAX_RETRY + 1):
+            try:
+                r = _SESSION.get(
+                    base_url, params=dl_params,
+                    headers={"Authorization": f"Bearer {tok}"},
+                    stream=True, timeout=(15, 600),
+                )
+                if r.status_code == 403:
+                    r.close()
+                    dl_params["acknowledgeAbuse"] = "true"
+                    try:
+                        tok = _token()
+                    except Exception:
+                        pass
+                    r = _SESSION.get(
+                        base_url, params=dl_params,
+                        headers={"Authorization": f"Bearer {tok}"},
+                        stream=True, timeout=(15, 600),
+                    )
+
+                # If still 403, try the public /uc download endpoint
+                if r.status_code == 403:
+                    r.close()
+                    fb      = requests.Session()
+                    fb.headers.update(DL_HEADERS)
+                    r1      = fb.get(
+                        "https://drive.google.com/uc",
+                        params={"export": "download", "id": fid},
+                        timeout=(15, 60),
+                    )
+                    confirm = None
+                    if r1.status_code == 200:
+                        m2 = re.search(r'confirm=([0-9A-Za-z_\-]+)', r1.text)
+                        if m2:
+                            confirm = m2.group(1)
+                        for ck in fb.cookies:
+                            if "download_warning" in ck.name.lower():
+                                confirm = ck.value
+                                break
+                    dl_p = {"export": "download", "id": fid}
+                    if confirm:
+                        dl_p["confirm"] = confirm
+                    r = fb.get(
+                        "https://drive.google.com/uc",
+                        params=dl_p, stream=True, timeout=(15, 600),
+                    )
+
+                r.raise_for_status()
+                if "text/html" in r.headers.get("Content-Type", ""):
+                    bar.finish(False)
+                    local.unlink(missing_ok=True)
+                    print(f"\n  {R}✘ Got HTML — Drive blocked download.{X}")
+                    return None
+
+                real_len = int(r.headers.get("Content-Length", 0))
+                if real_len > 0:
+                    with bar._lock:
+                        bar.total = real_len
+
+                with open(local, "wb") as fh:
+                    for chunk in r.iter_content(CHUNK_MB * 1_048_576):
+                        if chunk:
+                            fh.write(chunk)
+                            bar.update(len(chunk))
+                bar.finish(True)
+                return local
+
+            except Exception as e:
+                if attempt == MAX_RETRY:
+                    bar.finish(False)
+                    local.unlink(missing_ok=True)
+                    print(f"  {R}✘ Local DL failed: {e}{X}")
+                    return None
+                time.sleep(attempt)
 
     except Exception as e:
         bar.finish(False)
-        _part.unlink(missing_ok=True)
         local.unlink(missing_ok=True)
         print(f"  {R}✘ Local DL failed: {e}{X}")
         return None
@@ -1888,26 +1681,13 @@ def _fetch_chunk(url, start, end, cb, dst_path=None, cancel_event=None):
             time.sleep(attempt)
 
 
-def _stream_dl(url, dst, bar, resume_from=0):
-    """Single-connection streaming download to dst (last-resort fallback).
-    If resume_from > 0, sends a Range header and appends to the existing file.
-    Any stale .part file from a previously failed parallel attempt is removed
-    before opening in write mode (resume_from == 0).
-    """
-    # Clean up any stale .part file so we don't corrupt the output
-    part = Path(str(dst) + ".part")
-    if resume_from == 0 and part.exists():
-        part.unlink(missing_ok=True)
-
-    mode = "ab" if resume_from > 0 else "wb"
+def _stream_dl(url, dst, bar):
+    """Single-connection streaming download to dst (used as last-resort fallback)."""
     for attempt in range(1, MAX_RETRY + 1):
         try:
-            hdrs = {}
-            if resume_from > 0:
-                hdrs["Range"] = f"bytes={resume_from}-"
-            r = _SESSION.get(url, stream=True, timeout=TIMEOUT, headers=hdrs)
+            r = _SESSION.get(url, stream=True, timeout=TIMEOUT)
             r.raise_for_status()
-            with open(dst, mode) as f:
+            with open(dst, "wb") as f:
                 for c in r.iter_content(CHUNK_MB * 1_048_576):
                     if c:
                         f.write(c)
@@ -1921,9 +1701,8 @@ def _stream_dl(url, dst, bar, resume_from=0):
 
 def _multistream_dl(url, dst, size, bar, n_conn=STREAM_CONNS):
     """
-    Download a file in n_conn parallel segments.
-    Sessions are created ONCE per connection slot and reused across retries
-    to avoid connection-pool leaks. Falls back to _stream_dl if size unknown.
+    Download a file in n_conn parallel segments using per-segment sessions.
+    Falls back to _stream_dl automatically if size is unknown.
     """
     if size == 0 or n_conn <= 1:
         _stream_dl(url, dst, bar)
@@ -1938,18 +1717,14 @@ def _multistream_dl(url, dst, size, bar, n_conn=STREAM_CONNS):
         fh.seek(size - 1)
         fh.write(b"\x00")
 
-    # Create one session per connection slot — reused across retries
-    sessions = [requests.Session() for _ in range(n_conn)]
-    for s in sessions:
-        s.headers.update(DL_HEADERS)
-
     errors = []
 
     def _dl_seg(ci, offset, length):
-        sess     = sessions[ci]
         end_byte = offset + length - 1
         for attempt in range(1, MAX_RETRY + 1):
             try:
+                sess = requests.Session()
+                sess.headers.update(DL_HEADERS)
                 r = sess.get(
                     url,
                     headers={"Range": f"bytes={offset}-{end_byte}"},
@@ -1958,6 +1733,7 @@ def _multistream_dl(url, dst, size, bar, n_conn=STREAM_CONNS):
                 use_range = r.status_code == 206
                 if not use_range and r.status_code != 200:
                     r.close()
+                    sess.close()
                     raise RuntimeError(f"HTTP {r.status_code}")
 
                 fd      = os.open(str(dst), os.O_WRONLY)
@@ -1982,6 +1758,7 @@ def _multistream_dl(url, dst, size, bar, n_conn=STREAM_CONNS):
                 finally:
                     os.close(fd)
                     r.close()
+                    sess.close()
                 return
             except Exception as e:
                 if attempt == MAX_RETRY:
@@ -1989,18 +1766,11 @@ def _multistream_dl(url, dst, size, bar, n_conn=STREAM_CONNS):
                     return
                 time.sleep(attempt)
 
-    try:
-        with ThreadPoolExecutor(max_workers=n_conn) as ex:
-            for f in as_completed(
-                [ex.submit(_dl_seg, i, off, ln) for i, (off, ln) in enumerate(segs)]
-            ):
-                f.result()
-    finally:
-        for s in sessions:
-            try:
-                s.close()
-            except Exception:
-                pass
+    with ThreadPoolExecutor(max_workers=n_conn) as ex:
+        for f in as_completed(
+            [ex.submit(_dl_seg, i, off, ln) for i, (off, ln) in enumerate(segs)]
+        ):
+            f.result()
 
     if errors:
         raise RuntimeError(f"Multi-stream errors: {'; '.join(errors)}")
@@ -2034,10 +1804,6 @@ def _download_external(url, idx, total):
     else:
         print(f"  {Y}⚡ Stream mode{X}  "
               f"{_fmt_size(size) if size else 'unknown size'}")
-
-    # Disk space guard — check before allocating anything
-    if size > 0 and not _check_disk_space(size):
-        return None, None
 
     # Return cached copy if it matches expected size
     if dest.exists() and size > 0 and dest.stat().st_size == size:
@@ -2100,6 +1866,8 @@ def _download_external(url, idx, total):
                                ("405", "501", "520", "521", "522", "523", "524",
                                 "429", "500", "502", "503", "504")):
                             _cancel.set()
+                            bar._alive = False
+                            time.sleep(0.3)
                             print(
                                 f"\r{' ' * 110}\r"
                                 f"  {Y}⚠ CDN rejected Range — switching to stream...{X}",
@@ -2112,20 +1880,32 @@ def _download_external(url, idx, total):
 
             if not parallel_ok:
                 # Reset bar and retry with multi-stream
-                bar.reset(f"↓ Multi-Stream ({STREAM_CONNS})")
+                bar.done   = 0;  bar._lb   = 0;  bar._spd = 0.0
+                bar._t0    = time.time(); bar._lt = time.time()
+                bar.phase  = f"↓ Multi-Stream ({STREAM_CONNS})"
+                bar._alive = True
+                threading.Thread(target=bar._loop, daemon=True).start()
                 tmp.unlink(missing_ok=True)
                 try:
                     _multistream_dl(url, tmp, size, bar, STREAM_CONNS)
                 except RuntimeError:
+                    bar._alive = False
+                    time.sleep(0.25)
                     tmp.unlink(missing_ok=True)
-                    bar.reset("↓ Stream")
+                    bar.done   = 0;  bar._lb   = 0;  bar._spd = 0.0
+                    bar._t0    = time.time(); bar._lt = time.time()
+                    bar.phase  = "↓ Stream"
+                    bar._alive = True
+                    threading.Thread(target=bar._loop, daemon=True).start()
                     _stream_dl(url, tmp, bar)
         else:
             try:
                 _multistream_dl(url, tmp, size, bar, STREAM_CONNS)
             except RuntimeError:
                 tmp.unlink(missing_ok=True)
-                bar.reset("↓ Stream")
+                bar.done   = 0;  bar._lb   = 0;  bar._spd = 0.0
+                bar._t0    = time.time(); bar._lt = time.time()
+                bar.phase  = "↓ Stream"
                 _stream_dl(url, tmp, bar)
 
         tmp.replace(dest)
@@ -2254,8 +2034,9 @@ def _process_video_files_from_dir(extract_dir, folder_name, new_folder_id, tok,
     print(f"  {M}{'─' * 66}{X}")
 
     def _probe_file(vf):
-        a, s, _ = _probe_all(vf)
-        return a, s
+        with ThreadPoolExecutor(max_workers=2) as _ex:
+            return _ex.submit(_audio_tracks, vf).result(), \
+                   _ex.submit(_sub_tracks,   vf).result()
 
     with ThreadPoolExecutor(max_workers=min(len(video_files), 8)) as _pex:
         probe_results = list(_pex.map(_probe_file, video_files))
@@ -2265,11 +2046,10 @@ def _process_video_files_from_dir(extract_dir, folder_name, new_folder_id, tok,
         sz            = vf.stat().st_size
         aud, subs     = probe_results[i]
         eng_s         = subs   # keep ALL subtitle tracks (all languages)
-        other_s       = 0
         sorted_a      = sorted(aud, key=lambda t: _lang_pri(t["language"]))
         langs         = " + ".join(t["language"] for t in sorted_a) if sorted_a else "?"
         engine        = "mkv" if vf.suffix.lower() == ".mkv" else "ff"
-        meta_cache.append((aud, subs, sorted_a, eng_s, other_s))
+        meta_cache.append((aud, subs, sorted_a, eng_s))
         sub_col = f"{G}{len(eng_s)}sub✔{X}" if eng_s else f"{D} — {X}"
         print(
             f"  {G}[{i + 1}]{X} {Y}{_fmt_size(sz):>9}{X} {D}{engine:>3}{X}  "
@@ -2280,7 +2060,7 @@ def _process_video_files_from_dir(extract_dir, folder_name, new_folder_id, tok,
     ok = fail = 0
     for vi, vf in enumerate(video_files):
         print(f"\n  {W}[{vi + 1}/{len(video_files)}]{X} {Y}{vf.name[:55]}{X}")
-        aud, subs, sorted_a, eng_s, other_s = meta_cache[vi]
+        aud, subs, sorted_a, eng_s = meta_cache[vi]
 
         if not aud:
             print(f"  {Y}⚠ No audio tracks — skipped.{X}")
@@ -2362,32 +2142,169 @@ def _process_video_files_from_dir(extract_dir, folder_name, new_folder_id, tok,
 #  DRIVE ZIP DOWNLOAD  (parallel + fallback — for Menu [3])
 # ══════════════════════════════════════════════════════════════════════
 def _download_zip_from_drive(fid, fname, size, dest):
-    """Download a Drive ZIP file to dest using the shared parallel downloader.
-    This is a thin wrapper over _drive_parallel_download — no duplicated logic.
-    Returns True on success.
-    """
+    """Download a ZIP file from Drive to dest. Returns True on success."""
     if dest.exists() and size > 0 and dest.stat().st_size == size:
         print(f"  {G}✔ Already cached: {dest.name}{X}")
         return True
 
-    if size > 0 and not _check_disk_space(size):
-        return False
-
-    tmp = dest.with_suffix(dest.suffix + ".part")
     bar = LiveBar(size or 1, dest.name[:26], phase="⬇ ZIP DL")
 
     try:
-        ok = _drive_parallel_download(fid, size, tmp, bar, "⬇ ZIP DL")
-        if ok:
+        tok       = _token()
+        base_url  = f"https://www.googleapis.com/drive/v3/files/{fid}"
+        dl_params = {"alt": "media", **_DRIVE_PARAMS}
+
+        # Probe Range support
+        probe = _SESSION.get(
+            base_url, params=dl_params,
+            headers={"Authorization": f"Bearer {tok}", "Range": "bytes=0-0"},
+            stream=True, timeout=(15, 60),
+        )
+        try:
+            for _ in probe.iter_content(16):
+                break
+        finally:
+            probe.close()
+
+        range_ok = probe.status_code == 206
+        if range_ok:
+            cr = probe.headers.get("Content-Range", "")
+            try:
+                real_size = int(cr.split("/")[-1])
+            except Exception:
+                real_size = size
+        else:
+            real_size = size
+
+        if range_ok and real_size > 0:
+            n      = THREADS
+            cs     = real_size // n
+            ranges = [
+                (i * cs, real_size - 1 if i == n - 1 else (i + 1) * cs - 1)
+                for i in range(n)
+            ]
+            tmp = dest.with_suffix(dest.suffix + ".part")
+            with open(tmp, "wb") as fh:
+                fh.seek(real_size - 1)
+                fh.write(b"\x00")
+
+            tok_ref = [tok]
+            errors  = []
+
+            def _par_chunk(start, end):
+                for attempt in range(1, MAX_RETRY + 1):
+                    try:
+                        hdrs = {
+                            "Authorization": f"Bearer {tok_ref[0]}",
+                            "Range": f"bytes={start}-{end}",
+                        }
+                        r = _SESSION.get(base_url, params=dl_params,
+                                         headers=hdrs, stream=True, timeout=(15, 600))
+                        if r.status_code == 401:
+                            r.close()
+                            try:
+                                tok_ref[0] = _token()
+                            except Exception:
+                                pass
+                            hdrs["Authorization"] = f"Bearer {tok_ref[0]}"
+                            r = _SESSION.get(base_url, params=dl_params,
+                                             headers=hdrs, stream=True, timeout=(15, 600))
+                        r.raise_for_status()
+                        fd  = os.open(str(tmp), os.O_WRONLY)
+                        pos = start
+                        try:
+                            for c in r.iter_content(CHUNK_MB * 1_048_576):
+                                if c:
+                                    os.pwrite(fd, c, pos)
+                                    pos += len(c)
+                                    bar.update(len(c))
+                        finally:
+                            os.close(fd)
+                            r.close()
+                        return
+                    except Exception as e:
+                        if attempt == MAX_RETRY:
+                            errors.append(f"Chunk {start}-{end}: {e}")
+                            return
+                        time.sleep(attempt)
+
+            with ThreadPoolExecutor(max_workers=n) as ex:
+                futs = [ex.submit(_par_chunk, s, e) for s, e in ranges]
+                for f in as_completed(futs):
+                    pass
+
+            if errors:
+                tmp.unlink(missing_ok=True)
+                bar.finish(False)
+                print(f"  {R}✘ Parallel DL errors: {errors[0]}{X}")
+                return False
+
             tmp.replace(dest)
             bar.finish(True)
             return True
-        bar.finish(False)
-        tmp.unlink(missing_ok=True)
-        return False
+
+        # Single-stream fallback
+        if probe.status_code == 403:
+            dl_params["acknowledgeAbuse"] = "true"
+            try:
+                tok = _token()
+            except Exception:
+                pass
+
+        if probe.status_code == 403:
+            fb  = requests.Session()
+            fb.headers.update(DL_HEADERS)
+            r1  = fb.get(
+                "https://drive.google.com/uc",
+                params={"export": "download", "id": fid},
+                timeout=(15, 60),
+            )
+            confirm = None
+            if r1.status_code == 200:
+                m2 = re.search(r'confirm=([0-9A-Za-z_\-]+)', r1.text)
+                if m2:
+                    confirm = m2.group(1)
+                for ck in fb.cookies:
+                    if "download_warning" in ck.name.lower():
+                        confirm = ck.value
+                        break
+            dl_p = {"export": "download", "id": fid}
+            if confirm:
+                dl_p["confirm"] = confirm
+            r = fb.get(
+                "https://drive.google.com/uc",
+                params=dl_p, stream=True, timeout=(15, 600),
+            )
+        else:
+            r = _SESSION.get(
+                base_url, params=dl_params,
+                headers={"Authorization": f"Bearer {tok}"},
+                stream=True, timeout=(15, 600),
+            )
+
+        r.raise_for_status()
+        if "text/html" in r.headers.get("Content-Type", ""):
+            bar.finish(False)
+            dest.unlink(missing_ok=True)
+            print(f"\n  {R}✘ Got HTML — Drive blocked download.{X}")
+            return False
+
+        real_len = int(r.headers.get("Content-Length", 0))
+        if real_len > 0:
+            with bar._lock:
+                bar.total = real_len
+
+        with open(dest, "wb") as f:
+            for chunk in r.iter_content(CHUNK_MB * 1_048_576):
+                if chunk:
+                    f.write(chunk)
+                    bar.update(len(chunk))
+
+        bar.finish(True)
+        return True
+
     except Exception as e:
         bar.finish(False)
-        tmp.unlink(missing_ok=True)
         dest.unlink(missing_ok=True)
         print(f"  {R}✘ ZIP download failed: {e}{X}")
         return False
@@ -2398,8 +2315,8 @@ def _download_zip_from_drive(fid, fname, size, dest):
 # ══════════════════════════════════════════════════════════════════════
 def _clone_single_to_colab(fid, fname, fsize, dest_path, tok):
     """
-    Clone one Drive file to dest_path via the shared parallel downloader.
-    Now a thin wrapper over _drive_parallel_download — no duplicated code.
+    Clone one Drive file to dest_path via the API.
+    Uses parallel Range requests when supported, single-stream otherwise.
     Returns True on success.
     """
     if dest_path.exists() and fsize > 0 and dest_path.stat().st_size == fsize:
@@ -2407,22 +2324,129 @@ def _clone_single_to_colab(fid, fname, fsize, dest_path, tok):
         return True
 
     dest_path.parent.mkdir(parents=True, exist_ok=True)
-    if fsize > 0 and not _check_disk_space(fsize):
-        return False
-
-    tmp = dest_path.with_suffix(dest_path.suffix + ".part")
-    print(f"  {G}✔ Parallel ({THREADS} threads){X}  {_fmt_size(fsize)}")
-    bar = LiveBar(fsize or 1, fname[:26], phase="↓ Clone")
+    base_url  = f"https://www.googleapis.com/drive/v3/files/{fid}"
+    dl_params = {"alt": "media", "acknowledgeAbuse": "true", **_DRIVE_PARAMS}
+    tmp       = dest_path.with_suffix(dest_path.suffix + ".part")
 
     try:
-        ok = _drive_parallel_download(fid, fsize, tmp, bar, "↓ Clone")
-        if ok:
-            tmp.replace(dest_path)
-            bar.finish(True)
-            return True
-        bar.finish(False)
-        tmp.unlink(missing_ok=True)
-        return False
+        tok_ref = [tok]
+        probe_r = _SESSION.get(
+            base_url, params=dl_params,
+            headers={"Authorization": f"Bearer {tok}", "Range": "bytes=0-0"},
+            stream=True, timeout=(15, 60), allow_redirects=True,
+        )
+        try:
+            for _ in probe_r.iter_content(16):
+                break
+        finally:
+            probe_r.close()
+
+        range_ok = probe_r.status_code == 206
+        cr_hdr   = probe_r.headers.get("Content-Range", "")
+        try:
+            size = int(cr_hdr.split("/")[-1])
+        except Exception:
+            size = int(probe_r.headers.get("Content-Length", fsize or 1))
+        if size <= 0:
+            size = fsize or 1
+
+        real_url  = probe_r.url
+        need_auth = "googleapis.com/drive/v3" in real_url
+
+        if range_ok and size > 0:
+            n      = THREADS
+            cs     = size // n
+            ranges = [
+                (i * cs, size - 1 if i == n - 1 else (i + 1) * cs - 1)
+                for i in range(n)
+            ]
+            print(f"  {G}✔ Parallel ({n} threads){X}  {_fmt_size(size)}")
+            bar = LiveBar(size, fname[:26], phase="↓ Clone")
+
+            def _chunk(start, end, fd):
+                for attempt in range(1, MAX_RETRY + 1):
+                    try:
+                        hdrs = {"Range": f"bytes={start}-{end}"}
+                        if need_auth:
+                            hdrs["Authorization"] = f"Bearer {tok_ref[0]}"
+                        r = _SESSION.get(
+                            real_url,
+                            params=dl_params if need_auth else {},
+                            headers=hdrs, stream=True, timeout=(15, 600),
+                        )
+                        if r.status_code == 401:
+                            r.close()
+                            try:
+                                tok_ref[0] = _token()
+                            except Exception:
+                                pass
+                            hdrs["Authorization"] = f"Bearer {tok_ref[0]}"
+                            r = _SESSION.get(
+                                real_url, params=dl_params,
+                                headers=hdrs, stream=True, timeout=(15, 600),
+                            )
+                        r.raise_for_status()
+                        pos = start
+                        for c in r.iter_content(CHUNK_MB * 1_048_576):
+                            if not c:
+                                continue
+                            os.pwrite(fd, c, pos)
+                            pos += len(c)
+                            bar.update(len(c))
+                        return
+                    except Exception as e:
+                        if attempt == MAX_RETRY:
+                            raise RuntimeError(f"Chunk {start}-{end}: {e}")
+                        time.sleep(attempt)
+
+            with open(tmp, "wb") as fh:
+                fh.seek(size - 1)
+                fh.write(b"\x00")
+
+            fd = os.open(str(tmp), os.O_WRONLY)
+            try:
+                with ThreadPoolExecutor(max_workers=n) as ex:
+                    for fut in as_completed(
+                        [ex.submit(_chunk, s, e, fd) for s, e in ranges]
+                    ):
+                        fut.result()
+            finally:
+                os.close(fd)
+
+        else:
+            # Single-stream fallback
+            r = _SESSION.get(
+                base_url, params=dl_params,
+                headers={"Authorization": f"Bearer {tok}"},
+                stream=True, timeout=(15, 600),
+            )
+            if r.status_code == 403:
+                r.close()
+                r = _SESSION.get(
+                    base_url,
+                    params={**dl_params, "acknowledgeAbuse": "true"},
+                    headers={"Authorization": f"Bearer {tok}"},
+                    stream=True, timeout=(15, 600),
+                )
+            r.raise_for_status()
+            if "text/html" in r.headers.get("Content-Type", ""):
+                print(f"  {R}✘ Got HTML — Drive blocked.{X}")
+                tmp.unlink(missing_ok=True)
+                return False
+
+            real_len = int(r.headers.get("Content-Length", 0))
+            sz  = real_len if real_len > 0 else size
+            bar = LiveBar(sz, fname[:26], phase="↓ Clone")
+            with open(tmp, "wb") as fh:
+                for chunk in r.iter_content(CHUNK_MB * 1_048_576):
+                    if chunk:
+                        fh.write(chunk)
+                        bar.update(len(chunk))
+
+        tmp.replace(dest_path)
+        bar.finish(True)
+        return True
+
     except Exception as e:
         try:
             bar.finish(False)
@@ -2449,8 +2473,9 @@ def auto_fix_v5(fp, known_fid=None, drive_dest=None):
     """
     fp = Path(fp)
 
-    # Use _probe_all for 3× parallel probing (audio + subs + video in one shot)
-    before_audio, before_subs, _ = _probe_all(fp)
+    with ThreadPoolExecutor(max_workers=2) as _ex:
+        before_audio = _ex.submit(_audio_tracks, fp).result()
+        before_subs  = _ex.submit(_sub_tracks,   fp).result()
 
     if not before_audio:
         print(f"  {Y}⚠ No audio tracks — skipped.{X}")
@@ -2461,7 +2486,7 @@ def auto_fix_v5(fp, known_fid=None, drive_dest=None):
     engine       = "mkvmerge" if fp.suffix.lower() == ".mkv" else "ffmpeg"
     drive_fp     = Path(drive_dest) if drive_dest else fp
 
-    print(f"\n  {C}⚡ Auto-Fix v9{X}  {D}Engine: {engine}{X}")
+    print(f"\n  {C}⚡ Auto-Fix v5{X}  {D}Engine: {engine}{X}")
     if before_audio != sorted_audio:
         print(f"  {Y}↕ Audio reorder → [{sorted_audio[0]['language']}] will be track 0{X}")
     else:
@@ -2520,15 +2545,9 @@ def auto_fix_v5(fp, known_fid=None, drive_dest=None):
     if not ok:
         return False
 
-    t0     = time.time()
     result = _upload_to_drive(tmp, drive_fp, known_fid)
     if result:
-        elapsed = time.time() - t0
         print(f"\n  {G}✔ Fix complete!{X}  {Y}{drive_fp.name[:55]}{X}")
-        _log_op("auto_fix", drive_fp.name, "ok",
-                tmp.stat().st_size if tmp.exists() else 0, elapsed)
-    else:
-        _log_op("auto_fix", drive_fp.name, "fail")
     return result
 
 
@@ -2802,8 +2821,14 @@ def direct_zip_downloader():
                     bar.finish(True)
                     dl_ok = True
                 except Exception:
+                    bar._alive = False
+                    time.sleep(0.3)
                     tmp_zip.unlink(missing_ok=True)
-                    bar.reset("↓ Multi-Stream")
+                    bar.done   = 0;  bar._lb   = 0;  bar._spd = 0.0
+                    bar._t0    = time.time(); bar._lt = time.time()
+                    bar.phase  = "↓ Multi-Stream"
+                    bar._alive = True
+                    threading.Thread(target=bar._loop, daemon=True).start()
 
             # Stage 2: multi-stream
             if not dl_ok:
@@ -2813,8 +2838,14 @@ def direct_zip_downloader():
                     bar.finish(True)
                     dl_ok = True
                 except Exception:
+                    bar._alive = False
+                    time.sleep(0.25)
                     tmp_zip.unlink(missing_ok=True)
-                    bar.reset("↓ Stream")
+                    bar.done   = 0;  bar._lb   = 0;  bar._spd = 0.0
+                    bar._t0    = time.time(); bar._lt = time.time()
+                    bar.phase  = "↓ Stream"
+                    bar._alive = True
+                    threading.Thread(target=bar._loop, daemon=True).start()
 
             # Stage 3: single stream
             if not dl_ok:
@@ -2974,7 +3005,7 @@ def gdrive_zip_extractor():
 def gdrive_clone_to_colab():
     """[4] Clone Drive file(s)/folder → remux → PATCH back in-place. Supports multiple URLs."""
     print(f"\n{M}{'═' * 68}{X}")
-    print(f"  {M}📂 [4] GDRIVE CLONE → REMUX → PATCH BACK TO DRIVE  v{VERSION}{X}")
+    print(f"  {M}📂 [4] GDRIVE CLONE → REMUX → PATCH BACK TO DRIVE  v8.8{X}")
     print(f"  {W}Paste Google Drive FILE or FOLDER share URLs.{X}")
     print(f"  {D}One URL per line · blank line = start · type 0 to cancel{X}")
     print(f"{M}{'═' * 68}{X}\n")
@@ -3095,8 +3126,8 @@ def gdrive_clone_to_colab():
             print(f"\n{W}[{idx + 1}/{len(video_files)}]{X} "
                   f"{Y}{fi['rel_path'][:60]}{X}  {D}{_fmt_size(fsize)}{X}")
 
-            # Refresh token every 10 files
-            if idx % 10 == 0:
+            # Refresh token every 5 files to avoid expiry on large folders
+            if idx % 5 == 0:
                 try:
                     tok = _token()
                 except Exception:
@@ -3135,7 +3166,7 @@ def gdrive_clone_to_colab():
         ela = time.time() - t_start
         print(f"\n  {G}✔ Fixed: {ok_count}{X}   {R}✘ Failed: {fail_count}{X}   "
               f"Total: {len(video_files)}")
-        print(f"  Time: {int(ela)}s  ({int(ela) // 60}m {int(ela) % 60}s)")
+        print(f"  Time: {int(ela)}s  ({_fmt_eta(ela)})")
         grand_ok   += ok_count
         grand_fail += fail_count
 
@@ -3150,8 +3181,7 @@ def gdrive_clone_to_colab():
     print(f"\n{'═' * 68}")
     print(f"  {G}✔ Total Fixed: {grand_ok}{X}  {R}✘ Total Failed: {grand_fail}{X}  "
           f"URLs: {len(raw_urls)}")
-    print(f"  Total Time: {int(ela_total)}s  "
-          f"({int(ela_total) // 60}m {int(ela_total) % 60}s)")
+    print(f"  Total Time: {int(ela_total)}s  ({_fmt_eta(ela_total)})")
     print(f"{'═' * 68}\n")
 
 
@@ -3405,8 +3435,10 @@ def manual_edit_and_upload():
             fail += 1
             continue
 
-        # ── Probe tracks (parallel) ──────────────────────────────────────
-        a_tracks, s_tracks, _ = _probe_all(local_fp)
+        # ── Probe tracks ─────────────────────────────────────────────
+        with ThreadPoolExecutor(max_workers=2) as _ex:
+            a_tracks = _ex.submit(_audio_tracks, local_fp).result()
+            s_tracks = _ex.submit(_sub_tracks,   local_fp).result()
 
         if not a_tracks:
             print(f"  {Y}⚠ No audio tracks — skipped.{X}")
@@ -3426,7 +3458,6 @@ def manual_edit_and_upload():
 
         # Keep ALL subtitle tracks (all languages)
         eng_subs = all_subs
-        removed  = 0
 
         # ── Remux ─────────────────────────────────────────────────────
         engine = "mkvmerge" if local_fp.suffix.lower() == ".mkv" else "ffmpeg"
@@ -3463,58 +3494,23 @@ def manual_edit_and_upload():
 
 
 # ══════════════════════════════════════════════════════════════════════
-#  MENU [7] — View Operation Log
-# ══════════════════════════════════════════════════════════════════════
-def _show_log():
-    """Display the last 20 operations from the JSON log."""
-    print(f"\n{C}{'═' * 68}{X}")
-    print(f"  {C}📋 OPERATION LOG — {LOG_FILE}  {D}(mirrored to Drive on each op){X}")
-    print(f"{C}{'═' * 68}{X}\n")
-    try:
-        if not LOG_FILE.exists():
-            print(f"  {D}No log file yet. Operations will be logged automatically.{X}\n")
-            return
-        log = json.loads(LOG_FILE.read_text(encoding="utf-8"))
-        if not log:
-            print(f"  {D}Log is empty.{X}\n")
-            return
-        recent = log[-20:]
-        for i, e in enumerate(reversed(recent), 1):
-            status_col = G if e.get("status") == "ok" else R
-            print(
-                f"  {G}[{i:>2}]{X}  {D}{e.get('ts','?')}{X}  "
-                f"{W}{e.get('action','?'):<14}{X}  "
-                f"{status_col}{e.get('status','?'):<4}{X}  "
-                f"{Y}{e.get('size_mb',0):>8.1f} MB{X}  "
-                f"{D}{e.get('elapsed_s',0):>6.1f}s{X}  "
-                f"{C}{e.get('file','?')[:38]}{X}"
-            )
-        print(f"\n  {D}Showing last {len(recent)} of {len(log)} total entries.{X}")
-    except Exception as ex:
-        print(f"  {R}✘ Could not read log: {ex}{X}")
-    print(f"\n{C}{'═' * 68}{X}\n")
-
-
-# ══════════════════════════════════════════════════════════════════════
 #  BANNER + MAIN MENU
 # ══════════════════════════════════════════════════════════════════════
 def _banner():
     print(f"""{C}
 ╔══════════════════════════════════════════════════════════════╗
-║   🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v{VERSION:<8}  ║
+║    🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v8.8       ║
 ║   Direct Download → Fix → Upload to Drive (Maximum Speed)    ║
-║   🔒 Thread-safe token  🛡 Upload retry  💾 Disk check       ║
-║   ⚡ Smart remux skip   🔁 Resume  📋 JSON log               ║
+║   ⚡ Smart remux skip  🔁 Resume broken downloads           ║
 ╚══════════════════════════════════════════════════════════════╝{X}
   Folder  : {Y}{FOLDER}{X}
   Threads : {G}{THREADS}{X}   Chunk: {G}{CHUNK_MB} MB{X}  Pool: {G}128 connections{X}  Stream-conns: {G}{STREAM_CONNS}{X}
-  Log     : {D}{LOG_FILE}{X}  {D}(+ Drive mirror){X}
 
   Auto-Fix rules:
     🎬 Video      → default = {G}YES{X}
-    🔊 Audio      → {G}Tamil first{X}, Tel→Mal→Kan→Hin→Eng→others, titles cleared
+    🔊 Audio      → {G}Tamil first{X} (default+forced=✔), Tel→Mal→Kan→Hin→Eng→others, titles cleared
     💬 Subtitles  → {G}ALL languages kept{X} (tam/tel/mal/kan/hin/eng/other)
-    ☁  Upload     → Drive API resumable, adaptive chunks, {G}Maximum Speed{X}
+    ☁  Upload     → Drive API resumable, 512 MB chunks, {G}Maximum Speed{X}
 """)
 
 
@@ -3522,7 +3518,7 @@ def main_menu():
     _banner()
     while True:
         print(f"""{C}╔══════════════════════════════════════════════════════╗
-║         MAIN MENU — Tamizhan v{VERSION:<20}  ║
+║              MAIN MENU — What to do?                 ║
 ╚══════════════════════════════════════════════════════╝{X}
   {G}[1]{X} 📥  Download → Auto-Rename → Auto-Fix → Upload to Drive  {D}(paste any direct URL & CDN URL){X}
   {G}[2]{X} 📦  Direct ZIP file URL → Download → Extract → Remux → Upload to Drive  {D}(paste any direct ZIP URL){X}
@@ -3530,7 +3526,6 @@ def main_menu():
   {G}[4]{X} ♻️  GDrive Clone to Colab → Auto-Remux → PATCH back to Drive  {D}(folder or file URL — in-place){X}
   {G}[5]{X} 🤖  Auto-Fix via Drive URL — Folder or File(s)  {D}(paste any Drive folder/file URL){X}
   {G}[6]{X} ✏️  Manual Edit Tracks → Remux → Upload  {D}(edit audio+sub title & lang before remux){X}
-  {G}[7]{X} 📋  View Operation Log  {D}(stored at {LOG_FILE}, mirrored to Drive){X}
   {G}[0]{X} ⏻  Exit
 """)
         try:
@@ -3544,7 +3539,6 @@ def main_menu():
         elif ch == "4": gdrive_clone_to_colab()
         elif ch == "5": auto_fix_smart()
         elif ch == "6": manual_edit_and_upload()
-        elif ch == "7": _show_log()
         elif ch == "0":
             print(f"\n{G}Goodbye! 🎬{X}\n")
             break
@@ -3593,6 +3587,5 @@ try:
 except Exception:
     pass
 
-print(f"{G}✔ Tamizhan v{VERSION} loaded — all 7 menus ready.  "
-      f"🔒 Thread-safe  🛡 Retry  💾 DiskCheck  📋 Log{X}")
+print(f"{G}✔ Tamizhan v8.8 loaded — all 6 menus ready.  ⚡ Smart-skip  🔁 Resume{X}")
 main_menu()
