@@ -865,6 +865,7 @@ def _audio_tracks(fp):
             "codec":      s.get("codec_name", "?"),
             "channels":   s.get("channels", "?"),
             "is_default": bool(s.get("disposition", {}).get("default", 0)),
+            "is_forced":  bool(s.get("disposition", {}).get("forced",  0)),
         })
     return out
 
@@ -917,7 +918,7 @@ def _mkvpropedit_clean(fp, sorted_audio, eng_subs):
             "--set",  "name=",
             "--set",  f"language={t['language']}",
             "--set",  f"flag-default={'1' if i == 0 else '0'}",
-            "--set",  "flag-forced=0",
+            "--set",  f"flag-forced={'1' if i == 0 else '0'}",
         ]
     for i, s in enumerate(eng_subs):
         args += [
@@ -955,7 +956,7 @@ def _build_remux_cmd(src, tmp, sorted_audio, eng_subs, engine):
             sid = str(t["idx"])
             audio_args += [
                 "--default-track-flag", f"{sid}:{'yes' if i == 0 else 'no'}",
-                "--forced-display-flag", f"{sid}:no",
+                "--forced-display-flag", f"{sid}:{'yes' if i == 0 else 'no'}",
                 "--track-name",          f"{sid}:",
                 "--language",            f"{sid}:{t['language']}",
             ]
@@ -1005,7 +1006,7 @@ def _build_remux_cmd(src, tmp, sorted_audio, eng_subs, engine):
                 f"-metadata:s:a:{i}", "title=",
                 f"-metadata:s:a:{i}", f"language={t['language']}",
             ]
-            disp_args += [f"-disposition:a:{i}", "default" if i == 0 else "0"]
+            disp_args += [f"-disposition:a:{i}", "default+forced" if i == 0 else "0"]
 
         sub_disp = []
         for i, s in enumerate(eng_subs):
@@ -1064,6 +1065,10 @@ def _tracks_need_fix(fp, sorted_audio, eng_subs):
         if bool(on_disk["is_default"]) != want_default:
             return True, (f"audio[{i}] default flag wrong "
                           f"(is {on_disk['is_default']}, want {want_default})")
+        want_forced = (i == 0)
+        if bool(on_disk.get("is_forced", False)) != want_forced:
+            return True, (f"audio[{i}] forced flag wrong "
+                          f"(is {on_disk.get('is_forced', False)}, want {want_forced})")
 
     # ── 3. Subtitle count must match ─────────────────────────────────
     if len(s_tracks) != len(eng_subs):
@@ -1170,7 +1175,7 @@ def _run_remux_with_titles(src, tmp, sorted_audio, eng_subs, engine):
             tname = t.get("title") or ""
             audio_args += [
                 "--default-track-flag", f"{sid}:{'yes' if i == 0 else 'no'}",
-                "--forced-display-flag", f"{sid}:no",
+                "--forced-display-flag", f"{sid}:{'yes' if i == 0 else 'no'}",
                 "--track-name",          f"{sid}:{tname}",
                 "--language",            f"{sid}:{t['language']}",
             ]
@@ -1224,7 +1229,7 @@ def _run_remux_with_titles(src, tmp, sorted_audio, eng_subs, engine):
                 f"-metadata:s:a:{i}", f"title={tname}",
                 f"-metadata:s:a:{i}", f"language={t['language']}",
             ]
-            disp_args += [f"-disposition:a:{i}", "default" if i == 0 else "0"]
+            disp_args += [f"-disposition:a:{i}", "default+forced" if i == 0 else "0"]
 
         for i, s in enumerate(eng_subs):
             map_args  += ["-map", f"0:{s['abs_index']}"]
@@ -1296,7 +1301,7 @@ def _run_remux_with_titles(src, tmp, sorted_audio, eng_subs, engine):
                     "--set",  f"name={tname}",
                     "--set",  f"language={t['language']}",
                     "--set",  f"flag-default={'1' if i == 0 else '0'}",
-                    "--set",  "flag-forced=0",
+                    "--set",  f"flag-forced={'1' if i == 0 else '0'}",
                 ]
             for i, s in enumerate(eng_subs):
                 sname = s.get("title") or ""
