@@ -3,7 +3,7 @@
 # ║   Menu [1] Download→Fix→Upload  [2] Direct ZIP  [3] GDrive ZIP       ║
 # ║   [4] GDrive Clone→Remux→Patch  [5] Folder/File Auto-Fix             ║
 # ║   [6] Manual Edit Tracks→Remux→Upload                                ║
-# ║   v9.1: ⚡ Smart remux skip  🔁 Resume broken downloads             ║
+# ║   v9.1: ⚡ Smart remux skip  🔁 Resume broken downloads              ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 import copy
@@ -744,7 +744,7 @@ def _upload_to_drive(local_tmp, drive_fp, known_fid=None):
     mime      = ("video/x-matroska" if local_tmp.suffix.lower() == ".mkv"
                  else "video/mp4")
 
-    print(f"\n  {B}☁  Uploading to Drive via API{X}  ({_fmt_size(file_size)}, Maximum Speed)")
+    print(f"\n  {C}☁  Uploading to Drive via API{X}  ({_fmt_size(file_size)}, Maximum Speed)")
 
     try:
         tok = _token()
@@ -792,7 +792,7 @@ def _upload_to_drive(local_tmp, drive_fp, known_fid=None):
     success = _upload_chunks(local_tmp, upload_url, file_size, label, tok)
     if success:
         local_tmp.unlink(missing_ok=True)
-        print(f"  {B}✔ Drive file {'updated in-place' if file_id else 'created'}.{X}")
+        print(f"  {G}✔ Drive file {'updated in-place' if file_id else 'created'}.{X}")
         return True
     return _fuse_fallback(local_tmp, drive_fp)
 
@@ -2171,7 +2171,7 @@ def _process_video_files_from_dir(extract_dir, folder_name, new_folder_id, tok,
             if vf != final_local:
                 vf.rename(final_local)
                 vf = final_local
-            print(f"  {B}☁  Uploading → Drive/{folder_name}/{vf.name}{X}")
+            print(f"  {C}☁  Uploading → Drive/{folder_name}/{vf.name}{X}")
             try:
                 tok = _token()
             except Exception:
@@ -2210,7 +2210,7 @@ def _process_video_files_from_dir(extract_dir, folder_name, new_folder_id, tok,
             remux_tmp.rename(final_local)
             remux_tmp = final_local
 
-        print(f"  {B}☁  Uploading → Drive/{folder_name}/{remux_tmp.name}{X}")
+        print(f"  {C}☁  Uploading → Drive/{folder_name}/{remux_tmp.name}{X}")
         try:
             tok = _token()
         except Exception:
@@ -2597,7 +2597,7 @@ def auto_fix_v5(fp, known_fid=None, drive_dest=None):
     if not needs_fix:
         print(f"  {G}⚡ SMART SKIP:{X} tracks already correct — remux not needed.")
         print(f"  {D}  ({reason}){X}")
-        print(f"  {B}✔ Drive file already correct — no upload needed.{X}  {Y}{drive_fp.name[:55]}{X}")
+        print(f"  {G}✔ Drive file already correct — no upload needed.{X}  {Y}{drive_fp.name[:55]}{X}")
         return True
     else:
         print(f"  {Y}⚙ Fix required:{X} {D}{reason}{X}")
@@ -2642,7 +2642,7 @@ def auto_fix_v5(fp, known_fid=None, drive_dest=None):
 
     result = _upload_to_drive(tmp, drive_fp, known_fid)
     if result:
-        print(f"\n  {B}✔ Fix complete!{X}  {Y}{drive_fp.name[:55]}{X}")
+        print(f"\n  {G}✔ Fix complete!{X}  {Y}{drive_fp.name[:55]}{X}")
     return result
 
 
@@ -2675,11 +2675,11 @@ def _manual_edit_all_tracks(audio_tracks, sub_tracks):
             f"Codec:{t['codec']} {t['channels']}ch  {dflt}"
         )
     if sub_tracks:
-        print(f"\n  {B}💬 Subtitle Tracks:{X}")
+        print(f"\n  {C}💬 Subtitle Tracks:{X}")
         for s in sub_tracks:
             dflt = f"{G}★ default{X}" if s["is_default"] else f"{D}no{X}"
             print(
-                f"    [{s['track_num']}] Lang:{B}{s['language']:<5}{X}  "
+                f"    [{s['track_num']}] Lang:{C}{s['language']:<5}{X}  "
                 f"Title:{Y}{(s['title'] or '')[:35]:<35}{X}  "
                 f"Codec:{s['codec']}  {dflt}"
             )
@@ -2719,10 +2719,10 @@ def _manual_edit_all_tracks(audio_tracks, sub_tracks):
 
     # Edit subtitle tracks
     if new_subs:
-        print(f"\n  {B}💬 Subtitles — edit each track:{X}")
+        print(f"\n  {C}💬 Subtitles — edit each track:{X}")
         for s in new_subs:
             print(f"\n  {W}Subtitle [{s['track_num']}]  "
-                  f"title:{Y}{s['title'] or ''}{X}  lang:{B}{s['language']}{X}")
+                  f"title:{Y}{s['title'] or ''}{X}  lang:{C}{s['language']}{X}")
             v = _ask("New title  (Enter=keep, x=cancel all)", s["title"] or "")
             if v is None:
                 print(f"  {Y}↩ Cancelled — no changes applied.{X}")
@@ -2741,8 +2741,8 @@ def _manual_edit_all_tracks(audio_tracks, sub_tracks):
         print(f"    {G}Audio [{t['track_num']}]{X}  "
               f"lang:{C}{t['language']:<5}{X}  title:{Y}{t['title'] or ''}{X}")
     for s in new_subs:
-        print(f"    {B}Sub   [{s['track_num']}]{X}  "
-              f"lang:{B}{s['language']:<5}{X}  title:{Y}{s['title'] or ''}{X}")
+        print(f"    {C}Sub   [{s['track_num']}]{X}  "
+              f"lang:{C}{s['language']:<5}{X}  title:{Y}{s['title'] or ''}{X}")
     print(f"{G}{'─' * 68}{X}\n")
 
     return new_audio, new_subs
@@ -3253,7 +3253,7 @@ def gdrive_clone_to_colab():
 
             if success:
                 ok_count += 1
-                print(f"  {B}✔ Done — Drive file patched in-place.{X}")
+                print(f"  {G}✔ Done — Drive file patched in-place.{X}")
             else:
                 fail_count += 1
             print(f"{'─' * 68}")
@@ -3585,7 +3585,7 @@ def manual_edit_and_upload():
         # ── Upload ────────────────────────────────────────────────────
         fp_drive = Path(drive_dest) if drive_dest else Path(FOLDER) / tmp.name
         if _upload_to_drive(tmp, fp_drive, known_fid):
-            print(f"  {B}✔ Done!{X}  {Y}{fp_drive.name[:55]}{X}")
+            print(f"  {G}✔ Done!{X}  {Y}{fp_drive.name[:55]}{X}")
             ok += 1
         else:
             fail += 1
@@ -3604,7 +3604,7 @@ def _banner():
 ╔══════════════════════════════════════════════════════════════╗
 ║    🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v9.1       ║
 ║   Direct Download → Fix → Upload to Drive (Maximum Speed)    ║
-║   ⚡ Smart remux skip  🔁 Resume broken downloads           ║
+║   ⚡ Smart remux skip  🔁 Resume broken downloads            ║
 ╚══════════════════════════════════════════════════════════════╝{X}
   Folder  : {Y}{FOLDER}{X}
   Threads : {G}{THREADS}{X}   Chunk: {G}{CHUNK_MB} MB{X}  Pool: {G}128 connections{X}  Stream-conns: {G}{STREAM_CONNS}{X}
