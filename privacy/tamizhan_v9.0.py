@@ -3,7 +3,7 @@
 # ║   Menu [1] Download→Fix→Upload  [2] Direct ZIP  [3] GDrive ZIP       ║
 # ║   [4] GDrive Clone→Remux→Patch  [5] Folder/File Auto-Fix             ║
 # ║   [6] Manual Edit Tracks→Remux→Upload                                ║
-# ║   v9.0: ⚡ Smart remux skip  🔁 Resume broken downloads              ║
+# ║   v9.0: ⚡ Smart remux skip  🔁 Resume broken downloads             ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 import copy
@@ -3498,7 +3498,7 @@ def _banner():
 ╔══════════════════════════════════════════════════════════════╗
 ║    🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v9.0       ║
 ║   Direct Download → Fix → Upload to Drive (Maximum Speed)    ║
-║   ⚡ Smart remux skip  🔁 Resume broken downloads            ║
+║   ⚡ Smart remux skip  🔁 Resume broken downloads           ║
 ╚══════════════════════════════════════════════════════════════╝{X}
   Folder  : {Y}{FOLDER}{X}
   Threads : {G}{THREADS}{X}   Chunk: {G}{CHUNK_MB} MB{X}  Pool: {G}128 connections{X}  Stream-conns: {G}{STREAM_CONNS}{X}
