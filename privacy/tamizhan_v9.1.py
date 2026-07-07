@@ -3,7 +3,7 @@
 # ║   Menu [1] Download→Fix→Upload  [2] Direct ZIP  [3] GDrive ZIP       ║
 # ║   [4] GDrive Clone→Remux→Patch  [5] Folder/File Auto-Fix             ║
 # ║   [6] Manual Edit Tracks→Remux→Upload                                ║
-# ║   v9.1: ⚡ Smart remux skip  🔁 Resume broken downloads             ║
+# ║   v9.1: ⚡ Smart remux skip  🔁 Resume broken downloads              ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 import copy
@@ -43,10 +43,10 @@ FOLDER          = "/content/drive/MyDrive/Tamizhan Movies"
 LANG_ORDER      = ["tam", "tel", "mal", "kan", "hin", "eng", "und"]
 KEEP_SUB_LANGS  = {"tam", "tel", "mal", "kan", "hin", "eng"}  # subtitles to keep
 THREADS         = 32
-STREAM_CONNS = 8
-CHUNK_MB     = 16
-MAX_RETRY    = 3
-TIMEOUT      = (10, 300)
+STREAM_CONNS    = 8
+CHUNK_MB        = 16
+MAX_RETRY       = 3
+TIMEOUT         = (10, 300)
 
 DL_HEADERS = {
     "User-Agent": (
@@ -792,7 +792,7 @@ def _upload_to_drive(local_tmp, drive_fp, known_fid=None):
     success = _upload_chunks(local_tmp, upload_url, file_size, label, tok)
     if success:
         local_tmp.unlink(missing_ok=True)
-        print(f"  {G}✔ Drive file {'updated in-place' if file_id else 'created'}.{X}")
+        print(f"  {B}✔ Drive file {'updated in-place' if file_id else 'created'}.{X}")
         return True
     return _fuse_fallback(local_tmp, drive_fp)
 
@@ -861,18 +861,17 @@ def _probe_all(fp):
         return fa.result(), fs.result(), fv.result()
 
 
-def _guess_lang_from_track(tags, stream, track_index=0, all_streams=None):
+def _guess_lang_from_track(tags, stream):
     """
-    Try to identify the language of an audio track when lang tag is und/empty.
+    Try to identify the language of an audio/subtitle track when lang tag is und/empty.
     Detection order:
       1. Direct language tags (language, LANGUAGE, lang, LANG)
       2. Keyword scan in title, handler_name, description, comment
          — supports native scripts: தமிழ், తెలుగు, മലയാളം, ಕನ್ನಡ, हिंदी
-      3. Bitrate + channel heuristic across sibling tracks
-         — highest channels + bitrate = primary = LANG_ORDER[0] (tam)
-         — ranks all und tracks by quality → assigns tam/tel/mal/kan/hin/eng
-      4. Position heuristic — track 0 with default=True = primary (tam)
-    Returns a 3-letter ISO code, or 'und' if truly undetectable.
+    Returns a 3-letter ISO code, or 'und' if undetectable.
+    NOTE: Bitrate/channel/position heuristics intentionally removed —
+          they caused wrong language assignments on truly unknown tracks.
+          If und remains, user should fix via Menu [6] Manual Edit.
     """
     # ── 1. Direct language tags ───────────────────────────────────────
     for key in ("language", "LANGUAGE", "lang", "LANG"):
@@ -882,12 +881,12 @@ def _guess_lang_from_track(tags, stream, track_index=0, all_streams=None):
 
     # ── 2. Keyword scan across all text tags ──────────────────────────
     _LANG_KEYWORDS = {
-        "tam":  ["tamil", "tam", "தமிழ்", "ta"],
-        "tel":  ["telugu", "tel", "తెలుగు", "te"],
-        "mal":  ["malayalam", "mal", "മലയാളം", "ml"],
-        "kan":  ["kannada", "kan", "ಕನ್ನಡ", "kn"],
-        "hin":  ["hindi", "hin", "हिन्दी", "hi", "हिंदी"],
-        "eng":  ["english", "eng", "en"],
+        "tam":  ["tamil", "tam", "தமிழ்"],
+        "tel":  ["telugu", "tel", "తెలుగు"],
+        "mal":  ["malayalam", "mal", "മലയാളം"],
+        "kan":  ["kannada", "kan", "ಕನ್ನಡ"],
+        "hin":  ["hindi", "hin", "हिन्दी", "हिंदी"],
+        "eng":  ["english", "eng"],
         "ben":  ["bengali", "ben", "বাংলা"],
         "mar":  ["marathi", "mar", "मराठी"],
         "pan":  ["punjabi", "pan", "ਪੰਜਾਬੀ"],
@@ -912,42 +911,15 @@ def _guess_lang_from_track(tags, stream, track_index=0, all_streams=None):
                 if kw in combined:
                     return lang_code
 
-    # ── 3. Bitrate + channel heuristic ───────────────────────────────
-    # Highest channels + bitrate = primary language = LANG_ORDER[0] (tam).
-    # Rank ALL sibling tracks by quality, assign languages in LANG_ORDER order.
-    if all_streams and len(all_streams) > 1:
-        def _quality(s):
-            ch  = s.get("channels", 0) or 0
-            bps = int(s.get("tags", {}).get("BPS", 0) or
-                      s.get("bit_rate", 0) or 0)
-            return (ch, bps)
-
-        # Only apply if ALL sibling tracks are also und (no mixed situation)
-        all_und = all(
-            _norm_lang(s.get("tags", {}).get("language", "und")) == "und"
-            for s in all_streams
-        )
-        if all_und:
-            ranked = sorted(range(len(all_streams)),
-                            key=lambda i: _quality(all_streams[i]), reverse=True)
-            my_rank = ranked.index(track_index) if track_index in ranked else -1
-            lang_order_no_und = [l for l in LANG_ORDER if l != "und"]
-            if 0 <= my_rank < len(lang_order_no_und):
-                return lang_order_no_und[my_rank]
-
-    # ── 4. Position heuristic — track 0 + default flag = primary ─────
-    is_default = bool(stream.get("disposition", {}).get("default", 0))
-    if track_index == 0 and is_default:
-        return LANG_ORDER[0]   # "tam"
-
+    # Cannot determine language — leave as und
+    # User can fix via Menu [6] Manual Edit Tracks
     return "und"
 
 
 def _audio_tracks(fp):
     """Return a list of audio-track dicts for the given file."""
     out = []
-    streams = _probe(fp, "a")   # probe once, reuse for heuristic
-    for i, s in enumerate(streams):
+    for i, s in enumerate(_probe(fp, "a")):
         tags = s.get("tags", {})
         # Try multiple title sources
         title = (
@@ -958,10 +930,10 @@ def _audio_tracks(fp):
             or tags.get("description")
             or f"Track {i + 1}"
         )
-        # Smart language detection — falls back to heuristic if tag is und
+        # Smart language detection — keyword scan on title/handler_name/description
         raw_lang = tags.get("language") or tags.get("LANGUAGE") or "und"
         if _norm_lang(raw_lang) == "und":
-            lang = _guess_lang_from_track(tags, s, track_index=i, all_streams=streams)
+            lang = _guess_lang_from_track(tags, s)
         else:
             lang = _norm_lang(raw_lang)
 
@@ -2625,7 +2597,7 @@ def auto_fix_v5(fp, known_fid=None, drive_dest=None):
     if not needs_fix:
         print(f"  {G}⚡ SMART SKIP:{X} tracks already correct — remux not needed.")
         print(f"  {D}  ({reason}){X}")
-        print(f"  {G}✔ Drive file already correct — no upload needed.{X}  {Y}{drive_fp.name[:55]}{X}")
+        print(f"  {B}✔ Drive file already correct — no upload needed.{X}  {Y}{drive_fp.name[:55]}{X}")
         return True
     else:
         print(f"  {Y}⚙ Fix required:{X} {D}{reason}{X}")
@@ -3281,7 +3253,7 @@ def gdrive_clone_to_colab():
 
             if success:
                 ok_count += 1
-                print(f"  {G}✔ Done — Drive file patched in-place.{X}")
+                print(f"  {B}✔ Done — Drive file patched in-place.{X}")
             else:
                 fail_count += 1
             print(f"{'─' * 68}")
@@ -3613,7 +3585,7 @@ def manual_edit_and_upload():
         # ── Upload ────────────────────────────────────────────────────
         fp_drive = Path(drive_dest) if drive_dest else Path(FOLDER) / tmp.name
         if _upload_to_drive(tmp, fp_drive, known_fid):
-            print(f"  {G}✔ Done!{X}  {Y}{fp_drive.name[:55]}{X}")
+            print(f"  {B}✔ Done!{X}  {Y}{fp_drive.name[:55]}{X}")
             ok += 1
         else:
             fail += 1
@@ -3632,7 +3604,7 @@ def _banner():
 ╔══════════════════════════════════════════════════════════════╗
 ║    🎬📺 TAMIZHAN MOVIES — DOWNLOADER + AUTO-FIX  v9.1       ║
 ║   Direct Download → Fix → Upload to Drive (Maximum Speed)    ║
-║   ⚡ Smart remux skip  🔁 Resume broken downloads           ║
+║   ⚡ Smart remux skip  🔁 Resume broken downloads            ║
 ╚══════════════════════════════════════════════════════════════╝{X}
   Folder  : {Y}{FOLDER}{X}
   Threads : {G}{THREADS}{X}   Chunk: {G}{CHUNK_MB} MB{X}  Pool: {G}128 connections{X}  Stream-conns: {G}{STREAM_CONNS}{X}
