@@ -2992,19 +2992,12 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
   // GDFlix handler is registered once at module level (see bottom of file)
 
   // Load player script — skip entirely on iOS unsupported formats
-    if (!shouldDisablePlayer(bytes) && player_js && !_iosCantPlay) {
     var videoJsScript = document.createElement('script');
     videoJsScript.src = player_js;
     videoJsScript.onload = function() {
         // Video.js is loaded, initialize the player
         if (player_config.player == "plyr") {
-            // ✅ FIX: iOS-safe Plyr config — prevents autoplay policy conflicts on iPhone
-            const player = new Plyr('#player', {
-                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
-                autoplay: false,
-                playsinline: true,
-                ratio: '16:9'
-            });
+            const player = new Plyr('#player');
         } else if (player_config.player == "videojs") {
             const player = new videojs('vplayer');
         } else if (player_config.player == "dplayer") {
@@ -3041,16 +3034,14 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
                 },
             });
         }
+
     };
     document.head.appendChild(videoJsScript);
 
-    if (player_css) {
     var videoJsStylesheet = document.createElement('link');
     videoJsStylesheet.href = player_css;
     videoJsStylesheet.rel = 'stylesheet';
     document.head.appendChild(videoJsStylesheet);
-    }
-    }
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
