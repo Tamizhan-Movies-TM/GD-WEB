@@ -1,5 +1,5 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
-// v2.6.1
+// v2.6.0
 
 // =============================================================================
 // OPTIMIZATION: Conditional Logging
@@ -61,29 +61,6 @@ function isUserLoggedIn() {
     }
     log('User is not logged in');
     return false;
-}
-
-// =============================================================================
-// PLAYER MENU VISIBILITY HELPER
-// Centralises the show_player_menu logic so all 4 call sites stay in sync.
-//
-// UI.show_player_menu behaviour:
-//   false   → show menu for everyone (no restriction)
-//   true    → show menu for logged-in users only
-//   "size"  → show menu for logged-in users always PLUS non-login users whose
-//              file is strictly below UI.player_menu_free_threshold_gb (default 5 GB)
-//
-// bytes — file size in bytes passed in from the file render functions.
-// =============================================================================
-function _canSeePlayerMenu(bytes) {
-    const setting = UI.show_player_menu;
-    if (setting === false) return true;                    // everyone
-    if (isUserLoggedIn()) return true;                     // always show to logged-in
-    if (setting === 'size') {
-        const thresholdBytes = (UI.player_menu_free_threshold_gb || 5) * 1024 * 1024 * 1024;
-        return bytes < thresholdBytes;                     // non-login: only below threshold
-    }
-    return false;                                          // true → logged-in only, non-login blocked
 }
 
 // =============================================================================
@@ -225,28 +202,6 @@ function init() {
     outline: none;
     border-color: #007bff;
 }
-
-.pw-field-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-.pw-field-wrap .form-input {
-    padding-right: 44px;
-}
-.pw-toggle-btn {
-    position: absolute;
-    right: 12px;
-    background: none;
-    border: none;
-    color: rgba(255,255,255,0.45);
-    cursor: pointer;
-    font-size: 18px;
-    padding: 0;
-    line-height: 1;
-    transition: color 0.2s;
-}
-.pw-toggle-btn:hover { color: rgba(255,255,255,0.85); }
 
 .submit-btn {
     width: 100%;
@@ -496,18 +451,13 @@ strong {
                 <label class="form-label" for="password">
                     <i class="fas fa-lock"></i> Password
                 </label>
-                <div class="pw-field-wrap">
-                    <input
-                        type="password"
-                        id="password"
-                        class="form-input"
-                        placeholder="Enter your password"
-                        required
-                    >
-                    <button type="button" class="pw-toggle-btn" id="togglePw" tabindex="-1" title="Show/hide password">
-                        <i class="fas fa-eye" id="eyeIcon"></i>
-                    </button>
-                </div>
+                <input
+                    type="password"
+                    id="password"
+                    class="form-input"
+                    placeholder="Enter your password"
+                    required
+                >
             </div>
 
             <button type="submit" class="submit-btn" id="submitBtn">
@@ -532,7 +482,7 @@ strong {
         </div>
         <div class="card-body d-flex align-items-center justify-content-center">
         <div class="donate btn p-0">
-           <a class="btn" href="${UI.company_link}/266" title="Watch Video Clearly" target="_blank">
+           <a class="btn" href="https://t.me/tamizhan_updates/266" title="Watch Video Clearly" target="_blank">
          <strong>
              <i class="fa-solid fa-eye"></i>WATCH VIDEO
          </strong>
@@ -557,16 +507,16 @@ strong {
         ${telegram_icon}&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
       </div>
       <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
-        <a href="${UI.telegram_channel_main}" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪑⅈꫀડ">
+        <a href="https://cutt.ly/zrMe2JpH" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪑⅈꫀડ">
             <img class="image" alt="tamizhan" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tm-icon.png">
         </a>
-        <a href="${UI.telegram_channel_hollywood}" target="_blank" title="Hollywood Tamizhan Movies">
+        <a href="https://cutt.ly/ZrBTy6LJ" target="_blank" title="Hollywood Tamizhan Movies">
             <img class="image" alt="Movies" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/htm-icon.png">
         </a>
-        <a href="${UI.telegram_channel_series}" target="_blank" title="Tamizhan Web Series">
+        <a href="https://cutt.ly/irMe1nkm" target="_blank" title="Tamizhan Web Series">
             <img class="image" alt="Series" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tws-icon.png">
         </a>
-        <a href="${UI.telegram_channel_backup}" target="_blank" title="Tamizhan Movies Backup">
+        <a href="https://cutt.ly/ZrMe1emr" target="_blank" title="Tamizhan Movies Backup">
             <img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/telegram.png">
         </a>
       </div>
@@ -604,7 +554,7 @@ ${UI.show_quota ? `<div id="tm-quota-bar" style="display:none; padding:6px 16px;
       <i class="fa-brands fa-pied-piper-alt"></i> ${new Date().getFullYear()} - <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
         </div>
       <div class="col-lg-4 col-md-12">
-      <a href="/dmca" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a>
+      <a href="https://cutt.ly/cr9jPsvc" title="Please allow us up to 48 hours to process DMCA requests.">DMCA</a>
       ${UI.credit ? '<span>© All Copy Rights Reserved ®™</span>' : ''}
       </div>
        <div class="col-lg-4 col-md-12 text-lg-end">
@@ -637,139 +587,6 @@ $('body').html(html);
 
 // Initialize login modal functionality
 initializeLoginModal();
-
-// ✅ PASSWORD EXPIRY POPUP — shows every 12 hours for last 3 days before expiry.
-// window.PW_EXPIRES_IN is injected by worker-tm.js (number of days remaining).
-// Exposed as a named function so it can also be called from render_search_result_list().
-function checkPasswordExpiryWarning() {
-    // ✅ GUARD: Only show to logged-in users
-    if (!isUserLoggedIn()) return;
-
-    const days = window.PW_EXPIRES_IN;
-
-    // Only trigger when 3 days or fewer remain
-    if (typeof days !== 'number' || days <= 0 || days > 3) return;
-
-    // Don't show if already visible
-    if (document.getElementById('tm-pw-expiry-overlay')) return;
-
-    // ✅ 6-hour throttle via localStorage
-    const STORAGE_KEY = 'tm_pw_expiry_shown';
-    const INTERVAL_MS = 6 * 60 * 60 * 1000;
-    try {
-        const lastShown = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
-        const now = Date.now();
-        if (now - lastShown < INTERVAL_MS) return;
-        localStorage.setItem(STORAGE_KEY, String(now));
-    } catch (e) {}
-
-    // Urgency theme
-    const isLastDay  = days === 1;
-    const ac   = isLastDay ? '#ff4757' : days === 2 ? '#ff6b35' : '#ffa502';
-    const acG  = isLastDay ? 'rgba(255,71,87,0.42)'  : days === 2 ? 'rgba(255,107,53,0.42)' : 'rgba(255,165,2,0.38)';
-    const acBg = isLastDay ? 'rgba(255,71,87,0.09)'  : days === 2 ? 'rgba(255,107,53,0.09)' : 'rgba(255,165,2,0.08)';
-    const acBd = isLastDay ? 'rgba(255,71,87,0.32)'  : days === 2 ? 'rgba(255,107,53,0.30)' : 'rgba(255,165,2,0.28)';
-    const acG2 = isLastDay ? '#c0392b' : '#c0502b';
-    const label  = isLastDay ? 'Last Day!' : days + ' Days Left';
-    const barW   = days === 3 ? '33%' : days === 2 ? '66%' : '100%';
-    const barGrd = days === 3 ? 'linear-gradient(90deg,#f9ca24,#ffa502)' : days === 2 ? 'linear-gradient(90deg,#ffa502,#ff6b35)' : 'linear-gradient(90deg,#ff6b35,#ff4757)';
-    const cardBg = isLastDay ? 'linear-gradient(150deg,#140e0e,#1a1010)' : days === 2 ? 'linear-gradient(150deg,#14100d,#1a140f)' : 'linear-gradient(150deg,#111320,#161926)';
-
-    const overlay = document.createElement('div');
-    overlay.id = 'tm-pw-expiry-overlay';
-    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;display:flex;align-items:center;justify-content:center;';
-
-    overlay.innerHTML = `
-    <style>
-        @keyframes _tmBgIn   { from{opacity:0} to{opacity:1} }
-        @keyframes _tmCardIn { from{opacity:0;transform:translateY(28px) scale(0.95)} to{opacity:1;transform:translateY(0) scale(1)} }
-        @keyframes _tmBarFill{ from{width:0} to{width:${barW}} }
-        @keyframes _tmPulse  { 0%,100%{box-shadow:0 0 0 0 ${acG}} 60%{box-shadow:0 0 0 9px transparent} }
-        #_tm_bg   { animation:_tmBgIn 0.3s ease forwards; }
-        #_tm_card { animation:_tmCardIn 0.42s cubic-bezier(0.34,1.46,0.64,1) forwards; }
-        #_tm_bar  { animation:_tmBarFill 1.1s cubic-bezier(0.4,0,0.2,1) 0.5s both; }
-        ${isLastDay ? '#_tm_icon { animation:_tmPulse 1.8s ease-in-out infinite; }' : ''}
-        #_tm_ok:hover  { filter:brightness(1.12);transform:translateY(-1px); }
-        #_tm_ok:active { transform:translateY(0); }
-        #_tm_tg:hover  { background:rgba(255,255,255,0.1) !important;color:#fff !important; }
-        #_tm_cls:hover { background:rgba(255,255,255,0.14) !important;color:#fff !important; }
-    </style>
-
-    <div id="_tm_bg" style="position:absolute;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);"></div>
-
-    <div id="_tm_card" style="position:relative;width:92%;max-width:410px;background:${cardBg};border:1px solid ${acBd};border-radius:22px;overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,0.85),0 0 0 1px rgba(255,255,255,0.04);">
-
-        <div style="height:3px;background:linear-gradient(90deg,transparent,${ac},transparent);"></div>
-
-        <div style="background:${acBg};border-bottom:1px solid ${acBd};padding:18px 22px 15px;display:flex;align-items:center;gap:13px;">
-            <div id="_tm_icon" style="width:46px;height:46px;flex-shrink:0;border-radius:50%;background:${acBg};border:2px solid ${ac};display:flex;align-items:center;justify-content:center;font-size:21px;">🔐</div>
-            <div>
-                <div style="color:${ac};font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;">Security Alert</div>
-                <div style="color:#fff;font-size:16px;font-weight:700;">Password &nbsp;Expiring &nbsp;Soon</div>
-            </div>
-            <button id="_tm_cls" style="margin-left:auto;width:28px;height:28px;flex-shrink:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:50%;color:rgba(255,255,255,0.45);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.18s;line-height:1;">×</button>
-        </div>
-
-        <div style="padding:20px 22px 16px;">
-
-            <div style="background:${acBg};border:1px solid ${acBd};border-radius:14px;padding:15px 18px;margin-bottom:16px;display:flex;align-items:center;gap:0;">
-                <div style="text-align:center;flex-shrink:0;min-width:52px;">
-                    <div style="color:${ac};font-size:48px;font-weight:900;line-height:1;letter-spacing:-3px;">${days}</div>
-                    <div style="color:rgba(255,255,255,0.42);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-top:2px;">DAY${days > 1 ? 'S' : ''}</div>
-                </div>
-                <div style="width:1px;height:46px;background:${acBd};flex-shrink:0;margin:0 16px;"></div>
-                <div style="flex:1;">
-                    <div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:3px;">${label}</div>
-                    <div style="color:rgba(255,255,255,0.42);font-size:11px;line-height:1.55;">Your password will expire and you will be automatically logged out.</div>
-                </div>
-            </div>
-
-            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                <span style="color:rgba(255,255,255,0.32);font-size:11px;">Password validity</span>
-                <span style="color:${ac};font-size:11px;font-weight:700;">${label}</span>
-            </div>
-            <div style="height:5px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden;margin-bottom:16px;">
-                <div id="_tm_bar" style="height:100%;width:0;background:${barGrd};border-radius:99px;"></div>
-            </div>
-
-            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:11px 13px;display:flex;gap:9px;align-items:flex-start;margin-bottom:16px;">
-                <span style="font-size:14px;flex-shrink:0;margin-top:1px;">💬</span>
-                <span style="color:rgba(255,255,255,0.45);font-size:11px;line-height:1.6;">Contact the <strong style="color:rgba(255,255,255,0.78);">&nbsp;administrator</strong> immediately via Telegram to renew your password before it expires.</span>
-            </div>
-
-            <div style="display:flex;gap:9px;">
-                <a href="${window.UI.contact_link}" target="_blank" id="_tm_tg" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:11px;padding:11px;display:flex;align-items:center;justify-content:center;gap:7px;color:rgba(255,255,255,0.58);font-size:12px;font-weight:500;text-decoration:none;transition:all 0.18s;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#29A8E0"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 13.667l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.978.892z"/></svg>
-                    Contact Admin
-                </a>
-                <button id="_tm_ok" style="flex:2;background:linear-gradient(135deg,${ac},${acG2});border:none;border-radius:11px;padding:12px 18px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.2px;transition:all 0.18s;box-shadow:0 4px 16px ${acG};">✓ Got it, remind me later</button>
-            </div>
-        </div>
-
-        <div style="padding:9px 22px 13px;display:flex;align-items:center;justify-content:center;gap:6px;border-top:1px solid rgba(255,255,255,0.05);">
-            <div style="width:5px;height:5px;border-radius:50%;background:${ac};opacity:.55;"></div>
-            <span style="color:rgba(255,255,255,0.2);font-size:10px;">Reminder repeats every 6 hours · Logged-in users only</span>
-        </div>
-    </div>`;
-
-    function closePopup() {
-        overlay.style.opacity = '0';
-        overlay.style.transition = 'opacity 0.22s ease';
-        setTimeout(function() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 230);
-    }
-
-    setTimeout(function() {
-        document.body.appendChild(overlay);
-        overlay.querySelector('#_tm_ok').addEventListener('click', closePopup);
-        overlay.querySelector('#_tm_cls').addEventListener('click', closePopup);
-        overlay.querySelector('#_tm_bg').addEventListener('click', closePopup);
-        document.addEventListener('keydown', function onEsc(e) {
-            if (e.key === 'Escape') { closePopup(); document.removeEventListener('keydown', onEsc); }
-        });
-    }, 1500);
-}
-// ✅ Fires on EVERY page — home, folder, search, file info
-checkPasswordExpiryWarning();
 }
 
 // Initialize login modal functionality
@@ -800,19 +617,6 @@ function initializeLoginModal() {
 
     // Close button click
     closeModalBtn.addEventListener('click', closeLoginModal);
-
-    // Password show/hide toggle
-    document.getElementById('togglePw').addEventListener('click', function() {
-        const pw = document.getElementById('password');
-        const icon = document.getElementById('eyeIcon');
-        if (pw.type === 'password') {
-            pw.type = 'text';
-            icon.className = 'fas fa-eye-slash';
-        } else {
-            pw.type = 'password';
-            icon.className = 'fas fa-eye';
-        }
-    });
 
     // Close on backdrop click
     loginModal.addEventListener('click', (e) => {
@@ -896,12 +700,6 @@ function initializeLoginModal() {
     if (error) {
         openLoginModal();
         showError(decodeURIComponent(error));
-        // ✅ FIX: Clear the ?error= param so refreshing the page doesn't
-        // re-open the modal and re-show the old error message.
-        try {
-            const cleanUrl = window.location.pathname + (urlParams.toString().replace(/error=[^&]*&?/, '').replace(/&$/, '') ? '?' + urlParams.toString().replace(/error=[^&]*&?/, '').replace(/&$/, '') : '');
-            window.history.replaceState(null, '', cleanUrl || window.location.pathname);
-        } catch (_) {}
     }
 }
 
@@ -976,10 +774,6 @@ function render(path) {
         const can_preview = getQueryVariable('a');
         const id = getQueryVariable('id');
         if (can_preview) {
-            // ✅ Show password expiry warning only on file info page (&a=view), not folder list
-            if (typeof checkPasswordExpiryWarning === 'function') {
-                checkPasswordExpiryWarning();
-            }
             return fallback(id, true)
         } else {
             return list(null, id, true);
@@ -1099,15 +893,12 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
     }
 
     function performRequest(remainingRetries) {
-        // ✅ IMPROVEMENT: Add 15s timeout so a hung server doesn't stall
-        // the request until Cloudflare Worker's CPU limit is hit.
         fetch(fallback ? "/0:fallback" : path, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(requestData),
-                signal: AbortSignal.timeout(15000)
+                body: JSON.stringify(requestData)
             })
             .then(function(response) {
                 if (response.status === 500) {
@@ -1123,10 +914,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
                     </div><br>
                   </div>`;
                     $('#update').hide();
-                    // ✅ FIX: throw instead of return 500 — returning a number lets the
-                    // next .then(res => res.data) run with res=500, silently swallowing
-                    // the error. Throwing routes it to .catch() where retries are handled.
-                    throw new Error('500');
+                    return 500
                 }
                 if (!response.ok) {
                     throw new Error('Request failed');
@@ -1895,11 +1683,6 @@ function render_search_result_list() {
             alert("Selected items copied to clipboard!");
         }
     }, { passive: true });
-
-    // ✅ Show password expiry warning on search result page as well
-    if (typeof checkPasswordExpiryWarning === 'function') {
-        checkPasswordExpiryWarning();
-    }
 }
 
 /**
@@ -2362,7 +2145,7 @@ async function fallback(id, type) {
                     window.location.href = window.location.pathname + "/";
                 } else if (fileExtension) {
                     const name = obj.name;
-                    const bytes = Number(obj.size) || 0;  // obj.size is a string from API — must coerce to Number for >= comparison
+                    const bytes = obj.size || 0;
                     const md5Checksum = obj.md5Checksum || '—';
                     const size = formatFileSize(obj.size) || '—';
                     const encoded_name = encodeURIComponent(name);
@@ -2432,7 +2215,7 @@ async function file(path) {
                 window.location.href = window.location.pathname + "/";
             } else if (fileExtension) {
                 const name = obj.name;
-                const bytes = Number(obj.size) || 0;  // obj.size is a string from API — must coerce to Number for >= comparison
+                const bytes = obj.size || 0;
                 const md5Checksum = obj.md5Checksum || '—';
                 const size = formatFileSize(obj.size) || '—';
                 const encoded_name = encodeURIComponent(name);
@@ -2548,7 +2331,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
                 </div>` : `
                 <div class="h-100 border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;">
                     <span><img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/zip-icon.png" alt="Zip Icon" style="max-width: 200px; height: auto; object-fit: contain;"></span>
-                    <span><a href="${UI.telegram_guide_zip}" target="_blank" style="text-decoration: none; color: #00d4ff;">👉🏻 How to Extract Zip file ✅</a></span>
+                    <span><a href="https://telegram.me/tamizhan_updates/51" target="_blank" style="text-decoration: none; color: #00d4ff;">👉🏻 How to Extract Zip file ✅</a></span>
                 </div>`}
             </div>
             <div class="col-lg-8 col-md-12">
@@ -2594,7 +2377,6 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${getDownloadButton(url, encoded_name, file_id, bytes)}
-            ${_canSeePlayerMenu(bytes) ? `
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2603,7 +2385,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-                        </div>` : ''}
+                        </div>
           </div>
         </div>
       </div>`}
@@ -2700,7 +2482,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${getDownloadButton(url, encoded_name, file_id, bytes)}
-            ${_canSeePlayerMenu(bytes) ? `
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2709,7 +2490,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
                             <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-                     </div>` : ''}
+                     </div>
           </div>
         </div>
       </div>`}
@@ -2777,29 +2558,23 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 //                                    streaming.
 // =============================================================================
 function shouldDisablePlayer(bytes) {
+    // Master switch on → always hide, no matter the size
     if (UI.disable_player) return true;
-    // ✅ IMPROVE: use player_disable_threshold_gb when set, fall back to
-    // gdflix_large_file_threshold_gb for backwards compatibility, then 10 GB.
-    // Previously only the gdflix key was used here which is semantically wrong —
-    // the two thresholds can diverge independently.
-    const thresholdGb = UI.player_disable_threshold_gb || UI.gdflix_large_file_threshold_gb || 10;
-    const thresholdBytes = thresholdGb * 1024 * 1024 * 1024;
+
+    // Otherwise hide only for files at/above the GDflix large-file threshold
+    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
     return bytes >= thresholdBytes;
 }
 
-// Document display video  mkv|mp4|webm|avi|
-function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-    // Define all player icons
+  // Document display video  mkv|mp4|webm|avi|
+   function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+     // Define all player icons
     const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    // iPhone player icons
-    const vlc_ios_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC for iOS" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const infuse_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Infuse.png" alt="Infuse" style="height: 32px; width: 32px; margin-right: 5px;">`;
-
-    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
+      const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
       let player = '';
       let player_js = '';
       let player_css = '';
@@ -2967,22 +2742,16 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
           ${getDownloadButton(url, encoded_name, file_id, bytes)}
-            ${_canSeePlayerMenu(bytes) ? `
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
             </button>
-            <div class="dropdown-menu dropdown-menu-end">
-              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-android" style="color:#3ddc84;"></i>&nbsp;&nbsp;Android Players</h6>
+            <div class="dropdown-menu">
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
-              <div class="dropdown-divider"></div>
-              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-apple" style="color:#fff;"></i>&nbsp;&nbsp;iPhone Players</h6>
-              <a class="dropdown-item" href="vlc-x-callback://x-callback-url/stream?url=${encodeURIComponent(url)}">${vlc_ios_icon} VLC (iOS)</a>
-              <a class="dropdown-item" href="infuse://x-callback-url/play?url=${encodeURIComponent(url)}">${infuse_icon} Infuse</a>
-             </div>` : ''}
+             </div>
            </div>
          </div>`}
        </div>
@@ -2992,12 +2761,19 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
   // GDFlix handler is registered once at module level (see bottom of file)
 
   // Load player script — skip entirely on iOS unsupported formats
+    if (!shouldDisablePlayer(bytes) && player_js && !_iosCantPlay) {
     var videoJsScript = document.createElement('script');
     videoJsScript.src = player_js;
     videoJsScript.onload = function() {
         // Video.js is loaded, initialize the player
         if (player_config.player == "plyr") {
-            const player = new Plyr('#player');
+            // ✅ FIX: iOS-safe Plyr config — prevents autoplay policy conflicts on iPhone
+            const player = new Plyr('#player', {
+                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+                autoplay: false,
+                playsinline: true,
+                ratio: '16:9'
+            });
         } else if (player_config.player == "videojs") {
             const player = new videojs('vplayer');
         } else if (player_config.player == "dplayer") {
@@ -3034,14 +2810,16 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
                 },
             });
         }
-
     };
     document.head.appendChild(videoJsScript);
 
+    if (player_css) {
     var videoJsStylesheet = document.createElement('link');
     videoJsStylesheet.href = player_css;
     videoJsStylesheet.rel = 'stylesheet';
     document.head.appendChild(videoJsStylesheet);
+    }
+    }
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
@@ -3104,7 +2882,6 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </button>
-                            ${_canSeePlayerMenu(bytes) ? `
                             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split"
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="sr-only"></span>
@@ -3114,7 +2891,7 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
                                 <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
                                 <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
                                 <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
-                            </div>` : ''}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3175,11 +2952,8 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
 // PERF: Intl.DateTimeFormat cached once at startup.
 // Old approach used toLocaleString() which creates a new formatter object
 // internally on every call — costs 10-50ms each, especially on mobile.
-// ✅ IMPROVE: timezone is now read from UI.display_timezone (set in uiConfig),
-// falling back to 'Asia/Jakarta' for backwards compatibility.
-const _displayTimezone = (window.UI && window.UI.display_timezone) ? window.UI.display_timezone : 'Asia/Jakarta';
 const _jakartaFmt = new Intl.DateTimeFormat('en-CA', {
-    timeZone: _displayTimezone,
+    timeZone: 'Asia/Jakarta',
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', hour12: false
 });
@@ -3220,17 +2994,24 @@ function formatMimeType(mime) {
   return mime;
 }
 
-// bytes adaptive conversion to KB, MB, GB, TB
-// ✅ IMPROVE: each branch returns directly — avoids reassigning a numeric
-// param to a string which is confusing and prevents reusing the original value.
+// bytes adaptive conversion to KB, MB, GB
 function formatFileSize(bytes) {
-    if (bytes >= 1099511627776) return (bytes / 1099511627776).toFixed(2) + ' TB';
-    if (bytes >= 1073741824)    return (bytes / 1073741824).toFixed(2) + ' GB';
-    if (bytes >= 1048576)       return (bytes / 1048576).toFixed(2) + ' MB';
-    if (bytes >= 1024)          return (bytes / 1024).toFixed(2) + ' KB';
-    if (bytes > 1)              return bytes + ' bytes';
-    if (bytes === 1)            return '1 byte';
-    return '';
+    if (bytes >= 1099511627776) {
+        bytes = (bytes / 1099511627776).toFixed(2) + ' TB';
+    } else if (bytes >= 1073741824) {
+        bytes = (bytes / 1073741824).toFixed(2) + ' GB';
+    } else if (bytes >= 1048576) {
+        bytes = (bytes / 1048576).toFixed(2) + ' MB';
+    } else if (bytes >= 1024) {
+        bytes = (bytes / 1024).toFixed(2) + ' KB';
+    } else if (bytes > 1) {
+        bytes = bytes + ' bytes';
+    } else if (bytes === 1) {
+        bytes = bytes + ' byte';
+    } else {
+        bytes = '';
+    }
+    return bytes;
 }
 
 
@@ -3290,9 +3071,6 @@ function copyFunction() {
         })
         .catch(function(error) {
             logError("Failed to copy text: ", error);
-            // ✅ FIX: navigator.clipboard is only available in secure contexts (HTTPS).
-            // Fall back to the legacy execCommand copy so the user still gets feedback.
-            _legacyCopy(copyText.value);
         });
 }
 
