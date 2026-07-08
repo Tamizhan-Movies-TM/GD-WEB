@@ -259,6 +259,7 @@ class LiveBar:
         self._lt    = time.time()
         self._spd   = 0.0
         self._alive = True
+        self._fx_spd = 0.0   # ffmpeg speed multiplier (e.g. 2.5x)
         threading.Thread(target=self._loop, daemon=True).start()
 
     def update(self, n):
@@ -271,6 +272,11 @@ class LiveBar:
                 self._spd = (self.done - self._lb) / dt
                 self._lb  = self.done
                 self._lt  = now
+
+    def set_fx_speed(self, speed_x):
+        """Set the ffmpeg speed multiplier for display (e.g. 2.5 for 2.5x)."""
+        with self._lock:
+            self._fx_spd = speed_x
 
     def _loop(self):
         while self._alive:
@@ -287,10 +293,11 @@ class LiveBar:
             eta    = (self.total - self.done) / spd if spd > 0 else 0
             ela    = int(time.time() - self._t0)
             ph     = f" {D}{self.phase}{X}" if self.phase else ""
+            fx_s   = f" {M}{self._fx_spd:.1f}x{X}" if self._fx_spd > 0 else ""
             print(
                 f"\r  {C}{self.label:<26}{X}{ph} [{bar}] "
                 f"{pct * 100:5.1f}%  {_fmt_size(self.done)}/{_fmt_size(self.total)}  "
-                f"{Y}{spd_s}{X}  ETA {_fmt_eta(eta)}  {ela}s   ",
+                f"{Y}{spd_s}{X}{fx_s}  ETA {_fmt_eta(eta)}  {ela}s   ",
                 end="", flush=True,
             )
 
@@ -988,6 +995,20 @@ def _has_transcode_audio(audio_tracks):
     return any(t.get("codec", "").lower() in _TRANSCODE_CODECS for t in audio_tracks)
 
 
+def _get_duration_us(fp):
+    """Return total video duration in microseconds via ffprobe, or 0 on failure."""
+    try:
+        r = subprocess.run(
+            ["ffprobe", "-v", "quiet", "-print_format", "json",
+             "-show_format", str(fp)],
+            capture_output=True, text=True, timeout=30,
+        )
+        dur = json.loads(r.stdout).get("format", {}).get("duration", "0")
+        return int(float(dur) * 1_000_000)
+    except Exception:
+        return 0
+
+
 # ══════════════════════════════════════════════════════════════════════
 #  MKVPROPEDIT HEADER CLEAN
 # ══════════════════════════════════════════════════════════════════════
@@ -1107,7 +1128,10 @@ def _build_remux_cmd(src, tmp, sorted_audio, eng_subs, engine):
             disp_args += [f"-disposition:a:{i}", "default+forced" if i == 0 else "0"]
             # Transcode E-AC3 / AC3 / TrueHD / DTS → AAC; copy everything else
             if t.get("codec", "").lower() in _TRANSCODE_CODECS:
-                codec_args += [f"-c:a:{i}", "aac", f"-b:a:{i}", "192k", f"-ac:{i}", "2"]
+                ch = t.get("channels") or 2
+                # keep original channels; cap bitrate by channel count
+                brate = "320k" if int(ch) >= 6 else "192k"
+                codec_args += [f"-c:a:{i}", "aac", f"-b:a:{i}", brate]
             else:
                 codec_args += [f"-c:a:{i}", "copy"]
 
@@ -1124,6 +1148,8 @@ def _build_remux_cmd(src, tmp, sorted_audio, eng_subs, engine):
 
         return [
             "ffmpeg", "-y", "-loglevel", "error",
+            "-threads", "0",               # use all CPU cores
+            "-progress", "pipe:1", "-stats_period", "1",
             "-i", str(src),
             *map_args,
             "-c:v", "copy",        # video — never re-encode
@@ -1219,6 +1245,7 @@ def _run_remux(src, tmp, sorted_audio, eng_subs, engine):
     fsize = src.stat().st_size
     bar   = LiveBar(fsize, src.stem[:26], phase="⚙ Remux")
     errors = []
+    duration_us = _get_duration_us(src) if engine == "ffmpeg" else 0
 
     try:
         proc = subprocess.Popen(
@@ -1229,15 +1256,30 @@ def _run_remux(src, tmp, sorted_audio, eng_subs, engine):
         bpp      = max(fsize / 100.0, 1)
 
         for line in proc.stdout:
-            m = re.search(r"Progress:\s*(\d+)%", line.strip())
+            stripped = line.strip()
+            # mkvmerge: "Progress: 42%"
+            m = re.search(r"Progress:\s*(\d+)%", stripped)
             if m:
                 pct   = int(m.group(1))
                 delta = pct - last_pct
                 if delta > 0:
                     bar.update(int(delta * bpp))
                     last_pct = pct
-            elif re.search(r"\bError\b", line, re.IGNORECASE):
-                errors.append(line.strip())
+            else:
+                # ffmpeg -progress pipe:1: "out_time_us=NNNN"
+                m2 = re.search(r"out_time_us=(\d+)", stripped)
+                if m2 and duration_us > 0:
+                    pct   = min(int(int(m2.group(1)) / duration_us * 100), 100)
+                    delta = pct - last_pct
+                    if delta > 0:
+                        bar.update(int(delta * bpp))
+                        last_pct = pct
+                else:
+                    ms = re.search(r"speed=\s*([\d.]+)x?", stripped)
+                    if ms:
+                        bar.set_fx_speed(float(ms.group(1)))
+                    elif re.search(r"\bError\b", stripped, re.IGNORECASE):
+                        errors.append(stripped)
 
         proc.wait()
         bar.update(fsize - bar.done)
@@ -1339,7 +1381,9 @@ def _run_remux_with_titles(src, tmp, sorted_audio, eng_subs, engine):
             disp_args += [f"-disposition:a:{i}", "default+forced" if i == 0 else "0"]
             # Transcode E-AC3 / AC3 / TrueHD / DTS → AAC; copy everything else
             if t.get("codec", "").lower() in _TRANSCODE_CODECS:
-                codec_args += [f"-c:a:{i}", "aac", f"-b:a:{i}", "192k", f"-ac:{i}", "2"]
+                ch = t.get("channels") or 2
+                brate = "320k" if int(ch) >= 6 else "192k"
+                codec_args += [f"-c:a:{i}", "aac", f"-b:a:{i}", brate]
             else:
                 codec_args += [f"-c:a:{i}", "copy"]
 
@@ -1357,6 +1401,8 @@ def _run_remux_with_titles(src, tmp, sorted_audio, eng_subs, engine):
 
         cmd = [
             "ffmpeg", "-y", "-loglevel", "error",
+            "-threads", "0",               # use all CPU cores
+            "-progress", "pipe:1", "-stats_period", "1",
             "-i", str(src),
             *map_args,
             "-c:v", "copy",        # video — never re-encode
@@ -1367,6 +1413,7 @@ def _run_remux_with_titles(src, tmp, sorted_audio, eng_subs, engine):
         ]
 
     errors = []
+    duration_us = _get_duration_us(src) if engine == "ffmpeg" else 0
     try:
         proc = subprocess.Popen(
             cmd, stdout=subprocess.PIPE,
@@ -1376,15 +1423,30 @@ def _run_remux_with_titles(src, tmp, sorted_audio, eng_subs, engine):
         bpp      = max(fsize / 100.0, 1)
 
         for line in proc.stdout:
-            m = re.search(r"Progress:\s*(\d+)%", line.strip())
+            stripped = line.strip()
+            # mkvmerge: "Progress: 42%"
+            m = re.search(r"Progress:\s*(\d+)%", stripped)
             if m:
                 pct   = int(m.group(1))
                 delta = pct - last_pct
                 if delta > 0:
                     bar.update(int(delta * bpp))
                     last_pct = pct
-            elif re.search(r"\bError\b", line, re.IGNORECASE):
-                errors.append(line.strip())
+            else:
+                # ffmpeg -progress pipe:1: "out_time_us=NNNN" or "speed=N.NNx"
+                m2 = re.search(r"out_time_us=(\d+)", stripped)
+                if m2 and duration_us > 0:
+                    pct   = min(int(int(m2.group(1)) / duration_us * 100), 100)
+                    delta = pct - last_pct
+                    if delta > 0:
+                        bar.update(int(delta * bpp))
+                        last_pct = pct
+                else:
+                    ms = re.search(r"speed=\s*([\d.]+)x?", stripped)
+                    if ms:
+                        bar.set_fx_speed(float(ms.group(1)))
+                    elif re.search(r"\bError\b", stripped, re.IGNORECASE):
+                        errors.append(stripped)
 
         proc.wait()
         bar.update(fsize - bar.done)
