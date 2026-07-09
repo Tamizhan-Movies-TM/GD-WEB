@@ -7,7 +7,7 @@ drive.mount('/content/drive')
 print("✅ Auth & Drive ready!")
 
 # ── Step 2: Download & Run Script ────────────────────────────────────
-url = "https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@ea88481efc32675e4ca3382a1b54ade352c9e95e/privacy/tamizhan_v9.1.py"
+url = "https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/privacy/tamizhan_v9.1.py"
 print(f"🔄 Loading script...")
 code = urllib.request.urlopen(url).read().decode()
 print("🚀 Starting Tamizhan v9.1...\n")
