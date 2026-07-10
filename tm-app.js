@@ -3440,10 +3440,12 @@ function generateGDFlixLink(fileId) {
         })
         .then(response => {
             log('GDFlix - Response status:', response.status);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
+            return response.json().then(data => {
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                }
+                return data;
+            });
         })
         .then(data => {
             log('GDFlix - Worker response:', data);
