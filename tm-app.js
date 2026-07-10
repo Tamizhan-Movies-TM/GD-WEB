@@ -3421,7 +3421,7 @@ function generateGDFlixLink(fileId) {
         // ✅ Browser-direct call — only approach that works (GDFlix blocks all server IPs)
         // API key is server-side only concern; browser calls use real user IP which is never blocked
         const _gdflixKey = '34559655cfedb7f5422c64e80c6a02ff';
-        const _gdflixUrl = `https://gdflix.com/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(_gdflixKey)}`;
+        const _gdflixUrl = `https://ddflix.xyz/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(_gdflixKey)}`;
 
         const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         var newTab = _isSafari ? window.open('', '_blank') : null;
