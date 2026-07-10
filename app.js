@@ -1,5 +1,5 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
-// v2.6.0
+// v2.3.6
 
 // =============================================================================
 // OPTIMIZATION: Conditional Logging
@@ -541,12 +541,6 @@ strong {
   </div>
 </div>
 <button id="back-to-top" class="btn btn-secondary btn-lg back-to-top shadow border border-light" style="--bs-border-opacity: .4;" role="button"><i class="fas fa-chevron-up m-0"></i></button>
-${UI.show_quota ? `<div id="tm-quota-bar" style="display:none; padding:6px 16px; background:rgba(0,0,0,0.3); font-size:12px; color:rgba(255,255,255,.7);">
-  <span id="tm-quota-text"></span>
-  <div style="height:4px; background:rgba(255,255,255,.15); border-radius:2px; margin-top:4px;">
-    <div id="tm-quota-fill" style="height:4px; border-radius:2px; width:0%; background:#4caf50; transition:width 0.4s;"></div>
-  </div>
-</div>` : ''}
 <footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
     <div class="container" style="padding-top: 15px;">
       <div class="row">
@@ -1033,11 +1027,6 @@ function list(path, id = '', fallback = false) {
         <div class="card-header d-flex align-items-center gap-2">
             <span>${folder_ico}</span><span class="w-100 text-truncate" id="dirname">${folder_name}</span>
         </div>
-        <div class="d-flex align-items-center gap-2 px-3 py-1" id="tm-sort-bar" style="background:rgba(0,0,0,0.4); border-bottom:1px solid rgba(255,255,255,.1); font-size:12px; color:rgba(255,255,255,.55);">
-            <span style="flex:1;">Sort:</span>
-            <button class="btn btn-sm py-0 tm-sort-btn" data-col="name" style="font-size:11px; color:#fff; border:1px solid rgba(255,255,255,.4); background:transparent;">Name <span class="tm-sort-icon"></span></button>
-            <button class="btn btn-sm py-0 tm-sort-btn" data-col="size" style="font-size:11px; color:#fff; border:1px solid rgba(255,255,255,.4); background:transparent;">Size <span class="tm-sort-icon"></span></button>
-        </div>
         <div id="list" class="list-group list-group-flush text-break">
         </div>
         <div class="card-footer text-muted d-flex align-items-center gap-2" id="count">
@@ -1061,6 +1050,8 @@ function list(path, id = '', fallback = false) {
             title(res['name']);
             $('#dirname').html(res['name']);
         }
+        $('#sharer').attr('href', 'https://kaceku.onrender.com/f/' + res['fid']);
+        $('#sharer').removeClass('d-none');
         $('#list')
             .data('nextPageToken', res['nextPageToken'])
             .data('curPageIndex', res['curPageIndex']);
@@ -1263,14 +1254,13 @@ function append_files_to_fallback_list(path, files) {
                 // Prepare item data for modal — set size/md5 fields expected by onSearchResultItemClick
                 const _fItem = Object.assign({}, item, { size: folderSizeStr, md5Checksum: '—' });
                 const _fItemJson = JSON.stringify(_fItem).replace(/"/g, '&quot;');
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${item.folderSize || 0}"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
                 ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="Open Folder"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
             } else {
                 totalsize = totalsize + Number(item.size || 0);
                 item['size'] = formatFileSize(item['size']) || '—';
                 is_file = true;
                 const epn = item.name;
-                const rawBytesF = Number(files[i].size || 0);
                 const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
                 let pn = path + epn.replace(_reHash, '%23').replace(_reQ, '%3F');
                 let c = "file";
@@ -1300,7 +1290,7 @@ function append_files_to_fallback_list(path, files) {
                 const _fileLink = _isArchive
                     ? `href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel"`
                     : `href="${p}&a=view"`;
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytesF}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" ${_fileLink}><span>`
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" ${_fileLink}><span>`
 
                 html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1357,7 +1347,6 @@ function append_files_to_fallback_list(path, files) {
     // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
-        initTMSort();
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
             const total_size_str = formatFileSize(totalsize) || '0 Bytes';
@@ -1418,11 +1407,10 @@ function append_files_to_list(path, files) {
         // replace / with %2F
         if (item['mimeType'] == 'application/vnd.google-apps.folder') {
             const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${item.folderSize || 0}"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
             ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
         } else {
-            const rawBytes = Number(item.size || 0);
-            totalsize = totalsize + rawBytes;
+            totalsize = totalsize + Number(item.size || 0);
             item['size'] = formatFileSize(item['size']) || '—';
             is_file = true;
             const epn = item.name;
@@ -1448,7 +1436,7 @@ function append_files_to_list(path, files) {
             pn += "?a=view";
             c += " view";
             //}
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytes}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
 
             html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1505,7 +1493,6 @@ function append_files_to_list(path, files) {
     // When it is page 1, remove the horizontal loading bar
     // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
-    initTMSort();
     // When it is the last page, count and display the total number of items
     if (is_lastpage_loaded) {
         total_size = formatFileSize(totalsize) || '0 Bytes';
@@ -1557,11 +1544,6 @@ function render_search_result_list() {
         <div class="card-header">
             <div class="text-truncate"><i class="fas fa-search fa-fw"></i> Search: <code>${model.q}</code></div>
             ${searchBar}
-        </div>
-        <div class="d-flex align-items-center gap-2 px-3 py-1" id="tm-sort-bar" style="background:rgba(0,0,0,0.4); border-bottom:1px solid rgba(255,255,255,.1); font-size:12px; color:rgba(255,255,255,.55);">
-            <span style="flex:1;">Sort:</span>
-            <button class="btn btn-sm py-0 tm-sort-btn" data-col="name" style="font-size:11px; color:#fff; border:1px solid rgba(255,255,255,.4); background:transparent;">Name <span class="tm-sort-icon"></span></button>
-            <button class="btn btn-sm py-0 tm-sort-btn" data-col="size" style="font-size:11px; color:#fff; border:1px solid rgba(255,255,255,.4); background:transparent;">Size <span class="tm-sort-icon"></span></button>
         </div>
         <div id="list" class="list-group list-group-flush text-break">
             <div class="d-flex justify-content-center"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>
@@ -1720,7 +1702,7 @@ function append_search_result_to_list(files) {
                 item['md5Checksum'] = '—';
                 const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
                 const folderDirectUrl = '/fallback?id=' + encodeURIComponent(item['id']);
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${item.folderSize || 0}"><a href="${folderDirectUrl}" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
+                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}"><a href="${folderDirectUrl}" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
                 continue;
             }
 
@@ -1731,13 +1713,12 @@ function append_search_result_to_list(files) {
 
             // Only process files (folders handled above)
             is_file = true;
-            const rawBytesS = Number(item.size || 0);
-            totalsize = totalsize + rawBytesS;
+            totalsize = totalsize + Number(item.size || 0);
             item['size'] = formatFileSize(item['size']) || '—';
             item['md5Checksum'] = item['md5Checksum'] || '—';
             const ext = item.fileExtension;
             const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytesS}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2" gd-type="${item['mimeType']}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
 
             html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -1750,7 +1731,6 @@ function append_search_result_to_list(files) {
         // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
-        initTMSort();
 
         // ── Background prefetch: warm _shortenerCache for all visible files ──────
         // Only runs when show_url_shortener=true and user is NOT logged in.
@@ -1990,10 +1970,32 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // ===== Show GPLinks and Nowshort =====
         log('Showing GPLinks and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
+        // ── Redirect Server Rotator ────────────────────────────────────────────
+        const _rotatorServers = [
+            { base: 'https://loan.sssbiotic.com/new.php',             param: 'link' },
+            { base: 'https://brilliantbihar.com/now.php',             param: 'link' },
+					  { base: 'https://loan.ojasjobs24.com/ok.php',             param: 'link' },
+					  { base: 'https://loan.mytpguide.com/join.php',            param: 'link' },
+					  { base: 'https://autosimplify.in/zip.php',                param: 'link' },
+        ];
+
+        function _extractNowshortCode(url) {
+            try {
+                const u = new URL(url);
+                const q = u.searchParams.get('link') || u.searchParams.get('code') || u.searchParams.get('id');
+                if (q) return q;
+                const parts = u.pathname.split('/').filter(Boolean);
+                return parts.length ? parts[parts.length - 1] : null;
+            } catch (_) { return null; }
+        }
+
         function _rotateNowshortUrl(nowshortUrl) {
-            // Use nowshort URL directly — no rotator
-            log('Nowshort URL:', nowshortUrl);
-            return nowshortUrl;
+            const code = _extractNowshortCode(nowshortUrl);
+            if (!code) return nowshortUrl;
+            const s = _rotatorServers[Math.floor(Math.random() * _rotatorServers.length)];
+            const rotated = `${s.base}?${s.param}=${encodeURIComponent(code)}`;
+            log('Nowshort rotator:', nowshortUrl, '→', rotated);
+            return rotated;
         }
         // ── End Rotator ───────────────────────────────────────────────────────
 
@@ -2154,13 +2156,13 @@ async function fallback(id, type) {
                     var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
                     if (mimeType.includes("video") || video.includes(fileExtension)) {
                         poster = obj.thumbnailLink ? poster : UI.poster;
-                        file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
-                        file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else if (code.includes(fileExtension)) {
                         file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     } else {
-                        file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                     }
                 }
             })
@@ -2224,13 +2226,13 @@ async function file(path) {
                 var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
                 if (mimeType.includes("video") || video.includes(fileExtension)) {
                     poster = obj.thumbnailLink ? poster : UI.poster;
-                    file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
-                    file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else if (code.includes(fileExtension)) {
                     file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 } else {
-                    file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
                 }
             }
         })
@@ -2263,54 +2265,7 @@ function generateCopyFileBox(file_id, cookie_folder_id) {
 }
 
 // Document display |zip|.exe/others direct downloads
-// =============================================================================
-// DOWNLOAD BUTTON HELPER
-// Decides whether non-login users get a GDflix link or a direct download button.
-//
-// Logic controlled by two UI config flags (set in worker-tm.js):
-//   enable_gdflix_for_non_login        — master switch. If false → always direct download.
-//   gdflix_large_file_only             — if true → GDflix only for files ≥ threshold GB.
-//                                         if false → GDflix for ALL non-login users (old behaviour).
-//   gdflix_large_file_threshold_gb     — size threshold in GB (default 10).
-//
-// Logged-in users ALWAYS get direct download regardless of settings.
-// =============================================================================
-function getDownloadButton(url, encoded_name, file_id, bytes) {
-    // Logged-in users → always direct download
-    if (isUserLoggedIn()) {
-        return `<button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>`;
-    }
-
-    // GDflix master switch off → always direct download for everyone
-    if (!UI.enable_gdflix_for_non_login) {
-        return `<button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>`;
-    }
-
-    // Non-login user, GDflix enabled — check gdflix_large_file_only setting
-    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
-    const useGdflix = UI.gdflix_large_file_only
-        ? (bytes >= thresholdBytes)   // true → GDflix only for large files
-        : true;                        // false → GDflix for all non-login users
-
-    if (useGdflix) {
-        return `<a type="button" class="btn btn-success download-via-gdflix" data-file-id="${file_id}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </a>`;
-    } else {
-        return `<button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>`;
-    }
-}
-
-function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+function file_others(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
     // Add the container and card elements // wait until image is loaded and then hide spinner
@@ -2326,7 +2281,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
                     <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5; opacity: 0;">
                         <span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
                         <span>Preview</span>
-                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${escapeHtml(name)}"></a>
+                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${name}"></a>
                     </div>
                 </div>` : `
                 <div class="h-100 border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;">
@@ -2376,7 +2331,15 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${getDownloadButton(url, encoded_name, file_id, bytes)}
+          ${isUserLoggedIn() || !UI.enable_gkyfilehost
+    ? `<button type="button" class="btn btn-success tm-download-btn"
+               data-url="${url}" data-name="${encoded_name}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </button>`
+    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </a>`
+    }
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2396,7 +2359,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
     // GDFlix handler is registered once at module level (see bottom of file)
 
     $('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
-    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${escapeHtml(name)}" title="Preview of ${escapeHtml(name)}">`;
+    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
     var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
     $('#modal-body-space').html(preview);
     $('#modal-body-space-buttons').html(btn);
@@ -2429,13 +2392,13 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             <div class="col-lg-4 col-md-12">
                 <div id="preview" class="h-100 border border-dark rounded d-flex justify-content-center align-items-center position-relative" style="--bs-border-opacity: .5;">
                     <div id="code_spinner"></div>
-                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/monokai.min.css">
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/monokai.min.css">
                     <pre id="pre" class="rounded mb-0" style="height: 251px;"><code id="editor" class="h-100" style="white-space: pre-wrap; word-wrap: break-word;"></code></pre>
                     ${bytes >= 1024 * 1024 * 2 && poster ? `
                     <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5; opacity: 0;">
                         <span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
                         <span>Preview</span>
-                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${escapeHtml(name)}"></a>
+                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${name}"></a>
                     </div>` : ``}
                 </div>
             </div>
@@ -2481,7 +2444,15 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${getDownloadButton(url, encoded_name, file_id, bytes)}
+          ${isUserLoggedIn() || !UI.enable_gkyfilehost
+    ? `<button type="button" class="btn btn-success tm-download-btn"
+               data-url="${url}" data-name="${encoded_name}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </button>`
+    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </a>`
+     }
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2501,7 +2472,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     // GDFlix handler is registered once at module level (see bottom of file)
 
     $('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
-    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${escapeHtml(name)}" title="Preview of ${escapeHtml(name)}">`;
+    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${name}" title="Preview of ${name}">`;
     var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
     $('#modal-body-space').html(preview);
     $('#modal-body-space-buttons').html(btn);
@@ -2544,30 +2515,8 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 }
 
 
-// =============================================================================
-// PLAYER VISIBILITY HELPER
-// Decides whether the inline audio/video player should be hidden.
-//
-// Logic controlled by UI config flags (set in worker-tm.js):
-//   disable_player                — master switch. If true → ALWAYS hide the player,
-//                                    regardless of file size.
-//   gdflix_large_file_threshold_gb — size threshold in GB (default 10). Files AT or
-//                                    ABOVE this size get the player hidden too — for
-//                                    EVERYONE, login and non-login — nudging large
-//                                    files towards the GDflix link instead of inline
-//                                    streaming.
-// =============================================================================
-function shouldDisablePlayer(bytes) {
-    // Master switch on → always hide, no matter the size
-    if (UI.disable_player) return true;
-
-    // Otherwise hide only for files at/above the GDflix large-file threshold
-    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
-    return bytes >= thresholdBytes;
-}
-
   // Document display video  mkv|mp4|webm|avi|
-   function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+   function file_video(name, encoded_name, size, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
      // Define all player icons
     const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
@@ -2594,7 +2543,7 @@ function shouldDisablePlayer(bytes) {
         _unsupportedExt.some(e => _nameLower.endsWith(e))
       );
 
-      if (!shouldDisablePlayer(bytes)) {
+      if (!UI.disable_player) {
         if (_iosCantPlay) {
             // ── Show "Open in App" card — VLC (orange) + Infuse (yellow) ─
             const _ext = _nameLower.split('.').pop().toUpperCase();
@@ -2741,7 +2690,15 @@ function shouldDisablePlayer(bytes) {
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
           data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${getDownloadButton(url, encoded_name, file_id, bytes)}
+          ${isUserLoggedIn() || !UI.enable_gkyfilehost
+    ? `<button type="button" class="btn btn-success tm-download-btn"
+               data-url="${url}" data-name="${encoded_name}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </button>`
+    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </a>`
+    }
             <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
                     data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="sr-only"></span>
@@ -2761,7 +2718,7 @@ function shouldDisablePlayer(bytes) {
   // GDFlix handler is registered once at module level (see bottom of file)
 
   // Load player script — skip entirely on iOS unsupported formats
-    if (!shouldDisablePlayer(bytes) && player_js && !_iosCantPlay) {
+    if (!UI.disable_player && player_js && !_iosCantPlay) {
     var videoJsScript = document.createElement('script');
     videoJsScript.src = player_js;
     videoJsScript.onload = function() {
@@ -2823,7 +2780,7 @@ function shouldDisablePlayer(bytes) {
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
-function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+function file_audio(name, encoded_name, size, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
     // Add the container and card elements
@@ -2840,14 +2797,14 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
             <i class="fas fa-file-alt fa-fw"></i>File Information
         </div>
         <div class="card-body row g-3">
-            ${!shouldDisablePlayer(bytes) ? `
+            ${!UI.disable_player ? `
             <div class="col-lg-4 col-md-12">
                 <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
                     ${player}
                 </div>
             </div>
             ` : ''}
-            <div class="${shouldDisablePlayer(bytes) ? 'col-12' : 'col-lg-8 col-md-12'}">
+            <div class="${UI.disable_player ? 'col-12' : 'col-lg-8 col-md-12'}">
                 <table class="table table-dark">
                     <tbody>
                         <tr>
@@ -2878,10 +2835,15 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
                     <div class="text-center">
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
-                           <button type="button" class="btn btn-success tm-download-btn"
+                           ${isUserLoggedIn() || !UI.enable_gkyfilehost
+    ? `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>
+       </button>`
+    : `<a type="button" class="btn btn-success download-via-gkyfilehost" data-file-id="${file_id}">
+         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
+       </a>`
+    }
                             <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split"
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <span class="sr-only"></span>
@@ -2902,7 +2864,7 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
     $("#content").html(content);
 
     // Initialize player if enabled
-    if (!shouldDisablePlayer(bytes) && player_js) {
+    if (!UI.disable_player && player_js) {
         const script = document.createElement('script');
         script.src = player_js;
         script.onload = () => {
@@ -3040,7 +3002,6 @@ window.onpopstate = function() {
 
 $(function() {
     init();
-    if (window.UI?.show_quota) fetchQuota();
     var path = window.location.pathname;
     /*$("body").on("click", '.folder', function () {
         var url = $(this).attr('href');
@@ -3245,14 +3206,180 @@ function generateGDFlixLink(fileId) {
     });
 }
 
+// Update the generateGKYFILEHOSTLink function to call the worker endpoint
+function generateGKYFILEHOSTLink(fileId, fileName) {
+    return new Promise((resolve, reject) => {
+        log('GKYFILEHOST - Received fileId:', fileId);
+        log('GKYFILEHOST - Received fileName:', fileName);
+
+        if (!fileId) {
+            logError('GKYFILEHOST - No file ID provided');
+            alert('Error: No file ID provided');
+            reject(new Error('No file ID provided'));
+            return;
+        }
+
+        fileId = String(fileId).trim();
+
+        if (fileId === '') {
+            logError('GKYFILEHOST - Empty file ID');
+            alert('Error: Empty file ID');
+            reject(new Error('Empty file ID'));
+            return;
+        }
+
+        // Try to get filename from page if not provided
+        if (!fileName) {
+            try {
+                // Try to find the filename from the page title or heading
+                const titleElement = document.querySelector('h5.card-title');
+                if (titleElement) {
+                    fileName = titleElement.textContent.trim();
+                }
+            } catch (e) {
+                log('GKYFILEHOST - Could not extract filename from page');
+            }
+        }
+
+        log('GKYFILEHOST - Final fileName:', fileName || 'download');
+        log('GKYFILEHOST - Requesting link generation from worker...');
+        log('GKYFILEHOST - File ID being sent:', fileId);
+
+        // Show a loading indicator (you can customize this)
+        const loadingMsg = 'Generating GKYFILEHOST link... Please wait...';
+        log(loadingMsg);
+
+        // Make request to worker endpoint (FIXED: Changed from /generate-gkyfilehost to /gkyfilehost)
+        fetch('/gkyfilehost', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                file_id: fileId,
+                file_name: fileName || 'download'
+            })
+        })
+        .then(response => {
+            log('GKYFILEHOST - Response status:', response.status);
+            log('GKYFILEHOST - Response OK:', response.ok);
+
+            // Try to get the response body even if status is not OK
+            return response.json().then(data => {
+                return { status: response.status, ok: response.ok, data: data };
+            }).catch(() => {
+                // If JSON parsing fails, try to get text
+                return response.text().then(text => {
+                    return { status: response.status, ok: response.ok, data: { error: text } };
+                });
+            });
+        })
+        .then(result => {
+            log('GKYFILEHOST - Full response:', result);
+
+            if (!result.ok) {
+                // Show specific error from server
+                const errorMsg = result.data.error || result.data.details || `HTTP error! status: ${result.status}`;
+                logError('GKYFILEHOST - Server error:', errorMsg);
+                throw new Error(errorMsg);
+            }
+
+            const data = result.data;
+            log('GKYFILEHOST - Worker response data:', data);
+
+            if (data.success && (data.link || data.gkyfilehost_link)) {
+                const gkyLink = data.link || data.gkyfilehost_link;
+                log('GKYFILEHOST - Generated link:', gkyLink);
+
+                // Validate the link format
+                if (!gkyLink.includes('gkyfilehost')) {
+                    logError('GKYFILEHOST - Warning: Link does not contain gkyfilehost domain');
+                }
+
+                // Open the GKYFILEHOST link directly in a new tab
+                window.open(gkyLink, '_blank');
+
+                // Show success message
+                log('✅ GKYFILEHOST link generated successfully!');
+
+                resolve(gkyLink);
+            } else {
+                const errorMsg = data.error || 'Failed to generate GKYFILEHOST link - no link in response';
+                logError('GKYFILEHOST - Error from server:', errorMsg);
+                throw new Error(errorMsg);
+            }
+        })
+        .catch(error => {
+            logError('GKYFILEHOST Error:', error);
+            logError('GKYFILEHOST Error stack:', error.stack);
+
+            // Show user-friendly error message
+            let userMessage = 'Failed to generate GKYFILEHOST link';
+
+            if (error.message.includes('Failed to login')) {
+                userMessage += '\n\n⚠️ Login to GKYFILEHOST failed.\n\nPossible solutions:\n' +
+                             '1. Check your GKYFILEHOST account credentials\n' +
+                             '2. Make sure your account is active\n' +
+                             '3. Check Cloudflare Worker logs for details';
+            } else if (error.message.includes('HTTP error! status: 500')) {
+                userMessage += '\n\nServer error (500).\n\nPlease check:\n' +
+                             '1. Cloudflare Worker logs for details\n' +
+                             '2. GKYFILEHOST credentials are correct\n' +
+                             '3. The file ID is valid';
+            } else if (error.message.includes('HTTP error! status: 400')) {
+                userMessage += '\n\nBad request (400). The file ID might be invalid.';
+            } else if (error.message.includes('Failed to fetch')) {
+                userMessage += '\n\nNetwork error. Check your internet connection.';
+            } else {
+                userMessage += ':\n\n' + error.message;
+            }
+
+            alert(userMessage);
+            reject(error);
+        });
+    });
+}
+
+// Handler for Download button to open GKYFILEHOST link
+$(document).on('click', '.download-via-gkyfilehost', function(e) {
+    e.preventDefault();
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+
+    log('Download button clicked, fileId:', fileId);
+
+    if (!fileId) {
+        alert('Error: No file ID found');
+        return;
+    }
+
+    // Show loading state
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Processing...');
+
+    // Call GKYFILEHOST function
+    generateGKYFILEHOSTLink(fileId)
+        .then((link) => {
+            button.prop('disabled', false).html(originalHtml);
+            log('Successfully opened GKYFILEHOST link:', link);
+        })
+        .catch((error) => {
+            button.html('<i class="fas fa-times fa-fw"></i> Failed');
+            setTimeout(() => {
+                button.prop('disabled', false).html(originalHtml);
+            }, 2000);
+            logError('Download error:', error);
+        });
+});
+
+
 // =============================================================================
 // SINGLE TOP-LEVEL GDFlix Button Handler
 // Registered once here — replaces 3 duplicate handlers that were
 // previously registered inside file_video(), file_code(), file_others()
-// on every file page load. Also handles the "Download" button shown to
-// non-login users when GDflix is gating the download (see getDownloadButton).
+// on every file page load.
 // =============================================================================
-$(document).on('click', '.gdflix-btn, .download-via-gdflix', function() {
+$(document).on('click', '.gdflix-btn', function() {
     const fileId = $(this).data('file-id');
     const button = $(this);
 
@@ -3275,76 +3402,6 @@ $(document).on('click', '.gdflix-btn, .download-via-gdflix', function() {
             logError('GDFlix error:', error);
         });
 });
-
-// =============================================================================
-// COLUMN SORT — Name & Size only
-// =============================================================================
-let _tmSortState = { col: null, dir: 1 };
-
-function initTMSort() {
-    const bar = document.getElementById('tm-sort-bar');
-    if (!bar) return;
-    // Reset icons
-    bar.querySelectorAll('.tm-sort-btn').forEach(btn => {
-        const icon = btn.querySelector('.tm-sort-icon');
-        const col = btn.dataset.col;
-        if (icon) icon.textContent = _tmSortState.col === col ? (_tmSortState.dir === 1 ? ' ▲' : ' ▼') : '';
-        btn.onclick = function () {
-            if (_tmSortState.col === col) {
-                _tmSortState.dir *= -1;
-            } else {
-                _tmSortState.col = col;
-                _tmSortState.dir = 1;
-            }
-            tmSortList();
-            initTMSort(); // refresh icons
-        };
-    });
-}
-
-function tmSortList() {
-    const $list = $('#list');
-    const rows = $list.children('.tm-row').toArray();
-    if (!rows.length) return;
-    rows.sort((a, b) => {
-        if (_tmSortState.col === 'size') {
-            return _tmSortState.dir * ((parseFloat(a.dataset.bytes) || 0) - (parseFloat(b.dataset.bytes) || 0));
-        }
-        // name
-        const av = (a.dataset.name || '').toLowerCase();
-        const bv = (b.dataset.name || '').toLowerCase();
-        return _tmSortState.dir * av.localeCompare(bv);
-    });
-    rows.forEach(el => $list.append(el));
-}
-
-// =============================================================================
-// QUOTA DISPLAY
-// =============================================================================
-function fetchQuota() {
-    const cur = window.current_drive_order || 0;
-    fetch(`/${cur}:quota`)
-        .then(r => { if (!r.ok) throw new Error('quota fetch failed'); return r.json(); })
-        .then(data => {
-            const q = data.storageQuota;
-            if (!q) return;
-            const used = Number(q.usage || 0);
-            const total = Number(q.limit || 0);
-            const bar = document.getElementById('tm-quota-bar');
-            const text = document.getElementById('tm-quota-text');
-            const fill = document.getElementById('tm-quota-fill');
-            if (!bar || !text || !fill) return;
-            const pct = total > 0 ? Math.min(100, (used / total) * 100) : 0;
-            const color = pct > 90 ? '#f44336' : pct > 70 ? '#ff9800' : '#4caf50';
-            text.textContent = total > 0
-                ? `${formatFileSize(used)} used of ${formatFileSize(total)} (${pct.toFixed(1)}%)`
-                : `${formatFileSize(used)} used`;
-            fill.style.width = pct + '%';
-            fill.style.background = color;
-            bar.style.display = 'block';
-        })
-        .catch(() => {});
-}
 
 // =============================================================================
 // DOWNLOAD TIMER — 5-second countdown → trigger download → show "File Downloading..." toast
