@@ -3418,45 +3418,38 @@ function generateGDFlixLink(fileId) {
             return;
         }
 
-        log('GDFlix - Requesting link directly from browser (bypasses Cloudflare IP block)...');
+        log('GDFlix - Requesting link via backend proxy...');
 
-        // ✅ FIX: Call GDFlix API directly from the browser instead of via Cloudflare Worker.
-        // The worker approach caused 403 errors because GDFlix blocks Cloudflare datacenter IPs.
-        // Browser calls use the real user IP which is always allowed.
-        const GDFLIX_API_KEY = '34559655cfedb7f5422c64e80c6a02ff';
-        // ✅ Call final URL directly — skips all redirects (gdflix.com→ddflix.xyz→gdflix.dev→new2.gdflix.app)
-        const gdflixApiUrl = `https://new2.gdflix.app/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
+        // API key is stored securely in the Cloudflare Worker as secret GDFLIX_API_KEY.
+        // The worker proxies the request to GDFlix so the key is never exposed client-side.
+        // NOTE: If GDFlix blocks Cloudflare datacenter IPs on your account, re-enable the
+        // direct browser call temporarily and open a ticket with GDFlix to whitelist your worker IP.
 
         // Safari blocks window.open() called inside .then() (async context) as a popup.
         const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         var newTab = _isSafari ? window.open('', '_blank') : null;
         log('GDFlix - Safari detected:', _isSafari);
 
-        fetch(gdflixApiUrl, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' }
+        fetch('/generate-gdflix', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fileId: fileId })
         })
         .then(response => {
             log('GDFlix - Response status:', response.status);
             if (!response.ok) {
-                throw new Error(`GDFlix API error: ${response.status}`);
+                throw new Error(`Backend error: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
-            log('GDFlix - API response:', data);
+            log('GDFlix - Backend response:', data);
 
-            let gdflixLink = '';
-            if (data && data.error === 0 && data.key) {
-                gdflixLink = `https://gdlink.dev/file/${data.key}`;
-            } else if (data && data.error === 0 && data.id) {
-                gdflixLink = `https://gdlink.dev/file/${data.id}`;
-            } else if (data && data.error === 1) {
-                throw new Error(data.message || 'GDFlix API returned an error');
-            } else {
-                throw new Error('Unexpected GDFlix response');
+            if (!data.success || !data.gdflixLink) {
+                throw new Error(data.error || 'Failed to generate GDFlix link');
             }
 
+            const gdflixLink = data.gdflixLink;
             log('GDFlix - Generated link:', gdflixLink);
             if (_isSafari) {
                 if (newTab && !newTab.closed) {
