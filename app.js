@@ -3426,20 +3426,46 @@ function generateGDFlixLink(fileId) {
         var newTab = _isSafari ? window.open('', '_blank') : null;
         log('GDFlix - Safari detected:', _isSafari);
 
-        // Worker calls gdflix.com with no Origin/Referer headers — exactly like bash.
-        // Full chain: gdflix.com → gdlink.dev → new2.gdflix.app (followed server-side).
-        // API key stored in CF secret GDFLIX_API_KEY — not in source code.
-        log('GDFlix - Calling worker /generate-gdflix...');
-        fetch('/generate-gdflix', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fileId: fileId })
+        // GDFlix blocks CF IPs → worker can't call it.
+        // Browser must call directly. Use XHR without explicit Origin header + call new2.gdflix.app
+        // which is the final hop (no redirect needed, avoids CORS preflight on redirect chain).
+        // API key fetched from CF secret via worker — not hardcoded here.
+        fetch('/get-gdflix-key')
+        .then(r => r.json())
+        .then(keyData => {
+            if (!keyData.success) throw new Error(keyData.error || 'Failed to get key');
+            return new Promise((res, rej) => {
+                // XHR skips CORS preflight for simple GET requests better than fetch in some cases
+                const GDFLIX_API_KEY = keyData.key;
+                const apiUrl = `https://new2.gdflix.app/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
+                log('GDFlix - Calling new2.gdflix.app via XHR:', apiUrl);
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', apiUrl, true);
+                xhr.setRequestHeader('Accept', 'application/json');
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try { res(JSON.parse(xhr.responseText)); }
+                        catch(e) { rej(new Error('Invalid JSON from GDFlix')); }
+                    } else {
+                        rej(new Error('GDFlix API error: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { rej(new Error('GDFlix network error')); };
+                xhr.send();
+            });
         })
-        .then(response => response.json())
         .then(data => {
-            log('GDFlix - Response:', data);
-            if (!data.success) throw new Error(data.error || 'Failed to generate GDFlix link');
-            const gdflixLink = data.link;
+            log('GDFlix - API response:', data);
+            let gdflixLink = '';
+            if (data && data.error === 0 && data.key) {
+                gdflixLink = `https://gdlink.dev/file/${data.key}`;
+            } else if (data && data.error === 0 && data.id) {
+                gdflixLink = `https://gdlink.dev/file/${data.id}`;
+            } else if (data && data.error === 1) {
+                throw new Error(data.message || 'GDFlix API returned an error');
+            } else {
+                throw new Error('Unexpected GDFlix response');
+            }
             log('GDFlix - Generated link:', gdflixLink);
             if (_isSafari) {
                 if (newTab && !newTab.closed) { newTab.location.href = gdflixLink; }
