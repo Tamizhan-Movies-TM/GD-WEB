@@ -3432,7 +3432,8 @@ function generateGDFlixLink(fileId) {
         .then(keyData => {
             if (!keyData.success) throw new Error(keyData.error || 'Failed to get GDFlix key');
             const GDFLIX_API_KEY = keyData.key;
-            const gdflixApiUrl = `https://new2.gdflix.app/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
+            // gdflix.com auto-redirects: gdflix.com → gdlink.dev → new2.gdflix.app
+            const gdflixApiUrl = `https://gdflix.com/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
             log('GDFlix - Calling GDFlix API from browser...');
             return fetch(gdflixApiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
         })
