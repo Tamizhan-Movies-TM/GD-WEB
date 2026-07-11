@@ -3426,33 +3426,20 @@ function generateGDFlixLink(fileId) {
         var newTab = _isSafari ? window.open('', '_blank') : null;
         log('GDFlix - Safari detected:', _isSafari);
 
-        // Worker forwards user real IP to GDFlix (avoids CF IP block) + adds CORS headers.
-        // API key stored in CF secret — not visible in source.
+        // Worker calls gdflix.com with no Origin/Referer headers — exactly like bash.
+        // Full chain: gdflix.com → gdlink.dev → new2.gdflix.app (followed server-side).
+        // API key stored in CF secret GDFLIX_API_KEY — not in source code.
         log('GDFlix - Calling worker /generate-gdflix...');
         fetch('/generate-gdflix', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ fileId: fileId })
         })
-        .then(response => {
-            log('GDFlix - Worker response status:', response.status);
-            if (!response.ok) throw new Error(`GDFlix API error: ${response.status}`);
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            log('GDFlix - API response:', data);
-            let gdflixLink = '';
-            if (data && data.error === 0 && data.key) {
-                gdflixLink = `https://gdlink.dev/file/${data.key}`;
-            } else if (data && data.error === 0 && data.id) {
-                gdflixLink = `https://gdlink.dev/file/${data.id}`;
-            } else if (data && data.error === 1) {
-                throw new Error(data.message || 'GDFlix API returned an error');
-            } else if (data && data.success === false) {
-                throw new Error(data.error || 'GDFlix failed');
-            } else {
-                throw new Error('Unexpected GDFlix response');
-            }
+            log('GDFlix - Response:', data);
+            if (!data.success) throw new Error(data.error || 'Failed to generate GDFlix link');
+            const gdflixLink = data.link;
             log('GDFlix - Generated link:', gdflixLink);
             if (_isSafari) {
                 if (newTab && !newTab.closed) { newTab.location.href = gdflixLink; }
