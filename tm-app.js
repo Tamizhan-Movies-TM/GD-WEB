@@ -3418,16 +3418,46 @@ function generateGDFlixLink(fileId) {
             return;
         }
 
-        log('GDFlix - Requesting link via backend proxy...');
+        log('GDFlix - Requesting link directly from browser (bypasses Cloudflare IP block)...');
+
+        // ✅ FIX: Call GDFlix API directly from the browser instead of via Cloudflare Worker.
+        // The worker approach caused 403 errors because GDFlix blocks Cloudflare datacenter IPs.
+        // Browser calls use the real user IP which is always allowed.
+        const GDFLIX_API_KEY = '34559655cfedb7f5422c64e80c6a02ff';
+        // ✅ Call final URL directly — skips all redirects (gdflix.com→ddflix.xyz→gdflix.dev→new2.gdflix.app)
+        const gdflixApiUrl = `https://new2.gdflix.app/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
 
         // Safari blocks window.open() called inside .then() (async context) as a popup.
         const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         var newTab = _isSafari ? window.open('', '_blank') : null;
         log('GDFlix - Safari detected:', _isSafari);
 
-        // _gdflixOpenLink — shared helper to open the final URL regardless of path taken.
-        function _gdflixOpenLink(gdflixLink) {
-            log('GDFlix - Opening link:', gdflixLink);
+        fetch(gdflixApiUrl, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(response => {
+            log('GDFlix - Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`GDFlix API error: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            log('GDFlix - API response:', data);
+
+            let gdflixLink = '';
+            if (data && data.error === 0 && data.key) {
+                gdflixLink = `https://gdlink.dev/file/${data.key}`;
+            } else if (data && data.error === 0 && data.id) {
+                gdflixLink = `https://gdlink.dev/file/${data.id}`;
+            } else if (data && data.error === 1) {
+                throw new Error(data.message || 'GDFlix API returned an error');
+            } else {
+                throw new Error('Unexpected GDFlix response');
+            }
+
+            log('GDFlix - Generated link:', gdflixLink);
             if (_isSafari) {
                 if (newTab && !newTab.closed) {
                     newTab.location.href = gdflixLink;
@@ -3438,60 +3468,6 @@ function generateGDFlixLink(fileId) {
                 window.open(gdflixLink, '_blank');
             }
             resolve(gdflixLink);
-        }
-
-        // _gdflixDirectCall — fallback: call GDFlix API directly from the browser.
-        // Used when the worker signals ip_blocked (GDFlix blocks Cloudflare datacenter IPs).
-        // The browser uses the real user IP which GDFlix always allows.
-        // API key is read from the worker response — never stored in this file.
-        function _gdflixDirectCall(apiKey) {
-            log('GDFlix - Worker IP blocked, falling back to direct browser call...');
-            const gdflixApiUrl = `https://new2.gdflix.app/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`;
-            fetch(gdflixApiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } })
-            .then(r => { if (!r.ok) throw new Error(`GDFlix API error: ${r.status}`); return r.json(); })
-            .then(data => {
-                if (data && data.error === 0 && (data.key || data.id)) {
-                    _gdflixOpenLink(`https://gdlink.dev/file/${data.key || data.id}`);
-                } else if (data && data.error === 1) {
-                    throw new Error(data.message || 'GDFlix API returned an error');
-                } else {
-                    throw new Error('Unexpected GDFlix response');
-                }
-            })
-            .catch(error => {
-                logError('GDFlix direct call error:', error);
-                if (newTab && !newTab.closed) { newTab.close(); }
-                alert('Failed to generate GDFlix link: ' + error.message);
-                reject(error);
-            });
-        }
-
-        fetch('/generate-gdflix', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fileId: fileId })
-        })
-        .then(response => {
-            log('GDFlix - Response status:', response.status);
-            if (!response.ok) {
-                throw new Error(`Backend error: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            log('GDFlix - Backend response:', data);
-
-            // Worker signals ip_blocked when GDFlix rejects the Cloudflare datacenter IP.
-            // Fall back to direct browser call — passes the key from the worker env, not JS source.
-            if (data.ip_blocked && data.apiKey) {
-                return _gdflixDirectCall(data.apiKey);
-            }
-
-            if (!data.success || !data.gdflixLink) {
-                throw new Error(data.error || 'Failed to generate GDFlix link');
-            }
-
-            _gdflixOpenLink(data.gdflixLink);
         })
         .catch(error => {
             logError('GDFlix Error:', error);
