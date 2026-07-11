@@ -3420,15 +3420,51 @@ function generateGDFlixLink(fileId) {
 
         log('GDFlix - Requesting link via backend proxy...');
 
-        // API key is stored securely in the Cloudflare Worker as secret GDFLIX_API_KEY.
-        // The worker proxies the request to GDFlix so the key is never exposed client-side.
-        // NOTE: If GDFlix blocks Cloudflare datacenter IPs on your account, re-enable the
-        // direct browser call temporarily and open a ticket with GDFlix to whitelist your worker IP.
-
         // Safari blocks window.open() called inside .then() (async context) as a popup.
         const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         var newTab = _isSafari ? window.open('', '_blank') : null;
         log('GDFlix - Safari detected:', _isSafari);
+
+        // _gdflixOpenLink — shared helper to open the final URL regardless of path taken.
+        function _gdflixOpenLink(gdflixLink) {
+            log('GDFlix - Opening link:', gdflixLink);
+            if (_isSafari) {
+                if (newTab && !newTab.closed) {
+                    newTab.location.href = gdflixLink;
+                } else {
+                    window.open(gdflixLink, '_blank');
+                }
+            } else {
+                window.open(gdflixLink, '_blank');
+            }
+            resolve(gdflixLink);
+        }
+
+        // _gdflixDirectCall — fallback: call GDFlix API directly from the browser.
+        // Used when the worker signals ip_blocked (GDFlix blocks Cloudflare datacenter IPs).
+        // The browser uses the real user IP which GDFlix always allows.
+        // API key is read from the worker response — never stored in this file.
+        function _gdflixDirectCall(apiKey) {
+            log('GDFlix - Worker IP blocked, falling back to direct browser call...');
+            const gdflixApiUrl = `https://new2.gdflix.app/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`;
+            fetch(gdflixApiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } })
+            .then(r => { if (!r.ok) throw new Error(`GDFlix API error: ${r.status}`); return r.json(); })
+            .then(data => {
+                if (data && data.error === 0 && (data.key || data.id)) {
+                    _gdflixOpenLink(`https://gdlink.dev/file/${data.key || data.id}`);
+                } else if (data && data.error === 1) {
+                    throw new Error(data.message || 'GDFlix API returned an error');
+                } else {
+                    throw new Error('Unexpected GDFlix response');
+                }
+            })
+            .catch(error => {
+                logError('GDFlix direct call error:', error);
+                if (newTab && !newTab.closed) { newTab.close(); }
+                alert('Failed to generate GDFlix link: ' + error.message);
+                reject(error);
+            });
+        }
 
         fetch('/generate-gdflix', {
             method: 'POST',
@@ -3445,22 +3481,17 @@ function generateGDFlixLink(fileId) {
         .then(data => {
             log('GDFlix - Backend response:', data);
 
+            // Worker signals ip_blocked when GDFlix rejects the Cloudflare datacenter IP.
+            // Fall back to direct browser call — passes the key from the worker env, not JS source.
+            if (data.ip_blocked && data.apiKey) {
+                return _gdflixDirectCall(data.apiKey);
+            }
+
             if (!data.success || !data.gdflixLink) {
                 throw new Error(data.error || 'Failed to generate GDFlix link');
             }
 
-            const gdflixLink = data.gdflixLink;
-            log('GDFlix - Generated link:', gdflixLink);
-            if (_isSafari) {
-                if (newTab && !newTab.closed) {
-                    newTab.location.href = gdflixLink;
-                } else {
-                    window.open(gdflixLink, '_blank');
-                }
-            } else {
-                window.open(gdflixLink, '_blank');
-            }
-            resolve(gdflixLink);
+            _gdflixOpenLink(data.gdflixLink);
         })
         .catch(error => {
             logError('GDFlix Error:', error);
