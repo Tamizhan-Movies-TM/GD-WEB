@@ -3426,34 +3426,18 @@ function generateGDFlixLink(fileId) {
         var newTab = _isSafari ? window.open('', '_blank') : null;
         log('GDFlix - Safari detected:', _isSafari);
 
-        log('GDFlix - Fetching API key from worker...');
-        fetch('/get-gdflix-key')
+        // Worker proxies to gdflix.com with API key from CF secret — no CORS issue.
+        log('GDFlix - Calling worker /generate-gdflix...');
+        fetch('/generate-gdflix', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fileId: fileId })
+        })
         .then(response => response.json())
-        .then(keyData => {
-            if (!keyData.success) throw new Error(keyData.error || 'Failed to get GDFlix key');
-            const GDFLIX_API_KEY = keyData.key;
-            // gdflix.com auto-redirects: gdflix.com → gdlink.dev → new2.gdflix.app
-            const gdflixApiUrl = `https://gdflix.com/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
-            log('GDFlix - Calling GDFlix API from browser...');
-            return fetch(gdflixApiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
-        })
-        .then(response => {
-            log('GDFlix - Response status:', response.status);
-            if (!response.ok) throw new Error(`GDFlix API error: ${response.status}`);
-            return response.json();
-        })
         .then(data => {
-            log('GDFlix - API response:', data);
-            let gdflixLink = '';
-            if (data && data.error === 0 && data.key) {
-                gdflixLink = `https://gdlink.dev/file/${data.key}`;
-            } else if (data && data.error === 0 && data.id) {
-                gdflixLink = `https://gdlink.dev/file/${data.id}`;
-            } else if (data && data.error === 1) {
-                throw new Error(data.message || 'GDFlix API returned an error');
-            } else {
-                throw new Error('Unexpected GDFlix response');
-            }
+            log('GDFlix - Worker response:', data);
+            if (!data.success) throw new Error(data.error || 'Failed to generate GDFlix link');
+            const gdflixLink = data.link;
             log('GDFlix - Generated link:', gdflixLink);
             if (_isSafari) {
                 if (newTab && !newTab.closed) { newTab.location.href = gdflixLink; }
