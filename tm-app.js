@@ -3446,7 +3446,7 @@ function generateGDFlixLink(fileId) {
         // API key is read from the worker response — never stored in this file.
         function _gdflixDirectCall(apiKey) {
             log('GDFlix - Worker IP blocked, falling back to direct browser call...');
-            const gdflixApiUrl = `https://new2.gdflix.app/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`;
+            const gdflixApiUrl = `https://gdflix.com/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(apiKey)}`;
             fetch(gdflixApiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } })
             .then(r => { if (!r.ok) throw new Error(`GDFlix API error: ${r.status}`); return r.json(); })
             .then(data => {
