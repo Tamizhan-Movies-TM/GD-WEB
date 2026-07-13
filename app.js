@@ -518,7 +518,7 @@ strong {
 </div>
 
 <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
-<div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 10px;">
+<div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
     <div class="row align-items-start g-3">
         `;
         html += `
@@ -597,7 +597,7 @@ ${UI.show_quota ? `<div id="tm-quota-bar" style="display:none; padding:6px 16px;
     <div id="tm-quota-fill" style="height:4px; border-radius:2px; width:0%; background:#4caf50; transition:width 0.4s;"></div>
   </div>
 </div>` : ''}
-<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); z-index: 1029;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
+<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
     <div class="container" style="padding-top: 15px;">
       <div class="row">
       <div class="col-lg-4 col-md-12 text-lg-start">
