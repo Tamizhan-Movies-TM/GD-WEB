@@ -3433,9 +3433,46 @@ function openExtraLink(fileId) {
         const extralinkUrl = urlMap[fileId];
 
         if (!extralinkUrl) {
-            logError('ExtraLink - No URL mapped for fileId:', fileId);
-            alert('ExtraLink not configured for this file.\nRun: bash upload_smart.sh "https://drive.google.com/file/d/' + fileId + '/view?usp=sharing"\nThen add the result to extralink_url_map in worker.js.');
-            reject(new Error('No ExtraLink URL mapped for file: ' + fileId));
+            // ── Auto-upload: ask worker to upload to extralink.cfd on the fly ──
+            if (!UI.extralink_auto_upload) {
+                logError('ExtraLink - No URL mapped for fileId:', fileId);
+                alert('ExtraLink not configured for this file.\nRun: bash upload_smart.sh "https://drive.google.com/file/d/' + fileId + '/view?usp=sharing"\nThen add the result to extralink_url_map in worker.js.');
+                reject(new Error('No ExtraLink URL mapped for file: ' + fileId));
+                return;
+            }
+            log('ExtraLink - Not in map, auto-uploading via worker:', fileId);
+            fetch('/extralink-upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ file_id: fileId })
+            })
+            .then(function(resp) { return resp.json(); })
+            .then(function(data) {
+                if (!data.success || !data.url) {
+                    logError('ExtraLink - Auto-upload failed:', data.error);
+                    alert('ExtraLink upload failed: ' + (data.error || 'Unknown error'));
+                    reject(new Error(data.error || 'Auto-upload failed'));
+                    return;
+                }
+                // Cache in runtime map so subsequent clicks are instant
+                UI.extralink_url_map = UI.extralink_url_map || {};
+                UI.extralink_url_map[fileId] = data.url;
+                log('ExtraLink - Auto-upload success:', data.url, data.cached ? '(was already uploaded)' : '(fresh upload)');
+                const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                if (_isSafari) {
+                    var newTab = window.open('', '_blank');
+                    if (newTab) { newTab.location.href = data.url; } else { window.open(data.url, '_blank'); }
+                } else {
+                    window.open(data.url, '_blank');
+                }
+                resolve(data.url);
+            })
+            .catch(function(err) {
+                logError('ExtraLink - Auto-upload network error:', err);
+                alert('ExtraLink upload failed: ' + err.message);
+                reject(err);
+            });
             return;
         }
 
