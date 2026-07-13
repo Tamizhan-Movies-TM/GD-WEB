@@ -597,8 +597,8 @@ ${UI.show_quota ? `<div id="tm-quota-bar" style="display:none; padding:6px 16px;
     <div id="tm-quota-fill" style="height:4px; border-radius:2px; width:0%; background:#4caf50; transition:width 0.4s;"></div>
   </div>
 </div>` : ''}
-<footer class="footer text-center mt-auto w-100 ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
-    <div class="container-fluid px-3" style="padding-top: 15px;">
+<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
+    <div class="container" style="padding-top: 15px;">
       <div class="row">
       <div class="col-lg-4 col-md-12 text-lg-start">
       <i class="fa-brands fa-pied-piper-alt"></i> ${new Date().getFullYear()} - <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
@@ -1027,8 +1027,8 @@ function nav(path) {
     var model = window.MODEL;
     var html = "";
     var cur = window.current_drive_order || 0;
-    html += `<nav class="navbar navbar-expand-lg${UI.fixed_header ?' fixed-top': ''} ${UI.header_style_class} w-100">
-    <div class="container-fluid mx-3">
+    html += `<nav class="navbar navbar-expand-lg${UI.fixed_header ?' fixed-top': ''} ${UI.header_style_class} container">
+    <div class="container-fluid mx-2">
   <a class="navbar-brand d-flex align-items-center gap-2" href="/">${UI.logo_image ? '<img border="0" alt="'+UI.company_name+'" src="'+UI.logo_link_name+'" height="'+UI.logo_height+'" width="'+UI.logo_width+'">'+UI.siteName : UI.logo_link_name}</a>
   <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
