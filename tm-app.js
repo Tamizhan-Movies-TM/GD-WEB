@@ -2482,13 +2482,14 @@ function generateCopyFileBox(file_id, cookie_folder_id) {
 // Document display |zip|.exe/others direct downloads
 // =============================================================================
 // DOWNLOAD BUTTON HELPER
-// Decides whether non-login users get a GDflix link or a direct download button.
+// Decides whether non-login users get an ExtraLink button or a direct download button.
 //
-// Logic controlled by two UI config flags (set in worker-tm.js):
-//   enable_gdflix_for_non_login        — master switch. If false → always direct download.
-//   gdflix_large_file_only             — if true → GDflix only for files ≥ threshold GB.
-//                                         if false → GDflix for ALL non-login users (old behaviour).
-//   gdflix_large_file_threshold_gb     — size threshold in GB (default 10).
+// Logic controlled by UI config flags (set in worker.js):
+//   enable_extralink_for_non_login     — master switch. If false → always direct download.
+//   extralink_large_file_only          — if true → ExtraLink only for files ≥ threshold GB.
+//                                         if false → ExtraLink for ALL non-login users.
+//   extralink_large_file_threshold_gb  — size threshold in GB (default 5).
+//   extralink_url_map                  — { "GD_FILE_ID": "https://extralink.cfd/file/..." }
 //
 // Logged-in users ALWAYS get direct download regardless of settings.
 // =============================================================================
@@ -2501,22 +2502,30 @@ function getDownloadButton(url, encoded_name, file_id, bytes) {
        </button>`;
     }
 
-    // GDflix master switch off → always direct download for everyone
-    if (!UI.enable_gdflix_for_non_login) {
+    // ExtraLink master switch off → always direct download for everyone
+    // (backward-compat: also check old enable_gdflix_for_non_login key)
+    const extralinkEnabled = (UI.enable_extralink_for_non_login !== undefined)
+        ? UI.enable_extralink_for_non_login
+        : UI.enable_gdflix_for_non_login;
+    if (!extralinkEnabled) {
         return `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </button>`;
     }
 
-    // Non-login user, GDflix enabled — check gdflix_large_file_only setting
-    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
-    const useGdflix = UI.gdflix_large_file_only
-        ? (bytes >= thresholdBytes)   // true → GDflix only for large files
-        : true;                        // false → GDflix for all non-login users
+    // Non-login user, ExtraLink enabled — check extralink_large_file_only setting
+    const thresholdGb = UI.extralink_large_file_threshold_gb || UI.gdflix_large_file_threshold_gb || 5;
+    const thresholdBytes = thresholdGb * 1024 * 1024 * 1024;
+    const largeFileOnly = (UI.extralink_large_file_only !== undefined)
+        ? UI.extralink_large_file_only
+        : UI.gdflix_large_file_only;
+    const useExtralink = largeFileOnly
+        ? (bytes >= thresholdBytes)   // true → ExtraLink only for large files
+        : true;                        // false → ExtraLink for all non-login users
 
-    if (useGdflix) {
-        return `<a type="button" class="btn btn-success download-via-gdflix" data-file-id="${file_id}">
+    if (useExtralink) {
+        return `<a type="button" class="btn btn-success download-via-extralink" data-file-id="${file_id}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </a>`;
     } else {
@@ -2588,7 +2597,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center">
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
@@ -2694,7 +2703,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center">
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
@@ -2767,22 +2776,23 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 // PLAYER VISIBILITY HELPER
 // Decides whether the inline audio/video player should be hidden.
 //
-// Logic controlled by UI config flags (set in worker-tm.js):
-//   disable_player                — master switch. If true → ALWAYS hide the player,
-//                                    regardless of file size.
-//   gdflix_large_file_threshold_gb — size threshold in GB (default 10). Files AT or
-//                                    ABOVE this size get the player hidden too — for
-//                                    EVERYONE, login and non-login — nudging large
-//                                    files towards the GDflix link instead of inline
-//                                    streaming.
+// Logic controlled by UI config flags (set in worker.js):
+//   disable_player                     — master switch. If true → ALWAYS hide the player,
+//                                         regardless of file size.
+//   extralink_large_file_threshold_gb  — size threshold in GB (default 5). Files AT or
+//                                         ABOVE this size get the player hidden too — for
+//                                         EVERYONE, login and non-login — nudging large
+//                                         files towards the ExtraLink instead of inline
+//                                         streaming.
 // =============================================================================
 function shouldDisablePlayer(bytes) {
     if (UI.disable_player) return true;
-    // ✅ IMPROVE: use player_disable_threshold_gb when set, fall back to
-    // gdflix_large_file_threshold_gb for backwards compatibility, then 10 GB.
-    // Previously only the gdflix key was used here which is semantically wrong —
-    // the two thresholds can diverge independently.
-    const thresholdGb = UI.player_disable_threshold_gb || UI.gdflix_large_file_threshold_gb || 10;
+    // Use player_disable_threshold_gb when set, fall back to
+    // extralink_large_file_threshold_gb, then old gdflix key for backward compat, then 10 GB.
+    const thresholdGb = UI.player_disable_threshold_gb
+        || UI.extralink_large_file_threshold_gb
+        || UI.gdflix_large_file_threshold_gb
+        || 10;
     const thresholdBytes = thresholdGb * 1024 * 1024 * 1024;
     return bytes >= thresholdBytes;
 }
@@ -2961,7 +2971,7 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
         ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center">
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
@@ -3396,20 +3406,106 @@ async function copyFile(driveid) {
     }
 }
 
+// =============================================================================
+// ExtraLink — open pre-uploaded URL from extralink_url_map
+// No API call needed. URL is pre-generated by running upload_smart.sh and
+// stored in worker.js under uiConfig.extralink_url_map = { "GD_FILE_ID": "https://extralink.cfd/file/..." }
+// =============================================================================
+function openExtraLink(fileId) {
+    return new Promise((resolve, reject) => {
+        log('ExtraLink - Received fileId:', fileId);
+
+        if (!fileId) {
+            logError('ExtraLink - No file ID provided');
+            reject(new Error('No file ID provided'));
+            return;
+        }
+
+        fileId = String(fileId).trim();
+        if (fileId === '') {
+            logError('ExtraLink - Empty file ID');
+            reject(new Error('Empty file ID'));
+            return;
+        }
+
+        // Look up the pre-uploaded ExtraLink URL from the map in worker config
+        const urlMap = UI.extralink_url_map || {};
+        const extralinkUrl = urlMap[fileId];
+
+        if (!extralinkUrl) {
+            // ── Auto-upload: ask worker to upload to extralink.cfd on the fly ──
+            if (!UI.extralink_auto_upload) {
+                logError('ExtraLink - No URL mapped for fileId:', fileId);
+                alert('ExtraLink not available for this file.');
+                reject(new Error('No ExtraLink URL mapped for file: ' + fileId));
+                return;
+            }
+            log('ExtraLink - Not in map, auto-uploading via worker:', fileId);
+            fetch('/extralink-upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ file_id: fileId })
+            })
+            .then(function(resp) { return resp.json(); })
+            .then(function(data) {
+                if (!data.success || !data.url) {
+                    logError('ExtraLink - Auto-upload failed:', data.error);
+                    alert('ExtraLink upload failed: ' + (data.error || 'Unknown error'));
+                    reject(new Error(data.error || 'Auto-upload failed'));
+                    return;
+                }
+                // Cache in runtime map so subsequent clicks are instant
+                UI.extralink_url_map = UI.extralink_url_map || {};
+                UI.extralink_url_map[fileId] = data.url;
+                log('ExtraLink - Auto-upload success:', data.url, data.cached ? '(was already uploaded)' : '(fresh upload)');
+                const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                if (_isSafari) {
+                    var newTab = window.open('', '_blank');
+                    if (newTab) { newTab.location.href = data.url; } else { window.open(data.url, '_blank'); }
+                } else {
+                    window.open(data.url, '_blank');
+                }
+                resolve(data.url);
+            })
+            .catch(function(err) {
+                logError('ExtraLink - Auto-upload network error:', err);
+                alert('ExtraLink upload failed: ' + err.message);
+                reject(err);
+            });
+            return;
+        }
+
+        log('ExtraLink - Opening URL:', extralinkUrl);
+
+        // Safari-safe window.open
+        const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        if (_isSafari) {
+            var newTab = window.open('', '_blank');
+            if (newTab) {
+                newTab.location.href = extralinkUrl;
+            } else {
+                window.open(extralinkUrl, '_blank');
+            }
+        } else {
+            window.open(extralinkUrl, '_blank');
+        }
+
+        resolve(extralinkUrl);
+    });
+}
+
 // GDFlix Link Generation Function
 function generateGDFlixLink(fileId) {
     return new Promise((resolve, reject) => {
-        // Debug logging
         log('GDFlix - Received fileId:', fileId);
 
-        // Basic validation
         if (!fileId) {
             logError('GDFlix - No file ID provided');
             reject(new Error('No file ID provided'));
             return;
         }
 
-        // Convert to string if it's not already
         fileId = String(fileId).trim();
 
         if (fileId === '') {
@@ -3420,14 +3516,9 @@ function generateGDFlixLink(fileId) {
 
         log('GDFlix - Requesting link directly from browser (bypasses Cloudflare IP block)...');
 
-        // ✅ FIX: Call GDFlix API directly from the browser instead of via Cloudflare Worker.
-        // The worker approach caused 403 errors because GDFlix blocks Cloudflare datacenter IPs.
-        // Browser calls use the real user IP which is always allowed.
         const GDFLIX_API_KEY = '34559655cfedb7f5422c64e80c6a02ff';
-        // ✅ Call final URL directly — skips all redirects (gdflix.com→ddflix.xyz→gdflix.dev→new2.gdflix.app)
         const gdflixApiUrl = `https://new2.gdflix.app/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
 
-        // Safari blocks window.open() called inside .then() (async context) as a popup.
         const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         var newTab = _isSafari ? window.open('', '_blank') : null;
         log('GDFlix - Safari detected:', _isSafari);
@@ -3479,13 +3570,10 @@ function generateGDFlixLink(fileId) {
 }
 
 // =============================================================================
-// SINGLE TOP-LEVEL GDFlix Button Handler
-// Registered once here — replaces 3 duplicate handlers that were
-// previously registered inside file_video(), file_code(), file_others()
-// on every file page load. Also handles the "Download" button shown to
-// non-login users when GDflix is gating the download (see getDownloadButton).
+// GDFlix Link Button Handler — gray "GDFlix Link" button
+// Calls GDFlix API to generate a download link (unchanged behavior).
 // =============================================================================
-$(document).on('click', '.gdflix-btn, .download-via-gdflix', function() {
+$(document).on('click', '.gdflix-btn', function() {
     const fileId = $(this).data('file-id');
     const button = $(this);
 
@@ -3506,6 +3594,35 @@ $(document).on('click', '.gdflix-btn, .download-via-gdflix', function() {
         .catch((error) => {
             button.prop('disabled', false).html(originalHtml);
             logError('GDFlix error:', error);
+        });
+});
+
+// =============================================================================
+// Download Button Handler (>5GB, non-login) — green "Download" button
+// Opens pre-uploaded ExtraLink URL from extralink_url_map in worker.js.
+// Add files via: bash upload_smart.sh "GD_SHARE_URL" then paste result in worker.js
+// =============================================================================
+$(document).on('click', '.download-via-extralink', function() {
+    const fileId = $(this).data('file-id');
+    const button = $(this);
+
+    log('ExtraLink Download button clicked, fileId:', fileId);
+
+    if (!fileId) {
+        alert('Error: No file ID found');
+        return;
+    }
+
+    const originalHtml = button.html();
+    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Opening...');
+
+    openExtraLink(fileId)
+        .then(() => {
+            button.prop('disabled', false).html(originalHtml);
+        })
+        .catch((error) => {
+            button.prop('disabled', false).html(originalHtml);
+            logError('ExtraLink error:', error);
         });
 });
 
