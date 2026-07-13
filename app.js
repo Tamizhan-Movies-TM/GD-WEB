@@ -518,7 +518,7 @@ strong {
 </div>
 
 <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
-<div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
+<div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 10px;">
     <div class="row align-items-start g-3">
         `;
         html += `
@@ -597,8 +597,8 @@ ${UI.show_quota ? `<div id="tm-quota-bar" style="display:none; padding:6px 16px;
     <div id="tm-quota-fill" style="height:4px; border-radius:2px; width:0%; background:#4caf50; transition:width 0.4s;"></div>
   </div>
 </div>` : ''}
-<footer class="footer text-center mt-auto container ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
-    <div class="container" style="padding-top: 15px;">
+<footer class="footer text-center mt-auto w-100 ${UI.footer_style_class}" style="${UI.fixed_footer ? 'position: fixed;' : ''} ${UI.hide_footer ? 'display:none;' : 'display:block;'}">
+    <div class="container-fluid px-3" style="padding-top: 15px;">
       <div class="row">
       <div class="col-lg-4 col-md-12 text-lg-start">
       <i class="fa-brands fa-pied-piper-alt"></i> ${new Date().getFullYear()} - <a href="${UI.company_link}" target="_blank">${UI.company_name}</a> with ❤️
@@ -1027,8 +1027,8 @@ function nav(path) {
     var model = window.MODEL;
     var html = "";
     var cur = window.current_drive_order || 0;
-    html += `<nav class="navbar navbar-expand-lg${UI.fixed_header ?' fixed-top': ''} ${UI.header_style_class} container">
-    <div class="container-fluid mx-2">
+    html += `<nav class="navbar navbar-expand-lg${UI.fixed_header ?' fixed-top': ''} ${UI.header_style_class} w-100">
+    <div class="container-fluid mx-3">
   <a class="navbar-brand d-flex align-items-center gap-2" href="/">${UI.logo_image ? '<img border="0" alt="'+UI.company_name+'" src="'+UI.logo_link_name+'" height="'+UI.logo_height+'" width="'+UI.logo_width+'">'+UI.siteName : UI.logo_link_name}</a>
   <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -3418,44 +3418,34 @@ function generateGDFlixLink(fileId) {
             return;
         }
 
-        // API key is loaded from Cloudflare Worker secret (not hardcoded here).
-        // Browser fetches key from /get-gdflix-key, then calls GDFlix API directly.
+        log('GDFlix - Requesting link directly from browser (bypasses Cloudflare IP block)...');
 
-        // Safari blocks window.open() inside async .then() — open blank tab early.
+        // ✅ FIX: Call GDFlix API directly from the browser instead of via Cloudflare Worker.
+        // The worker approach caused 403 errors because GDFlix blocks Cloudflare datacenter IPs.
+        // Browser calls use the real user IP which is always allowed.
+        const GDFLIX_API_KEY = '34559655cfedb7f5422c64e80c6a02ff';
+        // ✅ Call final URL directly — skips all redirects (gdflix.com→ddflix.xyz→gdflix.dev→new2.gdflix.app)
+        const gdflixApiUrl = `https://new2.gdflix.app/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
+
+        // Safari blocks window.open() called inside .then() (async context) as a popup.
         const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         var newTab = _isSafari ? window.open('', '_blank') : null;
         log('GDFlix - Safari detected:', _isSafari);
 
-        // GDFlix blocks CF IPs → worker can't call it.
-        // Browser must call directly. Use XHR without explicit Origin header + call new2.gdflix.app
-        // which is the final hop (no redirect needed, avoids CORS preflight on redirect chain).
-        // API key fetched from CF secret via worker — not hardcoded here.
-        fetch('/get-gdflix-key')
-        .then(r => r.json())
-        .then(keyData => {
-            if (!keyData.success) throw new Error(keyData.error || 'Failed to get key');
-            return new Promise((res, rej) => {
-                // XHR skips CORS preflight for simple GET requests better than fetch in some cases
-                const GDFLIX_API_KEY = keyData.key;
-                const apiUrl = `https://new2.gdflix.app/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
-                log('GDFlix - Calling new2.gdflix.app via XHR:', apiUrl);
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', apiUrl, true);
-                xhr.setRequestHeader('Accept', 'application/json');
-                xhr.onload = function() {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        try { res(JSON.parse(xhr.responseText)); }
-                        catch(e) { rej(new Error('Invalid JSON from GDFlix')); }
-                    } else {
-                        rej(new Error('GDFlix API error: ' + xhr.status));
-                    }
-                };
-                xhr.onerror = function() { rej(new Error('GDFlix network error')); };
-                xhr.send();
-            });
+        fetch(gdflixApiUrl, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(response => {
+            log('GDFlix - Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`GDFlix API error: ${response.status}`);
+            }
+            return response.json();
         })
         .then(data => {
             log('GDFlix - API response:', data);
+
             let gdflixLink = '';
             if (data && data.error === 0 && data.key) {
                 gdflixLink = `https://gdlink.dev/file/${data.key}`;
@@ -3466,10 +3456,14 @@ function generateGDFlixLink(fileId) {
             } else {
                 throw new Error('Unexpected GDFlix response');
             }
+
             log('GDFlix - Generated link:', gdflixLink);
             if (_isSafari) {
-                if (newTab && !newTab.closed) { newTab.location.href = gdflixLink; }
-                else { window.open(gdflixLink, '_blank'); }
+                if (newTab && !newTab.closed) {
+                    newTab.location.href = gdflixLink;
+                } else {
+                    window.open(gdflixLink, '_blank');
+                }
             } else {
                 window.open(gdflixLink, '_blank');
             }
