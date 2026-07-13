@@ -847,6 +847,7 @@ function initializeLoginModal() {
 
             const response = await fetch('/login', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
@@ -862,7 +863,8 @@ function initializeLoginModal() {
                     window.location.href = '/';
                 }, 1000);
             } else {
-                showError('Invalid username or password');
+                const errMsg = data.error || 'Invalid username or password';
+                showError(errMsg);
             }
         } catch (error) {
             showError('Network error. Please try again.');
@@ -1720,9 +1722,9 @@ function append_files_to_list(path, files) {
     initTMSort();
     // When it is the last page, count and display the total number of items
     if (is_lastpage_loaded) {
-        total_size = formatFileSize(totalsize) || '0 Bytes';
-        total_items = $list.find('.countitems').length;
-        total_files = $list.find('.size_items').length;
+        const total_size = formatFileSize(totalsize) || '0 Bytes';
+        const total_items = $list.find('.countitems').length;
+        const total_files = $list.find('.size_items').length;
         const only_folders = total_files === 0;
         if (only_folders) {
             $('#count').removeClass('d-none').find('.number').text(total_items === 1 ? "1 item folder" : total_items + " item folders");
@@ -2010,9 +2012,9 @@ function append_search_result_to_list(files) {
 
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
-            total_size = formatFileSize(totalsize) || '0 Bytes';
-            total_items = $list.find('.countitems').length;
-            total_files = $list.find('.size_items').length;
+            const total_size = formatFileSize(totalsize) || '0 Bytes';
+            const total_items = $list.find('.countitems').length;
+            const total_files = $list.find('.size_items').length;
             const only_folders = total_files === 0;
             if (only_folders) {
                 $('#count').removeClass('d-none').find('.number').text(total_items === 1 ? "1 item folder" : total_items + " item folders");
@@ -2597,7 +2599,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center">
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
@@ -2703,7 +2705,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center">
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
@@ -2971,7 +2973,7 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
         ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center">
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
