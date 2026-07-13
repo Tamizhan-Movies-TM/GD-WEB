@@ -847,6 +847,7 @@ function initializeLoginModal() {
 
             const response = await fetch('/login', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
@@ -862,7 +863,8 @@ function initializeLoginModal() {
                     window.location.href = '/';
                 }, 1000);
             } else {
-                showError('Invalid username or password');
+                const errMsg = data.error || 'Invalid username or password';
+                showError(errMsg);
             }
         } catch (error) {
             showError('Network error. Please try again.');
@@ -1720,9 +1722,9 @@ function append_files_to_list(path, files) {
     initTMSort();
     // When it is the last page, count and display the total number of items
     if (is_lastpage_loaded) {
-        total_size = formatFileSize(totalsize) || '0 Bytes';
-        total_items = $list.find('.countitems').length;
-        total_files = $list.find('.size_items').length;
+        const total_size = formatFileSize(totalsize) || '0 Bytes';
+        const total_items = $list.find('.countitems').length;
+        const total_files = $list.find('.size_items').length;
         const only_folders = total_files === 0;
         if (only_folders) {
             $('#count').removeClass('d-none').find('.number').text(total_items === 1 ? "1 item folder" : total_items + " item folders");
@@ -2010,9 +2012,9 @@ function append_search_result_to_list(files) {
 
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
-            total_size = formatFileSize(totalsize) || '0 Bytes';
-            total_items = $list.find('.countitems').length;
-            total_files = $list.find('.size_items').length;
+            const total_size = formatFileSize(totalsize) || '0 Bytes';
+            const total_items = $list.find('.countitems').length;
+            const total_files = $list.find('.size_items').length;
             const only_folders = total_files === 0;
             if (only_folders) {
                 $('#count').removeClass('d-none').find('.number').text(total_items === 1 ? "1 item folder" : total_items + " item folders");
