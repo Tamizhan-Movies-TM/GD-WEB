@@ -3436,7 +3436,7 @@ function openExtraLink(fileId) {
             // ── Auto-upload: ask worker to upload to extralink.cfd on the fly ──
             if (!UI.extralink_auto_upload) {
                 logError('ExtraLink - No URL mapped for fileId:', fileId);
-                alert('ExtraLink not configured for this file.\nRun: bash upload_smart.sh "https://drive.google.com/file/d/' + fileId + '/view?usp=sharing"\nThen add the result to extralink_url_map in worker.js.');
+                alert('ExtraLink not available for this file.');
                 reject(new Error('No ExtraLink URL mapped for file: ' + fileId));
                 return;
             }
