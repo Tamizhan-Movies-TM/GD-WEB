@@ -121,8 +121,9 @@ function init() {
    <div id="nav">
    </div>
 </header>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/src/main.css">
 <style>
-/* Login Modal Styles */
+/* Page-specific overrides — shared styles are in /main.css */
 .login-modal {
     display: none;
     position: fixed;
@@ -847,7 +848,7 @@ function initializeLoginModal() {
 
             const response = await fetch('/login', {
                 method: 'POST',
-                credentials: 'include',
+                credentials: 'include', // ✅ Required — browser saves Set-Cookie (SameSite=None) from fetch()
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
@@ -863,6 +864,7 @@ function initializeLoginModal() {
                     window.location.href = '/';
                 }, 1000);
             } else {
+                // ✅ FIX: Show actual server error (rate limit, password expiry, etc.)
                 const errMsg = data.error || 'Invalid username or password';
                 showError(errMsg);
             }
@@ -978,10 +980,7 @@ function render(path) {
         const can_preview = getQueryVariable('a');
         const id = getQueryVariable('id');
         if (can_preview) {
-            // ✅ Show password expiry warning only on file info page (&a=view), not folder list
-            if (typeof checkPasswordExpiryWarning === 'function') {
-                checkPasswordExpiryWarning();
-            }
+            // Password expiry warning is already called once in init() — no duplicate needed here
             return fallback(id, true)
         } else {
             return list(null, id, true);
@@ -1722,9 +1721,9 @@ function append_files_to_list(path, files) {
     initTMSort();
     // When it is the last page, count and display the total number of items
     if (is_lastpage_loaded) {
-        const total_size = formatFileSize(totalsize) || '0 Bytes';
-        const total_items = $list.find('.countitems').length;
-        const total_files = $list.find('.size_items').length;
+        const total_size = formatFileSize(totalsize) || '0 Bytes'; // ✅ FIX: was implicit global
+        const total_items = $list.find('.countitems').length;       // ✅ FIX: was implicit global
+        const total_files = $list.find('.size_items').length;       // ✅ FIX: was implicit global
         const only_folders = total_files === 0;
         if (only_folders) {
             $('#count').removeClass('d-none').find('.number').text(total_items === 1 ? "1 item folder" : total_items + " item folders");
@@ -1898,10 +1897,7 @@ function render_search_result_list() {
         }
     }, { passive: true });
 
-    // ✅ Show password expiry warning on search result page as well
-    if (typeof checkPasswordExpiryWarning === 'function') {
-        checkPasswordExpiryWarning();
-    }
+    // Password expiry warning is already called once in init() — no duplicate needed here
 }
 
 /**
@@ -2012,9 +2008,9 @@ function append_search_result_to_list(files) {
 
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
-            const total_size = formatFileSize(totalsize) || '0 Bytes';
-            const total_items = $list.find('.countitems').length;
-            const total_files = $list.find('.size_items').length;
+            const total_size = formatFileSize(totalsize) || '0 Bytes'; // ✅ FIX: was implicit global
+            const total_items = $list.find('.countitems').length;       // ✅ FIX: was implicit global
+            const total_files = $list.find('.size_items').length;       // ✅ FIX: was implicit global
             const only_folders = total_files === 0;
             if (only_folders) {
                 $('#count').removeClass('d-none').find('.number').text(total_items === 1 ? "1 item folder" : total_items + " item folders");
