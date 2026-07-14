@@ -3,7 +3,7 @@
    Extracted from worker-v2_6_1.js — 100% original + card fix
    ============================================================ */
 
-/* ── Block 1: Typography + Spinner (line 597–598) ─────────── */
+/* ── Block 1: Typography + Spinner ─────────────────────────── */
 .navbar-brand {font-size: 30px;}
 .footer-text {font-size: 40px;}
 a {color:white;}
@@ -18,7 +18,7 @@ p {color:white;}
 @-o-keyframes spinner {0% {-webkit-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-o-transform: rotate(0deg);transform: rotate(0deg);}100% {-webkit-transform: rotate(360deg);-moz-transform: rotate(360deg);-ms-transform: rotate(360deg);-o-transform: rotate(360deg);transform: rotate(360deg);}}
 @keyframes spinner {0% {-webkit-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-o-transform: rotate(0deg);transform: rotate(0deg);}100% {-webkit-transform: rotate(360deg);-moz-transform: rotate(360deg);-ms-transform: rotate(360deg);-o-transform: rotate(360deg);transform: rotate(360deg);}}
 
-/* ── Block 2: Component styles (line 621–828) ── EXACT ORIGINAL ── */
+/* ── Block 2: Component styles — EXACT ORIGINAL ── */
    body.modal-open {
      padding-right: 0px !important;
    }
@@ -63,10 +63,11 @@ p {color:white;}
    .breadcrumb-item+.breadcrumb-item::before {
      float: none;
    }
+   /* FIX: transparent + blur so the colorful gradient shows through */
    .card {
-       background: rgba(0, 0, 0, 0.45);
-       backdrop-filter: blur(5px);
-       -webkit-backdrop-filter: blur(5px);
+       background: rgba(0, 0, 0, 0.3);
+       backdrop-filter: blur(12px);
+       -webkit-backdrop-filter: blur(12px);
        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
    }
    .list-group-item, .list-group-item.disabled, .list-group-item:disabled {
