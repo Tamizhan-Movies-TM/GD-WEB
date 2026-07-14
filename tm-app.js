@@ -121,7 +121,7 @@ function init() {
    <div id="nav">
    </div>
 </header>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/src/main.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/main.css">
 <style>
 /* Page-specific overrides — shared styles are in /main.css */
 .login-modal {
