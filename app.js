@@ -483,7 +483,7 @@ strong {
         <form id="loginForm">
             <div class="form-group">
                 <label class="form-label" for="username">
-                    <i class="fas fa-user"></i>Username
+                    <i class="fas fa-user"></i> Username
                 </label>
                 <input
                     type="text"
@@ -496,7 +496,7 @@ strong {
 
             <div class="form-group">
                 <label class="form-label" for="password">
-                    <i class="fas fa-lock"></i>Password
+                    <i class="fas fa-lock"></i> Password
                 </label>
                 <div class="pw-field-wrap">
                     <input
@@ -1032,8 +1032,8 @@ function nav(path) {
     <a class="nav-link" href="${UI.contact_link}" target="_blank"><i class="fas fa-paper-plane fa-fw"></i>${UI.nav_link_4}</a>
     </li>
     ${isUserLoggedIn()
-        ? '<li class="nav-item"><a class="nav-link" href="/logout"><i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>Logout</a></li>'
-        : '<li class="nav-item"><a class="nav-link" href="#" id="openLoginModal" style="cursor: pointer;"><i class="fa-solid fa-user fa-fw"></i>Login</a></li>'
+        ? '<li class="nav-item"><a class="nav-link" href="/logout"><i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i> Logout</a></li>'
+        : '<li class="nav-item"><a class="nav-link" href="#" id="openLoginModal" style="cursor: pointer;"><i class="fa-solid fa-user fa-fw"></i> Login</a></li>'
     }`;
 
     var search_text = model.is_search_page ? (model.q || '') : '';
@@ -2377,7 +2377,7 @@ async function fallback(id, type) {
                     <div class="card-body text-center">
                         <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>404.</b> That’s an error. ` + error + `</div>
                         <p>The requested URL was not found on this server. That’s all we know.</p>
-                        <a href="/" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i>Home</a>
+                        <a href="/" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i> Home</a>
                     </div>
                 </div>`;
                 $("#content").html(content);
@@ -2447,7 +2447,7 @@ async function file(path) {
                 <div class="card-body text-center">
                     <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>404.</b> That’s an error. ` + error + `</div>
                     <p>The requested URL was not found on this server. That’s all we know.</p>
-                    <a href="/" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i>Home</a>
+                    <a href="/" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i> Home</a>
                 </div>
             </div>`;
             $("#content").html(content);
