@@ -1859,25 +1859,9 @@ function render_search_result_list() {
         if (navigator.clipboard?.writeText) {
             navigator.clipboard.writeText(data).then(() => {
                 alert("Selected items copied to clipboard!");
-            }).catch(() => {
-                const el = document.createElement("textarea");
-                el.value = data;
-                el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
-                document.body.appendChild(el);
-                el.select();
-                document.execCommand("copy");
-                document.body.removeChild(el);
-                alert("Selected items copied to clipboard!");
-            });
+            }).catch(() => _legacyCopy(data));
         } else {
-            const el = document.createElement("textarea");
-            el.value = data;
-            el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand("copy");
-            document.body.removeChild(el);
-            alert("Selected items copied to clipboard!");
+            _legacyCopy(data);
         }
     }, { passive: true });
 
