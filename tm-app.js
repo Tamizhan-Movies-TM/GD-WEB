@@ -612,24 +612,7 @@ ${UI.show_quota ? `<div id="tm-quota-bar" style="display:none; padding:6px 16px;
         <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
         </p>
       </div>
-      <script>
-        let btt = document.getElementById("back-to-top");
-        window.onscroll = function () {
-            scrollFunction();
-        };
-        function scrollFunction() {
-            if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
-                btt.style.display = "block";
-            } else {
-                btt.style.display = "none";
-            }
-        }
-        btt.addEventListener("click", backToTop);
-        function backToTop() {
-            document.body.scrollTop = 0;
-            document.documentElement.scrollTop = 0;
-        }
-      </script>
+      <!-- Back-to-top script is injected by the worker via _backToTopScript -->
       </div>
     </div>
 </footer>`;
