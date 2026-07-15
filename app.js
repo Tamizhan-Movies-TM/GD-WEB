@@ -1032,8 +1032,8 @@ function nav(path) {
     <a class="nav-link" href="${UI.contact_link}" target="_blank"><i class="fas fa-paper-plane fa-fw"></i>${UI.nav_link_4}</a>
     </li>
     ${isUserLoggedIn()
-        ? '<li class="nav-item"><a class="nav-link" href="/logout"><i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i> Logout</a></li>'
-        : '<li class="nav-item"><a class="nav-link" href="#" id="openLoginModal" style="cursor: pointer;"><i class="fa-solid fa-user fa-fw"></i> Login</a></li>'
+        ? '<li class="nav-item"><a class="nav-link" href="/logout"><i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>Logout</a></li>'
+        : '<li class="nav-item"><a class="nav-link" href="#" id="openLoginModal" style="cursor: pointer;"><i class="fa-solid fa-user fa-fw"></i>Login</a></li>'
     }`;
 
     var search_text = model.is_search_page ? (model.q || '') : '';
