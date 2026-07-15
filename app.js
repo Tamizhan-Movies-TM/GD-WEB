@@ -204,7 +204,9 @@ function init() {
 }
 
 .form-label {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin-bottom: 8px;
     color: rgba(255, 255, 255, 0.8);
     font-weight: 500;
@@ -481,7 +483,7 @@ strong {
         <form id="loginForm">
             <div class="form-group">
                 <label class="form-label" for="username">
-                    <i class="fas fa-user"></i> Username
+                    <i class="fas fa-user"></i>Username
                 </label>
                 <input
                     type="text"
@@ -494,7 +496,7 @@ strong {
 
             <div class="form-group">
                 <label class="form-label" for="password">
-                    <i class="fas fa-lock"></i> Password
+                    <i class="fas fa-lock"></i>Password
                 </label>
                 <div class="pw-field-wrap">
                     <input
@@ -528,7 +530,7 @@ strong {
      <div class="col-lg-6 col-md-12">
         <div class="card text-white mb-3 h-100">
           <div class="card-header">
-        <i class="fa-solid fa-circle-question"></i> How&nbsp; To&nbsp; Download&nbsp; Movies&nbsp; 🤔
+        <i class="fa-solid fa-circle-question"></i> How  To  Download  Movies  🤔
         </div>
         <div class="card-body d-flex align-items-center justify-content-center">
         <div class="donate btn p-0">
@@ -554,7 +556,7 @@ strong {
   <div class="col-lg-6 col-md-12">
     <div class="card text-white mb-3 h-100">
       <div class="card-header">
-        ${telegram_icon}&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
+        ${telegram_icon}  Join  Our  Telegram  Channels
       </div>
       <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
         <a href="${UI.telegram_channel_main}" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪑⅈꫀડ">
@@ -612,24 +614,7 @@ ${UI.show_quota ? `<div id="tm-quota-bar" style="display:none; padding:6px 16px;
         <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
         </p>
       </div>
-      <script>
-        let btt = document.getElementById("back-to-top");
-        window.onscroll = function () {
-            scrollFunction();
-        };
-        function scrollFunction() {
-            if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
-                btt.style.display = "block";
-            } else {
-                btt.style.display = "none";
-            }
-        }
-        btt.addEventListener("click", backToTop);
-        function backToTop() {
-            document.body.scrollTop = 0;
-            document.documentElement.scrollTop = 0;
-        }
-      </script>
+      <!-- Back-to-top script is injected by the worker via _backToTopScript -->
       </div>
     </div>
 </footer>`;
@@ -705,7 +690,7 @@ function checkPasswordExpiryWarning() {
             <div id="_tm_icon" style="width:46px;height:46px;flex-shrink:0;border-radius:50%;background:${acBg};border:2px solid ${ac};display:flex;align-items:center;justify-content:center;font-size:21px;">🔐</div>
             <div>
                 <div style="color:${ac};font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;">Security Alert</div>
-                <div style="color:#fff;font-size:16px;font-weight:700;">Password &nbsp;Expiring &nbsp;Soon</div>
+                <div style="color:#fff;font-size:16px;font-weight:700;">Password  Expiring  Soon</div>
             </div>
             <button id="_tm_cls" style="margin-left:auto;width:28px;height:28px;flex-shrink:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:50%;color:rgba(255,255,255,0.45);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.18s;line-height:1;">×</button>
         </div>
@@ -734,7 +719,7 @@ function checkPasswordExpiryWarning() {
 
             <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:11px 13px;display:flex;gap:9px;align-items:flex-start;margin-bottom:16px;">
                 <span style="font-size:14px;flex-shrink:0;margin-top:1px;">💬</span>
-                <span style="color:rgba(255,255,255,0.45);font-size:11px;line-height:1.6;">Contact the <strong style="color:rgba(255,255,255,0.78);">&nbsp;administrator</strong> immediately via Telegram to renew your password before it expires.</span>
+                <span style="color:rgba(255,255,255,0.45);font-size:11px;line-height:1.6;">Contact the <strong style="color:rgba(255,255,255,0.78);"> administrator</strong> immediately via Telegram to renew your password before it expires.</span>
             </div>
 
             <div style="display:flex;gap:9px;">
@@ -2599,7 +2584,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+          <p class="mb-2">🚀 𝔽𝕒𝕤𝕥  𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕  𝔾𝔻𝔽𝕝𝕚𝕩  𝕃𝕚𝕟𝕜  <i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center">
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
@@ -2705,7 +2690,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+          <p class="mb-2">🚀 𝔽𝕒𝕤𝕥  𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕  𝔾𝔻𝔽𝕝𝕚𝕩  𝕃𝕚𝕟𝕜  <i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center">
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
@@ -2973,7 +2958,7 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
         ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
+          <p class="mb-2">🚀 𝔽𝕒𝕤𝕥  𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕  𝔾𝔻𝔽𝕝𝕚𝕩  𝕃𝕚𝕟𝕜  <i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center">
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
@@ -2985,13 +2970,13 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
               <span class="sr-only"></span>
             </button>
             <div class="dropdown-menu dropdown-menu-end">
-              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-android" style="color:#3ddc84;"></i>&nbsp;&nbsp;Android Players</h6>
+              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-android" style="color:#3ddc84;"></i>  Android Players</h6>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
               <div class="dropdown-divider"></div>
-              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-apple" style="color:#fff;"></i>&nbsp;&nbsp;iPhone Players</h6>
+              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-apple" style="color:#fff;"></i>  iPhone Players</h6>
               <a class="dropdown-item" href="vlc-x-callback://x-callback-url/stream?url=${encodeURIComponent(url)}">${vlc_ios_icon} VLC (iOS)</a>
               <a class="dropdown-item" href="infuse://x-callback-url/play?url=${encodeURIComponent(url)}">${infuse_icon} Infuse</a>
              </div>` : ''}
@@ -3851,7 +3836,7 @@ $(document).ready(function () {
     <button id="tm-dl-cancel">Cancel</button>
   </div>
 </div>
-<div id="dl-toast"><i class="fas fa-circle-check"></i>File &nbsp;Downloading...</div>`);
+<div id="dl-toast"><i class="fas fa-circle-check"></i>File  Downloading...</div>`);
     }
 
     // Cache elements
