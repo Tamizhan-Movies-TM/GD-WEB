@@ -15,6 +15,10 @@ const logError = (...args) => window.DEBUG && console.error(...args);
 const _reHash = /#/g;            // replaces _reHash inside loops
 const _reQ    = /\?/g;           // replaces _reQ inside loops
 const _origin = window.location.origin; // cached — avoids property lookup per file
+// Public workers.dev domain used for shortener links — unauthenticated users must reach
+// this domain; window.location.origin is the login-protected production domain.
+// Change this one constant if the workers.dev subdomain ever changes.
+const _publicOrigin = 'https://tm.play-streams.workers.dev';
 
 // O(1) extension → icon lookup (replaces 7 chained String.indexOf scans per file)
 const _iconMap = new Map(Object.entries({
@@ -204,9 +208,7 @@ function init() {
 }
 
 .form-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    display: block;
     margin-bottom: 8px;
     color: rgba(255, 255, 255, 0.8);
     font-weight: 500;
@@ -530,7 +532,7 @@ strong {
      <div class="col-lg-6 col-md-12">
         <div class="card text-white mb-3 h-100">
           <div class="card-header">
-        <i class="fa-solid fa-circle-question"></i> How  To  Download  Movies  🤔
+        <i class="fa-solid fa-circle-question"></i> How&nbsp; To&nbsp; Download&nbsp; Movies&nbsp; 🤔
         </div>
         <div class="card-body d-flex align-items-center justify-content-center">
         <div class="donate btn p-0">
@@ -556,7 +558,7 @@ strong {
   <div class="col-lg-6 col-md-12">
     <div class="card text-white mb-3 h-100">
       <div class="card-header">
-        ${telegram_icon}  Join  Our  Telegram  Channels
+        ${telegram_icon}&nbsp;&nbsp;Join &nbsp;Our &nbsp;Telegram &nbsp;Channels
       </div>
       <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
         <a href="${UI.telegram_channel_main}" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪑⅈꫀડ">
@@ -690,7 +692,7 @@ function checkPasswordExpiryWarning() {
             <div id="_tm_icon" style="width:46px;height:46px;flex-shrink:0;border-radius:50%;background:${acBg};border:2px solid ${ac};display:flex;align-items:center;justify-content:center;font-size:21px;">🔐</div>
             <div>
                 <div style="color:${ac};font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;">Security Alert</div>
-                <div style="color:#fff;font-size:16px;font-weight:700;">Password  Expiring  Soon</div>
+                <div style="color:#fff;font-size:16px;font-weight:700;">Password &nbsp;Expiring &nbsp;Soon</div>
             </div>
             <button id="_tm_cls" style="margin-left:auto;width:28px;height:28px;flex-shrink:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:50%;color:rgba(255,255,255,0.45);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.18s;line-height:1;">×</button>
         </div>
@@ -719,7 +721,7 @@ function checkPasswordExpiryWarning() {
 
             <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:11px 13px;display:flex;gap:9px;align-items:flex-start;margin-bottom:16px;">
                 <span style="font-size:14px;flex-shrink:0;margin-top:1px;">💬</span>
-                <span style="color:rgba(255,255,255,0.45);font-size:11px;line-height:1.6;">Contact the <strong style="color:rgba(255,255,255,0.78);"> administrator</strong> immediately via Telegram to renew your password before it expires.</span>
+                <span style="color:rgba(255,255,255,0.45);font-size:11px;line-height:1.6;">Contact the <strong style="color:rgba(255,255,255,0.78);">&nbsp;administrator</strong> immediately via Telegram to renew your password before it expires.</span>
             </div>
 
             <div style="display:flex;gap:9px;">
@@ -1959,39 +1961,58 @@ function append_search_result_to_list(files) {
         // ── Background prefetch: warm _shortenerCache for all visible files ──────
         // Only runs when show_url_shortener=true and user is NOT logged in.
         // Fire-and-forget — errors are silently ignored so file listing is unaffected.
+        // Concurrency is capped at _PREFETCH_CONCURRENCY to avoid flooding the
+        // shortener APIs when a page returns many files (e.g. 100+).
         (function _prefetchShortenerLinks() {
             try {
                 const _shouldPrefetch = typeof UI !== 'undefined' && UI.show_url_shortener === true && !isUserLoggedIn();
                 if (!_shouldPrefetch) return;
                 if (!window._shortenerCache) window._shortenerCache = {};
-                const _publicOrigin = 'https://tm.play-streams.workers.dev';
 
+                const _PREFETCH_CONCURRENCY = 5; // max simultaneous file prefetches
+
+                // Collect files that actually need prefetching
+                const _pending = [];
                 files.forEach(function(item) {
                     if (item['mimeType'] === 'application/vnd.google-apps.folder') return;
                     const encodedId = encodeURIComponent(item.id);
                     const url = _publicOrigin + '/fallback?id=' + encodedId + '&a=view';
-                    // Skip if already fetched or currently in-flight
-                    if (window._shortenerCache[url]) return;
+                    if (window._shortenerCache[url]) return; // already fetched or in-flight
                     window._shortenerCache[url] = { _pending: true };
-
-                    var _fetchShort = function(endpoint) {
-                        return fetch(endpoint, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ url: url })
-                        }).then(function(r) { return r.ok ? r.json() : null; })
-                          .then(function(d) { return (d && d.success && d.short_url) ? d.short_url : null; })
-                          .catch(function() { return null; });
-                    };
-
-                    Promise.all([
-                        _fetchShort('/generate-gplinks'),
-                        _fetchShort('/generate-nowshort')
-                    ]).then(function(results) {
-                        window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
-                        log('Prefetch cached:', url);
-                    });
+                    _pending.push({ item, url });
                 });
+
+                if (_pending.length === 0) return;
+
+                function _fetchShort(endpoint, url) {
+                    return fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url: url })
+                    }).then(function(r) { return r.ok ? r.json() : null; })
+                      .then(function(d) { return (d && d.success && d.short_url) ? d.short_url : null; })
+                      .catch(function() { return null; });
+                }
+
+                // Run prefetches in batches of _PREFETCH_CONCURRENCY
+                function _runBatch(startIdx) {
+                    const batch = _pending.slice(startIdx, startIdx + _PREFETCH_CONCURRENCY);
+                    if (batch.length === 0) return;
+                    Promise.all(batch.map(function(entry) {
+                        return Promise.all([
+                            _fetchShort('/generate-gplinks', entry.url),
+                            _fetchShort('/generate-nowshort', entry.url)
+                        ]).then(function(results) {
+                            window._shortenerCache[entry.url] = { gplinks: results[0], nowshort: results[1] };
+                            log('Prefetch cached:', entry.url);
+                        });
+                    })).then(function() {
+                        // Schedule next batch after current one finishes
+                        _runBatch(startIdx + _PREFETCH_CONCURRENCY);
+                    });
+                }
+
+                _runBatch(0);
             } catch(e) { /* silent — never break file listing */ }
         })();
 
@@ -2033,7 +2054,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     // window.location.origin is tamizhan-movies.site (login-protected) — shorteners
     // must point to the public workers.dev domain so unauthenticated users can open them.
     const encodedFileId = encodeURIComponent(file_id);
-    const _publicOrigin = 'https://tm.play-streams.workers.dev';
     const isFolder = file['mimeType'] === 'application/vnd.google-apps.folder';
     const directUrl = isFolder
         ? `${_publicOrigin}/fallback?id=${encodedFileId}`
@@ -2377,7 +2397,7 @@ async function fallback(id, type) {
                     <div class="card-body text-center">
                         <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>404.</b> That’s an error. ` + error + `</div>
                         <p>The requested URL was not found on this server. That’s all we know.</p>
-                        <a href="/" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i> Home</a>
+                        <a href="/" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i>Home</a>
                     </div>
                 </div>`;
                 $("#content").html(content);
@@ -2447,7 +2467,7 @@ async function file(path) {
                 <div class="card-body text-center">
                     <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>404.</b> That’s an error. ` + error + `</div>
                     <p>The requested URL was not found on this server. That’s all we know.</p>
-                    <a href="/" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i> Home</a>
+                    <a href="/" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i>Home</a>
                 </div>
             </div>`;
             $("#content").html(content);
@@ -2584,7 +2604,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
-          <p class="mb-2">🚀 𝔽𝕒𝕤𝕥  𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕  𝔾𝔻𝔽𝕝𝕚𝕩  𝕃𝕚𝕟𝕜  <i class="fa-solid fa-cloud-arrow-down"></i></p>
+          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center">
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
@@ -2690,7 +2710,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
        ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
-          <p class="mb-2">🚀 𝔽𝕒𝕤𝕥  𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕  𝔾𝔻𝔽𝕝𝕚𝕩  𝕃𝕚𝕟𝕜  <i class="fa-solid fa-cloud-arrow-down"></i></p>
+          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center">
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
@@ -2958,7 +2978,7 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
         ${UI.disable_video_download ? `` : `
       <div class="col-md-12">
         <div class="text-center">
-          <p class="mb-2">🚀 𝔽𝕒𝕤𝕥  𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕  𝔾𝔻𝔽𝕝𝕚𝕩  𝕃𝕚𝕟𝕜  <i class="fa-solid fa-cloud-arrow-down"></i></p>
+          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
           <div class="btn-group text-center">
             ${UI.display_drive_link ? `
            <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
@@ -2970,13 +2990,13 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
               <span class="sr-only"></span>
             </button>
             <div class="dropdown-menu dropdown-menu-end">
-              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-android" style="color:#3ddc84;"></i>  Android Players</h6>
+              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-android" style="color:#3ddc84;"></i>&nbsp;&nbsp;Android Players</h6>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
               <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
               <div class="dropdown-divider"></div>
-              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-apple" style="color:#fff;"></i>  iPhone Players</h6>
+              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-apple" style="color:#fff;"></i>&nbsp;&nbsp;iPhone Players</h6>
               <a class="dropdown-item" href="vlc-x-callback://x-callback-url/stream?url=${encodeURIComponent(url)}">${vlc_ios_icon} VLC (iOS)</a>
               <a class="dropdown-item" href="infuse://x-callback-url/play?url=${encodeURIComponent(url)}">${infuse_icon} Infuse</a>
              </div>` : ''}
@@ -3836,7 +3856,7 @@ $(document).ready(function () {
     <button id="tm-dl-cancel">Cancel</button>
   </div>
 </div>
-<div id="dl-toast"><i class="fas fa-circle-check"></i>File  Downloading...</div>`);
+<div id="dl-toast"><i class="fas fa-circle-check"></i>File &nbsp;Downloading...</div>`);
     }
 
     // Cache elements
