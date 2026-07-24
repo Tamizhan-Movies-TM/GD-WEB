@@ -1859,9 +1859,25 @@ function render_search_result_list() {
         if (navigator.clipboard?.writeText) {
             navigator.clipboard.writeText(data).then(() => {
                 alert("Selected items copied to clipboard!");
-            }).catch(() => _legacyCopy(data));
+            }).catch(() => {
+                const el = document.createElement("textarea");
+                el.value = data;
+                el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand("copy");
+                document.body.removeChild(el);
+                alert("Selected items copied to clipboard!");
+            });
         } else {
-            _legacyCopy(data);
+            const el = document.createElement("textarea");
+            el.value = data;
+            el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand("copy");
+            document.body.removeChild(el);
+            alert("Selected items copied to clipboard!");
         }
     }, { passive: true });
 
@@ -3485,23 +3501,37 @@ function generateGDFlixLink(fileId) {
 
         log('GDFlix - Requesting link directly from browser (bypasses Cloudflare IP block)...');
 
-        const GDFLIX_API_KEY = '34559655cfedb7f5422c64e80c6a02ff';
-        const gdflixApiUrl = `https://new3.gdflix.io/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
+        // API key from Cloudflare secret (never hardcoded)
+        const GDFLIX_API_KEY = UI.gdflix_api_key || '';
+        if (!GDFLIX_API_KEY) { reject(new Error('GDFlix API key not set')); return; }
 
+        // Auto-detect current GDFlix domain:
+        // 1. Use KV-cached domain from UI.gdflix_domain if available
+        // 2. Otherwise fetch gdflix.dev → browser follows redirect → response.url = current domain
+        // On success → POST actual domain to /gdflix-domain-update → saved in KV for all users
         const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         var newTab = _isSafari ? window.open('', '_blank') : null;
-        log('GDFlix - Safari detected:', _isSafari);
 
-        fetch(gdflixApiUrl, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' }
-        })
-        .then(response => {
-            log('GDFlix - Response status:', response.status);
-            if (!response.ok) {
-                throw new Error(`GDFlix API error: ${response.status}`);
-            }
-            return response.json();
+        async function _getGDFlixDomain() {
+            if (UI.gdflix_domain) return UI.gdflix_domain;
+            // Fetch gdflix.dev — browser follows redirect automatically
+            // response.url reveals the current active domain
+            const _r = await fetch('https://gdflix.dev', { redirect: 'follow' });
+            return new URL(_r.url).origin;
+        }
+
+        _getGDFlixDomain().then(domain => {
+            const gdflixApiUrl = `${domain}/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
+            log('GDFlix - API URL:', gdflixApiUrl);
+            return fetch(gdflixApiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } })
+                .then(response => {
+                    log('GDFlix - Response status:', response.status);
+                    // Save actual domain from response.url → KV via worker
+                    const _actual = new URL(response.url || gdflixApiUrl).origin;
+                    fetch(`/gdflix-domain-update?domain=${encodeURIComponent(_actual)}`, { method: 'POST' }).catch(() => {});
+                    if (!response.ok) throw new Error(`GDFlix API error: ${response.status}`);
+                    return response.json();
+                });
         })
         .then(data => {
             log('GDFlix - API response:', data);
