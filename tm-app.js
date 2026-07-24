@@ -3501,37 +3501,31 @@ function generateGDFlixLink(fileId) {
 
         log('GDFlix - Requesting link directly from browser (bypasses Cloudflare IP block)...');
 
-        // API key from Cloudflare secret (never hardcoded)
-        const GDFLIX_API_KEY = UI.gdflix_api_key || '';
-        if (!GDFLIX_API_KEY) { reject(new Error('GDFlix API key not set')); return; }
+        const GDFLIX_API_KEY = '34559655cfedb7f5422c64e80c6a02ff';
 
-        // Auto-detect current GDFlix domain:
-        // 1. Use KV-cached domain from UI.gdflix_domain if available
-        // 2. Otherwise fetch gdflix.dev → browser follows redirect → response.url = current domain
-        // On success → POST actual domain to /gdflix-domain-update → saved in KV for all users
         const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         var newTab = _isSafari ? window.open('', '_blank') : null;
+        log('GDFlix - Safari detected:', _isSafari);
 
-        async function _getGDFlixDomain() {
-            if (UI.gdflix_domain) return UI.gdflix_domain;
-            // Fetch gdflix.dev — browser follows redirect automatically
-            // response.url reveals the current active domain
-            const _r = await fetch('https://gdflix.dev', { redirect: 'follow' });
-            return new URL(_r.url).origin;
-        }
-
-        _getGDFlixDomain().then(domain => {
-            const gdflixApiUrl = `${domain}/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
+        // Auto-fetch current GDFlix domain from worker (/gdflix-get-domain)
+        // Worker checks GDFLIX_KV first (instant), then fetches gdflix.dev server-side
+        // (follows redirect → current active domain), saves to KV for 24h. Forever automatic.
+        fetch('/gdflix-get-domain')
+        .then(r => r.json())
+        .then(d => {
+            const gdflixApiUrl = `${d.domain}/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
             log('GDFlix - API URL:', gdflixApiUrl);
-            return fetch(gdflixApiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } })
-                .then(response => {
-                    log('GDFlix - Response status:', response.status);
-                    // Save actual domain from response.url → KV via worker
-                    const _actual = new URL(response.url || gdflixApiUrl).origin;
-                    fetch(`/gdflix-domain-update?domain=${encodeURIComponent(_actual)}`, { method: 'POST' }).catch(() => {});
-                    if (!response.ok) throw new Error(`GDFlix API error: ${response.status}`);
-                    return response.json();
-                });
+            return fetch(gdflixApiUrl, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+        })
+        .then(response => {
+            log('GDFlix - Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`GDFlix API error: ${response.status}`);
+            }
+            return response.json();
         })
         .then(data => {
             log('GDFlix - API response:', data);
