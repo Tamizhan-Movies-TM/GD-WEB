@@ -3502,23 +3502,15 @@ function generateGDFlixLink(fileId) {
         log('GDFlix - Requesting link directly from browser (bypasses Cloudflare IP block)...');
 
         const GDFLIX_API_KEY = '34559655cfedb7f5422c64e80c6a02ff';
+        const gdflixApiUrl = `https://new.gdflix.net/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
 
         const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         var newTab = _isSafari ? window.open('', '_blank') : null;
         log('GDFlix - Safari detected:', _isSafari);
 
-        // Auto-fetch current GDFlix domain from worker (/gdflix-get-domain)
-        // Worker checks GDFLIX_KV first (instant), then fetches gdflix.dev server-side
-        // (follows redirect → current active domain), saves to KV for 24h. Forever automatic.
-        fetch('/gdflix-get-domain')
-        .then(r => r.json())
-        .then(d => {
-            const gdflixApiUrl = `${d.domain}/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
-            log('GDFlix - API URL:', gdflixApiUrl);
-            return fetch(gdflixApiUrl, {
-                method: 'GET',
-                headers: { 'Accept': 'application/json' }
-            });
+        fetch(gdflixApiUrl, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
         })
         .then(response => {
             log('GDFlix - Response status:', response.status);
