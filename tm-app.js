@@ -3486,7 +3486,7 @@ function generateGDFlixLink(fileId) {
         log('GDFlix - Requesting link directly from browser (bypasses Cloudflare IP block)...');
 
         const GDFLIX_API_KEY = '34559655cfedb7f5422c64e80c6a02ff';
-        const gdflixApiUrl = `https://new2.gdflix.app/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
+        const gdflixApiUrl = `https://gdflix.com/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
 
         const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         var newTab = _isSafari ? window.open('', '_blank') : null;
