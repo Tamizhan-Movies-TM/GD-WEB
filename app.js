@@ -15,10 +15,6 @@ const logError = (...args) => window.DEBUG && console.error(...args);
 const _reHash = /#/g;            // replaces _reHash inside loops
 const _reQ    = /\?/g;           // replaces _reQ inside loops
 const _origin = window.location.origin; // cached — avoids property lookup per file
-// Public workers.dev domain used for shortener links — unauthenticated users must reach
-// this domain; window.location.origin is the login-protected production domain.
-// Change this one constant if the workers.dev subdomain ever changes.
-const _publicOrigin = 'https://tm.play-streams.workers.dev';
 
 // O(1) extension → icon lookup (replaces 7 chained String.indexOf scans per file)
 const _iconMap = new Map(Object.entries({
@@ -616,7 +612,24 @@ ${UI.show_quota ? `<div id="tm-quota-bar" style="display:none; padding:6px 16px;
         <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
         </p>
       </div>
-      <!-- Back-to-top script is injected by the worker via _backToTopScript -->
+      <script>
+        let btt = document.getElementById("back-to-top");
+        window.onscroll = function () {
+            scrollFunction();
+        };
+        function scrollFunction() {
+            if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+                btt.style.display = "block";
+            } else {
+                btt.style.display = "none";
+            }
+        }
+        btt.addEventListener("click", backToTop);
+        function backToTop() {
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+        }
+      </script>
       </div>
     </div>
 </footer>`;
@@ -834,7 +847,6 @@ function initializeLoginModal() {
 
             const response = await fetch('/login', {
                 method: 'POST',
-                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
@@ -850,8 +862,7 @@ function initializeLoginModal() {
                     window.location.href = '/';
                 }, 1000);
             } else {
-                const errMsg = data.error || 'Invalid username or password';
-                showError(errMsg);
+                showError('Invalid username or password');
             }
         } catch (error) {
             showError('Network error. Please try again.');
@@ -1709,9 +1720,9 @@ function append_files_to_list(path, files) {
     initTMSort();
     // When it is the last page, count and display the total number of items
     if (is_lastpage_loaded) {
-        const total_size = formatFileSize(totalsize) || '0 Bytes';
-        const total_items = $list.find('.countitems').length;
-        const total_files = $list.find('.size_items').length;
+        total_size = formatFileSize(totalsize) || '0 Bytes';
+        total_items = $list.find('.countitems').length;
+        total_files = $list.find('.size_items').length;
         const only_folders = total_files === 0;
         if (only_folders) {
             $('#count').removeClass('d-none').find('.number').text(total_items === 1 ? "1 item folder" : total_items + " item folders");
@@ -1961,66 +1972,47 @@ function append_search_result_to_list(files) {
         // ── Background prefetch: warm _shortenerCache for all visible files ──────
         // Only runs when show_url_shortener=true and user is NOT logged in.
         // Fire-and-forget — errors are silently ignored so file listing is unaffected.
-        // Concurrency is capped at _PREFETCH_CONCURRENCY to avoid flooding the
-        // shortener APIs when a page returns many files (e.g. 100+).
         (function _prefetchShortenerLinks() {
             try {
                 const _shouldPrefetch = typeof UI !== 'undefined' && UI.show_url_shortener === true && !isUserLoggedIn();
                 if (!_shouldPrefetch) return;
                 if (!window._shortenerCache) window._shortenerCache = {};
+                const _publicOrigin = 'https://tm.play-streams.workers.dev';
 
-                const _PREFETCH_CONCURRENCY = 5; // max simultaneous file prefetches
-
-                // Collect files that actually need prefetching
-                const _pending = [];
                 files.forEach(function(item) {
                     if (item['mimeType'] === 'application/vnd.google-apps.folder') return;
                     const encodedId = encodeURIComponent(item.id);
                     const url = _publicOrigin + '/fallback?id=' + encodedId + '&a=view';
-                    if (window._shortenerCache[url]) return; // already fetched or in-flight
+                    // Skip if already fetched or currently in-flight
+                    if (window._shortenerCache[url]) return;
                     window._shortenerCache[url] = { _pending: true };
-                    _pending.push({ item, url });
-                });
 
-                if (_pending.length === 0) return;
+                    var _fetchShort = function(endpoint) {
+                        return fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ url: url })
+                        }).then(function(r) { return r.ok ? r.json() : null; })
+                          .then(function(d) { return (d && d.success && d.short_url) ? d.short_url : null; })
+                          .catch(function() { return null; });
+                    };
 
-                function _fetchShort(endpoint, url) {
-                    return fetch(endpoint, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url: url })
-                    }).then(function(r) { return r.ok ? r.json() : null; })
-                      .then(function(d) { return (d && d.success && d.short_url) ? d.short_url : null; })
-                      .catch(function() { return null; });
-                }
-
-                // Run prefetches in batches of _PREFETCH_CONCURRENCY
-                function _runBatch(startIdx) {
-                    const batch = _pending.slice(startIdx, startIdx + _PREFETCH_CONCURRENCY);
-                    if (batch.length === 0) return;
-                    Promise.all(batch.map(function(entry) {
-                        return Promise.all([
-                            _fetchShort('/generate-gplinks', entry.url),
-                            _fetchShort('/generate-nowshort', entry.url)
-                        ]).then(function(results) {
-                            window._shortenerCache[entry.url] = { gplinks: results[0], nowshort: results[1] };
-                            log('Prefetch cached:', entry.url);
-                        });
-                    })).then(function() {
-                        // Schedule next batch after current one finishes
-                        _runBatch(startIdx + _PREFETCH_CONCURRENCY);
+                    Promise.all([
+                        _fetchShort('/generate-gplinks'),
+                        _fetchShort('/generate-nowshort')
+                    ]).then(function(results) {
+                        window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
+                        log('Prefetch cached:', url);
                     });
-                }
-
-                _runBatch(0);
+                });
             } catch(e) { /* silent — never break file listing */ }
         })();
 
         // When it is the last page, count and display the total number of items
         if (is_lastpage_loaded) {
-            const total_size = formatFileSize(totalsize) || '0 Bytes';
-            const total_items = $list.find('.countitems').length;
-            const total_files = $list.find('.size_items').length;
+            total_size = formatFileSize(totalsize) || '0 Bytes';
+            total_items = $list.find('.countitems').length;
+            total_files = $list.find('.size_items').length;
             const only_folders = total_files === 0;
             if (only_folders) {
                 $('#count').removeClass('d-none').find('.number').text(total_items === 1 ? "1 item folder" : total_items + " item folders");
@@ -2054,6 +2046,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     // window.location.origin is tamizhan-movies.site (login-protected) — shorteners
     // must point to the public workers.dev domain so unauthenticated users can open them.
     const encodedFileId = encodeURIComponent(file_id);
+    const _publicOrigin = 'https://tm.play-streams.workers.dev';
     const isFolder = file['mimeType'] === 'application/vnd.google-apps.folder';
     const directUrl = isFolder
         ? `${_publicOrigin}/fallback?id=${encodedFileId}`
@@ -2489,14 +2482,13 @@ function generateCopyFileBox(file_id, cookie_folder_id) {
 // Document display |zip|.exe/others direct downloads
 // =============================================================================
 // DOWNLOAD BUTTON HELPER
-// Decides whether non-login users get an ExtraLink button or a direct download button.
+// Decides whether non-login users get a GDflix link or a direct download button.
 //
-// Logic controlled by UI config flags (set in worker.js):
-//   enable_extralink_for_non_login     — master switch. If false → always direct download.
-//   extralink_large_file_only          — if true → ExtraLink only for files ≥ threshold GB.
-//                                         if false → ExtraLink for ALL non-login users.
-//   extralink_large_file_threshold_gb  — size threshold in GB (default 5).
-//   extralink_url_map                  — { "GD_FILE_ID": "https://extralink.cfd/file/..." }
+// Logic controlled by two UI config flags (set in worker-tm.js):
+//   enable_gdflix_for_non_login        — master switch. If false → always direct download.
+//   gdflix_large_file_only             — if true → GDflix only for files ≥ threshold GB.
+//                                         if false → GDflix for ALL non-login users (old behaviour).
+//   gdflix_large_file_threshold_gb     — size threshold in GB (default 10).
 //
 // Logged-in users ALWAYS get direct download regardless of settings.
 // =============================================================================
@@ -2509,30 +2501,22 @@ function getDownloadButton(url, encoded_name, file_id, bytes) {
        </button>`;
     }
 
-    // ExtraLink master switch off → always direct download for everyone
-    // (backward-compat: also check old enable_gdflix_for_non_login key)
-    const extralinkEnabled = (UI.enable_extralink_for_non_login !== undefined)
-        ? UI.enable_extralink_for_non_login
-        : UI.enable_gdflix_for_non_login;
-    if (!extralinkEnabled) {
+    // GDflix master switch off → always direct download for everyone
+    if (!UI.enable_gdflix_for_non_login) {
         return `<button type="button" class="btn btn-success tm-download-btn"
                data-url="${url}" data-name="${encoded_name}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </button>`;
     }
 
-    // Non-login user, ExtraLink enabled — check extralink_large_file_only setting
-    const thresholdGb = UI.extralink_large_file_threshold_gb || UI.gdflix_large_file_threshold_gb || 5;
-    const thresholdBytes = thresholdGb * 1024 * 1024 * 1024;
-    const largeFileOnly = (UI.extralink_large_file_only !== undefined)
-        ? UI.extralink_large_file_only
-        : UI.gdflix_large_file_only;
-    const useExtralink = largeFileOnly
-        ? (bytes >= thresholdBytes)   // true → ExtraLink only for large files
-        : true;                        // false → ExtraLink for all non-login users
+    // Non-login user, GDflix enabled — check gdflix_large_file_only setting
+    const thresholdBytes = (UI.gdflix_large_file_threshold_gb || 10) * 1024 * 1024 * 1024;
+    const useGdflix = UI.gdflix_large_file_only
+        ? (bytes >= thresholdBytes)   // true → GDflix only for large files
+        : true;                        // false → GDflix for all non-login users
 
-    if (useExtralink) {
-        return `<a type="button" class="btn btn-success download-via-extralink" data-file-id="${file_id}">
+    if (useGdflix) {
+        return `<a type="button" class="btn btn-success download-via-gdflix" data-file-id="${file_id}">
          <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
        </a>`;
     } else {
@@ -2783,23 +2767,22 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
 // PLAYER VISIBILITY HELPER
 // Decides whether the inline audio/video player should be hidden.
 //
-// Logic controlled by UI config flags (set in worker.js):
-//   disable_player                     — master switch. If true → ALWAYS hide the player,
-//                                         regardless of file size.
-//   extralink_large_file_threshold_gb  — size threshold in GB (default 5). Files AT or
-//                                         ABOVE this size get the player hidden too — for
-//                                         EVERYONE, login and non-login — nudging large
-//                                         files towards the ExtraLink instead of inline
-//                                         streaming.
+// Logic controlled by UI config flags (set in worker-tm.js):
+//   disable_player                — master switch. If true → ALWAYS hide the player,
+//                                    regardless of file size.
+//   gdflix_large_file_threshold_gb — size threshold in GB (default 10). Files AT or
+//                                    ABOVE this size get the player hidden too — for
+//                                    EVERYONE, login and non-login — nudging large
+//                                    files towards the GDflix link instead of inline
+//                                    streaming.
 // =============================================================================
 function shouldDisablePlayer(bytes) {
     if (UI.disable_player) return true;
-    // Use player_disable_threshold_gb when set, fall back to
-    // extralink_large_file_threshold_gb, then old gdflix key for backward compat, then 10 GB.
-    const thresholdGb = UI.player_disable_threshold_gb
-        || UI.extralink_large_file_threshold_gb
-        || UI.gdflix_large_file_threshold_gb
-        || 10;
+    // ✅ IMPROVE: use player_disable_threshold_gb when set, fall back to
+    // gdflix_large_file_threshold_gb for backwards compatibility, then 10 GB.
+    // Previously only the gdflix key was used here which is semantically wrong —
+    // the two thresholds can diverge independently.
+    const thresholdGb = UI.player_disable_threshold_gb || UI.gdflix_large_file_threshold_gb || 10;
     const thresholdBytes = thresholdGb * 1024 * 1024 * 1024;
     return bytes >= thresholdBytes;
 }
@@ -3413,106 +3396,20 @@ async function copyFile(driveid) {
     }
 }
 
-// =============================================================================
-// ExtraLink — open pre-uploaded URL from extralink_url_map
-// No API call needed. URL is pre-generated by running upload_smart.sh and
-// stored in worker.js under uiConfig.extralink_url_map = { "GD_FILE_ID": "https://extralink.cfd/file/..." }
-// =============================================================================
-function openExtraLink(fileId) {
-    return new Promise((resolve, reject) => {
-        log('ExtraLink - Received fileId:', fileId);
-
-        if (!fileId) {
-            logError('ExtraLink - No file ID provided');
-            reject(new Error('No file ID provided'));
-            return;
-        }
-
-        fileId = String(fileId).trim();
-        if (fileId === '') {
-            logError('ExtraLink - Empty file ID');
-            reject(new Error('Empty file ID'));
-            return;
-        }
-
-        // Look up the pre-uploaded ExtraLink URL from the map in worker config
-        const urlMap = UI.extralink_url_map || {};
-        const extralinkUrl = urlMap[fileId];
-
-        if (!extralinkUrl) {
-            // ── Auto-upload: ask worker to upload to extralink.cfd on the fly ──
-            if (!UI.extralink_auto_upload) {
-                logError('ExtraLink - No URL mapped for fileId:', fileId);
-                alert('ExtraLink not available for this file.');
-                reject(new Error('No ExtraLink URL mapped for file: ' + fileId));
-                return;
-            }
-            log('ExtraLink - Not in map, auto-uploading via worker:', fileId);
-            fetch('/extralink-upload', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ file_id: fileId })
-            })
-            .then(function(resp) { return resp.json(); })
-            .then(function(data) {
-                if (!data.success || !data.url) {
-                    logError('ExtraLink - Auto-upload failed:', data.error);
-                    alert('ExtraLink upload failed: ' + (data.error || 'Unknown error'));
-                    reject(new Error(data.error || 'Auto-upload failed'));
-                    return;
-                }
-                // Cache in runtime map so subsequent clicks are instant
-                UI.extralink_url_map = UI.extralink_url_map || {};
-                UI.extralink_url_map[fileId] = data.url;
-                log('ExtraLink - Auto-upload success:', data.url, data.cached ? '(was already uploaded)' : '(fresh upload)');
-                const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-                if (_isSafari) {
-                    var newTab = window.open('', '_blank');
-                    if (newTab) { newTab.location.href = data.url; } else { window.open(data.url, '_blank'); }
-                } else {
-                    window.open(data.url, '_blank');
-                }
-                resolve(data.url);
-            })
-            .catch(function(err) {
-                logError('ExtraLink - Auto-upload network error:', err);
-                alert('ExtraLink upload failed: ' + err.message);
-                reject(err);
-            });
-            return;
-        }
-
-        log('ExtraLink - Opening URL:', extralinkUrl);
-
-        // Safari-safe window.open
-        const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-        if (_isSafari) {
-            var newTab = window.open('', '_blank');
-            if (newTab) {
-                newTab.location.href = extralinkUrl;
-            } else {
-                window.open(extralinkUrl, '_blank');
-            }
-        } else {
-            window.open(extralinkUrl, '_blank');
-        }
-
-        resolve(extralinkUrl);
-    });
-}
-
 // GDFlix Link Generation Function
 function generateGDFlixLink(fileId) {
     return new Promise((resolve, reject) => {
+        // Debug logging
         log('GDFlix - Received fileId:', fileId);
 
+        // Basic validation
         if (!fileId) {
             logError('GDFlix - No file ID provided');
             reject(new Error('No file ID provided'));
             return;
         }
 
+        // Convert to string if it's not already
         fileId = String(fileId).trim();
 
         if (fileId === '') {
@@ -3521,51 +3418,54 @@ function generateGDFlixLink(fileId) {
             return;
         }
 
-        log('GDFlix - Requesting link directly from browser (bypasses Cloudflare IP block)...');
+        log('GDFlix - Requesting link generation from worker...');
 
-        const GDFLIX_API_KEY = '34559655cfedb7f5422c64e80c6a02ff';
-        const gdflixApiUrl = `https://new2.gdflix.app/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
-
+        // Safari blocks window.open() called inside .then() (async context) as a popup.
+        // Fix: Open a blank tab SYNCHRONOUSLY now (still inside the user-gesture call stack),
+        // then navigate it to the real URL once the fetch resolves.
+        // Chrome does not have this restriction, so we only do this for Safari.
         const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         var newTab = _isSafari ? window.open('', '_blank') : null;
         log('GDFlix - Safari detected:', _isSafari);
 
-        fetch(gdflixApiUrl, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' }
+        // Make request to worker endpoint
+        fetch('/generate-gdflix', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                file_id: fileId
+            })
         })
         .then(response => {
             log('GDFlix - Response status:', response.status);
             if (!response.ok) {
-                throw new Error(`GDFlix API error: ${response.status}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
-            log('GDFlix - API response:', data);
+            log('GDFlix - Worker response:', data);
 
-            let gdflixLink = '';
-            if (data && data.error === 0 && data.key) {
-                gdflixLink = `https://gdlink.dev/file/${data.key}`;
-            } else if (data && data.error === 0 && data.id) {
-                gdflixLink = `https://gdlink.dev/file/${data.id}`;
-            } else if (data && data.error === 1) {
-                throw new Error(data.message || 'GDFlix API returned an error');
-            } else {
-                throw new Error('Unexpected GDFlix response');
-            }
-
-            log('GDFlix - Generated link:', gdflixLink);
-            if (_isSafari) {
-                if (newTab && !newTab.closed) {
-                    newTab.location.href = gdflixLink;
+            if (data.success && data.gdflix_link) {
+                log('GDFlix - Generated link:', data.gdflix_link);
+                if (_isSafari) {
+                    // Safari: navigate the pre-opened blank tab
+                    if (newTab && !newTab.closed) {
+                        newTab.location.href = data.gdflix_link;
+                    } else {
+                        window.open(data.gdflix_link, '_blank');
+                    }
                 } else {
-                    window.open(gdflixLink, '_blank');
+                    // Chrome / other browsers: direct open works fine
+                    window.open(data.gdflix_link, '_blank');
                 }
+                resolve(data.gdflix_link);
             } else {
-                window.open(gdflixLink, '_blank');
+                if (newTab && !newTab.closed) { newTab.close(); }
+                reject(new Error(data.error || 'Failed to generate GDFlix link'));
             }
-            resolve(gdflixLink);
         })
         .catch(error => {
             logError('GDFlix Error:', error);
@@ -3577,10 +3477,13 @@ function generateGDFlixLink(fileId) {
 }
 
 // =============================================================================
-// GDFlix Link Button Handler — gray "GDFlix Link" button
-// Calls GDFlix API to generate a download link (unchanged behavior).
+// SINGLE TOP-LEVEL GDFlix Button Handler
+// Registered once here — replaces 3 duplicate handlers that were
+// previously registered inside file_video(), file_code(), file_others()
+// on every file page load. Also handles the "Download" button shown to
+// non-login users when GDflix is gating the download (see getDownloadButton).
 // =============================================================================
-$(document).on('click', '.gdflix-btn', function() {
+$(document).on('click', '.gdflix-btn, .download-via-gdflix', function() {
     const fileId = $(this).data('file-id');
     const button = $(this);
 
@@ -3601,35 +3504,6 @@ $(document).on('click', '.gdflix-btn', function() {
         .catch((error) => {
             button.prop('disabled', false).html(originalHtml);
             logError('GDFlix error:', error);
-        });
-});
-
-// =============================================================================
-// Download Button Handler (>5GB, non-login) — green "Download" button
-// Opens pre-uploaded ExtraLink URL from extralink_url_map in worker.js.
-// Add files via: bash upload_smart.sh "GD_SHARE_URL" then paste result in worker.js
-// =============================================================================
-$(document).on('click', '.download-via-extralink', function() {
-    const fileId = $(this).data('file-id');
-    const button = $(this);
-
-    log('ExtraLink Download button clicked, fileId:', fileId);
-
-    if (!fileId) {
-        alert('Error: No file ID found');
-        return;
-    }
-
-    const originalHtml = button.html();
-    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin fa-fw"></i> Opening...');
-
-    openExtraLink(fileId)
-        .then(() => {
-            button.prop('disabled', false).html(originalHtml);
-        })
-        .catch((error) => {
-            button.prop('disabled', false).html(originalHtml);
-            logError('ExtraLink error:', error);
         });
 });
 
