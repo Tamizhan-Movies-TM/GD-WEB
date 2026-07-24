@@ -3485,57 +3485,54 @@ const GDFLIX_API_KEY = '34559655cfedb7f5422c64e80c6a02ff';
 
 // =============================================================================
 // GDFLIX DOMAIN RESOLVER — browser side
-// Strategy: fetch gdflix.dev/v2/share (their permanent API base).
-//   - Browser follows redirect automatically
-//   - response.url gives the final URL = current active domain
-//   - Works because browser IPs are NOT blocked by GDFlix (only worker IPs are)
-// Cached in sessionStorage — only 1 fetch per browser tab session.
-// On resolve: reports domain to worker POST /gdflix-domain-update → saved in KV.
-// KV = all future page loads get the correct domain injected via UI.gdflix_domain.
+//
+// Key insight: gdflix.dev/v2/share IS the API endpoint (not just a redirect page).
+// Calling it directly with a real file ID → browser follows any redirect →
+// response.url reveals the actual API domain being used.
+// If no redirect, response.url = gdflix.dev itself = use gdflix.dev as API base.
+//
+// Fallback chain:
+//   1. sessionStorage cache (instant, same tab)
+//   2. Call gdflix.dev/v2/share → read response.url → extract domain
+//   3. UI.gdflix_domain injected by worker from KV
+//   4. Hardcoded new3.gdflix.io
 // =============================================================================
 async function _resolveGDFlixDomain() {
     const _CACHE_KEY = 'gdflix_domain';
     const _FALLBACK  = (typeof UI !== 'undefined' && UI.gdflix_domain) || 'https://new3.gdflix.io';
 
-    // 1. Session cache — one probe per tab
+    // 1. Session cache
     try {
         const _cached = sessionStorage.getItem(_CACHE_KEY);
         if (_cached) { log('GDFlix - Domain from sessionStorage:', _cached); return _cached; }
     } catch(_) {}
 
-    // 2. Fetch gdflix.dev/v2/share with cors mode.
-    //    Browser follows the redirect; response.url = final redirected URL.
-    //    We extract the origin from response.url.
+    // 2. Try gdflix.dev/v2/share directly — same API path, permanent domain.
+    //    After fetch, response.url = final URL (may differ if redirected).
+    //    Extract origin → that's the live API domain.
     try {
-        const resp = await fetch('https://gdflix.dev/v2/share', {
-            method: 'GET',
-            mode: 'cors',
-            credentials: 'omit',
-            redirect: 'follow',    // browser follows redirect automatically
-        });
-        // response.url = where we actually landed after redirect
-        if (resp.url && resp.url !== 'https://gdflix.dev/v2/share') {
-            const domain = new URL(resp.url).origin;
-            if (domain && domain.includes('gdflix')) {
-                log('GDFlix - Resolved via gdflix.dev redirect:', domain);
-                _cacheAndReport(domain);
-                return domain;
-            }
-        }
+        const resp = await fetch(
+            `https://gdflix.dev/v2/share?id=probe&key=${encodeURIComponent(GDFLIX_API_KEY)}`,
+            { method: 'GET', mode: 'cors', credentials: 'omit', redirect: 'follow' }
+        );
+        const finalDomain = new URL(resp.url).origin;
+        log('GDFlix - gdflix.dev response.url domain:', finalDomain);
+        // If it responded (even with error JSON), the domain is valid API base
+        _cacheAndReport(finalDomain);
+        return finalDomain;
     } catch(e) {
-        log('GDFlix - gdflix.dev cors probe failed:', e.message);
+        log('GDFlix - gdflix.dev probe failed:', e.message);
     }
 
-    // 3. Fallback to worker-injected or hardcoded domain
+    // 3. Fallback
     log('GDFlix - Using fallback:', _FALLBACK);
     _cacheAndReport(_FALLBACK);
     return _FALLBACK;
 }
 
 function _cacheAndReport(domain) {
-    // Save in sessionStorage for this tab
     try { sessionStorage.setItem('gdflix_domain', domain); } catch(_) {}
-    // Tell worker → saves in KV → all future page loads get correct UI.gdflix_domain
+    // Fire-and-forget: tell worker to update KV → all users get correct domain
     fetch(`/gdflix-domain-update?domain=${encodeURIComponent(domain)}`, { method: 'POST' }).catch(() => {});
 }
 
@@ -3551,46 +3548,70 @@ function generateGDFlixLink(fileId) {
         var newTab = _isSafari ? window.open('', '_blank') : null;
 
         (async () => {
-            try {
-                const domain = await _resolveGDFlixDomain();
-                const apiUrl = `${domain}/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
-                log('GDFlix - API URL:', apiUrl);
+            // Try domains in order: resolved → gdflix.dev fallback → hardcoded
+            const _resolved = await _resolveGDFlixDomain();
+            const _domainsToTry = [...new Set([
+                _resolved,
+                'https://gdflix.dev',   // permanent domain, always try as fallback
+                'https://new3.gdflix.io'
+            ])];
 
-                const resp = await fetch(apiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
-                if (!resp.ok) throw new Error(`GDFlix API error: ${resp.status}`);
-                const data = await resp.json();
-                log('GDFlix - API response:', data);
+            for (const domain of _domainsToTry) {
+                try {
+                    const apiUrl = `${domain}/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
+                    log('GDFlix - Trying:', apiUrl);
 
-                let gdflixLink = '';
-                if (data && data.error === 0 && data.key) {
-                    gdflixLink = `https://gdlink.dev/file/${data.key}`;
-                } else if (data && data.error === 0 && data.id) {
-                    gdflixLink = `https://gdlink.dev/file/${data.id}`;
-                } else if (data && data.error === 1) {
-                    throw new Error(data.message || 'GDFlix API returned an error');
-                } else {
-                    throw new Error('Unexpected GDFlix response');
+                    const resp = await fetch(apiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
+                    if (!resp.ok) { log('GDFlix - HTTP', resp.status, 'on', domain); continue; }
+
+                    const text = await resp.text();
+                    let data;
+                    try { data = JSON.parse(text); } catch(_) { log('GDFlix - non-JSON from', domain); continue; }
+                    log('GDFlix - API response from', domain, ':', data);
+
+                    // Read actual domain from response.url (may differ after redirect)
+                    const _actualDomain = new URL(resp.url).origin;
+
+                    let gdflixLink = '';
+                    if (data && data.error === 0 && (data.key || data.id)) {
+                        gdflixLink = `https://gdlink.dev/file/${data.key || data.id}`;
+                    } else if (data && data.error === 1) {
+                        throw new Error(data.message || 'GDFlix API error');
+                    } else {
+                        continue; // unexpected — try next
+                    }
+
+                    log('GDFlix - Success! Domain:', _actualDomain, 'Link:', gdflixLink);
+                    // Update cache + KV with the actual working domain
+                    _cacheAndReport(_actualDomain);
+
+                    if (_isSafari) {
+                        if (newTab && !newTab.closed) newTab.location.href = gdflixLink;
+                        else window.open(gdflixLink, '_blank');
+                    } else {
+                        window.open(gdflixLink, '_blank');
+                    }
+                    resolve(gdflixLink);
+                    return; // done
+                } catch(e) {
+                    log('GDFlix - Domain', domain, 'threw:', e.message);
+                    if (e.message.includes('GDFlix API error')) {
+                        // Real API error (file not found etc.) — don't try other domains
+                        if (newTab && !newTab.closed) newTab.close();
+                        try { sessionStorage.removeItem('gdflix_domain'); } catch(_) {}
+                        alert('Failed to generate GDFlix link: ' + e.message);
+                        reject(e);
+                        return;
+                    }
                 }
-
-                log('GDFlix - Link:', gdflixLink);
-                // Report working domain to worker → saved in KV
-                fetch(`/gdflix-domain-update?domain=${encodeURIComponent(domain)}`, { method: 'POST' }).catch(() => {});
-
-                if (_isSafari) {
-                    if (newTab && !newTab.closed) newTab.location.href = gdflixLink;
-                    else window.open(gdflixLink, '_blank');
-                } else {
-                    window.open(gdflixLink, '_blank');
-                }
-                resolve(gdflixLink);
-            } catch(error) {
-                logError('GDFlix Error:', error);
-                if (newTab && !newTab.closed) newTab.close();
-                // Clear session cache so next click re-probes gdflix.dev
-                try { sessionStorage.removeItem('gdflix_domain'); } catch(_) {}
-                alert('Failed to generate GDFlix link: ' + error.message);
-                reject(error);
             }
+
+            // All failed
+            if (newTab && !newTab.closed) newTab.close();
+            try { sessionStorage.removeItem('gdflix_domain'); } catch(_) {}
+            const _err = 'GDFlix unavailable. Please try again later.';
+            alert(_err);
+            reject(new Error(_err));
         })();
     });
 }
