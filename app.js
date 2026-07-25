@@ -3511,20 +3511,25 @@ function generateGDFlixLink(fileId) {
         var newTab = _isSafari ? window.open('', '_blank') : null;
         log('GDFlix - Safari detected:', _isSafari);
 
-        // Resolve the current GDFlix domain: from window.UI (worker-cached) or live from gdlink.dev
+        // Resolve the current GDFlix domain:
+        //   1. Fast path: window.UI.gdflix_domain injected by worker at page render (from GDFLIX_KV)
+        //   2. Fallback: call our own worker endpoint /api/gdflix-domain which fetches gdlink.dev
+        //      server-side (no CORS issues) and also updates GDFLIX_KV for future page loads
         function _resolveGDFlixDomain() {
             if (window.UI && window.UI.gdflix_domain) {
+                log('GDFlix - Domain from window.UI:', window.UI.gdflix_domain);
                 return Promise.resolve(window.UI.gdflix_domain);
             }
-            // Worker didn't supply domain — ask gdlink.dev directly from browser
-            log('GDFlix - Domain not in window.UI, fetching from gdlink.dev...');
-            return fetch('https://gdlink.dev', { method: 'HEAD', redirect: 'follow' })
-                .then(res => {
-                    const origin = new URL(res.url).origin;
-                    log('GDFlix - Discovered domain from gdlink.dev:', origin);
-                    // Cache it for the rest of this page session
-                    if (window.UI) window.UI.gdflix_domain = origin;
-                    return origin;
+            // Worker didn't supply domain — fetch via worker proxy to avoid CORS/redirect issues
+            log('GDFlix - Domain not in window.UI, calling /api/gdflix-domain...');
+            return fetch('/api/gdflix-domain', { method: 'GET' })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.ok || !data.domain) throw new Error(data.error || 'No domain returned');
+                    log('GDFlix - Discovered domain via /api/gdflix-domain:', data.domain);
+                    // Cache for rest of this page session
+                    if (window.UI) window.UI.gdflix_domain = data.domain;
+                    return data.domain;
                 });
         }
 
