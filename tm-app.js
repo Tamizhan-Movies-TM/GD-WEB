@@ -3432,7 +3432,7 @@ function openExtraLink(fileId) {
                 credentials: 'include',
                 body: JSON.stringify({ file_id: fileId })
             })
-            .then(function(resp) { return resp.json(); })
+            .then(function(resp) { return resp.text().then(function(t) { try { return JSON.parse(t); } catch(_) { return { success: false, error: 'Worker error: ' + t.slice(0, 120) }; } }); })
             .then(function(data) {
                 if (!data.success || !data.url) {
                     logError('ExtraLink - Auto-upload failed:', data.error);
@@ -3480,33 +3480,77 @@ function openExtraLink(fileId) {
     });
 }
 
-// GDFlix Link Generation
+// GDFlix Link Generation Function
 function generateGDFlixLink(fileId) {
     return new Promise((resolve, reject) => {
-        fileId = String(fileId || '').trim();
-        if (!fileId) { reject(new Error('No file ID')); return; }
-        const key = (window.UI && window.UI.gdflix_api_key) || '';
-        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-        const tab = isSafari ? window.open('', '_blank') : null;
-        // Domain: from window.UI (worker-injected) or fetch worker proxy /api/gdflix-domain
-        const getDomain = () => window.UI && window.UI.gdflix_domain
-            ? Promise.resolve(window.UI.gdflix_domain)
-            : fetch('/api/gdflix-domain').then(r => r.json()).then(d => {
-                if (!d.ok || !d.domain) throw new Error(d.error || 'No domain');
-                if (window.UI) window.UI.gdflix_domain = d.domain;
-                return d.domain;
-              });
-        getDomain()
-        .then(domain => fetch(`${domain}/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(key)}`, { headers: { Accept: 'application/json' } }))
-        .then(r => { if (!r.ok) throw new Error(`GDFlix error: ${r.status}`); return r.json(); })
-        .then(data => {
-            const link = data.error === 0 && (data.key || data.id)
-                ? `https://gdlink.dev/file/${data.key || data.id}`
-                : (() => { throw new Error(data.message || 'Unexpected GDFlix response'); })();
-            isSafari ? (tab && !tab.closed ? tab.location.href = link : window.open(link, '_blank')) : window.open(link, '_blank');
-            resolve(link);
+        log('GDFlix - Received fileId:', fileId);
+
+        if (!fileId) {
+            logError('GDFlix - No file ID provided');
+            reject(new Error('No file ID provided'));
+            return;
+        }
+
+        fileId = String(fileId).trim();
+
+        if (fileId === '') {
+            logError('GDFlix - Empty file ID');
+            reject(new Error('Empty file ID'));
+            return;
+        }
+
+        log('GDFlix - Requesting link directly from browser (bypasses Cloudflare IP block)...');
+
+        const GDFLIX_API_KEY = '34559655cfedb7f5422c64e80c6a02ff';
+        const gdflixApiUrl = `https://new3.gdflix.io/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
+
+        const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        var newTab = _isSafari ? window.open('', '_blank') : null;
+        log('GDFlix - Safari detected:', _isSafari);
+
+        fetch(gdflixApiUrl, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
         })
-        .catch(e => { if (tab && !tab.closed) tab.close(); alert('Failed to generate GDFlix link: ' + e.message); reject(e); });
+        .then(response => {
+            log('GDFlix - Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`GDFlix API error: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            log('GDFlix - API response:', data);
+
+            let gdflixLink = '';
+            if (data && data.error === 0 && data.key) {
+                gdflixLink = `https://gdlink.dev/file/${data.key}`;
+            } else if (data && data.error === 0 && data.id) {
+                gdflixLink = `https://gdlink.dev/file/${data.id}`;
+            } else if (data && data.error === 1) {
+                throw new Error(data.message || 'GDFlix API returned an error');
+            } else {
+                throw new Error('Unexpected GDFlix response');
+            }
+
+            log('GDFlix - Generated link:', gdflixLink);
+            if (_isSafari) {
+                if (newTab && !newTab.closed) {
+                    newTab.location.href = gdflixLink;
+                } else {
+                    window.open(gdflixLink, '_blank');
+                }
+            } else {
+                window.open(gdflixLink, '_blank');
+            }
+            resolve(gdflixLink);
+        })
+        .catch(error => {
+            logError('GDFlix Error:', error);
+            if (newTab && !newTab.closed) { newTab.close(); }
+            alert('Failed to generate GDFlix link: ' + error.message);
+            reject(error);
+        });
     });
 }
 
