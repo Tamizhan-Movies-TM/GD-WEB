@@ -1136,7 +1136,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
             .catch(async function(error) {
                 if (remainingRetries > 0) {
                     document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Retrying...</div>`;
-                    await sleep(2000);
+                    await sleep(500); // ⚡ was 2000ms — 4x faster retry
                     performRequest(remainingRetries - 1);
                 } else {
                     document.getElementById('update').innerHTML = `<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div>`;
@@ -1168,7 +1168,8 @@ function requestSearch(params, resultCallback, retries = 3) {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(p)
+                body: JSON.stringify(p),
+                signal: AbortSignal.timeout(12000) // ⚡ 12s timeout — prevents infinite hang
             })
             .then(function(response) {
                 if (!response.ok) {
@@ -1189,7 +1190,7 @@ function requestSearch(params, resultCallback, retries = 3) {
             })
             .catch(async function(error) {
                 if (retries > 0) {
-                    await sleep(2000);
+                    await sleep(500); // ⚡ was 2000ms — 4x faster retry
                     $('#update').html(`<div class='alert alert-info' role='alert'> Retrying...</div>`);
                     performRequest(retries - 1);
                 } else {
@@ -1328,6 +1329,21 @@ function list(path, id = '', fallback = false) {
         if (window.scroll_status.loading_lock === true) {
             window.scroll_status.loading_lock = false;
         }
+    }
+
+    // ⚡ Cache-first: render stale localStorage data instantly while fresh request runs
+    if (!fallback && path) {
+        try {
+            const cachedFiles = localStorage.getItem(path);
+            if (cachedFiles) {
+                const files = JSON.parse(cachedFiles);
+                if (Array.isArray(files) && files.length > 0) {
+                    $('#spinner').remove();
+                    append_files_to_list(path, files);
+                    $('#update').hide();
+                }
+            }
+        } catch(_) {}
     }
 
     if (fallback) {
@@ -1844,8 +1860,29 @@ function render_search_result_list() {
         loading_lock: false
     };
 
-    // Start first request immediately
-    requestSearch({ q: window.MODEL.q }, searchSuccessCallback);
+    // ⚡ Search cache-first: show previous result instantly while fresh request loads
+    try {
+        const srchKey = 'search:' + (window.MODEL.q || '').toLowerCase().trim();
+        const cachedSearch = sessionStorage.getItem(srchKey);
+        if (cachedSearch) {
+            const cachedRes = JSON.parse(cachedSearch);
+            if (cachedRes && cachedRes.data && cachedRes.data.files && cachedRes.data.files.length > 0) {
+                $('#spinner').remove();
+                $('#update').hide();
+                append_search_result_to_list(cachedRes.data.files);
+            }
+        }
+    } catch(_) {}
+
+    // Start first request immediately (always fetches fresh data)
+    requestSearch({ q: window.MODEL.q }, function(res, params) {
+        // Store fresh result in sessionStorage for next visit to same query
+        try {
+            const srchKey = 'search:' + (window.MODEL.q || '').toLowerCase().trim();
+            sessionStorage.setItem(srchKey, JSON.stringify(res));
+        } catch(_) {}
+        searchSuccessCallback(res, params);
+    });
 
     // Fast copy handler with modern API
     document.getElementById("handle-multiple-items-copy").addEventListener("click", () => {
