@@ -1136,7 +1136,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
             .catch(async function(error) {
                 if (remainingRetries > 0) {
                     document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Retrying...</div>`;
-                    await sleep(500); // ⚡ was 2000ms — 4x faster retry
+                    await sleep(500); // ⚡ was 2000ms
                     performRequest(remainingRetries - 1);
                 } else {
                     document.getElementById('update').innerHTML = `<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div>`;
@@ -1169,7 +1169,7 @@ function requestSearch(params, resultCallback, retries = 3) {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(p),
-                signal: AbortSignal.timeout(12000) // ⚡ 12s hard timeout — prevents infinite hang
+                signal: AbortSignal.timeout(12000) // ⚡ 12s hard timeout
             })
             .then(function(response) {
                 if (!response.ok) {
@@ -1190,7 +1190,7 @@ function requestSearch(params, resultCallback, retries = 3) {
             })
             .catch(async function(error) {
                 if (retries > 0) {
-                    await sleep(500); // ⚡ was 2000ms — 4x faster retry
+                    await sleep(500); // ⚡ was 2000ms
                     $('#update').html(`<div class='alert alert-info' role='alert'> Retrying...</div>`);
                     performRequest(retries - 1);
                 } else {
@@ -1860,10 +1860,10 @@ function render_search_result_list() {
         loading_lock: false
     };
 
-    // ⚡ INSTANT SEARCH: localStorage cache — works across sessions and page reloads
-    // On first search: shows nothing (normal), result gets cached in localStorage.
-    // On ANY repeat search (same browser, any future session): shows instantly from cache,
-    // then silently refreshes in background and updates the list with fresh data.
+    // ⚡ INSTANT SEARCH via localStorage:
+    // - First search ever: loads normally (1-3s), result saved to localStorage
+    // - Every search after (same browser, any future session): shows instantly from cache (<50ms),
+    //   then background-refreshes and silently swaps in fresh data
     const _srchCacheKey = 'tm_srch:' + (window.MODEL.q || '').toLowerCase().trim();
     let _cacheWasShown = false;
     try {
@@ -1871,10 +1871,8 @@ function render_search_result_list() {
         if (_raw) {
             const _cached = JSON.parse(_raw);
             if (_cached && _cached.data && Array.isArray(_cached.data.files) && _cached.data.files.length > 0) {
-                // Show cached result instantly — remove spinner, hide connecting bar
                 $('#spinner').remove();
                 $('#update').hide();
-                // Set pagination state so scroll works correctly
                 $('#list').data('nextPageToken', _cached.nextPageToken || null)
                          .data('curPageIndex', _cached.curPageIndex || 0);
                 append_search_result_to_list(_cached.data.files);
@@ -1883,19 +1881,19 @@ function render_search_result_list() {
         }
     } catch(_) {}
 
-    // Always fetch fresh data from server (background refresh when cache was shown)
+    // Always fetch fresh from server (background when cache shown, foreground on first visit)
     requestSearch({ q: window.MODEL.q }, function(res, params) {
-        // Save fresh result to localStorage for next time
+        // Save result to localStorage for instant display next time
         try {
             localStorage.setItem(_srchCacheKey, JSON.stringify(res));
         } catch(e) {
-            // If localStorage is full, clear old search caches and retry
             try {
+                // localStorage full — clear old search caches only, then retry
                 Object.keys(localStorage).filter(k => k.startsWith('tm_srch:')).forEach(k => localStorage.removeItem(k));
                 localStorage.setItem(_srchCacheKey, JSON.stringify(res));
             } catch(_) {}
         }
-        // If cache was shown, clear list first to avoid duplicate entries before re-rendering
+        // If cache was already shown, clear list first to prevent duplicates
         if (_cacheWasShown) {
             $('#list').html('');
             $('#list').data('nextPageToken', null).data('curPageIndex', 0);
