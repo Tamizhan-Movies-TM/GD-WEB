@@ -1169,7 +1169,7 @@ function requestSearch(params, resultCallback, retries = 3) {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(p),
-                signal: AbortSignal.timeout(12000) // ⚡ 12s timeout — prevents infinite hang
+                signal: AbortSignal.timeout(12000) // ⚡ 12s hard timeout — prevents infinite hang
             })
             .then(function(response) {
                 if (!response.ok) {
@@ -1331,16 +1331,16 @@ function list(path, id = '', fallback = false) {
         }
     }
 
-    // ⚡ Cache-first: render stale localStorage data instantly while fresh request runs
+    // ⚡ Cache-first: show stale folder listing instantly while fresh data loads in background
     if (!fallback && path) {
         try {
-            const cachedFiles = localStorage.getItem(path);
-            if (cachedFiles) {
-                const files = JSON.parse(cachedFiles);
-                if (Array.isArray(files) && files.length > 0) {
+            const _cachedFiles = localStorage.getItem(path);
+            if (_cachedFiles) {
+                const _files = JSON.parse(_cachedFiles);
+                if (Array.isArray(_files) && _files.length > 0) {
                     $('#spinner').remove();
-                    append_files_to_list(path, files);
                     $('#update').hide();
+                    append_files_to_list(path, _files);
                 }
             }
         } catch(_) {}
@@ -1860,27 +1860,46 @@ function render_search_result_list() {
         loading_lock: false
     };
 
-    // ⚡ Search cache-first: show previous result instantly while fresh request loads
+    // ⚡ INSTANT SEARCH: localStorage cache — works across sessions and page reloads
+    // On first search: shows nothing (normal), result gets cached in localStorage.
+    // On ANY repeat search (same browser, any future session): shows instantly from cache,
+    // then silently refreshes in background and updates the list with fresh data.
+    const _srchCacheKey = 'tm_srch:' + (window.MODEL.q || '').toLowerCase().trim();
+    let _cacheWasShown = false;
     try {
-        const srchKey = 'search:' + (window.MODEL.q || '').toLowerCase().trim();
-        const cachedSearch = sessionStorage.getItem(srchKey);
-        if (cachedSearch) {
-            const cachedRes = JSON.parse(cachedSearch);
-            if (cachedRes && cachedRes.data && cachedRes.data.files && cachedRes.data.files.length > 0) {
+        const _raw = localStorage.getItem(_srchCacheKey);
+        if (_raw) {
+            const _cached = JSON.parse(_raw);
+            if (_cached && _cached.data && Array.isArray(_cached.data.files) && _cached.data.files.length > 0) {
+                // Show cached result instantly — remove spinner, hide connecting bar
                 $('#spinner').remove();
                 $('#update').hide();
-                append_search_result_to_list(cachedRes.data.files);
+                // Set pagination state so scroll works correctly
+                $('#list').data('nextPageToken', _cached.nextPageToken || null)
+                         .data('curPageIndex', _cached.curPageIndex || 0);
+                append_search_result_to_list(_cached.data.files);
+                _cacheWasShown = true;
             }
         }
     } catch(_) {}
 
-    // Start first request immediately (always fetches fresh data)
+    // Always fetch fresh data from server (background refresh when cache was shown)
     requestSearch({ q: window.MODEL.q }, function(res, params) {
-        // Store fresh result in sessionStorage for next visit to same query
+        // Save fresh result to localStorage for next time
         try {
-            const srchKey = 'search:' + (window.MODEL.q || '').toLowerCase().trim();
-            sessionStorage.setItem(srchKey, JSON.stringify(res));
-        } catch(_) {}
+            localStorage.setItem(_srchCacheKey, JSON.stringify(res));
+        } catch(e) {
+            // If localStorage is full, clear old search caches and retry
+            try {
+                Object.keys(localStorage).filter(k => k.startsWith('tm_srch:')).forEach(k => localStorage.removeItem(k));
+                localStorage.setItem(_srchCacheKey, JSON.stringify(res));
+            } catch(_) {}
+        }
+        // If cache was shown, clear list first to avoid duplicate entries before re-rendering
+        if (_cacheWasShown) {
+            $('#list').html('');
+            $('#list').data('nextPageToken', null).data('curPageIndex', 0);
+        }
         searchSuccessCallback(res, params);
     });
 
