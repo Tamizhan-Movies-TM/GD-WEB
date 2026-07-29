@@ -2039,7 +2039,7 @@ function append_search_result_to_list(files) {
                     };
 
                     Promise.all([
-                        _fetchShort('/generate-gplinks'),
+                        _fetchShort('/generate-cpmshort'),
                         _fetchShort('/generate-nowshort')
                     ]).then(function(results) {
                         window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
@@ -2338,7 +2338,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             };
 
             Promise.all([
-                _fetchShortUrl('/generate-gplinks'),
+                _fetchShortUrl('/generate-cpmshort'),
                 _fetchShortUrl('/generate-nowshort')
             ]).then(([cpmshortUrl, nowshortUrl]) => {
                 // Store in cache for next time this file is clicked
