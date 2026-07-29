@@ -1508,7 +1508,7 @@ function append_files_to_fallback_list(path, files) {
                 pn += "?a=view";
                 c += " view";
                 //}
-                // Archive files (zip/rar/7z/tar/gz) → show GPLinks+Nowshort modal on click, same as search results
+                // Archive files (zip/rar/7z/tar/gz) → show CPMShort+Nowshort modal on click, same as search results
                 const _isArchive = ext && ['zip','rar','7z','tar','gz'].includes(ext.toLowerCase());
                 const _fItemForModal = Object.assign({}, item, { md5Checksum: item.md5Checksum || '—' });
                 const _fItemJson = JSON.stringify(_fItemForModal).replace(/"/g, '&quot;');
@@ -2073,7 +2073,7 @@ function append_search_result_to_list(files) {
 
 // Modified onSearchResultItemClick function
 // Button display logic based on UI.show_url_shortener config and login status:
-// - If show_url_shortener is TRUE and user is NOT logged in → GPLinks/Nowshort buttons
+// - If show_url_shortener is TRUE and user is NOT logged in → CPMShort/Nowshort buttons
 // - Otherwise (logged in OR show_url_shortener is FALSE) → "Open in Chrome" button
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
@@ -2151,7 +2151,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     const showUrlShortener = typeof UI !== 'undefined' && UI.show_url_shortener === true;
 
     // Decision logic:
-    // - If show_url_shortener is true AND user is NOT logged in → Show GPLinks/Nowshort
+    // - If show_url_shortener is true AND user is NOT logged in → Show CPMShort/Nowshort
     // - Otherwise → Show Chrome button
     const shouldShowShorteners = showUrlShortener && !userLoggedIn;
 
@@ -2245,8 +2245,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
     } else {
-        // ===== Show GPLinks and Nowshort =====
-        log('Showing GPLinks and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
+        // ===== Show CPMShort and Nowshort =====
+        log('Showing CPMShort and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
         function _rotateNowshortUrl(nowshortUrl) {
             // Use nowshort URL directly — no rotator
@@ -2264,19 +2264,19 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // By the time user clicks, the cache is almost always already warm → instant display.
         const cached = window._shortenerCache && window._shortenerCache[directUrl];
 
-        function _buildAndShowButtons(gplinksUrl, nowshortUrl) {
+        function _buildAndShowButtons(cpmshortUrl, nowshortUrl) {
             let buttonsHtml = '';
 
-            if (gplinksUrl) {
+            if (cpmshortUrl) {
                 buttonsHtml += `
-                    <a href="${getChromeOpenUrl(gplinksUrl)}"
+                    <a href="${getChromeOpenUrl(cpmshortUrl)}"
                        class="btn btn-info d-flex align-items-center gap-2"
                        target="_blank"
-                       title="Open via GPLinks">
-                        𝗚𝗣𝗟𝗶𝗻𝗸𝘀
+                       title="Open via CPMShort">
+                        𝗖𝗣𝗠𝗦𝗵𝗼𝗿𝘁
                     </a>`;
             } else {
-                buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
+                buttonsHtml += `<button class="btn btn-secondary" disabled>CPMShort Failed</button>`;
             }
 
             if (nowshortUrl) {
@@ -2306,7 +2306,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     <div class="spinner-border spinner-border-sm" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    GPLinks
+                    CPMShort
                 </button>
                 <button class="btn btn-success d-flex align-items-center gap-2" disabled>
                     <div class="spinner-border spinner-border-sm" role="status">
@@ -2340,12 +2340,12 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             Promise.all([
                 _fetchShortUrl('/generate-gplinks'),
                 _fetchShortUrl('/generate-nowshort')
-            ]).then(([gplinksUrl, nowshortUrl]) => {
+            ]).then(([cpmshortUrl, nowshortUrl]) => {
                 // Store in cache for next time this file is clicked
                 if (!window._shortenerCache) window._shortenerCache = {};
-                window._shortenerCache[directUrl] = { gplinks: gplinksUrl, nowshort: nowshortUrl };
+                window._shortenerCache[directUrl] = { gplinks: cpmshortUrl, nowshort: nowshortUrl };
                 log('Shortener cache stored for:', directUrl);
-                _buildAndShowButtons(gplinksUrl, nowshortUrl);
+                _buildAndShowButtons(cpmshortUrl, nowshortUrl);
             });
         }
     }
