@@ -2351,11 +2351,29 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     }
 
     // Optional: Fetch path in background (for all users)
-    fetch(`/${cur}:id2path`, {
-        method: 'POST',
-        body: JSON.stringify({ id: file_id }),
-        headers: { 'Content-Type': 'application/json' }
-    }).catch(error => log('Path fetch error:', error));
+    // ⚡ Circuit-breaker: skip if id2path has failed 3+ times in last 5 min
+    const _id2pFails = parseInt(sessionStorage.getItem('_id2p_fails') || '0');
+    const _id2pLastFail = parseInt(sessionStorage.getItem('_id2p_last_fail') || '0');
+    const _id2pCooldown = Date.now() - _id2pLastFail < 300000; // 5 min
+    if (_id2pFails < 3 || !_id2pCooldown) {
+        fetch(`/${cur}:id2path`, {
+            method: 'POST',
+            body: JSON.stringify({ id: file_id }),
+            headers: { 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(10000)
+        }).then(r => {
+            if (!r.ok) throw new Error('id2path ' + r.status);
+            // Reset fail counter on success
+            sessionStorage.removeItem('_id2p_fails');
+            sessionStorage.removeItem('_id2p_last_fail');
+        }).catch(error => {
+            log('Path fetch error:', error);
+            sessionStorage.setItem('_id2p_fails', Math.min(_id2pFails + 1, 10));
+            sessionStorage.setItem('_id2p_last_fail', Date.now());
+        });
+    } else {
+        log('id2path skipped — circuit breaker active');
+    }
 }
 
 function get_file(path, file, callback) {
