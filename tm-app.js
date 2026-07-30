@@ -488,6 +488,7 @@ strong {
                     id="username"
                     class="form-input"
                     placeholder="Enter your username"
+                    autocomplete="username"
                     required
                 >
             </div>
@@ -502,6 +503,7 @@ strong {
                         id="password"
                         class="form-input"
                         placeholder="Enter your password"
+                        autocomplete="current-password"
                         required
                     >
                     <button type="button" class="pw-toggle-btn" id="togglePw" tabindex="-1" title="Show/hide password">
@@ -1134,7 +1136,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
             .catch(async function(error) {
                 if (remainingRetries > 0) {
                     document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Retrying...</div>`;
-                    await sleep(2000);
+                    await sleep(500); // ⚡ was 2000ms
                     performRequest(remainingRetries - 1);
                 } else {
                     document.getElementById('update').innerHTML = `<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div>`;
@@ -1166,7 +1168,8 @@ function requestSearch(params, resultCallback, retries = 3) {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(p)
+                body: JSON.stringify(p),
+                signal: AbortSignal.timeout(12000) // ⚡ 12s hard timeout
             })
             .then(function(response) {
                 if (!response.ok) {
@@ -1187,7 +1190,7 @@ function requestSearch(params, resultCallback, retries = 3) {
             })
             .catch(async function(error) {
                 if (retries > 0) {
-                    await sleep(2000);
+                    await sleep(500); // ⚡ was 2000ms
                     $('#update').html(`<div class='alert alert-info' role='alert'> Retrying...</div>`);
                     performRequest(retries - 1);
                 } else {
@@ -1326,6 +1329,21 @@ function list(path, id = '', fallback = false) {
         if (window.scroll_status.loading_lock === true) {
             window.scroll_status.loading_lock = false;
         }
+    }
+
+    // ⚡ Cache-first: show stale folder listing instantly while fresh data loads in background
+    if (!fallback && path) {
+        try {
+            const _cachedFiles = localStorage.getItem(path);
+            if (_cachedFiles) {
+                const _files = JSON.parse(_cachedFiles);
+                if (Array.isArray(_files) && _files.length > 0) {
+                    $('#spinner').remove();
+                    $('#update').hide();
+                    append_files_to_list(path, _files);
+                }
+            }
+        } catch(_) {}
     }
 
     if (fallback) {
@@ -1490,7 +1508,7 @@ function append_files_to_fallback_list(path, files) {
                 pn += "?a=view";
                 c += " view";
                 //}
-                // Archive files (zip/rar/7z/tar/gz) → show GPLinks+Nowshort modal on click, same as search results
+                // Archive files (zip/rar/7z/tar/gz) → show CPMShort+Nowshort modal on click, same as search results
                 const _isArchive = ext && ['zip','rar','7z','tar','gz'].includes(ext.toLowerCase());
                 const _fItemForModal = Object.assign({}, item, { md5Checksum: item.md5Checksum || '—' });
                 const _fItemJson = JSON.stringify(_fItemForModal).replace(/"/g, '&quot;');
@@ -1842,8 +1860,46 @@ function render_search_result_list() {
         loading_lock: false
     };
 
-    // Start first request immediately
-    requestSearch({ q: window.MODEL.q }, searchSuccessCallback);
+    // ⚡ INSTANT SEARCH via localStorage:
+    // - First search ever: loads normally (1-3s), result saved to localStorage
+    // - Every search after (same browser, any future session): shows instantly from cache (<50ms),
+    //   then background-refreshes and silently swaps in fresh data
+    const _srchCacheKey = 'tm_srch:' + (window.MODEL.q || '').toLowerCase().trim();
+    let _cacheWasShown = false;
+    try {
+        const _raw = localStorage.getItem(_srchCacheKey);
+        if (_raw) {
+            const _cached = JSON.parse(_raw);
+            if (_cached && _cached.data && Array.isArray(_cached.data.files) && _cached.data.files.length > 0) {
+                $('#spinner').remove();
+                $('#update').hide();
+                $('#list').data('nextPageToken', _cached.nextPageToken || null)
+                         .data('curPageIndex', _cached.curPageIndex || 0);
+                append_search_result_to_list(_cached.data.files);
+                _cacheWasShown = true;
+            }
+        }
+    } catch(_) {}
+
+    // Always fetch fresh from server (background when cache shown, foreground on first visit)
+    requestSearch({ q: window.MODEL.q }, function(res, params) {
+        // Save result to localStorage for instant display next time
+        try {
+            localStorage.setItem(_srchCacheKey, JSON.stringify(res));
+        } catch(e) {
+            try {
+                // localStorage full — clear old search caches only, then retry
+                Object.keys(localStorage).filter(k => k.startsWith('tm_srch:')).forEach(k => localStorage.removeItem(k));
+                localStorage.setItem(_srchCacheKey, JSON.stringify(res));
+            } catch(_) {}
+        }
+        // If cache was already shown, clear list first to prevent duplicates
+        if (_cacheWasShown) {
+            $('#list').html('');
+            $('#list').data('nextPageToken', null).data('curPageIndex', 0);
+        }
+        searchSuccessCallback(res, params);
+    });
 
     // Fast copy handler with modern API
     document.getElementById("handle-multiple-items-copy").addEventListener("click", () => {
@@ -2017,7 +2073,7 @@ function append_search_result_to_list(files) {
 
 // Modified onSearchResultItemClick function
 // Button display logic based on UI.show_url_shortener config and login status:
-// - If show_url_shortener is TRUE and user is NOT logged in → GPLinks/Nowshort buttons
+// - If show_url_shortener is TRUE and user is NOT logged in → CPMShort/Nowshort buttons
 // - Otherwise (logged in OR show_url_shortener is FALSE) → "Open in Chrome" button
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
@@ -2095,7 +2151,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     const showUrlShortener = typeof UI !== 'undefined' && UI.show_url_shortener === true;
 
     // Decision logic:
-    // - If show_url_shortener is true AND user is NOT logged in → Show GPLinks/Nowshort
+    // - If show_url_shortener is true AND user is NOT logged in → Show CPMShort/Nowshort
     // - Otherwise → Show Chrome button
     const shouldShowShorteners = showUrlShortener && !userLoggedIn;
 
@@ -2189,7 +2245,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
     } else {
-        // ===== Show GPLinks and Nowshort =====
+        // ===== Show CPMShort and Nowshort =====
         log('Showing CPMShort and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
         function _rotateNowshortUrl(nowshortUrl) {
@@ -2287,7 +2343,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             ]).then(([cpmshortUrl, nowshortUrl]) => {
                 // Store in cache for next time this file is clicked
                 if (!window._shortenerCache) window._shortenerCache = {};
-                window._shortenerCache[directUrl] = { gplinks: gplinksUrl, nowshort: nowshortUrl };
+                window._shortenerCache[directUrl] = { gplinks: cpmshortUrl, nowshort: nowshortUrl };
                 log('Shortener cache stored for:', directUrl);
                 _buildAndShowButtons(cpmshortUrl, nowshortUrl);
             });
@@ -2295,11 +2351,29 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     }
 
     // Optional: Fetch path in background (for all users)
-    fetch(`/${cur}:id2path`, {
-        method: 'POST',
-        body: JSON.stringify({ id: file_id }),
-        headers: { 'Content-Type': 'application/json' }
-    }).catch(error => log('Path fetch error:', error));
+    // ⚡ Circuit-breaker: skip if id2path has failed 3+ times in last 5 min
+    const _id2pFails = parseInt(sessionStorage.getItem('_id2p_fails') || '0');
+    const _id2pLastFail = parseInt(sessionStorage.getItem('_id2p_last_fail') || '0');
+    const _id2pCooldown = Date.now() - _id2pLastFail < 300000; // 5 min
+    if (_id2pFails < 3 || !_id2pCooldown) {
+        fetch(`/${cur}:id2path`, {
+            method: 'POST',
+            body: JSON.stringify({ id: file_id }),
+            headers: { 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(10000)
+        }).then(r => {
+            if (!r.ok) throw new Error('id2path ' + r.status);
+            // Reset fail counter on success
+            sessionStorage.removeItem('_id2p_fails');
+            sessionStorage.removeItem('_id2p_last_fail');
+        }).catch(error => {
+            log('Path fetch error:', error);
+            sessionStorage.setItem('_id2p_fails', Math.min(_id2pFails + 1, 10));
+            sessionStorage.setItem('_id2p_last_fail', Date.now());
+        });
+    } else {
+        log('id2path skipped — circuit breaker active');
+    }
 }
 
 function get_file(path, file, callback) {
@@ -3480,77 +3554,33 @@ function openExtraLink(fileId) {
     });
 }
 
-// GDFlix Link Generation Function
+// GDFlix Link Generation
 function generateGDFlixLink(fileId) {
     return new Promise((resolve, reject) => {
-        log('GDFlix - Received fileId:', fileId);
-
-        if (!fileId) {
-            logError('GDFlix - No file ID provided');
-            reject(new Error('No file ID provided'));
-            return;
-        }
-
-        fileId = String(fileId).trim();
-
-        if (fileId === '') {
-            logError('GDFlix - Empty file ID');
-            reject(new Error('Empty file ID'));
-            return;
-        }
-
-        log('GDFlix - Requesting link directly from browser (bypasses Cloudflare IP block)...');
-
-        const GDFLIX_API_KEY = '34559655cfedb7f5422c64e80c6a02ff';
-        const gdflixApiUrl = `https://new3.gdflix.io/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
-
-        const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-        var newTab = _isSafari ? window.open('', '_blank') : null;
-        log('GDFlix - Safari detected:', _isSafari);
-
-        fetch(gdflixApiUrl, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' }
-        })
-        .then(response => {
-            log('GDFlix - Response status:', response.status);
-            if (!response.ok) {
-                throw new Error(`GDFlix API error: ${response.status}`);
-            }
-            return response.json();
-        })
+        fileId = String(fileId || '').trim();
+        if (!fileId) { reject(new Error('No file ID')); return; }
+        const key = (window.UI && window.UI.gdflix_api_key) || '';
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        const tab = isSafari ? window.open('', '_blank') : null;
+        // Domain: from window.UI (worker-injected) or fetch worker proxy /api/gdflix-domain
+        const getDomain = () => window.UI && window.UI.gdflix_domain
+            ? Promise.resolve(window.UI.gdflix_domain)
+            : fetch('/api/gdflix-domain').then(r => r.json()).then(d => {
+                if (!d.ok || !d.domain) throw new Error(d.error || 'No domain');
+                if (window.UI) window.UI.gdflix_domain = d.domain;
+                return d.domain;
+              });
+        getDomain()
+        .then(domain => fetch(`${domain}/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(key)}`, { headers: { Accept: 'application/json' } }))
+        .then(r => { if (!r.ok) throw new Error(`GDFlix error: ${r.status}`); return r.json(); })
         .then(data => {
-            log('GDFlix - API response:', data);
-
-            let gdflixLink = '';
-            if (data && data.error === 0 && data.key) {
-                gdflixLink = `https://gdlink.dev/file/${data.key}`;
-            } else if (data && data.error === 0 && data.id) {
-                gdflixLink = `https://gdlink.dev/file/${data.id}`;
-            } else if (data && data.error === 1) {
-                throw new Error(data.message || 'GDFlix API returned an error');
-            } else {
-                throw new Error('Unexpected GDFlix response');
-            }
-
-            log('GDFlix - Generated link:', gdflixLink);
-            if (_isSafari) {
-                if (newTab && !newTab.closed) {
-                    newTab.location.href = gdflixLink;
-                } else {
-                    window.open(gdflixLink, '_blank');
-                }
-            } else {
-                window.open(gdflixLink, '_blank');
-            }
-            resolve(gdflixLink);
+            const link = data.error === 0 && (data.key || data.id)
+                ? `https://gdlink.dev/file/${data.key || data.id}`
+                : (() => { throw new Error(data.message || 'Unexpected GDFlix response'); })();
+            isSafari ? (tab && !tab.closed ? tab.location.href = link : window.open(link, '_blank')) : window.open(link, '_blank');
+            resolve(link);
         })
-        .catch(error => {
-            logError('GDFlix Error:', error);
-            if (newTab && !newTab.closed) { newTab.close(); }
-            alert('Failed to generate GDFlix link: ' + error.message);
-            reject(error);
-        });
+        .catch(e => { if (tab && !tab.closed) tab.close(); alert('Failed to generate GDFlix link: ' + e.message); reject(e); });
     });
 }
 
