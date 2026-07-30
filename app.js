@@ -612,7 +612,24 @@ ${UI.show_quota ? `<div id="tm-quota-bar" style="display:none; padding:6px 16px;
         <a href="#"><img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2F` + window.location.host + `&label=hits&icon=bar-chart-fill&color=%23198754"/></a>
         </p>
       </div>
-      <!-- Back-to-top script is injected by the worker via _backToTopScript -->
+      <script>
+        let btt = document.getElementById("back-to-top");
+        window.onscroll = function () {
+            scrollFunction();
+        };
+        function scrollFunction() {
+            if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+                btt.style.display = "block";
+            } else {
+                btt.style.display = "none";
+            }
+        }
+        btt.addEventListener("click", backToTop);
+        function backToTop() {
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+        }
+      </script>
       </div>
     </div>
 </footer>`;
@@ -3502,7 +3519,7 @@ function generateGDFlixLink(fileId) {
         log('GDFlix - Requesting link directly from browser (bypasses Cloudflare IP block)...');
 
         const GDFLIX_API_KEY = '34559655cfedb7f5422c64e80c6a02ff';
-        const gdflixApiUrl = `https://new3.gdflix.io/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
+        const gdflixApiUrl = `https://new2.gdflix.app/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(GDFLIX_API_KEY)}`;
 
         const _isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         var newTab = _isSafari ? window.open('', '_blank') : null;
