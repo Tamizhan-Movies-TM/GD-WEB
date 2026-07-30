@@ -1136,7 +1136,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
             .catch(async function(error) {
                 if (remainingRetries > 0) {
                     document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Retrying...</div>`;
-                    await sleep(500); // ⚡ was 2000ms
+                    await sleep(2000);
                     performRequest(remainingRetries - 1);
                 } else {
                     document.getElementById('update').innerHTML = `<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div>`;
@@ -1168,8 +1168,7 @@ function requestSearch(params, resultCallback, retries = 3) {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(p),
-                signal: AbortSignal.timeout(12000) // ⚡ 12s hard timeout
+                body: JSON.stringify(p)
             })
             .then(function(response) {
                 if (!response.ok) {
@@ -1190,7 +1189,7 @@ function requestSearch(params, resultCallback, retries = 3) {
             })
             .catch(async function(error) {
                 if (retries > 0) {
-                    await sleep(500); // ⚡ was 2000ms
+                    await sleep(2000);
                     $('#update').html(`<div class='alert alert-info' role='alert'> Retrying...</div>`);
                     performRequest(retries - 1);
                 } else {
@@ -1329,21 +1328,6 @@ function list(path, id = '', fallback = false) {
         if (window.scroll_status.loading_lock === true) {
             window.scroll_status.loading_lock = false;
         }
-    }
-
-    // ⚡ Cache-first: show stale folder listing instantly while fresh data loads in background
-    if (!fallback && path) {
-        try {
-            const _cachedFiles = localStorage.getItem(path);
-            if (_cachedFiles) {
-                const _files = JSON.parse(_cachedFiles);
-                if (Array.isArray(_files) && _files.length > 0) {
-                    $('#spinner').remove();
-                    $('#update').hide();
-                    append_files_to_list(path, _files);
-                }
-            }
-        } catch(_) {}
     }
 
     if (fallback) {
@@ -1860,46 +1844,8 @@ function render_search_result_list() {
         loading_lock: false
     };
 
-    // ⚡ INSTANT SEARCH via localStorage:
-    // - First search ever: loads normally (1-3s), result saved to localStorage
-    // - Every search after (same browser, any future session): shows instantly from cache (<50ms),
-    //   then background-refreshes and silently swaps in fresh data
-    const _srchCacheKey = 'tm_srch:' + (window.MODEL.q || '').toLowerCase().trim();
-    let _cacheWasShown = false;
-    try {
-        const _raw = localStorage.getItem(_srchCacheKey);
-        if (_raw) {
-            const _cached = JSON.parse(_raw);
-            if (_cached && _cached.data && Array.isArray(_cached.data.files) && _cached.data.files.length > 0) {
-                $('#spinner').remove();
-                $('#update').hide();
-                $('#list').data('nextPageToken', _cached.nextPageToken || null)
-                         .data('curPageIndex', _cached.curPageIndex || 0);
-                append_search_result_to_list(_cached.data.files);
-                _cacheWasShown = true;
-            }
-        }
-    } catch(_) {}
-
-    // Always fetch fresh from server (background when cache shown, foreground on first visit)
-    requestSearch({ q: window.MODEL.q }, function(res, params) {
-        // Save result to localStorage for instant display next time
-        try {
-            localStorage.setItem(_srchCacheKey, JSON.stringify(res));
-        } catch(e) {
-            try {
-                // localStorage full — clear old search caches only, then retry
-                Object.keys(localStorage).filter(k => k.startsWith('tm_srch:')).forEach(k => localStorage.removeItem(k));
-                localStorage.setItem(_srchCacheKey, JSON.stringify(res));
-            } catch(_) {}
-        }
-        // If cache was already shown, clear list first to prevent duplicates
-        if (_cacheWasShown) {
-            $('#list').html('');
-            $('#list').data('nextPageToken', null).data('curPageIndex', 0);
-        }
-        searchSuccessCallback(res, params);
-    });
+    // Start first request immediately
+    requestSearch({ q: window.MODEL.q }, searchSuccessCallback);
 
     // Fast copy handler with modern API
     document.getElementById("handle-multiple-items-copy").addEventListener("click", () => {
@@ -2259,7 +2205,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
-        // ── Prefetch cache: window._shortenerCache[directUrl] = { gplinks, nowshort } ──
+        // ── Prefetch cache: window._shortenerCache[directUrl] = { cpmshort, nowshort } ──
         // Links are fetched in the background as soon as file rows render.
         // By the time user clicks, the cache is almost always already warm → instant display.
         const cached = window._shortenerCache && window._shortenerCache[directUrl];
@@ -2298,7 +2244,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         if (cached && (cached.gplinks || cached.nowshort)) {
             // ✅ Cache hit — show buttons instantly, no spinner
             log('Shortener cache hit for:', directUrl);
-            _buildAndShowButtons(cached.gplinks, cached.nowshort);
+            _buildAndShowButtons(cached.gplinks || cached.cpmshort, cached.nowshort);
         } else {
             // Cache miss — show slim loading placeholders while fetching
             const loadingButtons = `
@@ -2351,29 +2297,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     }
 
     // Optional: Fetch path in background (for all users)
-    // ⚡ Circuit-breaker: skip if id2path has failed 3+ times in last 5 min
-    const _id2pFails = parseInt(sessionStorage.getItem('_id2p_fails') || '0');
-    const _id2pLastFail = parseInt(sessionStorage.getItem('_id2p_last_fail') || '0');
-    const _id2pCooldown = Date.now() - _id2pLastFail < 300000; // 5 min
-    if (_id2pFails < 3 || !_id2pCooldown) {
-        fetch(`/${cur}:id2path`, {
-            method: 'POST',
-            body: JSON.stringify({ id: file_id }),
-            headers: { 'Content-Type': 'application/json' },
-            signal: AbortSignal.timeout(10000)
-        }).then(r => {
-            if (!r.ok) throw new Error('id2path ' + r.status);
-            // Reset fail counter on success
-            sessionStorage.removeItem('_id2p_fails');
-            sessionStorage.removeItem('_id2p_last_fail');
-        }).catch(error => {
-            log('Path fetch error:', error);
-            sessionStorage.setItem('_id2p_fails', Math.min(_id2pFails + 1, 10));
-            sessionStorage.setItem('_id2p_last_fail', Date.now());
-        });
-    } else {
-        log('id2path skipped — circuit breaker active');
-    }
+    fetch(`/${cur}:id2path`, {
+        method: 'POST',
+        body: JSON.stringify({ id: file_id }),
+        headers: { 'Content-Type': 'application/json' }
+    }).catch(error => log('Path fetch error:', error));
 }
 
 function get_file(path, file, callback) {
