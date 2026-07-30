@@ -825,6 +825,9 @@ function initializeLoginModal() {
             return;
         }
 
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+
         try {
             const formData = new URLSearchParams();
             formData.append('username', username);
@@ -836,10 +839,17 @@ function initializeLoginModal() {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: formData.toString()
+                body: formData.toString(),
+                signal: AbortSignal.timeout(15000)
             });
 
-            const data = await response.json();
+            // Try to parse JSON even on error responses (worker always returns JSON)
+            let data;
+            try {
+                data = await response.json();
+            } catch (_) {
+                throw new Error('Server returned an unexpected response');
+            }
 
             if (data.ok) {
                 // Success - redirect to home or reload page
@@ -852,8 +862,15 @@ function initializeLoginModal() {
                 showError(errMsg);
             }
         } catch (error) {
-            showError('Network error. Please try again.');
+            if (error.name === 'TimeoutError' || error.name === 'AbortError') {
+                showError('Login timed out. Please try again.');
+            } else {
+                showError('Network error. Please try again.');
+            }
             logError('Login error:', error);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
         }
     });
 
