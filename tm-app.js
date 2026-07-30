@@ -842,11 +842,11 @@ function initializeLoginModal() {
             const data = await response.json();
 
             if (data.ok) {
-                // Success - redirect to home or reload page
+                // Success - force fresh reload to home page (clears any cached state)
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
-                    window.location.href = '/';
-                }, 1000);
+                    window.location.replace('/');
+                }, 500);
             } else {
                 const errMsg = data.error || 'Invalid username or password';
                 showError(errMsg);
