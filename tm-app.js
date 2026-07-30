@@ -843,10 +843,10 @@ function initializeLoginModal() {
 
             if (data.ok) {
                 // Success - redirect to home or reload page
-                showError('Login successful! Redirecting...', 'success');
+                showError('Login successful!', 'success');
                 setTimeout(() => {
-                    window.location.href = '/';
-                }, 1000);
+                    window.location.reload();
+                }, 500);
             } else {
                 const errMsg = data.error || 'Invalid username or password';
                 showError(errMsg);
@@ -1169,7 +1169,7 @@ function requestSearch(params, resultCallback, retries = 3) {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(p),
-                signal: AbortSignal.timeout(12000) // ⚡ 12s timeout
+                signal: AbortSignal.timeout(12000) // ⚡ 12s hard timeout
             })
             .then(function(response) {
                 if (!response.ok) {
@@ -1331,7 +1331,7 @@ function list(path, id = '', fallback = false) {
         }
     }
 
-    // ⚡ Cache-first: show stale folder listing instantly
+    // ⚡ Cache-first: show stale folder listing instantly while fresh data loads in background
     if (!fallback && path) {
         try {
             const _cachedFiles = localStorage.getItem(path);
@@ -1345,6 +1345,7 @@ function list(path, id = '', fallback = false) {
             }
         } catch(_) {}
     }
+
     if (fallback) {
         log('fallback inside list');
         requestListPath(path, {
@@ -1507,7 +1508,7 @@ function append_files_to_fallback_list(path, files) {
                 pn += "?a=view";
                 c += " view";
                 //}
-                // Archive files (zip/rar/7z/tar/gz) → show GPLinks+Nowshort modal on click, same as search results
+                // Archive files (zip/rar/7z/tar/gz) → show CPMShort+Nowshort modal on click, same as search results
                 const _isArchive = ext && ['zip','rar','7z','tar','gz'].includes(ext.toLowerCase());
                 const _fItemForModal = Object.assign({}, item, { md5Checksum: item.md5Checksum || '—' });
                 const _fItemJson = JSON.stringify(_fItemForModal).replace(/"/g, '&quot;');
@@ -1859,7 +1860,10 @@ function render_search_result_list() {
         loading_lock: false
     };
 
-    // ⚡ INSTANT SEARCH: localStorage cache — works across sessions
+    // ⚡ INSTANT SEARCH via localStorage:
+    // - First search ever: loads normally (1-3s), result saved to localStorage
+    // - Every search after (same browser, any future session): shows instantly from cache (<50ms),
+    //   then background-refreshes and silently swaps in fresh data
     const _srchCacheKey = 'tm_srch:' + (window.MODEL.q || '').toLowerCase().trim();
     let _cacheWasShown = false;
     try {
@@ -1876,15 +1880,20 @@ function render_search_result_list() {
             }
         }
     } catch(_) {}
+
+    // Always fetch fresh from server (background when cache shown, foreground on first visit)
     requestSearch({ q: window.MODEL.q }, function(res, params) {
+        // Save result to localStorage for instant display next time
         try {
             localStorage.setItem(_srchCacheKey, JSON.stringify(res));
         } catch(e) {
             try {
+                // localStorage full — clear old search caches only, then retry
                 Object.keys(localStorage).filter(k => k.startsWith('tm_srch:')).forEach(k => localStorage.removeItem(k));
                 localStorage.setItem(_srchCacheKey, JSON.stringify(res));
             } catch(_) {}
         }
+        // If cache was already shown, clear list first to prevent duplicates
         if (_cacheWasShown) {
             $('#list').html('');
             $('#list').data('nextPageToken', null).data('curPageIndex', 0);
@@ -2064,7 +2073,7 @@ function append_search_result_to_list(files) {
 
 // Modified onSearchResultItemClick function
 // Button display logic based on UI.show_url_shortener config and login status:
-// - If show_url_shortener is TRUE and user is NOT logged in → GPLinks/Nowshort buttons
+// - If show_url_shortener is TRUE and user is NOT logged in → CPMShort/Nowshort buttons
 // - Otherwise (logged in OR show_url_shortener is FALSE) → "Open in Chrome" button
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
@@ -2142,7 +2151,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     const showUrlShortener = typeof UI !== 'undefined' && UI.show_url_shortener === true;
 
     // Decision logic:
-    // - If show_url_shortener is true AND user is NOT logged in → Show GPLinks/Nowshort
+    // - If show_url_shortener is true AND user is NOT logged in → Show CPMShort/Nowshort
     // - Otherwise → Show Chrome button
     const shouldShowShorteners = showUrlShortener && !userLoggedIn;
 
@@ -2236,7 +2245,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
     } else {
-        // ===== Show GPLinks and Nowshort =====
+        // ===== Show CPMShort and Nowshort =====
         log('Showing CPMShort and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
         function _rotateNowshortUrl(nowshortUrl) {
@@ -2334,17 +2343,18 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             ]).then(([cpmshortUrl, nowshortUrl]) => {
                 // Store in cache for next time this file is clicked
                 if (!window._shortenerCache) window._shortenerCache = {};
-                window._shortenerCache[directUrl] = { gplinks: gplinksUrl, nowshort: nowshortUrl };
+                window._shortenerCache[directUrl] = { gplinks: cpmshortUrl, nowshort: nowshortUrl };
                 log('Shortener cache stored for:', directUrl);
                 _buildAndShowButtons(cpmshortUrl, nowshortUrl);
             });
         }
     }
 
-    // Optional: Fetch path in background — circuit breaker prevents flooding
+    // Optional: Fetch path in background (for all users)
+    // ⚡ Circuit-breaker: skip if id2path has failed 3+ times in last 5 min
     const _id2pFails = parseInt(sessionStorage.getItem('_id2p_fails') || '0');
     const _id2pLastFail = parseInt(sessionStorage.getItem('_id2p_last_fail') || '0');
-    const _id2pCooldown = Date.now() - _id2pLastFail < 300000;
+    const _id2pCooldown = Date.now() - _id2pLastFail < 300000; // 5 min
     if (_id2pFails < 3 || !_id2pCooldown) {
         fetch(`/${cur}:id2path`, {
             method: 'POST',
@@ -2353,6 +2363,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             signal: AbortSignal.timeout(10000)
         }).then(r => {
             if (!r.ok) throw new Error('id2path ' + r.status);
+            // Reset fail counter on success
             sessionStorage.removeItem('_id2p_fails');
             sessionStorage.removeItem('_id2p_last_fail');
         }).catch(error => {
@@ -2360,6 +2371,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             sessionStorage.setItem('_id2p_fails', Math.min(_id2pFails + 1, 10));
             sessionStorage.setItem('_id2p_last_fail', Date.now());
         });
+    } else {
+        log('id2path skipped — circuit breaker active');
     }
 }
 
