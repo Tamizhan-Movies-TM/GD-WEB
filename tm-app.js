@@ -999,7 +999,7 @@ function render(path) {
 function title(path) {
     path = decodeURIComponent(path);
     var cur = window.current_drive_order || 0;
-    var drive_name = window.drive_names[cur];
+    var drive_name = window.drive_names[cur - 1];  // cur is 1-based URL number
     path = path.replace(`/${cur}:`, '');
     // $('title').html(document.siteName + ' - ' + path);
     var model = window.MODEL;
@@ -1023,10 +1023,10 @@ function nav(path) {
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
       <li class="nav-item">
-        <a class="nav-link" href="/"><i class="fas fa-home fa-fw"></i>${UI.nav_link_1}</a>
+        <a class="nav-link" href="/0:/"><i class="fas fa-home fa-fw"></i>${UI.nav_link_1}</a>
       </li>`;
     var names = window.drive_names;
-    var drive_name = window.drive_names[cur];
+    var drive_name = window.drive_names[cur - 1];  // cur is 1-based URL number
 
     html += `<li class="nav-item">
     <a class="nav-link" href="${UI.contact_link}" target="_blank"><i class="fas fa-paper-plane fa-fw"></i>${UI.nav_link_4}</a>
@@ -1209,7 +1209,7 @@ function requestSearch(params, resultCallback, retries = 3) {
 function list(path, id = '', fallback = false) {
     log(id);
     var cur = window.current_drive_order || 0;
-    var drive_name = window.drive_names[cur];
+    var drive_name = window.drive_names[cur - 1];  // cur is 1-based URL number
     var folder_name = !fallback ? decodeURIComponent(path.split('/').filter(Boolean).pop()) : 'Files';
     var folder_ico = folder_icon;
     if (folder_name === cur + ':') {
