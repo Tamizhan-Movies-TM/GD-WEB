@@ -1170,6 +1170,7 @@ function requestSearch(params, resultCallback, retries = 3) {
                 },
                 body: JSON.stringify(p),
                 signal: AbortSignal.timeout(12000) // ⚡ 12s hard timeout
+            })
             .then(function(response) {
                 if (!response.ok) {
                     throw new Error('Request failed');
