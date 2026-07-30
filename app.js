@@ -843,7 +843,6 @@ function initializeLoginModal() {
                 signal: AbortSignal.timeout(15000)
             });
 
-            // Try to parse JSON even on error responses (worker always returns JSON)
             let data;
             try {
                 data = await response.json();
@@ -2276,7 +2275,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
-        // ── Prefetch cache: window._shortenerCache[directUrl] = { gplinks: cpmshortUrl, nowshort } ──
+        // ── Prefetch cache: window._shortenerCache[directUrl] = { gplinks, nowshort } ──
         // Links are fetched in the background as soon as file rows render.
         // By the time user clicks, the cache is almost always already warm → instant display.
         const cached = window._shortenerCache && window._shortenerCache[directUrl];
@@ -2315,7 +2314,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         if (cached && (cached.gplinks || cached.nowshort)) {
             // ✅ Cache hit — show buttons instantly, no spinner
             log('Shortener cache hit for:', directUrl);
-            _buildAndShowButtons(cached.gplinks || cached.cpmshort, cached.nowshort);
+            _buildAndShowButtons(cached.gplinks, cached.nowshort);
         } else {
             // Cache miss — show slim loading placeholders while fetching
             const loadingButtons = `
