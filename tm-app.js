@@ -845,7 +845,7 @@ function initializeLoginModal() {
                 // Success - redirect to home or reload page
                 showError('Login successful!', 'success');
                 setTimeout(() => {
-                    window.location.replace('/0:/');
+                    window.location.replace('/');
                 }, 500);
             } else {
                 const errMsg = data.error || 'Invalid username or password';
