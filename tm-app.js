@@ -842,11 +842,11 @@ function initializeLoginModal() {
             const data = await response.json();
 
             if (data.ok) {
-                // Success - redirect to first drive content page
+                // Success - redirect to home or reload page
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
-                    window.location.replace('/0:');
-                }, 500);
+                    window.location.href = '/';
+                }, 1000);
             } else {
                 const errMsg = data.error || 'Invalid username or password';
                 showError(errMsg);
@@ -1169,7 +1169,7 @@ function requestSearch(params, resultCallback, retries = 3) {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(p),
-                signal: AbortSignal.timeout(12000) // ⚡ 12s hard timeout
+                signal: AbortSignal.timeout(12000) // ⚡ 12s timeout
             })
             .then(function(response) {
                 if (!response.ok) {
@@ -1331,7 +1331,7 @@ function list(path, id = '', fallback = false) {
         }
     }
 
-    // ⚡ Cache-first: show stale folder listing instantly while fresh data loads
+    // ⚡ Cache-first: show stale folder listing instantly
     if (!fallback && path) {
         try {
             const _cachedFiles = localStorage.getItem(path);
@@ -1345,7 +1345,6 @@ function list(path, id = '', fallback = false) {
             }
         } catch(_) {}
     }
-
     if (fallback) {
         log('fallback inside list');
         requestListPath(path, {
@@ -1877,7 +1876,6 @@ function render_search_result_list() {
             }
         }
     } catch(_) {}
-
     requestSearch({ q: window.MODEL.q }, function(res, params) {
         try {
             localStorage.setItem(_srchCacheKey, JSON.stringify(res));
@@ -2343,8 +2341,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         }
     }
 
-    // Optional: Fetch path in background (for all users)
-    // ⚡ Circuit-breaker: skip if id2path has failed 3+ times in last 5 min
+    // Optional: Fetch path in background — circuit breaker prevents flooding
     const _id2pFails = parseInt(sessionStorage.getItem('_id2p_fails') || '0');
     const _id2pLastFail = parseInt(sessionStorage.getItem('_id2p_last_fail') || '0');
     const _id2pCooldown = Date.now() - _id2pLastFail < 300000;
