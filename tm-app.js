@@ -1,5 +1,5 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
-// v2.6.1
+// v2.7.0-merged
 
 // =============================================================================
 // OPTIMIZATION: Conditional Logging
@@ -1136,7 +1136,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
             .catch(async function(error) {
                 if (remainingRetries > 0) {
                     document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Retrying...</div>`;
-                    await sleep(2000);
+                    await sleep(500); // ⚡ was 2000ms
                     performRequest(remainingRetries - 1);
                 } else {
                     document.getElementById('update').innerHTML = `<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div>`;
@@ -1168,7 +1168,8 @@ function requestSearch(params, resultCallback, retries = 3) {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(p)
+                body: JSON.stringify(p),
+                signal: AbortSignal.timeout(12000) // ⚡ 12s hard timeout
             })
             .then(function(response) {
                 if (!response.ok) {
@@ -1189,7 +1190,7 @@ function requestSearch(params, resultCallback, retries = 3) {
             })
             .catch(async function(error) {
                 if (retries > 0) {
-                    await sleep(2000);
+                    await sleep(500); // ⚡ was 2000ms
                     $('#update').html(`<div class='alert alert-info' role='alert'> Retrying...</div>`);
                     performRequest(retries - 1);
                 } else {
@@ -1328,6 +1329,21 @@ function list(path, id = '', fallback = false) {
         if (window.scroll_status.loading_lock === true) {
             window.scroll_status.loading_lock = false;
         }
+    }
+
+    // ⚡ Cache-first: show stale folder listing instantly while fresh data loads in background
+    if (!fallback && path) {
+        try {
+            const _cachedFiles = localStorage.getItem(path);
+            if (_cachedFiles) {
+                const _files = JSON.parse(_cachedFiles);
+                if (Array.isArray(_files) && _files.length > 0) {
+                    $('#spinner').remove();
+                    $('#update').hide();
+                    append_files_to_list(path, _files);
+                }
+            }
+        } catch(_) {}
     }
 
     if (fallback) {
@@ -1492,7 +1508,7 @@ function append_files_to_fallback_list(path, files) {
                 pn += "?a=view";
                 c += " view";
                 //}
-                // Archive files (zip/rar/7z/tar/gz) → show GPLinks+Nowshort modal on click, same as search results
+                // Archive files (zip/rar/7z/tar/gz) → show CPMShort+Nowshort modal on click, same as search results
                 const _isArchive = ext && ['zip','rar','7z','tar','gz'].includes(ext.toLowerCase());
                 const _fItemForModal = Object.assign({}, item, { md5Checksum: item.md5Checksum || '—' });
                 const _fItemJson = JSON.stringify(_fItemForModal).replace(/"/g, '&quot;');
@@ -1844,8 +1860,46 @@ function render_search_result_list() {
         loading_lock: false
     };
 
-    // Start first request immediately
-    requestSearch({ q: window.MODEL.q }, searchSuccessCallback);
+    // ⚡ INSTANT SEARCH via localStorage:
+    // - First search ever: loads normally (1-3s), result saved to localStorage
+    // - Every search after (same browser, any future session): shows instantly from cache (<50ms),
+    //   then background-refreshes and silently swaps in fresh data
+    const _srchCacheKey = 'tm_srch:' + (window.MODEL.q || '').toLowerCase().trim();
+    let _cacheWasShown = false;
+    try {
+        const _raw = localStorage.getItem(_srchCacheKey);
+        if (_raw) {
+            const _cached = JSON.parse(_raw);
+            if (_cached && _cached.data && Array.isArray(_cached.data.files) && _cached.data.files.length > 0) {
+                $('#spinner').remove();
+                $('#update').hide();
+                $('#list').data('nextPageToken', _cached.nextPageToken || null)
+                         .data('curPageIndex', _cached.curPageIndex || 0);
+                append_search_result_to_list(_cached.data.files);
+                _cacheWasShown = true;
+            }
+        }
+    } catch(_) {}
+
+    // Always fetch fresh from server (background when cache shown, foreground on first visit)
+    requestSearch({ q: window.MODEL.q }, function(res, params) {
+        // Save result to localStorage for instant display next time
+        try {
+            localStorage.setItem(_srchCacheKey, JSON.stringify(res));
+        } catch(e) {
+            try {
+                // localStorage full — clear old search caches only, then retry
+                Object.keys(localStorage).filter(k => k.startsWith('tm_srch:')).forEach(k => localStorage.removeItem(k));
+                localStorage.setItem(_srchCacheKey, JSON.stringify(res));
+            } catch(_) {}
+        }
+        // If cache was already shown, clear list first to prevent duplicates
+        if (_cacheWasShown) {
+            $('#list').html('');
+            $('#list').data('nextPageToken', null).data('curPageIndex', 0);
+        }
+        searchSuccessCallback(res, params);
+    });
 
     // Fast copy handler with modern API
     document.getElementById("handle-multiple-items-copy").addEventListener("click", () => {
@@ -1988,7 +2042,7 @@ function append_search_result_to_list(files) {
                         _fetchShort('/generate-cpmshort'),
                         _fetchShort('/generate-nowshort')
                     ]).then(function(results) {
-                        window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
+                        window._shortenerCache[url] = { cpmshort: results[0], nowshort: results[1] };
                         log('Prefetch cached:', url);
                     });
                 });
@@ -2019,7 +2073,7 @@ function append_search_result_to_list(files) {
 
 // Modified onSearchResultItemClick function
 // Button display logic based on UI.show_url_shortener config and login status:
-// - If show_url_shortener is TRUE and user is NOT logged in → GPLinks/Nowshort buttons
+// - If show_url_shortener is TRUE and user is NOT logged in → CPMShort/Nowshort buttons
 // - Otherwise (logged in OR show_url_shortener is FALSE) → "Open in Chrome" button
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
@@ -2097,7 +2151,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     const showUrlShortener = typeof UI !== 'undefined' && UI.show_url_shortener === true;
 
     // Decision logic:
-    // - If show_url_shortener is true AND user is NOT logged in → Show GPLinks/Nowshort
+    // - If show_url_shortener is true AND user is NOT logged in → Show CPMShort/Nowshort
     // - Otherwise → Show Chrome button
     const shouldShowShorteners = showUrlShortener && !userLoggedIn;
 
@@ -2191,7 +2245,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
     } else {
-        // ===== Show GPLinks and Nowshort =====
+        // ===== Show CPMShort and Nowshort =====
         log('Showing CPMShort and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
         function _rotateNowshortUrl(nowshortUrl) {
@@ -2205,7 +2259,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
-        // ── Prefetch cache: window._shortenerCache[directUrl] = { gplinks, nowshort } ──
+        // ── Prefetch cache: window._shortenerCache[directUrl] = { cpmshort, nowshort } ──
         // Links are fetched in the background as soon as file rows render.
         // By the time user clicks, the cache is almost always already warm → instant display.
         const cached = window._shortenerCache && window._shortenerCache[directUrl];
@@ -2241,10 +2295,10 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
         }
 
-        if (cached && (cached.gplinks || cached.nowshort)) {
+        if (cached && (cached.cpmshort || cached.nowshort)) {
             // ✅ Cache hit — show buttons instantly, no spinner
             log('Shortener cache hit for:', directUrl);
-            _buildAndShowButtons(cached.gplinks, cached.nowshort);
+            _buildAndShowButtons(cached.cpmshort, cached.nowshort);
         } else {
             // Cache miss — show slim loading placeholders while fetching
             const loadingButtons = `
@@ -2289,7 +2343,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             ]).then(([cpmshortUrl, nowshortUrl]) => {
                 // Store in cache for next time this file is clicked
                 if (!window._shortenerCache) window._shortenerCache = {};
-                window._shortenerCache[directUrl] = { gplinks: gplinksUrl, nowshort: nowshortUrl };
+                window._shortenerCache[directUrl] = { cpmshort: cpmshortUrl, nowshort: nowshortUrl };
                 log('Shortener cache stored for:', directUrl);
                 _buildAndShowButtons(cpmshortUrl, nowshortUrl);
             });
@@ -2297,11 +2351,29 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     }
 
     // Optional: Fetch path in background (for all users)
-    fetch(`/${cur}:id2path`, {
-        method: 'POST',
-        body: JSON.stringify({ id: file_id }),
-        headers: { 'Content-Type': 'application/json' }
-    }).catch(error => log('Path fetch error:', error));
+    // ⚡ Circuit-breaker: skip if id2path has failed 3+ times in last 5 min
+    const _id2pFails = parseInt(sessionStorage.getItem('_id2p_fails') || '0');
+    const _id2pLastFail = parseInt(sessionStorage.getItem('_id2p_last_fail') || '0');
+    const _id2pCooldown = Date.now() - _id2pLastFail < 300000; // 5 min
+    if (_id2pFails < 3 || !_id2pCooldown) {
+        fetch(`/${cur}:id2path`, {
+            method: 'POST',
+            body: JSON.stringify({ id: file_id }),
+            headers: { 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(10000)
+        }).then(r => {
+            if (!r.ok) throw new Error('id2path ' + r.status);
+            // Reset fail counter on success
+            sessionStorage.removeItem('_id2p_fails');
+            sessionStorage.removeItem('_id2p_last_fail');
+        }).catch(error => {
+            log('Path fetch error:', error);
+            sessionStorage.setItem('_id2p_fails', Math.min(_id2pFails + 1, 10));
+            sessionStorage.setItem('_id2p_last_fail', Date.now());
+        });
+    } else {
+        log('id2path skipped — circuit breaker active');
+    }
 }
 
 function get_file(path, file, callback) {
