@@ -845,7 +845,7 @@ function initializeLoginModal() {
                 // Success - redirect to home or reload page
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
-                    window.location.href = '/home:/';
+                    window.location.href = '/';
                 }, 1000);
             } else {
                 const errMsg = data.error || 'Invalid username or password';
@@ -1023,7 +1023,7 @@ function nav(path) {
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
       <li class="nav-item">
-        <a class="nav-link" href="/home:/"><i class="fas fa-home fa-fw"></i>${UI.nav_link_1}</a>
+        <a class="nav-link" href="/${cur}:/"><i class="fas fa-home fa-fw"></i>${UI.nav_link_1}</a>
       </li>`;
     var names = window.drive_names;
     var drive_name = window.drive_names[cur];
@@ -1985,7 +1985,7 @@ function append_search_result_to_list(files) {
                     };
 
                     Promise.all([
-                        _fetchShort('/generate-cpmshort'),
+                        _fetchShort('/generate-gplinks'),
                         _fetchShort('/generate-nowshort')
                     ]).then(function(results) {
                         window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
@@ -2192,7 +2192,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
 
     } else {
         // ===== Show GPLinks and Nowshort =====
-        log('Showing CPMShort and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
+        log('Showing GPLinks and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
         function _rotateNowshortUrl(nowshortUrl) {
             // Use nowshort URL directly — no rotator
@@ -2210,19 +2210,19 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // By the time user clicks, the cache is almost always already warm → instant display.
         const cached = window._shortenerCache && window._shortenerCache[directUrl];
 
-        function _buildAndShowButtons(cpmshortUrl, nowshortUrl) {
+        function _buildAndShowButtons(gplinksUrl, nowshortUrl) {
             let buttonsHtml = '';
 
-            if (cpmshortUrl) {
+            if (gplinksUrl) {
                 buttonsHtml += `
-                    <a href="${getChromeOpenUrl(cpmshortUrl)}"
+                    <a href="${getChromeOpenUrl(gplinksUrl)}"
                        class="btn btn-info d-flex align-items-center gap-2"
                        target="_blank"
-                       title="Open via CPMShort">
-                        𝗖𝗣𝗠𝗦𝗵𝗼𝗿𝘁
+                       title="Open via GPLinks">
+                        𝗚𝗣𝗟𝗶𝗻𝗸𝘀
                     </a>`;
             } else {
-                buttonsHtml += `<button class="btn btn-secondary" disabled>CPMShort Failed</button>`;
+                buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
             }
 
             if (nowshortUrl) {
@@ -2252,7 +2252,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     <div class="spinner-border spinner-border-sm" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    CPMShort
+                    GPLinks
                 </button>
                 <button class="btn btn-success d-flex align-items-center gap-2" disabled>
                     <div class="spinner-border spinner-border-sm" role="status">
@@ -2284,14 +2284,14 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             };
 
             Promise.all([
-                _fetchShortUrl('/generate-cpmshort'),
+                _fetchShortUrl('/generate-gplinks'),
                 _fetchShortUrl('/generate-nowshort')
-            ]).then(([cpmshortUrl, nowshortUrl]) => {
+            ]).then(([gplinksUrl, nowshortUrl]) => {
                 // Store in cache for next time this file is clicked
                 if (!window._shortenerCache) window._shortenerCache = {};
                 window._shortenerCache[directUrl] = { gplinks: gplinksUrl, nowshort: nowshortUrl };
                 log('Shortener cache stored for:', directUrl);
-                _buildAndShowButtons(cpmshortUrl, nowshortUrl);
+                _buildAndShowButtons(gplinksUrl, nowshortUrl);
             });
         }
     }
