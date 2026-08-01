@@ -842,7 +842,7 @@ function initializeLoginModal() {
             const data = await response.json();
 
             if (data.ok) {
-                // Success - redirect to home or reload page
+                // Success - redirect to home page
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
                     window.location.href = '/';
