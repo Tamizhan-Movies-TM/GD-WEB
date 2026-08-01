@@ -486,6 +486,7 @@ strong {
                 <input
                     type="text"
                     id="username"
+                    name="username"
                     class="form-input"
                     placeholder="Enter your username"
                     autocomplete="username"
@@ -501,6 +502,7 @@ strong {
                     <input
                         type="password"
                         id="password"
+                        name="password"
                         class="form-input"
                         placeholder="Enter your password"
                         autocomplete="current-password"
