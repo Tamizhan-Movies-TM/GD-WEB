@@ -478,7 +478,7 @@ strong {
 
         <div class="error-message" id="errorMessage"></div>
 
-        <form id="loginForm" method="POST" action="/login">
+        <form id="loginForm">
             <div class="form-group">
                 <label class="form-label" for="username">
                     <i class="fas fa-user"></i> Username
@@ -486,7 +486,6 @@ strong {
                 <input
                     type="text"
                     id="username"
-                    name="username"
                     class="form-input"
                     placeholder="Enter your username"
                     autocomplete="username"
@@ -502,7 +501,6 @@ strong {
                     <input
                         type="password"
                         id="password"
-                        name="password"
                         class="form-input"
                         placeholder="Enter your password"
                         autocomplete="current-password"
@@ -816,22 +814,47 @@ function initializeLoginModal() {
     });
 
     // Handle login form submission
-    // ✅ FIX: Use real HTML form POST — worker responds with 302 redirect + Set-Cookie.
-    // Browser follows the redirect natively, cookie is guaranteed to be saved.
-    loginForm.addEventListener('submit', function(e) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
 
         if (!username || !password) {
-            e.preventDefault();
             showError('Please fill in all fields');
             return;
         }
 
-        // Show spinner while the POST → redirect → page load happens
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin fa-fw"></i> Signing in...';
-        // Let the form submit naturally — browser handles cookie + redirect
+        try {
+            const formData = new URLSearchParams();
+            formData.append('username', username);
+            formData.append('password', password);
+
+            const response = await fetch('/login', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData.toString()
+            });
+
+            const data = await response.json();
+
+            if (data.ok) {
+                // Success - redirect to home or reload page
+                showError('Login successful! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = '/home';
+                }, 1000);
+            } else {
+                const errMsg = data.error || 'Invalid username or password';
+                showError(errMsg);
+            }
+        } catch (error) {
+            showError('Network error. Please try again.');
+            logError('Login error:', error);
+        }
     });
 
     // Show error message function
@@ -1000,7 +1023,7 @@ function nav(path) {
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
       <li class="nav-item">
-        <a class="nav-link" href="/"><i class="fas fa-home fa-fw"></i>${UI.nav_link_1}</a>
+        <a class="nav-link" href="/${cur}:/"><i class="fas fa-home fa-fw"></i>${UI.nav_link_1}</a>
       </li>`;
     var names = window.drive_names;
     var drive_name = window.drive_names[cur];
