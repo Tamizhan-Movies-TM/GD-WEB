@@ -842,10 +842,11 @@ function initializeLoginModal() {
             const data = await response.json();
 
             if (data.ok) {
-                // Success - redirect to home page
+                // Success - reload current page so session cookie takes effect;
+                // if already on root (/), this naturally shows the logged-in homepage.
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
-                    window.location.href = '/';
+                    window.location.reload();
                 }, 1000);
             } else {
                 const errMsg = data.error || 'Invalid username or password';
