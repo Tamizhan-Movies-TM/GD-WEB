@@ -478,7 +478,7 @@ strong {
 
         <div class="error-message" id="errorMessage"></div>
 
-        <form id="loginForm">
+        <form id="loginForm" method="POST" action="/login">
             <div class="form-group">
                 <label class="form-label" for="username">
                     <i class="fas fa-user"></i> Username
@@ -814,48 +814,22 @@ function initializeLoginModal() {
     });
 
     // Handle login form submission
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
+    // ✅ FIX: Use real HTML form POST — worker responds with 302 redirect + Set-Cookie.
+    // Browser follows the redirect natively, cookie is guaranteed to be saved.
+    loginForm.addEventListener('submit', function(e) {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
 
         if (!username || !password) {
+            e.preventDefault();
             showError('Please fill in all fields');
             return;
         }
 
-        try {
-            const formData = new URLSearchParams();
-            formData.append('username', username);
-            formData.append('password', password);
-
-            const response = await fetch('/login', {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: formData.toString()
-            });
-
-            const data = await response.json();
-
-            if (data.ok) {
-                // Success - reload current page so session cookie takes effect;
-                // if already on root (/), this naturally shows the logged-in homepage.
-                showError('Login successful! Redirecting...', 'success');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            } else {
-                const errMsg = data.error || 'Invalid username or password';
-                showError(errMsg);
-            }
-        } catch (error) {
-            showError('Network error. Please try again.');
-            logError('Login error:', error);
-        }
+        // Show spinner while the POST → redirect → page load happens
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin fa-fw"></i> Signing in...';
+        // Let the form submit naturally — browser handles cookie + redirect
     });
 
     // Show error message function
