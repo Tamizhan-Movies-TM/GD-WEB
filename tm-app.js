@@ -1023,7 +1023,7 @@ function nav(path) {
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
       <li class="nav-item">
-        <a class="nav-link" href="/${cur}:/"><i class="fas fa-home fa-fw"></i>${UI.nav_link_1}</a>
+        <a class="nav-link" href="/"><i class="fas fa-home fa-fw"></i>${UI.nav_link_1}</a>
       </li>`;
     var names = window.drive_names;
     var drive_name = window.drive_names[cur];
@@ -3575,7 +3575,7 @@ function generateGDFlixLink(fileId) {
         .then(r => { if (!r.ok) throw new Error(`GDFlix error: ${r.status}`); return r.json(); })
         .then(data => {
             const link = data.error === 0 && (data.key || data.id)
-                ? `https://gdlink.dev/file/${data.key || data.id}`
+                ? `https://gdflix.dev/file/${data.key || data.id}`
                 : (() => { throw new Error(data.message || 'Unexpected GDFlix response'); })();
             isSafari ? (tab && !tab.closed ? tab.location.href = link : window.open(link, '_blank')) : window.open(link, '_blank');
             resolve(link);
