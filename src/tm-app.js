@@ -1593,21 +1593,6 @@ function append_files_to_fallback_list(path, files) {
         }
 
 
-        /*let targetObj = {};
-        targetFiles.forEach((myFilepath, myIndex) => {
-            if (!targetObj[myFilepath]) {
-                targetObj[myFilepath] = {
-                    filepath: myFilepath,
-                    prev: myIndex === 0 ? null : targetFiles[myIndex - 1],
-                    next: myIndex === targetFiles.length - 1 ? null : targetFiles[myIndex + 1],
-                }
-            }
-        })
-        // log(targetObj)
-        if (Object.keys(targetObj).length) {
-            localStorage.setItem(path, JSON.stringify(targetObj));
-            // log(path)
-        }*/
 
         if (targetFiles.length > 0) {
             let old = localStorage.getItem(path);
@@ -1741,21 +1726,6 @@ function append_files_to_list(path, files) {
     }
 
 
-    /*let targetObj = {};
-    targetFiles.forEach((myFilepath, myIndex) => {
-        if (!targetObj[myFilepath]) {
-            targetObj[myFilepath] = {
-                filepath: myFilepath,
-                prev: myIndex === 0 ? null : targetFiles[myIndex - 1],
-                next: myIndex === targetFiles.length - 1 ? null : targetFiles[myIndex + 1],
-            }
-        }
-    })
-    // log(targetObj)
-    if (Object.keys(targetObj).length) {
-        localStorage.setItem(path, JSON.stringify(targetObj));
-        // log(path)
-    }*/
 
     if (targetFiles.length > 0) {
         let old = localStorage.getItem(path);
@@ -1860,7 +1830,7 @@ function render_search_result_list() {
         if (!ticking) {
             requestAnimationFrame(() => {
                 const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                const scrollHeight = document.documentElement.scrollHeight;
+                const scrollHeight = getDocumentHeight();
                 const windowHeight = window.innerHeight;
 
                 // Preload at 400px from bottom
@@ -2079,8 +2049,11 @@ function append_search_result_to_list(files) {
             try {
                 const _shouldPrefetch = typeof UI !== 'undefined' && UI.show_url_shortener === true && !isUserLoggedIn();
                 if (!_shouldPrefetch) return;
+                // Guard: cap shortener cache at 200 entries to prevent unbounded memory growth
                 if (!window._shortenerCache) window._shortenerCache = {};
-                const _publicOrigin = 'https://tm.play-streams.workers.dev';
+                const _cacheKeys = Object.keys(window._shortenerCache);
+                if (_cacheKeys.length > 200) { delete window._shortenerCache[_cacheKeys[0]]; }
+                const _publicOrigin = (window.UI && window.UI.public_origin) || 'https://tm.play-streams.workers.dev';
 
                 files.forEach(function(item) {
                     if (item['mimeType'] === 'application/vnd.google-apps.folder') return;
@@ -2144,12 +2117,9 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
     $('#SearchModelLabel').html(title);
 
-    // Create the direct URL
-    // FIX: Use tm.play-streams.workers.dev (public domain) for shortener links.
-    // window.location.origin is tamizhan-movies.site (login-protected) — shorteners
-    // must point to the public workers.dev domain so unauthenticated users can open them.
+    // Create the direct URL using UI.public_origin (set by worker) or fallback to known domain
     const encodedFileId = encodeURIComponent(file_id);
-    const _publicOrigin = 'https://tm.play-streams.workers.dev';
+    const _publicOrigin = (window.UI && window.UI.public_origin) || 'https://tm.play-streams.workers.dev';
     const isFolder = file['mimeType'] === 'application/vnd.google-apps.folder';
     const directUrl = isFolder
         ? `${_publicOrigin}/fallback?id=${encodedFileId}`
@@ -2404,7 +2374,10 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 _fetchShortUrl('/generate-nowshort')
             ]).then(([cpmshortUrl, nowshortUrl]) => {
                 // Store in cache for next time this file is clicked
+                // Guard: cap shortener cache at 200 entries to prevent unbounded memory growth
                 if (!window._shortenerCache) window._shortenerCache = {};
+                const _cacheKeys = Object.keys(window._shortenerCache);
+                if (_cacheKeys.length > 200) { delete window._shortenerCache[_cacheKeys[0]]; }
                 window._shortenerCache[directUrl] = { cpmshort: cpmshortUrl, nowshort: nowshortUrl };
                 log('Shortener cache stored for:', directUrl);
                 _buildAndShowButtons(cpmshortUrl, nowshortUrl);
