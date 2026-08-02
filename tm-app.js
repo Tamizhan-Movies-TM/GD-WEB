@@ -769,20 +769,12 @@ function initializeLoginModal() {
     function openLoginModal() {
         loginModal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        // Update URL to /login without reloading the page
-        try {
-            window.history.pushState(null, '', '/login');
-        } catch (_) {}
     }
 
     // Function to close modal
     function closeLoginModal() {
         loginModal.classList.remove('active');
         document.body.style.overflow = 'auto';
-        // Restore original URL when modal is closed
-        try {
-            window.history.back();
-        } catch (_) {}
     }
 
     // Event delegation for the login button (since it's dynamically created)
@@ -893,24 +885,11 @@ function initializeLoginModal() {
         showError(decodeURIComponent(error));
         // ✅ FIX: Clear the ?error= param so refreshing the page doesn't
         // re-open the modal and re-show the old error message.
-        // Keep URL as /login but strip the ?error= param.
         try {
-            const remainingParams = urlParams.toString().replace(/error=[^&]*&?/, '').replace(/&$/, '');
-            const cleanUrl = '/login' + (remainingParams ? '?' + remainingParams : '');
-            window.history.replaceState(null, '', cleanUrl);
+            const cleanUrl = window.location.pathname + (urlParams.toString().replace(/error=[^&]*&?/, '').replace(/&$/, '') ? '?' + urlParams.toString().replace(/error=[^&]*&?/, '').replace(/&$/, '') : '');
+            window.history.replaceState(null, '', cleanUrl || window.location.pathname);
         } catch (_) {}
     }
-
-    // Handle popstate (browser back/forward) to sync modal state with /login URL
-    window.addEventListener('popstate', function() {
-        if (window.location.pathname !== '/login' && loginModal.classList.contains('active')) {
-            loginModal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        } else if (window.location.pathname === '/login' && !loginModal.classList.contains('active')) {
-            loginModal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-    });
 }
 
 const gdrive_icon = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
