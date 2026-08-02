@@ -850,6 +850,10 @@ function initializeLoginModal() {
             return;
         }
 
+        // FIX §1.4: added submitBtn guard + finally so button is always re-enabled
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="loading"></span> Signing in...';
+
         try {
             const formData = new URLSearchParams();
             formData.append('username', username);
@@ -867,7 +871,6 @@ function initializeLoginModal() {
             const data = await response.json();
 
             if (data.ok) {
-                // Success - redirect to home or reload page
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
                     window.location.href = '/home';
@@ -879,6 +882,9 @@ function initializeLoginModal() {
         } catch (error) {
             showError('Network error. Please try again.');
             logError('Login error:', error);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
         }
     });
 
@@ -1413,12 +1419,13 @@ function list(path, id = '', fallback = false) {
 
     if (fallback) {
         log('fallback inside list');
+        // FIX §5.4: was passing null for retries — null > 0 is false → 0 retries.
         requestListPath(path, {
                 id: id,
                 password: password
             },
             handleSuccessResult,
-            null, null, true);
+            null, 3, true);
     } else {
         log("handling this")
         requestListPath(path, {
@@ -1493,7 +1500,6 @@ function append_files_to_fallback_list(path, files) {
         var is_firstpage = '0' == $list.data('curPageIndex');
 
         let html = "";
-        let targetFiles = [];
         let totalsize = 0;
         let is_file = false;
         // Extract episode number from filename (EP01, E01, S01E01, Episode 1, etc.)
@@ -1553,7 +1559,6 @@ function append_files_to_fallback_list(path, files) {
                 const rawBytesF = Number(files[i].size || 0);
                 const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
                 let pn = path + epn.replace(_reHash, '%23').replace(_reQ, '%3F');
-                let c = "file";
                 // README is displayed after the last page is loaded, otherwise it will affect the scroll event
                 if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
                     get_file(p, item, function(data) {
@@ -1571,7 +1576,6 @@ function append_files_to_fallback_list(path, files) {
                 //if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
                 //targetFiles.push(filepath);
                 pn += "?a=view";
-                c += " view";
                 //}
                 // Archive files (zip/rar/7z/tar/gz) → show CPMShort+Nowshort modal on click, same as search results
                 const _isArchive = ext && ['zip','rar','7z','tar','gz'].includes(ext.toLowerCase());
@@ -1591,33 +1595,7 @@ function append_files_to_fallback_list(path, files) {
         if (is_file && UI.allow_selecting_files) {
             document.getElementById('select_items').style.display = 'block';
         }
-
-
-
-        if (targetFiles.length > 0) {
-            let old = localStorage.getItem(path);
-            let new_children = targetFiles;
-            // Reset on page 1; otherwise append
-            if (!is_firstpage && old) {
-                let old_children;
-                try {
-                    old_children = JSON.parse(old);
-                    if (!Array.isArray(old_children)) {
-                        old_children = []
-                    }
-                } catch (e) {
-                    old_children = [];
-                }
-                new_children = old_children.concat(targetFiles)
-            }
-
-            try {
-                localStorage.setItem(path, JSON.stringify(new_children));
-            } catch (e) {
-                // QuotaExceededError: clear cache and retry once
-                try { localStorage.clear(); localStorage.setItem(path, JSON.stringify(new_children)); } catch (_) { /* ignore */ }
-            }
-        }
+        // FIX §1.5: targetFiles block removed — push was commented out, array always empty.
 
     // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
@@ -1657,7 +1635,6 @@ function append_files_to_list(path, files) {
     var is_firstpage = '0' == $list.data('curPageIndex');
 
     let html = "";
-    let targetFiles = [];
     let totalsize = 0;
     let is_file = false;
     // Sort: folders by folderSize desc (largest first), then files by size desc
@@ -1693,7 +1670,6 @@ function append_files_to_list(path, files) {
             const epn = item.name;
             const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
             let pn = path + epn.replace(_reHash, '%23').replace(_reQ, '%3F');
-            let c = "file";
             // README is displayed after the last page is loaded, otherwise it will affect the scroll event
             if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
                 get_file(p, item, function(data) {
@@ -1711,7 +1687,6 @@ function append_files_to_list(path, files) {
             //if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
             //targetFiles.push(filepath);
             pn += "?a=view";
-            c += " view";
             //}
             html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytes}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
 
@@ -1727,30 +1702,7 @@ function append_files_to_list(path, files) {
 
 
 
-    if (targetFiles.length > 0) {
-        let old = localStorage.getItem(path);
-        let new_children = targetFiles;
-        // Reset on page 1; otherwise append
-        if (!is_firstpage && old) {
-            let old_children;
-            try {
-                old_children = JSON.parse(old);
-                if (!Array.isArray(old_children)) {
-                    old_children = []
-                }
-            } catch (e) {
-                old_children = [];
-            }
-            new_children = old_children.concat(targetFiles)
-        }
-
-        try {
-            localStorage.setItem(path, JSON.stringify(new_children));
-        } catch (e) {
-            // QuotaExceededError: clear cache and retry once
-            try { localStorage.clear(); localStorage.setItem(path, JSON.stringify(new_children)); } catch (_) { /* ignore */ }
-        }
-    }
+    // FIX §1.5: targetFiles block removed — push was commented out, array always empty.
 
     // When it is page 1, remove the horizontal loading bar
     // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
