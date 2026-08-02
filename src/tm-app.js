@@ -114,6 +114,31 @@ function _legacyCopy(text) {
     alert('Selected items copied to clipboard!');
 }
 
+// =============================================================================
+// PLAYER VISIBILITY HELPER
+// Decides whether the inline audio/video player should be hidden.
+//
+// Logic controlled by UI config flags (set in worker.js):
+//   disable_player                     — master switch. If true → ALWAYS hide the player,
+//                                         regardless of file size.
+//   extralink_large_file_threshold_gb  — size threshold in GB (default 5). Files AT or
+//                                         ABOVE this size get the player hidden too — for
+//                                         EVERYONE, login and non-login — nudging large
+//                                         files towards the ExtraLink instead of inline
+//                                         streaming.
+// =============================================================================
+function shouldDisablePlayer(bytes) {
+    if (UI.disable_player) return true;
+    // Use player_disable_threshold_gb when set, fall back to
+    // extralink_large_file_threshold_gb, then old gdflix key for backward compat, then 10 GB.
+    const thresholdGb = UI.player_disable_threshold_gb
+        || UI.extralink_large_file_threshold_gb
+        || UI.gdflix_large_file_threshold_gb
+        || 10;
+    const thresholdBytes = thresholdGb * 1024 * 1024 * 1024;
+    return bytes >= thresholdBytes;
+}
+
 // Initialize the page
 function init() {
     document.siteName = $('title').html();
@@ -845,7 +870,7 @@ function initializeLoginModal() {
                 // Success - redirect to home or reload page
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
-                    window.location.href = '/';
+                    window.location.href = '/home';
                 }, 1000);
             } else {
                 const errMsg = data.error || 'Invalid username or password';
@@ -963,10 +988,6 @@ function render(path) {
         const can_preview = getQueryVariable('a');
         const id = getQueryVariable('id');
         if (can_preview) {
-            // ✅ Show password expiry warning only on file info page (&a=view), not folder list
-            if (typeof checkPasswordExpiryWarning === 'function') {
-                checkPasswordExpiryWarning();
-            }
             return fallback(id, true)
         } else {
             return list(null, id, true);
@@ -1016,14 +1037,14 @@ function nav(path) {
     var cur = window.current_drive_order || 0;
     html += `<nav class="navbar navbar-expand-lg${UI.fixed_header ?' fixed-top': ''} ${UI.header_style_class} container">
     <div class="container-fluid mx-2">
-  <a class="navbar-brand d-flex align-items-center gap-2" href="/">${UI.logo_image ? '<img border="0" alt="'+UI.company_name+'" src="'+UI.logo_link_name+'" height="'+UI.logo_height+'" width="'+UI.logo_width+'">'+UI.siteName : UI.logo_link_name}</a>
+  <a class="navbar-brand d-flex align-items-center gap-2" href="/home">${UI.logo_image ? '<img border="0" alt="'+UI.company_name+'" src="'+UI.logo_link_name+'" height="'+UI.logo_height+'" width="'+UI.logo_width+'">'+UI.siteName : UI.logo_link_name}</a>
   <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
       <li class="nav-item">
-        <a class="nav-link" href="/${cur}:/"><i class="fas fa-home fa-fw"></i>${UI.nav_link_1}</a>
+        <a class="nav-link" href="/home"><i class="fas fa-home fa-fw"></i>${UI.nav_link_1}</a>
       </li>`;
     var names = window.drive_names;
     var drive_name = window.drive_names[cur];
@@ -1105,7 +1126,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
                     <p>The requested URL was not found on this server. That’s all we know.</p>
                     <div class="card-text text-center">
                       <div class="btn-group text-center">
-                        <a href="/" type="button" class="btn btn-success">Homepage</a>
+                        <a href="/home" type="button" class="btn btn-success">Homepage</a>
                       </div>
                     </div><br>
                   </div>`;
@@ -1901,7 +1922,7 @@ function render_search_result_list() {
         searchSuccessCallback(res, params);
     });
 
-    // Fast copy handler with modern API
+    // Copy handler — uses _legacyCopy utility for fallback consistency
     document.getElementById("handle-multiple-items-copy").addEventListener("click", () => {
         const checked = document.querySelectorAll('input[type="checkbox"]:checked');
 
@@ -1916,31 +1937,13 @@ function render_search_result_list() {
             navigator.clipboard.writeText(data).then(() => {
                 alert("Selected items copied to clipboard!");
             }).catch(() => {
-                const el = document.createElement("textarea");
-                el.value = data;
-                el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
-                document.body.appendChild(el);
-                el.select();
-                document.execCommand("copy");
-                document.body.removeChild(el);
-                alert("Selected items copied to clipboard!");
+                _legacyCopy(data);
             });
         } else {
-            const el = document.createElement("textarea");
-            el.value = data;
-            el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand("copy");
-            document.body.removeChild(el);
-            alert("Selected items copied to clipboard!");
+            _legacyCopy(data);
         }
     }, { passive: true });
 
-    // ✅ Show password expiry warning on search result page as well
-    if (typeof checkPasswordExpiryWarning === 'function') {
-        checkPasswordExpiryWarning();
-    }
 }
 
 /**
@@ -2449,7 +2452,7 @@ async function fallback(id, type) {
                     <div class="card-body text-center">
                         <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>404.</b> That’s an error. ` + error + `</div>
                         <p>The requested URL was not found on this server. That’s all we know.</p>
-                        <a href="/" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i>Home</a>
+                        <a href="/home" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i>Home</a>
                     </div>
                 </div>`;
                 $("#content").html(content);
@@ -2519,7 +2522,7 @@ async function file(path) {
                 <div class="card-body text-center">
                     <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>404.</b> That’s an error. ` + error + `</div>
                     <p>The requested URL was not found on this server. That’s all we know.</p>
-                    <a href="/" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i>Home</a>
+                    <a href="/home" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i>Home</a>
                 </div>
             </div>`;
             $("#content").html(content);
@@ -2700,9 +2703,6 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
     }
 }
 
-// Also update the file_code function to include GDFlix button
-// Replace the download section in file_code function with this:
-
 function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
     // Add the container and card elements
@@ -2830,31 +2830,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     }
 }
 
-
-// =============================================================================
-// PLAYER VISIBILITY HELPER
-// Decides whether the inline audio/video player should be hidden.
-//
-// Logic controlled by UI config flags (set in worker.js):
-//   disable_player                     — master switch. If true → ALWAYS hide the player,
-//                                         regardless of file size.
-//   extralink_large_file_threshold_gb  — size threshold in GB (default 5). Files AT or
-//                                         ABOVE this size get the player hidden too — for
-//                                         EVERYONE, login and non-login — nudging large
-//                                         files towards the ExtraLink instead of inline
-//                                         streaming.
-// =============================================================================
-function shouldDisablePlayer(bytes) {
-    if (UI.disable_player) return true;
-    // Use player_disable_threshold_gb when set, fall back to
-    // extralink_large_file_threshold_gb, then old gdflix key for backward compat, then 10 GB.
-    const thresholdGb = UI.player_disable_threshold_gb
-        || UI.extralink_large_file_threshold_gb
-        || UI.gdflix_large_file_threshold_gb
-        || 10;
-    const thresholdBytes = thresholdGb * 1024 * 1024 * 1024;
-    return bytes >= thresholdBytes;
-}
 
 // Document display video  mkv|mp4|webm|avi|
 function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
