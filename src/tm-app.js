@@ -1100,8 +1100,12 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
         page_token: params['page_token'] || '',
         page_index: params['page_index'] || 0
     };
-    $('#update').show();
-    document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Connecting...</div>`;
+    // ⚡ PERF: Delay the "Connecting..." banner by 400ms — if the server responds fast
+    // (warm Cloudflare isolate) the user never sees it. Only shows on slow/cold starts.
+    const _connectingTimer = setTimeout(() => {
+        const _upd = document.getElementById('update');
+        if (_upd) { _upd.style.display = ''; _upd.innerHTML = `<div class='alert alert-info' role='alert'> Connecting...</div>`; }
+    }, 400);
     if (fallback) {
         path = "/0:fallback"
     }
@@ -1142,6 +1146,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
                 return response.json();
             })
             .then(function(res) {
+                clearTimeout(_connectingTimer);
                 if (res && res.error && res.error.code === 401) {
                     // Password verification failed
                     askPassword(path);
@@ -1160,6 +1165,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
                     await sleep(500); // ⚡ was 2000ms
                     performRequest(remainingRetries - 1);
                 } else {
+                    clearTimeout(_connectingTimer);
                     document.getElementById('update').innerHTML = `<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div>`;
                     document.getElementById('list').innerHTML = `<div class='alert alert-danger' role='alert'> We were unable to get data from the server. ` + error + `</div>`;
                     $('#update').hide();
@@ -1183,6 +1189,12 @@ function requestSearch(params, resultCallback, retries = 3) {
         page_index: params['page_index'] || 0
     };
 
+    // ⚡ PERF: Only show "Connecting..." if the server takes more than 400ms
+    const _srchConnectTimer = setTimeout(() => {
+        const _upd = document.getElementById('update');
+        if (_upd) _upd.innerHTML = `<div class='alert alert-info' role='alert'> Connecting...</div>`;
+    }, 400);
+
     function performRequest(retries) {
         fetch(`/${window.current_drive_order}:search`, {
                 method: 'POST',
@@ -1199,6 +1211,7 @@ function requestSearch(params, resultCallback, retries = 3) {
                 return response.json();
             })
             .then(function(res) {
+                clearTimeout(_srchConnectTimer);
                 if (res && res.data === null) {
                     $('#spinner').remove();
                     $('#list').html(`<div class='alert alert-danger' role='alert'> Server didn't send any data.</div>`);
@@ -1215,6 +1228,7 @@ function requestSearch(params, resultCallback, retries = 3) {
                     $('#update').html(`<div class='alert alert-info' role='alert'> Retrying...</div>`);
                     performRequest(retries - 1);
                 } else {
+                    clearTimeout(_srchConnectTimer);
                     $('#update').html(`<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong. 3 Failures</div>`);
                     $('#list').html(`<div class='alert alert-danger' role='alert'> We were unable to get data from the server.</div>`);
                     $('#spinner').remove();
@@ -1222,7 +1236,6 @@ function requestSearch(params, resultCallback, retries = 3) {
             });
     }
 
-    $('#update').html(`<div class='alert alert-info' role='alert'> Connecting...</div>`);
     performRequest(retries);
 }
 
@@ -1288,6 +1301,30 @@ function list(path, id = '', fallback = false) {
 
         $('#spinner').remove();
 
+        // ⚡ Cache-first save: store files for instant display on next visit.
+        // Strip `link` (expiring signed URL) before saving — links are regenerated fresh
+        // on each real load. Cache only the metadata needed to render the list skeleton.
+        if (fallback && id && res['data'] && Array.isArray(res['data']['files']) && res['data']['files'].length > 0) {
+            try {
+                const _fbCacheKey = 'fb:' + id;
+                const _toCache = res['data']['files'].map(function(f) {
+                    const c = Object.assign({}, f);
+                    delete c.link; // expiring — regenerated on real load
+                    return c;
+                });
+                const _existing = localStorage.getItem(_fbCacheKey);
+                let _merged = _toCache;
+                if (_existing && res['curPageIndex'] > 0) {
+                    try { _merged = JSON.parse(_existing).concat(_toCache); } catch(_) {}
+                }
+                try {
+                    localStorage.setItem(_fbCacheKey, JSON.stringify(_merged));
+                } catch(_e) {
+                    try { localStorage.clear(); localStorage.setItem(_fbCacheKey, JSON.stringify(_toCache)); } catch(_) {}
+                }
+            } catch(_) {}
+        }
+
         if (res['nextPageToken'] === null) {
             $(window).off('scroll');
             window.scroll_status.event_bound = false;
@@ -1352,16 +1389,23 @@ function list(path, id = '', fallback = false) {
         }
     }
 
-    // ⚡ Cache-first: show stale folder listing instantly while fresh data loads in background
-    if (!fallback && path) {
+    // ⚡ Cache-first: show stale folder listing instantly while fresh data loads in background.
+    // Works for BOTH regular paths (/0:/Tamil/) AND fallback folder listings (/fallback?id=XXX).
+    // Cache key for fallback uses the folder ID; for regular paths uses the URL path.
+    const _cacheKey = fallback ? ('fb:' + id) : path;
+    if (_cacheKey) {
         try {
-            const _cachedFiles = localStorage.getItem(path);
+            const _cachedFiles = localStorage.getItem(_cacheKey);
             if (_cachedFiles) {
                 const _files = JSON.parse(_cachedFiles);
                 if (Array.isArray(_files) && _files.length > 0) {
                     $('#spinner').remove();
                     $('#update').hide();
-                    append_files_to_list(path, _files);
+                    if (fallback) {
+                        append_files_to_fallback_list(path, _files);
+                    } else {
+                        append_files_to_list(path, _files);
+                    }
                 }
             }
         } catch(_) {}
@@ -1904,14 +1948,29 @@ function render_search_result_list() {
 
     // Always fetch fresh from server (background when cache shown, foreground on first visit)
     requestSearch({ q: window.MODEL.q }, function(res, params) {
-        // Save result to localStorage for instant display next time
+        // Save result to localStorage for instant display next time.
+        // ⚡ Strip `link` (expiring signed download URLs) before caching — they are
+        // regenerated on each real server response. Storing them causes dead links on
+        // cache replay when the 1-day expiry has passed.
         try {
-            localStorage.setItem(_srchCacheKey, JSON.stringify(res));
+            const _resToCache = {
+                nextPageToken: res.nextPageToken,
+                curPageIndex: res.curPageIndex,
+                data: {
+                    files: (res.data.files || []).map(function(f) {
+                        const c = Object.assign({}, f);
+                        delete c.link;
+                        return c;
+                    })
+                }
+            };
+            localStorage.setItem(_srchCacheKey, JSON.stringify(_resToCache));
         } catch(e) {
             try {
                 // localStorage full — clear old search caches only, then retry
                 Object.keys(localStorage).filter(k => k.startsWith('tm_srch:')).forEach(k => localStorage.removeItem(k));
-                localStorage.setItem(_srchCacheKey, JSON.stringify(res));
+                const _resToCache2 = { nextPageToken: res.nextPageToken, curPageIndex: res.curPageIndex, data: { files: (res.data.files || []).map(function(f) { const c = Object.assign({}, f); delete c.link; return c; }) } };
+                localStorage.setItem(_srchCacheKey, JSON.stringify(_resToCache2));
             } catch(_) {}
         }
         // If cache was already shown, clear list first to prevent duplicates
