@@ -845,7 +845,7 @@ function initializeLoginModal() {
                 // Success - redirect to home or reload page
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
-                    window.location.href = '/fallback';
+                    window.location.href = '/home';
                 }, 1000);
             } else {
                 const errMsg = data.error || 'Invalid username or password';
