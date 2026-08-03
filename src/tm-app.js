@@ -3562,6 +3562,12 @@ function openExtraLink(fileId) {
 }
 
 // GDFlix Link Generation
+// ── Auto-retry logic ─────────────────────────────────────────────────────────
+// 1. Try window.UI.gdflix_domain (worker-injected at page render)
+// 2. If that fetch fails → clear cached domain + call /api/gdflix-domain for a fresh one
+// 3. Retry the GDFlix API call with the fresh domain
+// This handles stale/rotated GDFlix domains without any manual intervention.
+// ─────────────────────────────────────────────────────────────────────────────
 function generateGDFlixLink(fileId) {
     return new Promise((resolve, reject) => {
         fileId = String(fileId || '').trim();
@@ -3569,25 +3575,53 @@ function generateGDFlixLink(fileId) {
         const key = (window.UI && window.UI.gdflix_api_key) || '';
         const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         const tab = isSafari ? window.open('', '_blank') : null;
-        // Domain: from window.UI (worker-injected) or fetch worker proxy /api/gdflix-domain
+
+        // Fetch a fresh domain from the worker proxy (skips any stale page-injected value)
+        const fetchFreshDomain = () =>
+            fetch('/api/gdflix-domain', { cache: 'no-store' })
+              .then(r => r.json())
+              .then(d => {
+                  if (!d.ok || !d.domain) throw new Error(d.error || 'No domain from worker');
+                  if (window.UI) window.UI.gdflix_domain = d.domain; // update for next click
+                  return d.domain;
+              });
+
+        // Call GDFlix API with a given domain and return the share link
+        const callGDFlix = (domain) =>
+            fetch(`${domain}/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(key)}`,
+                  { headers: { Accept: 'application/json' } })
+            .then(r => { if (!r.ok) throw new Error(`GDFlix error: ${r.status}`); return r.json(); })
+            .then(data => {
+                if (data.error === 0 && (data.key || data.id))
+                    return `https://gdflix.dev/file/${data.key || data.id}`;
+                throw new Error(data.message || 'Unexpected GDFlix response');
+            });
+
+        // Domain: prefer page-injected value, but always be ready to fall back
         const getDomain = () => window.UI && window.UI.gdflix_domain
             ? Promise.resolve(window.UI.gdflix_domain)
-            : fetch('/api/gdflix-domain').then(r => r.json()).then(d => {
-                if (!d.ok || !d.domain) throw new Error(d.error || 'No domain');
-                if (window.UI) window.UI.gdflix_domain = d.domain;
-                return d.domain;
-              });
+            : fetchFreshDomain();
+
         getDomain()
-        .then(domain => fetch(`${domain}/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(key)}`, { headers: { Accept: 'application/json' } }))
-        .then(r => { if (!r.ok) throw new Error(`GDFlix error: ${r.status}`); return r.json(); })
-        .then(data => {
-            const link = data.error === 0 && (data.key || data.id)
-                ? `https://gdflix.dev/file/${data.key || data.id}`
-                : (() => { throw new Error(data.message || 'Unexpected GDFlix response'); })();
+        .then(domain =>
+            // First attempt with cached/injected domain
+            callGDFlix(domain).catch(firstErr => {
+                log('GDFlix first attempt failed (' + domain + '):', firstErr.message, '— fetching fresh domain…');
+                // Clear stale cached domain so next page load also re-fetches
+                if (window.UI) window.UI.gdflix_domain = null;
+                // Second attempt: get a fresh domain from worker and retry once
+                return fetchFreshDomain().then(freshDomain => callGDFlix(freshDomain));
+            })
+        )
+        .then(link => {
             isSafari ? (tab && !tab.closed ? tab.location.href = link : window.open(link, '_blank')) : window.open(link, '_blank');
             resolve(link);
         })
-        .catch(e => { if (tab && !tab.closed) tab.close(); alert('Failed to generate GDFlix link: ' + e.message); reject(e); });
+        .catch(e => {
+            if (tab && !tab.closed) tab.close();
+            alert('Failed to generate GDFlix link: ' + e.message);
+            reject(e);
+        });
     });
 }
 
