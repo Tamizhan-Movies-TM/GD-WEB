@@ -1257,6 +1257,7 @@ function list(path, id = '', fallback = false) {
         folder_ico = gdrive_icon;
         folder_name = drive_name;
     }
+    _resetTMSort(); // FIX Bug J: reset sort state for each new folder
     var containerContent = `
     <div id="update"></div>
     <div id="head_md" style="display:none; padding: 20px 20px;"></div>
@@ -1732,6 +1733,7 @@ function append_files_to_list(path, files) {
  */
 function render_search_result_list() {
     var model = window.MODEL;
+    _resetTMSort(); // FIX Bug J: reset sort state for each new search page
 
     // Add search bar to the card header with white background
     var searchBar = `
@@ -2031,6 +2033,10 @@ function append_search_result_to_list(files) {
                     ]).then(function(results) {
                         window._shortenerCache[url] = { cpmshort: results[0], nowshort: results[1] };
                         log('Prefetch cached:', url);
+                    }).catch(function() {
+                        // FIX: _pending:true was never cleared on rejection — next click
+                        // would skip re-fetch and show spinners forever. Delete so it retries.
+                        delete window._shortenerCache[url];
                     });
                 });
             } catch(e) { /* silent — never break file listing */ }
@@ -2087,6 +2093,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     }
 
     // Generate file info content
+    // FIX: createdTime and mimeType were inserted raw — escapeHtml all dynamic fields.
     let content = `
     <table class="table table-dark" style="margin-bottom: 0 !important;">
         <tbody>
@@ -2102,14 +2109,14 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     <i class="fa-regular fa-clock fa-fw"></i>
                     <span class="tth">Datetime</span>
                 </th>
-                <td>${file['createdTime']}</td>
+                <td>${escapeHtml(file['createdTime'] || '')}</td>
             </tr>
             <tr>
                 <th>
                     <i class="fa-solid fa-tag fa-fw"></i>
                     <span class="tth">Type</span>
                 </th>
-                <td>${file['mimeType']}</td>
+                <td>${escapeHtml(file['mimeType'] || '')}</td>
             </tr>`;
 
     if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
@@ -2119,7 +2126,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     <i class="fa-solid fa-box-archive fa-fw"></i>
                     <span class="tth">Size</span>
                 </th>
-                <td>${file['size']}</td>
+                <td>${escapeHtml(String(file['size'] || '—'))}</td>
             </tr>`;
     }
     content += `
@@ -2636,7 +2643,6 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
                 <span class="tth">Size</span>
                 </th>
                 <td>${size}</td>
-               </td>
                         </tr>
                     </tbody>
                 </table>
@@ -2739,7 +2745,6 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                  <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
-                  </td>
                            </tr>
                      </tbody>
                  </table>
@@ -2982,7 +2987,6 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
                   <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
-                    </td>
                              </tr>
                          </tbody>
                     </table>
@@ -3267,6 +3271,7 @@ function formatFileSize(bytes) {
     if (bytes >= 1024)          return (bytes / 1024).toFixed(2) + ' KB';
     if (bytes > 1)              return bytes + ' bytes';
     if (bytes === 1)            return '1 byte';
+    if (bytes === 0)            return '0 bytes'; // FIX: was returning '' for 0-byte files
     return '';
 }
 
@@ -3317,6 +3322,9 @@ $(function() {
 // Copy to Clipboard for Direct Links, This will be modified soon with other UI
 function copyFunction() {
     var copyText = document.getElementById("dlurl");
+    // FIX: #dlurl only exists on file_code and file_others pages. Guard against null
+    // to prevent TypeError if called from a page without this element (e.g. video page).
+    if (!copyText) { logError('copyFunction: #dlurl element not found'); return; }
     copyText.select();
     copyText.setSelectionRange(0, 99999);
 
@@ -3604,25 +3612,35 @@ $(document).on('click', '.download-via-extralink', function() {
 // COLUMN SORT — Name & Size only
 // =============================================================================
 let _tmSortState = { col: null, dir: 1 };
+// FIX Bug J: reset sort state on each new folder load so users see server-default order
+// when navigating to a new folder, not the previous folder's sort preference.
+function _resetTMSort() { _tmSortState = { col: null, dir: 1 }; }
 
 function initTMSort() {
     const bar = document.getElementById('tm-sort-bar');
     if (!bar) return;
-    // Reset icons
+    // FIX: was registering new onclick on every button on every click — wasteful.
+    // Now: register handlers only once (guarded by _tmSortHandlersSet flag),
+    // and update only the icons on subsequent calls.
     bar.querySelectorAll('.tm-sort-btn').forEach(btn => {
         const icon = btn.querySelector('.tm-sort-icon');
         const col = btn.dataset.col;
+        // Update icon to reflect current sort state
         if (icon) icon.textContent = _tmSortState.col === col ? (_tmSortState.dir === 1 ? ' ▲' : ' ▼') : '';
-        btn.onclick = function () {
-            if (_tmSortState.col === col) {
-                _tmSortState.dir *= -1;
-            } else {
-                _tmSortState.col = col;
-                _tmSortState.dir = 1;
-            }
-            tmSortList();
-            initTMSort(); // refresh icons
-        };
+        // Register handler only once
+        if (!btn._tmSortBound) {
+            btn._tmSortBound = true;
+            btn.addEventListener('click', function () {
+                if (_tmSortState.col === col) {
+                    _tmSortState.dir *= -1;
+                } else {
+                    _tmSortState.col = col;
+                    _tmSortState.dir = 1;
+                }
+                tmSortList();
+                initTMSort(); // refresh icons only
+            });
+        }
     });
 }
 
@@ -3929,8 +3947,13 @@ $(document).ready(function () {
 
 // =============================================================================
 // create a MutationObserver to listen for changes to the DOM
+// FIX: was calling updateCheckboxes() on every DOM mutation — during a 50-file
+// list render this fired 50+ times, each doing a full querySelectorAll scan.
+// Debounced to 100ms so it only runs once after the DOM settles.
+let _cbDebounce = null;
 const observer = new MutationObserver(() => {
-    updateCheckboxes();
+    clearTimeout(_cbDebounce);
+    _cbDebounce = setTimeout(updateCheckboxes, 100);
 });
 
 // define the options for the observer (listen for changes to child elements)
