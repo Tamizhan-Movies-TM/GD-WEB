@@ -1462,6 +1462,55 @@ function askPassword(path) {
  * @param path
  * @param files request result
  */
+
+// Shared file sort: folders first (by folderSize desc), then files by size desc.
+// Pass isEpisodic=true to sort files by episode number instead of size.
+
+// Renders total file count + size into #count when last page is loaded
+function _renderCountBar($list, totalsize) {
+    const total_size = formatFileSize(totalsize) || '0 Bytes';
+    const total_items = $list.find('.countitems').length;
+    const total_files = $list.find('.size_items').length;
+    const only_folders = total_files === 0;
+    if (only_folders) {
+        $('#count').removeClass('d-none').find('.number').text(total_items === 1 ? '1 item folder' : total_items + ' item folders');
+        $('#count').find('.totalsize').text('').hide();
+    } else {
+        $('#count').removeClass('d-none').find('.number').text('total files: ' + total_files);
+        $('#count').removeClass('d-none').find('.totalsize').text('total size: ' + total_size).show();
+    }
+}
+function _sortFiles(files, isEpisodic = false) {
+    files.sort((a, b) => {
+        const aIsFolder = a.mimeType === 'application/vnd.google-apps.folder';
+        const bIsFolder = b.mimeType === 'application/vnd.google-apps.folder';
+        if (aIsFolder && bIsFolder) return Number(b.folderSize || 0) - Number(a.folderSize || 0);
+        if (aIsFolder) return -1;
+        if (bIsFolder) return 1;
+        if (isEpisodic) {
+            const aEp = _getEpNum(a.name), bEp = _getEpNum(b.name);
+            if (aEp !== null && bEp !== null) return aEp - bEp;
+            if (aEp !== null) return -1;
+            if (bEp !== null) return 1;
+            return (a.name || '').localeCompare(b.name || '');
+        }
+        return Number(b.size || 0) - Number(a.size || 0);
+    });
+}
+
+// Returns episode number from filename (EP01, E01, S01E01, Episode 1…) or null
+function _getEpNum(name) {
+    if (!name) return null;
+    const m = name.match(/(?:EP|E|Episode\s*)(\d+)/i);
+    return m ? parseInt(m[1], 10) : null;
+}
+
+// Returns true if ≥50% of non-folder files have episode numbers
+function _isEpisodicList(files) {
+    const fileItems = files.filter(f => f.mimeType !== 'application/vnd.google-apps.folder');
+    const epCount = fileItems.filter(f => _getEpNum(f.name) !== null).length;
+    return fileItems.length > 0 && (epCount / fileItems.length) >= 0.5;
+}
 function append_files_to_fallback_list(path, files) {
     try {
         log('append_files_to_fallback_list');
@@ -1473,36 +1522,8 @@ function append_files_to_fallback_list(path, files) {
         let html = "";
         let totalsize = 0;
         let is_file = false;
-        // Extract episode number from filename (EP01, E01, S01E01, Episode 1, etc.)
-        function _getEpNum(name) {
-            if (!name) return null;
-            const m = name.match(/(?:EP|E|Episode\s*)(\d+)/i);
-            return m ? parseInt(m[1], 10) : null;
-        }
-        // Detect if the file list is a web series (>=50% of files have episode numbers)
-        const _fileItems = files.filter(f => f.mimeType !== 'application/vnd.google-apps.folder');
-        const _epCount = _fileItems.filter(f => _getEpNum(f.name) !== null).length;
-        const _isEpisodic = _fileItems.length > 0 && (_epCount / _fileItems.length) >= 0.5;
-
-        // Sort: folders first (by folderSize desc), then files
-        // — episodic: sort by episode number asc (EP1 → EP50)
-        // — regular: sort by size desc (largest first)
-        files.sort((a, b) => {
-            const aIsFolder = a.mimeType === 'application/vnd.google-apps.folder';
-            const bIsFolder = b.mimeType === 'application/vnd.google-apps.folder';
-            if (aIsFolder && bIsFolder) return Number(b.folderSize || 0) - Number(a.folderSize || 0);
-            if (aIsFolder) return -1;
-            if (bIsFolder) return 1;
-            if (_isEpisodic) {
-                const aEp = _getEpNum(a.name);
-                const bEp = _getEpNum(b.name);
-                if (aEp !== null && bEp !== null) return aEp - bEp;
-                if (aEp !== null) return -1;
-                if (bEp !== null) return 1;
-                return (a.name || '').localeCompare(b.name || '');
-            }
-            return Number(b.size || 0) - Number(a.size || 0);
-        });
+        const _isEpisodic = _isEpisodicList(files);
+        _sortFiles(files, _isEpisodic);
         if (files.length == 0) {
             html = `<div class="card-body"><div class="d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4">
                         <span><i class="fa-solid fa-heart-crack fa-2xl me-0"></i></span>
@@ -1573,22 +1594,7 @@ function append_files_to_fallback_list(path, files) {
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
         initTMSort();
         // When it is the last page, count and display the total number of items
-        if (is_lastpage_loaded) {
-            const total_size_str = formatFileSize(totalsize) || '0 Bytes';
-            const total_items_count = $list.find('.countitems').length;
-            const total_files_count = $list.find('.size_items').length;
-            const only_folders = total_files_count === 0;
-            if (only_folders) {
-                $('#count').removeClass('d-none').find('.number').text(total_items_count === 1 ? "1 item folder" : total_items_count + " item folders");
-            } else {
-                $('#count').removeClass('d-none').find('.number').text("total files: " + total_files_count);
-            }
-            if (only_folders) {
-                $('#count').find('.totalsize').text('').hide();
-            } else {
-                $('#count').removeClass('d-none').find('.totalsize').text("total size: " + total_size_str).show();
-            }
-        }
+        if (is_lastpage_loaded) { _renderCountBar($list, totalsize); }
     } catch (e) {
         log(e);
     }
@@ -1608,15 +1614,7 @@ function append_files_to_list(path, files) {
     let html = "";
     let totalsize = 0;
     let is_file = false;
-    // Sort: folders by folderSize desc (largest first), then files by size desc
-    files.sort((a, b) => {
-        const aIsFolder = a.mimeType === 'application/vnd.google-apps.folder';
-        const bIsFolder = b.mimeType === 'application/vnd.google-apps.folder';
-        if (aIsFolder && bIsFolder) return Number(b.folderSize || 0) - Number(a.folderSize || 0);
-        if (aIsFolder) return -1;
-        if (bIsFolder) return 1;
-        return Number(b.size || 0) - Number(a.size || 0);
-    });
+    _sortFiles(files);
     if (files.length == 0) {
         html = `<div class="card-body"><div class="d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4">
                     <span><i class="fa-solid fa-heart-crack fa-2xl me-0"></i></span>
@@ -1680,22 +1678,7 @@ function append_files_to_list(path, files) {
     if ($list.data('curPageIndex') == 0) { $list.html(html); } else { $list.append(html); }
     initTMSort();
     // When it is the last page, count and display the total number of items
-    if (is_lastpage_loaded) {
-        const total_size = formatFileSize(totalsize) || '0 Bytes';
-        const total_items = $list.find('.countitems').length;
-        const total_files = $list.find('.size_items').length;
-        const only_folders = total_files === 0;
-        if (only_folders) {
-            $('#count').removeClass('d-none').find('.number').text(total_items === 1 ? "1 item folder" : total_items + " item folders");
-        } else {
-            $('#count').removeClass('d-none').find('.number').text("total files: " + total_files);
-        }
-        if (only_folders) {
-            $('#count').find('.totalsize').text('').hide();
-        } else {
-            $('#count').removeClass('d-none').find('.totalsize').text("total size: " + total_size).show();
-        }
-    }
+    if (is_lastpage_loaded) { _renderCountBar($list, totalsize); }
 }
 
 /**
@@ -1910,15 +1893,7 @@ function append_search_result_to_list(files) {
         var is_lastpage_loaded = null === $list.data('nextPageToken');
         // var is_firstpage = '0' == $list.data('curPageIndex');
 
-        // Sort: folders first by folderSize desc, then files by size desc
-        files.sort((a, b) => {
-            const aIsFolder = a.mimeType === 'application/vnd.google-apps.folder';
-            const bIsFolder = b.mimeType === 'application/vnd.google-apps.folder';
-            if (aIsFolder && bIsFolder) return Number(b.folderSize || 0) - Number(a.folderSize || 0);
-            if (aIsFolder) return -1;
-            if (bIsFolder) return 1;
-            return Number(b.size || 0) - Number(a.size || 0);
-        });
+        _sortFiles(files);
 
         let html = "";
         let totalsize = 0;
@@ -2008,22 +1983,7 @@ function append_search_result_to_list(files) {
         })();
 
         // When it is the last page, count and display the total number of items
-        if (is_lastpage_loaded) {
-            const total_size = formatFileSize(totalsize) || '0 Bytes';
-            const total_items = $list.find('.countitems').length;
-            const total_files = $list.find('.size_items').length;
-            const only_folders = total_files === 0;
-            if (only_folders) {
-                $('#count').removeClass('d-none').find('.number').text(total_items === 1 ? "1 item folder" : total_items + " item folders");
-            } else {
-                $('#count').removeClass('d-none').find('.number').text("total files: " + total_files);
-            }
-            if (only_folders) {
-                $('#count').find('.totalsize').text('').hide();
-            } else {
-                $('#count').removeClass('d-none').find('.totalsize').text("total size: " + total_size).show();
-            }
-        }
+        if (is_lastpage_loaded) { _renderCountBar($list, totalsize); }
     } catch (e) {
         log(e);
     }
@@ -2539,631 +2499,408 @@ function getDownloadButton(url, encoded_name, file_id, bytes) {
     }
 }
 
-function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
 
-    // Add the container and card elements // wait until image is loaded and then hide spinner
-    var content = `
-    <div class="card">
-        <div class="card-header ${UI.file_view_alert_class}">
-            <i class="fas fa-file-alt fa-fw"></i>File Information
-        </div>
-        <div class="card-body row g-3">
-            <div class="col-lg-4 col-md-12">${poster && !mimeType.startsWith('application/vnd.google-apps') ? `
-                <div id="preview" class="h-100 border border-dark rounded d-flex justify-content-center align-items-center position-relative" style="--bs-border-opacity: .5; min-height: 200px;">
-                    <div id="preview_spinner" class="spinner-border m-5" role="status"><span class="sr-only"></span></div>
-                    <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5; opacity: 0;">
-                        <span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
-                        <span>Preview</span>
-                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${escapeHtml(name)}"></a>
-                    </div>
-                </div>` : `
-                <div class="h-100 border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;">
-                    <span><img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/zip-icon.png" alt="Zip Icon" style="max-width: 200px; height: auto; object-fit: contain;"></span>
-                    <span><a href="${UI.telegram_guide_zip}" target="_blank" style="text-decoration: none; color: #00d4ff;">👉🏻 How to Extract Zip file ✅</a></span>
-                </div>`}
+// Shared file info metadata table (Name / Datetime / Type / Size)
+
+// ── Player icons (video) ────────────────────────────────────────────────────
+const _PLAYER_ICONS = {
+    vlc:     `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height:32px;width:32px;margin-right:5px;">`,
+    mx:      `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height:32px;width:32px;margin-right:5px;">`,
+    xplayer: `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/xplayer-icon.png" alt="XPlayer" style="height:32px;width:32px;margin-right:5px;">`,
+    playit:  `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height:32px;width:32px;margin-right:5px;">`,
+    infuse:  `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Infuse.png" alt="Infuse" style="height:32px;width:32px;margin-right:5px;">`,
+};
+
+// ── Shared download bar: GDFlix + download + player dropdown ─────────────────
+function _renderDownloadBar(url, encoded_name, file_id, bytes, type = 'other') {
+    if (UI.disable_video_download) return '';
+    const isVideo = type === 'video';
+    const isAudio = type === 'audio';
+    const enc = encodeURIComponent(url);
+    const playerMenu = _canSeePlayerMenu(bytes) ? `
+        <button type="button" class="btn ${isAudio ? 'btn-success' : 'btn-outline-success'} dropdown-toggle dropdown-toggle-split"
+                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="sr-only"></span>
+        </button>
+        <div class="dropdown-menu ${isVideo ? 'dropdown-menu-end' : ''}">
+            ${isVideo ? `
+            <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-android" style="color:#3ddc84;"></i>&nbsp;&nbsp;Android Players</h6>
+            <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${_PLAYER_ICONS.playit} Playit</a>
+            <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${_PLAYER_ICONS.xplayer} XPlayer</a>
+            <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${_PLAYER_ICONS.mx} MX Player</a>
+            <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${_PLAYER_ICONS.vlc} VLC Player</a>
+            <div class="dropdown-divider"></div>
+            <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-apple" style="color:#fff;"></i>&nbsp;&nbsp;iPhone Players</h6>
+            <a class="dropdown-item" href="vlc-x-callback://x-callback-url/stream?url=${enc}">${_PLAYER_ICONS.vlc} VLC (iOS)</a>
+            <a class="dropdown-item" href="infuse://x-callback-url/play?url=${enc}">${_PLAYER_ICONS.infuse} Infuse</a>
+            ` : `
+            <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
+            <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
+            <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
+            <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
+            `}
+        </div>` : '';
+
+    const label = isVideo ? '🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i>'
+                         : 'Download via';
+
+    const gdflixBtn = (isVideo || !isAudio) && UI.display_drive_link ? `
+        <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
+                data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : '';
+
+    const dlBtn = isAudio
+        ? `<button type="button" class="btn btn-success tm-download-btn" data-url="${url}" data-name="${encoded_name}"><i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱</button>`
+        : getDownloadButton(url, encoded_name, file_id, bytes);
+
+    return `<div class="col-md-12">
+        <div class="text-center">
+            <p class="mb-2">${label}</p>
+            <div class="btn-group text-center">
+                ${gdflixBtn}
+                ${dlBtn}
+                ${playerMenu}
             </div>
-            <div class="col-lg-8 col-md-12">
-                <table class="table table-dark">
-                    <tbody>
-                        <tr>
-                            <th>
-                                <i class="fa-regular fa-folder-closed fa-fw"></i>
-                                <span class="tth">Name</span>
-                            </th>
-                            <td>${escapeHtml(name)}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-regular fa-clock fa-fw"></i>
-                                <span class="tth">Datetime</span>
-                            </th>
-                            <td>${createdTime}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-tag fa-fw"></i>
-                                <span class="tth">Type</span>
-                            </th>
-                            <td>${formatMimeType(mimeType)}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-box-archive fa-fw"></i>
-                <span class="tth">Size</span>
-                </th>
+        </div>
+    </div>`;
+}
+
+// ── Shared metadata table: Name / Datetime / Type / Size [/ Checksum] ────────
+function _renderFileInfoTable(name, createdTime, mimeType, size, md5Checksum = null) {
+    const checksumRow = md5Checksum ? `
+        <tr>
+            <th><i class="fa-solid fa-file-circle-check fa-fw"></i><span class="tth">Checksum</span></th>
+            <td>MD5: <code>${md5Checksum}</code></td>
+        </tr>` : '';
+    return `<table class="table table-dark">
+        <tbody>
+            <tr>
+                <th><i class="fa-regular fa-folder-closed fa-fw"></i><span class="tth">Name</span></th>
+                <td>${escapeHtml(name)}</td>
+            </tr>
+            <tr>
+                <th><i class="fa-regular fa-clock fa-fw"></i><span class="tth">Datetime</span></th>
+                <td>${createdTime}</td>
+            </tr>
+            <tr>
+                <th><i class="fa-solid fa-tag fa-fw"></i><span class="tth">Type</span></th>
+                <td>${formatMimeType(mimeType)}</td>
+            </tr>
+            <tr>
+                <th><i class="fa-solid fa-box-archive fa-fw"></i><span class="tth">Size</span></th>
                 <td>${size}</td>
-               </td>
-                        </tr>
-                    </tbody>
-                </table>
-       ${UI.disable_video_download ? `` : `
-      <div class="col-md-12">
-        <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-          <div class="btn-group text-center">
-            ${UI.display_drive_link ? `
-           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
-          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${getDownloadButton(url, encoded_name, file_id, bytes)}
-            ${_canSeePlayerMenu(bytes) ? `
-            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
-                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="sr-only"></span>
-            </button>
-             <div class="dropdown-menu">
-                            <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-                            <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
-                            <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-                        </div>` : ''}
-          </div>
-        </div>
-      </div>`}
-    </div>
-  </div>`;
-    $('#content').html(content);
-
-    // GDFlix handler is registered once at module level (see bottom of file)
-
-    $('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
-    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${escapeHtml(name)}" title="Preview of ${escapeHtml(name)}">`;
-    var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
-    $('#modal-body-space').html(preview);
-    $('#modal-body-space-buttons').html(btn);
-    if (poster && !mimeType.startsWith('application/vnd.google-apps')) {
-        var img = new Image();
-        $(img).on('load', function() {
-            $('#preview_spinner').hide();
-            $('#preview').css({'background': 'url("' + poster + '") 0 0 / 100% 100% no-repeat'});
-            $('#preview').addClass('border-0');
-            $('#overlay').css('opacity', '.9');
-        }).on('error', function() {
-            $('#preview_spinner').hide();
-        });
-        img.src = poster;
-    }
+            </tr>
+            ${checksumRow}
+        </tbody>
+    </table>`;
 }
 
-function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-    // Add the container and card elements
-    var content = `
-    <div class="card">
-        <div class="card-header ${UI.file_view_alert_class}">
-            <i class="fas fa-file-alt fa-fw"></i>File Information
-        </div>
-        <div class="card-body row g-3">
-            <div class="col-lg-4 col-md-12">
-                <div id="preview" class="h-100 border border-dark rounded d-flex justify-content-center align-items-center position-relative" style="--bs-border-opacity: .5;">
-                    <div id="code_spinner"></div>
-                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/monokai.min.css">
-                    <pre id="pre" class="rounded mb-0" style="height: 251px;"><code id="editor" class="h-100" style="white-space: pre-wrap; word-wrap: break-word;"></code></pre>
-                    ${bytes >= 1024 * 1024 * 2 && poster ? `
-                    <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5; opacity: 0;">
-                        <span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
-                        <span>Preview</span>
-                        <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${escapeHtml(name)}"></a>
-                    </div>` : ``}
-                </div>
-            </div>
-            <div class="col-lg-8 col-md-12" id="file-info">
-                <table class="table table-dark">
-                    <tbody>
-                        <tr>
-                            <th>
-                                <i class="fa-regular fa-folder-closed fa-fw"></i>
-                                <span class="tth">Name</span>
-                            </th>
-                            <td>${escapeHtml(name)}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-regular fa-clock fa-fw"></i>
-                                <span class="tth">Datetime</span>
-                            </th>
-                            <td>${createdTime}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-tag fa-fw"></i>
-                                <span class="tth">Type</span>
-                            </th>
-                            <td>${formatMimeType(mimeType)}</td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <i class="fa-solid fa-box-archive fa-fw"></i>
-                 <span class="tth">Size</span>
-                    </th>
-                    <td>${size}</td>
-                  </td>
-                           </tr>
-                     </tbody>
-                 </table>
-       ${UI.disable_video_download ? `` : `
-      <div class="col-md-12">
-        <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-          <div class="btn-group text-center">
-            ${UI.display_drive_link ? `
-           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
-          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${getDownloadButton(url, encoded_name, file_id, bytes)}
-            ${_canSeePlayerMenu(bytes) ? `
-            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
-                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="sr-only"></span>
-            </button>
-            <div class="dropdown-menu">
-                            <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Free)</a>
-                            <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.adm.lite/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM (Lite)</a>
-                            <a class="dropdown-item" href="intent:${url}#Intent;component=idm.internet.download.manager.plus/idm.internet.download.manager.Downloader;S.title=${encoded_name};end">1DM+ (Plus)</a>
-                     </div>` : ''}
-          </div>
-        </div>
-      </div>`}
-    </div>
-  </div>`;
-    $("#content").html(content);
-
-    // GDFlix handler is registered once at module level (see bottom of file)
-
-    $('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
-    var preview = `<img class="w-100 rounded" src="${poster}" alt="Preview of ${escapeHtml(name)}" title="Preview of ${escapeHtml(name)}">`;
-    var btn = `<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`;
-    $('#modal-body-space').html(preview);
-    $('#modal-body-space-buttons').html(btn);
-    var no_thumb = `<div class="d-flex align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;"><span><i class="fa-solid fa-photo-film fa-2xl fa-fw"></i></span><span>Thumbnail not available</span></div>`;
-    var spinner = '<div class="d-flex justify-content-center"><div class="spinner-border m-5" role="status"><span class="sr-only"></span></div></div>';
-    $("#code_spinner").html(spinner);
-    if (bytes <= 1024 * 1024 * 2) {
-        $.get(url, function(data) {
-            $('#editor').html($('<div/>').text(data).html());
-            $("#code_spinner").html("");
-            $('#pre').addClass("flex-fill");
-            var height = document.querySelector("#file-info").offsetHeight;
-            $('#pre').css('height', height-2 + 'px');
-            hljs.highlightAll();
-        });
-    } else {
-        $('#pre').hide();
-        $('#editor').html(`File size is too large to preview, max. 2 MB`);
-        if (poster) {
-            // Create a new image element
-            var img = new Image();
-            // Set up event handlers for image load and error
-            $(img).on('load', function() {
-                // Image loaded successfully
-                $('#code_spinner').hide(); // Hide the spinner
-                $('#preview').css({'background': 'url("' + poster + '") 0 0 / 100% 100% no-repeat', 'min-height': '200px'});
-                $('#preview').addClass('border-0');
-                $('#overlay').css('opacity', '.9');
-            }).on('error', function() {
-                // Image failed to load
-                $('#code_spinner').hide(); // Hide the spinner
-                // You might want to handle the error, for example, display a placeholder image or show an error message.
-            });
-            // Set the image source after setting up event handlers
-            img.src = poster;
-        } else {
-            $('#code_spinner').html(no_thumb);
-        }
-    }
-}
-
-
-// Document display video  mkv|mp4|webm|avi|
-function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-    // Define all player icons
-    const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    // iPhone player icons
-    const vlc_ios_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC for iOS" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const infuse_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Infuse.png" alt="Infuse" style="height: 32px; width: 32px; margin-right: 5px;">`;
-
-    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-      let player = '';
-      let player_js = '';
-      let player_css = '';
-
-      // ── iOS Detection ─────────────────────────────────────────────────────
-      // Safari on iPhone/iPad cannot play MKV, AVI, FLV, WMV — hardware limit.
-      // Only MP4 (H.264/HEVC), MOV, M4V are natively supported by Safari.
-      const _isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-      const _unsupportedMime = [
-        'video/x-matroska','video/x-msvideo','video/x-flv',
-        'video/x-ms-wmv','video/avi','video/mkv','video/divx'
-      ];
-      const _unsupportedExt = ['.mkv','.avi','.flv','.wmv','.divx','.rmvb','.rm'];
-      const _nameLower = (name || '').toLowerCase();
-      const _iosCantPlay = _isIOS && (
-        _unsupportedMime.includes(mimeType) ||
-        _unsupportedExt.some(e => _nameLower.endsWith(e))
-      );
-
-      if (!shouldDisablePlayer(bytes)) {
-        if (_iosCantPlay) {
-            // ── Show "Open in App" card — VLC (orange) + Infuse (yellow) ─
-            const _ext = _nameLower.split('.').pop().toUpperCase();
-            const _enc = encodeURIComponent(url);
-            const _bare = url.replace(/^https?:\/\//, '');
-
-            player = `
-              <div style="
-                display:flex;flex-direction:column;align-items:center;
-                justify-content:center;min-height:230px;
-                background:linear-gradient(145deg,#1a1a2e 0%,#16213e 100%);
-                border-radius:10px;padding:20px 14px;text-align:center;color:#fff;">
-
-                <div style="font-size:2.6rem;margin-bottom:6px;"><i class="fa-brands fa-apple"></i> 𝗶𝗣𝗵𝗼𝗻𝗲</div>
-                <div style="font-weight:700;font-size:0.93rem;margin-bottom:4px;">
-                  Stream support with VLC and Infuse
-                </div>
-                <div style="font-size:0.73rem;color:#9ca3af;margin-bottom:16px;
-                            max-width:270px;line-height:1.5;">
-                  Tap an app below to stream this file directly on your device:
-                </div>
-
-                <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;">
-
-                  <!-- VLC — bright orange border (#FFA500) -->
-                  <a href="vlc-x-callback://x-callback-url/stream?url=${_enc}"
-                     style="display:flex;align-items:center;gap:12px;padding:12px 16px;
-                            border-radius:12px;text-decoration:none;color:#fff;
-                            background:rgba(255,165,0,0.18);border:1.5px solid #FFA500;">
-                    <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png"
-                         style="height:28px;width:28px;border-radius:6px;"
-                         onerror="this.style.display='none'">
-                    <div style="text-align:left;">
-                      <div style="font-weight:700;font-size:0.87rem;">VLC</div>
-                      <div style="font-size:0.7rem;color:#FFA500;">Free · Plays all formats</div>
-                    </div>
-                    <span style="margin-left:auto;font-size:0.75rem;color:#aaa;">Open ›</span>
-                  </a>
-
-                  <!-- Infuse — yellow border -->
-                  <a href="infuse://x-callback-url/play?url=${_enc}"
-                     style="display:flex;align-items:center;gap:12px;padding:12px 16px;
-                            border-radius:12px;text-decoration:none;color:#fff;
-                            background:rgba(251,191,36,0.18);border:1.5px solid #fbbf24;">
-                    <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Infuse.png"
-                         style="height:28px;width:28px;border-radius:6px;"
-                         onerror="this.style.display='none'">
-                    <div style="text-align:left;">
-                      <div style="font-weight:700;font-size:0.87rem;">Infuse</div>
-                      <div style="font-size:0.7rem;color:#fbbf24;">Free · Best ${_ext} player on iOS</div>
-                    </div>
-                    <span style="margin-left:auto;font-size:0.75rem;color:#aaa;">Open ›</span>
-                  </a>
-
-                </div>
-
-                <div style="margin-top:13px;font-size:0.67rem;color:#6b7280;line-height:1.5;">
-                  App not installed? Tap to install then stream directly.
-                </div>
-
-              </div>`;
-            player_js  = '';
-            player_css = '';
-
-        } else if (player_config.player == "plyr") {
-            // webkit-playsinline for older iOS
-            player = `<video id="player" playsinline webkit-playsinline controls data-poster="${poster}">
-      <source src="${url}" type="video/mp4" />
-      <source src="${url}" type="video/webm" />
-        </video>`
-            player_js = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.polyfilled.js'
-            player_css = 'https://cdn.plyr.io/' + player_config.plyr_io_version + '/plyr.css'
-        } else if (player_config.player == "videojs") {
-            // webkit-playsinline for older iOS
-            player = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded" controls preload="none" playsinline webkit-playsinline width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; min-height: 200px;">
-      <source src="${url}" type="video/mp4" />
-      <source src="${url}" type="video/webm" />
-      <source src="${url}" type="video/avi" />
-    </video>`
-            player_js = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video.js'
-            player_css = 'https://vjs.zencdn.net/' + player_config.videojs_version + '/video-js.css'
-        } else if (player_config.player == "dplayer") {
-            player = `<div id="player-container"></div>`
-            player_js = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js'
-            player_css = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css'
-        } else if (player_config.player == "jwplayer") {
-            player = `<div id="player"></div>`
-            player_js = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js'
-            player_css = ''
-        }
-    }
-
- // Add the container and card elements
-  var content = `
-  <div class="card">
-    <div class="card-header ${UI.file_view_alert_class}">
-      <i class="fas fa-file-alt fa-fw"></i>File Information
-    </div>
-    <div class="card-body row g-3">
-      <div class="col-lg-4 col-md-12">
-        <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-          ${player}
-        </div>
-      </div>
-      <div class="col-lg-8 col-md-12">
-        <table class="table table-dark">
-          <tbody>
-            <tr>
-              <th>
-                <i class="fa-regular fa-folder-closed fa-fw"></i>
-                <span class="tth">Name</span>
-              </th>
-              <td>${escapeHtml(name)}</td>
-            </tr>
-            <tr>
-              <th>
-                <i class="fa-regular fa-clock fa-fw"></i>
-                <span class="tth">Datetime</span>
-              </th>
-              <td>${createdTime}</td>
-            </tr>
-            <tr>
-              <th>
-                <i class="fa-solid fa-tag fa-fw"></i>
-                <span class="tth">Type</span>
-              </th>
-              <td>${formatMimeType(mimeType)}</td>
-            </tr>
-            <tr>
-              <th>
-                <i class="fa-solid fa-box-archive fa-fw"></i>
-                  <span class="tth">Size</span>
-                    </th>
-                    <td>${size}</td>
-                    </td>
-                             </tr>
-                         </tbody>
-                    </table>
-        ${UI.disable_video_download ? `` : `
-      <div class="col-md-12">
-        <div class="text-center">
-          <p class="mb-2">🚀&nbsp;𝔽𝕒𝕤𝕥&nbsp;&nbsp;𝔻𝕠𝕨𝕟𝕝𝕠𝕒𝕕&nbsp;&nbsp;𝔾𝔻𝔽𝕝𝕚𝕩&nbsp;&nbsp;𝕃𝕚𝕟𝕜&nbsp;&nbsp;<i class="fa-solid fa-cloud-arrow-down"></i></p>
-          <div class="btn-group text-center">
-            ${UI.display_drive_link ? `
-           <button class="btn btn-secondary d-flex align-items-center gap-2 gdflix-btn"
-          data-file-id="${file_id}" type="button">${gdrive_icon}𝗚𝗗𝗙𝗹𝗶𝘅 𝗟𝗶𝗻𝗸</button>` : ``}
-          ${getDownloadButton(url, encoded_name, file_id, bytes)}
-            ${_canSeePlayerMenu(bytes) ? `
-            <button type="button" class="btn btn-outline-success dropdown-toggle dropdown-toggle-split"
-                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="sr-only"></span>
-            </button>
-            <div class="dropdown-menu dropdown-menu-end">
-              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-android" style="color:#3ddc84;"></i>&nbsp;&nbsp;Android Players</h6>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${playit_icon} Playit</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${xplayer_icon} XPlayer</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${mxplayer_icon} MX Player</a>
-              <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">${vlc_icon} VLC Player</a>
-              <div class="dropdown-divider"></div>
-              <h6 class="dropdown-header" style="color:#fff;"><i class="fa-brands fa-apple" style="color:#fff;"></i>&nbsp;&nbsp;iPhone Players</h6>
-              <a class="dropdown-item" href="vlc-x-callback://x-callback-url/stream?url=${encodeURIComponent(url)}">${vlc_ios_icon} VLC (iOS)</a>
-              <a class="dropdown-item" href="infuse://x-callback-url/play?url=${encodeURIComponent(url)}">${infuse_icon} Infuse</a>
-             </div>` : ''}
-           </div>
-         </div>`}
-       </div>
-      </div>`;
-    $("#content").html(content);
-
-  // GDFlix handler is registered once at module level (see bottom of file)
-
-  // Load player script — skip entirely on iOS unsupported formats
-    if (!shouldDisablePlayer(bytes) && player_js && !_iosCantPlay) {
-    var videoJsScript = document.createElement('script');
-    videoJsScript.src = player_js;
-    videoJsScript.onload = function() {
-        // Video.js is loaded, initialize the player
-        if (player_config.player == "plyr") {
-            // iOS-safe Plyr config
-            const player = new Plyr('#player', {
-                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
-                autoplay: false,
-                playsinline: true,
-                ratio: '16:9'
-            });
-        } else if (player_config.player == "videojs") {
-            const player = new videojs('vplayer');
-        } else if (player_config.player == "dplayer") {
-            const dp = new DPlayer({
-                container: document.getElementById('player-container'),
-                screenshot: true,
-                video: {
-                    url: url,
-                    pic: poster,
-                    thumbnails: poster,
-                },
-            });
-        } else if (player_config.player == "jwplayer") {
-            jwplayer("player").setup({
-                file: url,
-                type: mimeType,
-                autostart: false,
-                image: poster,
-                width: "100%",
-                aspectratio: "16:9",
-                title: name,
-                description: "Powered by Google Drive Index",
-                tracks: [{
-                    file: url,
-                    kind: "captions",
-                    label: "Default",
-                    "default": true,
-                }],
-                captions: {
-                    color: "#f3f378",
-                    fontSize: 14,
-                    backgroundOpacity: 50,
-                    edgeStyle: "raised",
-                },
-            });
-        }
-    };
-    document.head.appendChild(videoJsScript);
-
-    if (player_css) {
-    var videoJsStylesheet = document.createElement('link');
-    videoJsStylesheet.href = player_css;
-    videoJsStylesheet.rel = 'stylesheet';
-    document.head.appendChild(videoJsStylesheet);
-    }
-    }
-}
-
-// File display Audio |mp3|flac|m4a|wav|ogg|
-function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-
-    // Add the container and card elements
-    var player = `<video id="aplayer" poster="${UI.audioposter}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; object-fit: cover; min-height: 200px;">
-                    <source src="${url}" type="audio/mpeg" />
-                    <source src="${url}" type="audio/ogg" />
-                    <source src="${url}" type="audio/wav" />
-                </video>`;
-
-    const content = `
-    <div class="card">
+// ── Shared card shell ─────────────────────────────────────────────────────────
+function _renderFileCard(previewCol, infoCol, copyFileBox = '') {
+    return `<div class="card">
         <div class="card-header ${UI.file_view_alert_class}">
             ${copyFileBox}
             <i class="fas fa-file-alt fa-fw"></i>File Information
         </div>
         <div class="card-body row g-3">
-            ${!shouldDisablePlayer(bytes) ? `
-            <div class="col-lg-4 col-md-12">
-                <div class="h-100 border border-dark rounded" style="--bs-border-opacity: .5;">
-                    ${player}
-                </div>
-            </div>
-            ` : ''}
-            <div class="${shouldDisablePlayer(bytes) ? 'col-12' : 'col-lg-8 col-md-12'}">
-                <table class="table table-dark">
-                    <tbody>
-                        <tr>
-                            <th><i class="fa-regular fa-folder-closed fa-fw"></i><span class="tth">Name</span></th>
-                            <td>${escapeHtml(name)}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-regular fa-clock fa-fw"></i><span class="tth">Datetime</span></th>
-                            <td>${createdTime}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-solid fa-tag fa-fw"></i><span class="tth">Type</span></th>
-                            <td>${formatMimeType(mimeType)}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-solid fa-box-archive fa-fw"></i><span class="tth">Size</span></th>
-                            <td>${size}</td>
-                        </tr>
-                        <tr>
-                            <th><i class="fa-solid fa-file-circle-check fa-fw"></i><span class="tth">Checksum</span></th>
-                            <td>MD5: <code>${md5Checksum}</code></td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                ${UI.disable_video_download ? '' : `
-                <div class="col-md-12">
-                    <div class="text-center">
-                        <p class="mb-2">Download via</p>
-                        <div class="btn-group text-center">
-                           <button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>
-                            ${_canSeePlayerMenu(bytes) ? `
-                            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split"
-                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span class="sr-only"></span>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
-                            </div>` : ''}
-                        </div>
-                    </div>
-                </div>
-                `}
-            </div>
+            ${previewCol}
+            ${infoCol}
         </div>
     </div>`;
-    $("#content").html(content);
+}
 
-    // Initialize player if enabled
-    if (!shouldDisablePlayer(bytes) && player_js) {
-        const script = document.createElement('script');
-        script.src = player_js;
-        script.onload = () => {
-        switch(player_config.player) {
-        case "plyr":
-        new Plyr('#player');
-        break;
-        case "videojs":
-        videojs('vplayer', {fill: true});
-        break;
-        case "dplayer":
-        new DPlayer({
-        container: document.getElementById('player-container'),
-        screenshot: true,
-        video: {
-        url: url,
-        pic: UI.audioposter,
-        thumbnails: UI.audioposter
-                        }
-                    });
-                    break;
-                    case "jwplayer":
-                    jwplayer("player").setup({
-                        file: url,
-                        type: mimeType,
-                        autostart: false,
-                        image: UI.audioposter,
-                        width: "100%",
-                        aspectratio: "16:9",
-                        title: name
-                    });
-                    break;
-            }
-        };
-        document.head.appendChild(script);
+// ── Build player HTML + JS/CSS urls for video and audio ──────────────────────
+function _buildPlayer(url, poster, type) {
+    const cfg = player_config;
+    let html = '', js = '', css = '';
+    if (type === 'audio') {
+        html = `<video id="aplayer" poster="${UI.audioposter}" class="video-js vjs-default-skin rounded"
+                    controls preload="none" width="100%" height="100%"
+                    data-setup='{"fill": true}'
+                    style="object-fit:cover;min-height:200px;">
+                    <source src="${url}" type="audio/mpeg">
+                    <source src="${url}" type="audio/ogg">
+                    <source src="${url}" type="audio/wav">
+                </video>`;
+        js  = 'https://vjs.zencdn.net/' + cfg.videojs_version + '/video.js';
+        css = 'https://vjs.zencdn.net/' + cfg.videojs_version + '/video-js.css';
+    } else {
+        if (cfg.player === 'plyr') {
+            html = `<video id="player" playsinline webkit-playsinline controls data-poster="${poster}">
+                        <source src="${url}" type="video/mp4">
+                        <source src="${url}" type="video/webm">
+                    </video>`;
+            js  = 'https://cdn.plyr.io/' + cfg.plyr_io_version + '/plyr.polyfilled.js';
+            css = 'https://cdn.plyr.io/' + cfg.plyr_io_version + '/plyr.css';
+        } else if (cfg.player === 'videojs') {
+            html = `<video id="vplayer" poster="${poster}" class="video-js vjs-default-skin rounded"
+                        controls preload="none" playsinline webkit-playsinline
+                        width="100%" height="100%" data-setup='{"fill": true}'
+                        style="min-height:200px;">
+                        <source src="${url}" type="video/mp4">
+                        <source src="${url}" type="video/webm">
+                        <source src="${url}" type="video/avi">
+                    </video>`;
+            js  = 'https://vjs.zencdn.net/' + cfg.videojs_version + '/video.js';
+            css = 'https://vjs.zencdn.net/' + cfg.videojs_version + '/video-js.css';
+        } else if (cfg.player === 'dplayer') {
+            html = `<div id="player-container"></div>`;
+            js   = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js';
+            css  = 'https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css';
+        } else if (cfg.player === 'jwplayer') {
+            html = `<div id="player"></div>`;
+            js   = 'https://content.jwplatform.com/libraries/IDzF9Zmk.js';
+        }
+    }
+    return { html, js, css };
+}
 
-        if (player_css) {
-            const css = document.createElement('link');
-            css.href = player_css;
-            css.rel = 'stylesheet';
-            document.head.appendChild(css);
+// ── Initialize player after script loads ─────────────────────────────────────
+function _initPlayer(url, poster, mimeType, name, type) {
+    const cfg = player_config;
+    if (type === 'audio') {
+        switch (cfg.player) {
+            case 'plyr':    new Plyr('#player'); break;
+            case 'videojs': videojs('vplayer', { fill: true }); break;
+            case 'dplayer':
+                new DPlayer({ container: document.getElementById('player-container'), screenshot: true,
+                    video: { url, pic: UI.audioposter, thumbnails: UI.audioposter } });
+                break;
+            case 'jwplayer':
+                jwplayer('player').setup({ file: url, type: mimeType, autostart: false,
+                    image: UI.audioposter, width: '100%', aspectratio: '16:9', title: name });
+                break;
+        }
+    } else {
+        if (cfg.player === 'plyr') {
+            new Plyr('#player', { controls: ['play-large','play','progress','current-time','mute','volume','fullscreen'],
+                autoplay: false, playsinline: true, ratio: '16:9' });
+        } else if (cfg.player === 'videojs') {
+            new videojs('vplayer');
+        } else if (cfg.player === 'dplayer') {
+            new DPlayer({ container: document.getElementById('player-container'), screenshot: true,
+                video: { url, pic: poster, thumbnails: poster } });
+        } else if (cfg.player === 'jwplayer') {
+            jwplayer('player').setup({ file: url, type: mimeType, autostart: false, image: poster,
+                width: '100%', aspectratio: '16:9', title: name,
+                description: 'Powered by Google Drive Index',
+                tracks: [{ file: url, kind: 'captions', label: 'Default', default: true }],
+                captions: { color: '#f3f378', fontSize: 14, backgroundOpacity: 50, edgeStyle: 'raised' }
+            });
         }
     }
 }
+
+// ── iOS unsupported format detection ─────────────────────────────────────────
+function _iosCantPlayVideo(name, mimeType) {
+    if (!/iPhone|iPad|iPod/i.test(navigator.userAgent)) return false;
+    const bad = ['video/x-matroska','video/x-msvideo','video/x-flv','video/x-ms-wmv','video/avi','video/mkv','video/divx'];
+    const badExt = ['.mkv','.avi','.flv','.wmv','.divx','.rmvb','.rm'];
+    const nl = (name || '').toLowerCase();
+    return bad.includes(mimeType) || badExt.some(e => nl.endsWith(e));
+}
+
+// ── iOS "open in app" card ────────────────────────────────────────────────────
+function _iosOpenInAppCard(url, name) {
+    const enc = encodeURIComponent(url);
+    const ext = (name || '').split('.').pop().toUpperCase();
+    return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+                        min-height:230px;background:linear-gradient(145deg,#1a1a2e 0%,#16213e 100%);
+                        border-radius:10px;padding:20px 14px;text-align:center;color:#fff;">
+        <div style="font-size:2.6rem;margin-bottom:6px;"><i class="fa-brands fa-apple"></i> 𝗶𝗣𝗵𝗼𝗻𝗲</div>
+        <div style="font-weight:700;font-size:0.93rem;margin-bottom:4px;">Stream with VLC or Infuse</div>
+        <div style="font-size:0.73rem;color:#9ca3af;margin-bottom:16px;max-width:270px;line-height:1.5;">
+            Tap an app below to stream this file directly on your device:
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;">
+            <a href="vlc-x-callback://x-callback-url/stream?url=${enc}"
+               style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;
+                      text-decoration:none;color:#fff;background:rgba(255,165,0,0.18);border:1.5px solid #FFA500;">
+                <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png"
+                     style="height:28px;width:28px;border-radius:6px;" onerror="this.style.display='none'">
+                <div style="text-align:left;">
+                    <div style="font-weight:700;font-size:0.87rem;">VLC</div>
+                    <div style="font-size:0.7rem;color:#FFA500;">Free · Plays all formats</div>
+                </div>
+                <span style="margin-left:auto;font-size:0.75rem;color:#aaa;">Open ›</span>
+            </a>
+            <a href="infuse://x-callback-url/play?url=${enc}"
+               style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;
+                      text-decoration:none;color:#fff;background:rgba(251,191,36,0.18);border:1.5px solid #fbbf24;">
+                <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Infuse.png"
+                     style="height:28px;width:28px;border-radius:6px;" onerror="this.style.display='none'">
+                <div style="text-align:left;">
+                    <div style="font-weight:700;font-size:0.87rem;">Infuse</div>
+                    <div style="font-size:0.7rem;color:#fbbf24;">Free · Best ${ext} player on iOS</div>
+                </div>
+                <span style="margin-left:auto;font-size:0.75rem;color:#aaa;">Open ›</span>
+            </a>
+        </div>
+        <div style="margin-top:13px;font-size:0.67rem;color:#6b7280;line-height:1.5;">
+            App not installed? Tap to install then stream directly.
+        </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// renderFile — unified file display for video, audio, code, zip/others
+// type: 'video' | 'audio' | 'code' | 'other'
+// ══════════════════════════════════════════════════════════════════════════════
+function renderFile(type, name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
+    const disablePlayer = shouldDisablePlayer(bytes);
+    const iosCantPlay  = type === 'video' && _iosCantPlayVideo(name, mimeType);
+
+    // ── Preview / player column ───────────────────────────────────────────────
+    let previewCol = '';
+    let playerJs = '', playerCss = '';
+
+    if (type === 'video') {
+        let playerHtml = '';
+        if (!disablePlayer) {
+            if (iosCantPlay) {
+                playerHtml = _iosOpenInAppCard(url, name);
+            } else {
+                const p = _buildPlayer(url, poster, 'video');
+                playerHtml = p.html; playerJs = p.js; playerCss = p.css;
+            }
+        }
+        previewCol = `<div class="col-lg-4 col-md-12">
+            <div class="h-100 border border-dark rounded" style="--bs-border-opacity:.5;">
+                ${playerHtml}
+            </div>
+        </div>`;
+
+    } else if (type === 'audio') {
+        if (!disablePlayer) {
+            const p = _buildPlayer(url, poster, 'audio');
+            playerJs = p.js; playerCss = p.css;
+            previewCol = `<div class="col-lg-4 col-md-12">
+                <div class="h-100 border border-dark rounded" style="--bs-border-opacity:.5;">
+                    ${p.html}
+                </div>
+            </div>`;
+        }
+
+    } else if (type === 'code') {
+        previewCol = `<div class="col-lg-4 col-md-12">
+            <div id="preview" class="h-100 border border-dark rounded d-flex justify-content-center align-items-center position-relative" style="--bs-border-opacity:.5;">
+                <div id="code_spinner"></div>
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/monokai.min.css">
+                <pre id="pre" class="rounded mb-0" style="height:251px;"><code id="editor" class="h-100" style="white-space:pre-wrap;word-wrap:break-word;"></code></pre>
+                ${bytes >= 1024 * 1024 * 2 && poster ? `
+                <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4"
+                     style="--bs-border-opacity:.5;opacity:0;">
+                    <span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
+                    <span>Preview</span>
+                    <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${escapeHtml(name)}"></a>
+                </div>` : ''}
+            </div>
+        </div>`;
+
+    } else {
+        // zip / other — show thumbnail if available, else zip icon
+        previewCol = `<div class="col-lg-4 col-md-12">
+            ${poster && !mimeType.startsWith('application/vnd.google-apps') ? `
+            <div id="preview" class="h-100 border border-dark rounded d-flex justify-content-center align-items-center position-relative"
+                 style="--bs-border-opacity:.5;min-height:200px;">
+                <div id="preview_spinner" class="spinner-border m-5" role="status"><span class="sr-only"></span></div>
+                <div id="overlay" class="overlay border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4"
+                     style="--bs-border-opacity:.5;opacity:0;">
+                    <span><i class="fas fa-search-plus fa-2xl fa-fw"></i></span>
+                    <span>Preview</span>
+                    <a href="#" class="stretched-link" data-bs-toggle="modal" data-bs-target="#SearchModel" title="Thumbnail of ${escapeHtml(name)}"></a>
+                </div>
+            </div>` : `
+            <div class="h-100 border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4"
+                 style="--bs-border-opacity:.5;">
+                <span><img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/zip-icon.png"
+                           alt="Zip Icon" style="max-width:200px;height:auto;object-fit:contain;"></span>
+                <span><a href="${UI.telegram_guide_zip}" target="_blank"
+                         style="text-decoration:none;color:#00d4ff;">👉🏻 How to Extract Zip file ✅</a></span>
+            </div>`}
+        </div>`;
+    }
+
+    // ── Info column: metadata table + download bar ────────────────────────────
+    const showChecksum = type === 'audio';
+    const infoCol = `<div class="${(type === 'audio' && disablePlayer) ? 'col-12' : 'col-lg-8 col-md-12'}${type === 'code' ? ' " id="file-info"' : '"'}">
+        ${_renderFileInfoTable(name, createdTime, mimeType, size, showChecksum ? md5Checksum : null)}
+        ${_renderDownloadBar(url, encoded_name, file_id, bytes, type)}
+    </div>`;
+
+    // ── Render card ───────────────────────────────────────────────────────────
+    $('#content').html(_renderFileCard(previewCol, infoCol, copyFileBox));
+
+    // ── Modal preview setup ───────────────────────────────────────────────────
+    $('#SearchModelLabel').html('<i class="fa-regular fa-eye fa-fw"></i>Preview');
+    $('#modal-body-space').html(`<img class="w-100 rounded" src="${poster}" alt="Preview of ${escapeHtml(name)}" title="Preview of ${escapeHtml(name)}">`);
+    $('#modal-body-space-buttons').html(`<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>`);
+
+    if (type === 'other' && poster && !mimeType.startsWith('application/vnd.google-apps')) {
+        const img = new Image();
+        $(img).on('load', function() {
+            $('#preview_spinner').hide();
+            $('#preview').css({ background: `url("${poster}") 0 0 / 100% 100% no-repeat` }).addClass('border-0');
+            $('#overlay').css('opacity', '.9');
+        }).on('error', function() { $('#preview_spinner').hide(); });
+        img.src = poster;
+    }
+
+    if (type === 'code') {
+        const no_thumb = `<div class="d-flex align-items-center flex-column gap-3 pt-4 pb-4"><span><i class="fa-solid fa-photo-film fa-2xl fa-fw"></i></span><span>Thumbnail not available</span></div>`;
+        $('#code_spinner').html('<div class="d-flex justify-content-center"><div class="spinner-border m-5" role="status"><span class="sr-only"></span></div></div>');
+        if (bytes <= 1024 * 1024 * 2) {
+            $.get(url, function(data) {
+                $('#editor').html($('<div/>').text(data).html());
+                $('#code_spinner').html('');
+                $('#pre').addClass('flex-fill');
+                $('#pre').css('height', (document.querySelector('#file-info').offsetHeight - 2) + 'px');
+                hljs.highlightAll();
+            });
+        } else {
+            $('#pre').hide();
+            if (poster) {
+                const img = new Image();
+                $(img).on('load', function() {
+                    $('#code_spinner').hide();
+                    $('#preview').css({ background: `url("${poster}") 0 0 / 100% 100% no-repeat`, 'min-height': '200px' }).addClass('border-0');
+                    $('#overlay').css('opacity', '.9');
+                }).on('error', function() { $('#code_spinner').hide(); });
+                img.src = poster;
+            } else {
+                $('#code_spinner').html(no_thumb);
+            }
+        }
+    }
+
+    // ── Load player script ────────────────────────────────────────────────────
+    if ((type === 'video' || type === 'audio') && !disablePlayer && playerJs && !iosCantPlay) {
+        const script = document.createElement('script');
+        script.src = playerJs;
+        script.onload = () => _initPlayer(url, poster, mimeType, name, type);
+        document.head.appendChild(script);
+        if (playerCss) {
+            const link = document.createElement('link');
+            link.href = playerCss; link.rel = 'stylesheet';
+            document.head.appendChild(link);
+        }
+    }
+}
+
+// ── Thin wrappers so existing call sites work unchanged ──────────────────────
+function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+    renderFile('video', name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+}
+function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+    renderFile('audio', name, encoded_name, size, bytes, null, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+}
+function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+    renderFile('code', name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+}
+function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+    renderFile('other', name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+}
+
 
 // Time conversion
 // Cached DateTimeFormat — reads timezone from UI.display_timezone
