@@ -2174,11 +2174,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             let buttonsHtml = '';
 
             buttonsHtml += nowshortUrl
-                ? `<a href="${getChromeOpenUrl(_rotateNowshortUrl(nowshortUrl))}" target="_blank" class="btn btn-primary d-flex align-items-center gap-2">Nowshort</a>`
+                ? `<a href="${getChromeOpenUrl(_rotateNowshortUrl(nowshortUrl))}" target="_blank" class="btn btn-secondary d-flex align-items-center gap-2">Nowshort</a>`
                 : `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
 
             buttonsHtml += cpmshortUrl
-                ? `<a href="${getChromeOpenUrl(cpmshortUrl)}" target="_blank" class="btn btn-success d-flex align-items-center gap-2">CPMShort</a>`
+                ? `<a href="${getChromeOpenUrl(cpmshortUrl)}" target="_blank" class="btn btn-info d-flex align-items-center gap-2">CPMShort</a>`
                 : `<button class="btn btn-secondary" disabled>CPMShort Failed</button>`;
 
             $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
@@ -2190,10 +2190,10 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         } else {
             // Show loading spinners while fetching
             $('#modal-body-space-buttons').html(`
-                <button class="btn btn-primary d-flex align-items-center gap-2" disabled>
+                <button class="btn btn-secondary d-flex align-items-center gap-2" disabled>
                     <div class="spinner-border spinner-border-sm" role="status"></div> Nowshort
                 </button>
-                <button class="btn btn-success d-flex align-items-center gap-2" disabled>
+                <button class="btn btn-info d-flex align-items-center gap-2" disabled>
                     <div class="spinner-border spinner-border-sm" role="status"></div> CPMShort
                 </button>
                 ${close_btn}`);
