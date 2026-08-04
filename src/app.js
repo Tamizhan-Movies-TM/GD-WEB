@@ -2174,11 +2174,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             let buttonsHtml = '';
 
             buttonsHtml += nowshortUrl
-                ? `<a href="${getChromeOpenUrl(_rotateNowshortUrl(nowshortUrl))}" target="_blank" class="btn btn-primary d-flex align-items-center gap-2">Nowshort</a>`
+                ? `<a href="${getChromeOpenUrl(_rotateNowshortUrl(nowshortUrl))}" target="_blank" class="btn btn-info d-flex align-items-center gap-2">𝗡𝗼𝘄𝘀𝗵𝗼𝗿𝘁</a>`
                 : `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
 
             buttonsHtml += cpmshortUrl
-                ? `<a href="${getChromeOpenUrl(cpmshortUrl)}" target="_blank" class="btn btn-success d-flex align-items-center gap-2">CPMShort</a>`
+                ? `<a href="${getChromeOpenUrl(cpmshortUrl)}" target="_blank" class="btn btn-success d-flex align-items-center gap-2">𝗖𝗣𝗠𝗦𝗵𝗼𝗿𝘁</a>`
                 : `<button class="btn btn-secondary" disabled>CPMShort Failed</button>`;
 
             $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
