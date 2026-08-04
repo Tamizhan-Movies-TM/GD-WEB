@@ -87,6 +87,13 @@ function _canSeePlayerMenu(bytes) {
 }
 
 // =============================================================================
+// Shared badge style strings — used in all three file-row render functions.
+// Change once here to update every size and time badge.
+// =============================================================================
+const _BADGE_SIZE_STYLE = 'min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;';
+const _BADGE_TIME_STYLE = 'margin-left: 2rem;';
+
+// =============================================================================
 // SECURITY: HTML escape helper — prevents XSS from
 // file names containing <script> or event handlers
 // =============================================================================
@@ -850,6 +857,10 @@ function initializeLoginModal() {
             return;
         }
 
+        // FIX §1.4: added submitBtn guard + finally so button is always re-enabled
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="loading"></span> Signing in...';
+
         try {
             const formData = new URLSearchParams();
             formData.append('username', username);
@@ -867,7 +878,6 @@ function initializeLoginModal() {
             const data = await response.json();
 
             if (data.ok) {
-                // Success - redirect to home or reload page
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
                     window.location.href = '/home';
@@ -879,6 +889,9 @@ function initializeLoginModal() {
         } catch (error) {
             showError('Network error. Please try again.');
             logError('Login error:', error);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
         }
     });
 
@@ -1046,7 +1059,6 @@ function nav(path) {
       <li class="nav-item">
         <a class="nav-link" href="/home"><i class="fas fa-home fa-fw"></i>${UI.nav_link_1}</a>
       </li>`;
-    var names = window.drive_names;
     var drive_name = window.drive_names[cur];
 
     html += `<li class="nav-item">
@@ -1092,7 +1104,7 @@ function sleep(milliseconds) {
  * @param resultCallback Success Result Callback
  * @param authErrorCallback Pass Error Callback
  */
-function requestListPath(path, params, resultCallback, authErrorCallback, retries = 3, fallback = false) {
+function requestListPath(path, params, resultCallback, retries = 3, fallback = false) {
     var requestData = {
         id: params['id'] || '',
         type: 'folder',
@@ -1367,15 +1379,14 @@ function list(path, id = '', fallback = false) {
                                     page_index: $list.data('curPageIndex') + 1
                                 },
                                 handleSuccessResult,
-                                null, 5, true);
+                                5, true);
                         } else {
                             requestListPath(path, {
                                     password: prevReqParams['password'],
                                     page_token: $list.data('nextPageToken'),
                                     page_index: $list.data('curPageIndex') + 1
                                 },
-                                handleSuccessResult,
-                                null);
+                                handleSuccessResult);
                         }
                     }
                 });
@@ -1413,19 +1424,19 @@ function list(path, id = '', fallback = false) {
 
     if (fallback) {
         log('fallback inside list');
+        // FIX §5.4: was passing null for retries — null > 0 is false → 0 retries.
         requestListPath(path, {
                 id: id,
                 password: password
             },
             handleSuccessResult,
-            null, null, true);
+            3, true);
     } else {
         log("handling this")
         requestListPath(path, {
                 password: password
             },
-            handleSuccessResult,
-            null);
+            handleSuccessResult);
     }
 
 
@@ -1479,6 +1490,48 @@ function askPassword(path) {
     }
 }
 
+// =============================================================================
+// _renderFileRow(item, opts) — shared HTML builder for a single file/folder row.
+//
+// opts:
+//   folderHref        {string}  href value for the folder <a> tag
+//   folderModalAttrs  {string}  extra attrs for folder <a> (onclick + data-bs-* for modal)
+//   folderDownloadBtn {string}  HTML for the folder download/open button (or '')
+//   fileLink          {string}  full href="..." or onclick="..." attr string for file <a>
+//   gdType            {boolean} whether to add gd-type="${mimeType}" to the row div
+//   rawBytes          {number}  pre-parsed byte count for data-bytes
+//
+// Side effects: mutates item['createdTime'] and item['size'] in place (callers already do this).
+// Returns: HTML string for one <div class="list-group-item ..."> row.
+// =============================================================================
+function _renderFileRow(item, opts) {
+    const isFolder = item['mimeType'] === 'application/vnd.google-apps.folder';
+    const gdTypeAttr = opts.gdType ? ` gd-type="${item['mimeType']}"` : '';
+
+    if (isFolder) {
+        const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
+        const timeBadge = UI.display_time
+            ? `<span class="badge bg-info" style="${_BADGE_TIME_STYLE}">${item['createdTime']}</span>` : '';
+        const sizeBadge = UI.display_size
+            ? `<span class="badge my-1 text-center" style="${_BADGE_SIZE_STYLE}">${folderSizeStr}</span>` : '';
+        return `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row"${gdTypeAttr} data-name="${escapeHtml(item.name)}" data-bytes="${item.folderSize || 0}"><a href="${opts.folderHref}" ${opts.folderModalAttrs || ''}style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${timeBadge}${sizeBadge}<span class="d-flex gap-2">${opts.folderDownloadBtn || ''}</span></div>`;
+    }
+
+    // File row
+    const ext = item.fileExtension;
+    const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
+    const rawBytes = opts.rawBytes !== undefined ? opts.rawBytes : Number(item.size || 0);
+    const checkbox = UI.allow_selecting_files
+        ? `<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="${link}" id="flexCheckDefault">` : '';
+    const timeBadge = UI.display_time
+        ? `<span class="badge bg-info" style="${_BADGE_TIME_STYLE}">${item['createdTime']}</span>` : '';
+    const sizeBadge = UI.display_size
+        ? `<span class="badge my-1 text-center" style="${_BADGE_SIZE_STYLE}">${item['size']}</span>` : '';
+    const dlBtn = UI.display_download
+        ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : '';
+    return `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row"${gdTypeAttr} data-name="${escapeHtml(item.name)}" data-bytes="${rawBytes}">${checkbox}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" ${opts.fileLink}><span>${_getIcon(ext, item.mimeType, item.iconLink)}</span>${escapeHtml(item.name)}</a>${timeBadge}${sizeBadge}<span class="d-flex gap-2">${dlBtn}</span></div>`;
+}
+
 /**
  * Append the data of the requested new page to the list
  * @param path
@@ -1490,10 +1543,7 @@ function append_files_to_fallback_list(path, files) {
         var $list = $('#list');
         // Is it the last page of data?
         var is_lastpage_loaded = null === $list.data('nextPageToken');
-        var is_firstpage = '0' == $list.data('curPageIndex');
-
         let html = "";
-        let targetFiles = [];
         let totalsize = 0;
         let is_file = false;
         // Extract episode number from filename (EP01, E01, S01E01, Episode 1, etc.)
@@ -1539,21 +1589,25 @@ function append_files_to_fallback_list(path, files) {
             item['createdTime'] = utc2jakarta(item['createdTime']);
             // replace / with %2F
             if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-                const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
                 // Prepare item data for modal — set size/md5 fields expected by onSearchResultItemClick
+                const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
                 const _fItem = Object.assign({}, item, { size: folderSizeStr, md5Checksum: '—' });
                 const _fItemJson = JSON.stringify(_fItem).replace(/"/g, '&quot;');
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${item.folderSize || 0}"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
-                ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="Open Folder"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
+                const folderDlBtn = UI.display_download
+                    ? `<a class="d-flex align-items-center" href="${p}" title="Open Folder"><i class="far fa-folder-open fa-lg"></i></a>` : '';
+                html += _renderFileRow(item, {
+                    folderHref: '#',
+                    folderModalAttrs: `onclick="onSearchResultItemClick('${item['id']}', false, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" `,
+                    folderDownloadBtn: folderDlBtn,
+                    gdType: false
+                });
             } else {
-                totalsize = totalsize + Number(item.size || 0);
+                const rawBytesF = Number(files[i].size || 0);
+                totalsize = totalsize + rawBytesF;
                 item['size'] = formatFileSize(item['size']) || '—';
                 is_file = true;
                 const epn = item.name;
-                const rawBytesF = Number(files[i].size || 0);
-                const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
                 let pn = path + epn.replace(_reHash, '%23').replace(_reQ, '%3F');
-                let c = "file";
                 // README is displayed after the last page is loaded, otherwise it will affect the scroll event
                 if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
                     get_file(p, item, function(data) {
@@ -1568,11 +1622,7 @@ function append_files_to_fallback_list(path, files) {
                     });
                 }
                 const ext = item.fileExtension;
-                //if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
-                //targetFiles.push(filepath);
                 pn += "?a=view";
-                c += " view";
-                //}
                 // Archive files (zip/rar/7z/tar/gz) → show CPMShort+Nowshort modal on click, same as search results
                 const _isArchive = ext && ['zip','rar','7z','tar','gz'].includes(ext.toLowerCase());
                 const _fItemForModal = Object.assign({}, item, { md5Checksum: item.md5Checksum || '—' });
@@ -1580,44 +1630,13 @@ function append_files_to_fallback_list(path, files) {
                 const _fileLink = _isArchive
                     ? `href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel"`
                     : `href="${p}&a=view"`;
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytesF}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" ${_fileLink}><span>`
-
-                html += _getIcon(ext, item.mimeType, item.iconLink);
-
-                html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
-                ${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
+                html += _renderFileRow(item, { fileLink: _fileLink, gdType: false, rawBytes: rawBytesF });
             }
         }
         if (is_file && UI.allow_selecting_files) {
             document.getElementById('select_items').style.display = 'block';
         }
-
-
-
-        if (targetFiles.length > 0) {
-            let old = localStorage.getItem(path);
-            let new_children = targetFiles;
-            // Reset on page 1; otherwise append
-            if (!is_firstpage && old) {
-                let old_children;
-                try {
-                    old_children = JSON.parse(old);
-                    if (!Array.isArray(old_children)) {
-                        old_children = []
-                    }
-                } catch (e) {
-                    old_children = [];
-                }
-                new_children = old_children.concat(targetFiles)
-            }
-
-            try {
-                localStorage.setItem(path, JSON.stringify(new_children));
-            } catch (e) {
-                // QuotaExceededError: clear cache and retry once
-                try { localStorage.clear(); localStorage.setItem(path, JSON.stringify(new_children)); } catch (_) { /* ignore */ }
-            }
-        }
+        // FIX §1.5: targetFiles block removed — push was commented out, array always empty.
 
     // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
@@ -1654,10 +1673,7 @@ function append_files_to_list(path, files) {
     var $list = $('#list');
     // Is it the last page of data?
     var is_lastpage_loaded = null === $list.data('nextPageToken');
-    var is_firstpage = '0' == $list.data('curPageIndex');
-
     let html = "";
-    let targetFiles = [];
     let totalsize = 0;
     let is_file = false;
     // Sort: folders by folderSize desc (largest first), then files by size desc
@@ -1682,18 +1698,20 @@ function append_files_to_list(path, files) {
         item['createdTime'] = utc2jakarta(item['createdTime']);
         // replace / with %2F
         if (item['mimeType'] == 'application/vnd.google-apps.folder') {
-            const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${item.folderSize || 0}"><a href="${p}" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
-            ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
+            const folderDlBtn = UI.display_download
+                ? `<a class="d-flex align-items-center" href="${p}" title="via Index"><i class="far fa-folder-open fa-lg"></i></a>` : '';
+            html += _renderFileRow(item, {
+                folderHref: p,
+                folderDownloadBtn: folderDlBtn,
+                gdType: false
+            });
         } else {
             const rawBytes = Number(item.size || 0);
             totalsize = totalsize + rawBytes;
             item['size'] = formatFileSize(item['size']) || '—';
             is_file = true;
             const epn = item.name;
-            const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
             let pn = path + epn.replace(_reHash, '%23').replace(_reQ, '%3F');
-            let c = "file";
             // README is displayed after the last page is loaded, otherwise it will affect the scroll event
             if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
                 get_file(p, item, function(data) {
@@ -1707,18 +1725,8 @@ function append_files_to_list(path, files) {
                     $("img").addClass("img-fluid")
                 });
             }
-            const ext = item.fileExtension;
-            //if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
-            //targetFiles.push(filepath);
             pn += "?a=view";
-            c += " view";
-            //}
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytes}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
-
-            html += _getIcon(ext, item.mimeType, item.iconLink);
-
-            html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
-        ${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
+            html += _renderFileRow(item, { fileLink: `href="${pn}"`, gdType: false, rawBytes });
         }
     }
     if (is_file && UI.allow_selecting_files) {
@@ -1727,30 +1735,7 @@ function append_files_to_list(path, files) {
 
 
 
-    if (targetFiles.length > 0) {
-        let old = localStorage.getItem(path);
-        let new_children = targetFiles;
-        // Reset on page 1; otherwise append
-        if (!is_firstpage && old) {
-            let old_children;
-            try {
-                old_children = JSON.parse(old);
-                if (!Array.isArray(old_children)) {
-                    old_children = []
-                }
-            } catch (e) {
-                old_children = [];
-            }
-            new_children = old_children.concat(targetFiles)
-        }
-
-        try {
-            localStorage.setItem(path, JSON.stringify(new_children));
-        } catch (e) {
-            // QuotaExceededError: clear cache and retry once
-            try { localStorage.clear(); localStorage.setItem(path, JSON.stringify(new_children)); } catch (_) { /* ignore */ }
-        }
-    }
+    // FIX §1.5: targetFiles block removed — push was commented out, array always empty.
 
     // When it is page 1, remove the horizontal loading bar
     // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
@@ -2008,15 +1993,12 @@ function append_search_result_to_list(files) {
                 item['createdTime'] = utc2jakarta(item['createdTime']);
                 item['size'] = item['size'] ? (formatFileSize(item['size']) || '—') : '—';
                 item['md5Checksum'] = '—';
-                const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
                 const folderDirectUrl = '/fallback?id=' + encodeURIComponent(item['id']);
-                html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${item.folderSize || 0}"><a href="${folderDirectUrl}" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.folder_text_color};"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">${item['createdTime']}</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}</div>`;
+                html += _renderFileRow(item, { folderHref: folderDirectUrl, gdType: true });
                 continue;
             }
 
-            if (item['size'] == undefined) {
-                item['size'] = "";
-            }
+            if (item['size'] == undefined) { item['size'] = ""; }
             item['createdTime'] = utc2jakarta(item['createdTime']);
 
             // Only process files (folders handled above)
@@ -2025,14 +2007,12 @@ function append_search_result_to_list(files) {
             totalsize = totalsize + rawBytesS;
             item['size'] = formatFileSize(item['size']) || '—';
             item['md5Checksum'] = item['md5Checksum'] || '—';
-            const ext = item.fileExtension;
-            const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytesS}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
-
-            html += _getIcon(ext, item.mimeType, item.iconLink);
-
-            html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
-            ${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
+            const _srItemJson = JSON.stringify(item).replace(/"/g, '&quot;');
+            html += _renderFileRow(item, {
+                fileLink: `href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${_srItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel"`,
+                gdType: true,
+                rawBytes: rawBytesS
+            });
         }
         if (is_file && UI.allow_selecting_files) {
             document.getElementById('select_items').style.display = 'block';
@@ -2063,21 +2043,7 @@ function append_search_result_to_list(files) {
                     if (window._shortenerCache[url]) return;
                     window._shortenerCache[url] = { _pending: true };
 
-                    var _fetchShort = function(endpoint) {
-                        return fetch(endpoint, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ url: url })
-                        }).then(function(r) { return r.ok ? r.json() : null; })
-                          .then(function(d) { return (d && d.success && d.short_url) ? d.short_url : null; })
-                          .catch(function() { return null; });
-                    };
-
-                    Promise.all([
-                        _fetchShort('/generate-cpmshort'),
-                        _fetchShort('/generate-nowshort')
-                    ]).then(function(results) {
-                        window._shortenerCache[url] = { cpmshort: results[0], nowshort: results[1] };
+                    _fetchAndCacheShortUrl(url, 1).then(function() {
                         log('Prefetch cached:', url);
                     });
                 });
@@ -2104,6 +2070,44 @@ function append_search_result_to_list(files) {
     } catch (e) {
         log(e);
     }
+}
+
+// ── Shared shortener fetch helper ────────────────────────────────────────────
+// Fetches both short URLs for `directUrl`, writes the result into
+// window._shortenerCache (capped at 200 entries), and returns { cpmshort, nowshort }.
+// `retries` controls how many attempts each endpoint gets (click path uses 3,
+// background prefetch uses 1).
+async function _fetchAndCacheShortUrl(directUrl, retries = 1) {
+    async function _fetchOne(endpoint) {
+        let attempts = retries;
+        while (attempts > 0) {
+            try {
+                const r = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: directUrl })
+                });
+                if (r.ok) {
+                    const d = await r.json();
+                    if (d && d.success && d.short_url) return d.short_url;
+                }
+            } catch (e) { logError(endpoint + ' error:', e); }
+            attempts--;
+            if (attempts > 0) await new Promise(res => setTimeout(res, 2000));
+        }
+        return null;
+    }
+
+    const [cpmshort, nowshort] = await Promise.all([
+        _fetchOne('/generate-cpmshort'),
+        _fetchOne('/generate-nowshort')
+    ]);
+
+    if (!window._shortenerCache) window._shortenerCache = {};
+    const _cacheKeys = Object.keys(window._shortenerCache);
+    if (_cacheKeys.length > 200) { delete window._shortenerCache[_cacheKeys[0]]; }
+    window._shortenerCache[directUrl] = { cpmshort, nowshort };
+    return { cpmshort, nowshort };
 }
 
 // Modified onSearchResultItemClick function
@@ -2280,13 +2284,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         // ===== Show CPMShort and Nowshort =====
         log('Showing CPMShort and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
-        function _rotateNowshortUrl(nowshortUrl) {
-            // Use nowshort URL directly — no rotator
-            log('Nowshort URL:', nowshortUrl);
-            return nowshortUrl;
-        }
-        // ── End Rotator ───────────────────────────────────────────────────────
-
         // Style adjustments
         $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
@@ -2312,9 +2309,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             }
 
             if (nowshortUrl) {
-                const rotatedNowshortUrl = _rotateNowshortUrl(nowshortUrl);
                 buttonsHtml += `
-                    <a href="${getChromeOpenUrl(rotatedNowshortUrl)}"
+                    <a href="${getChromeOpenUrl(nowshortUrl)}"
                        class="btn btn-success d-flex align-items-center gap-2"
                        target="_blank"
                        title="Open via Nowshort">
@@ -2348,37 +2344,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 </button>`;
             $('#modal-body-space-buttons').html(loadingButtons + close_btn);
 
-            // Fetch both in parallel
-            const _fetchShortUrl = async (endpoint) => {
-                let retries = 3;
-                while (retries > 0) {
-                    try {
-                        const response = await fetch(endpoint, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ url: directUrl })
-                        });
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.success && data.short_url) return data.short_url;
-                        }
-                    } catch (e) { logError(endpoint + ' error:', e); }
-                    retries--;
-                    if (retries > 0) await new Promise(r => setTimeout(r, 2000));
-                }
-                return null;
-            };
-
-            Promise.all([
-                _fetchShortUrl('/generate-cpmshort'),
-                _fetchShortUrl('/generate-nowshort')
-            ]).then(([cpmshortUrl, nowshortUrl]) => {
-                // Store in cache for next time this file is clicked
-                // Guard: cap shortener cache at 200 entries to prevent unbounded memory growth
-                if (!window._shortenerCache) window._shortenerCache = {};
-                const _cacheKeys = Object.keys(window._shortenerCache);
-                if (_cacheKeys.length > 200) { delete window._shortenerCache[_cacheKeys[0]]; }
-                window._shortenerCache[directUrl] = { cpmshort: cpmshortUrl, nowshort: nowshortUrl };
+            // Fetch both in parallel (3 retries each, 2 s back-off)
+            _fetchAndCacheShortUrl(directUrl, 3).then(({ cpmshort: cpmshortUrl, nowshort: nowshortUrl }) => {
                 log('Shortener cache stored for:', directUrl);
                 _buildAndShowButtons(cpmshortUrl, nowshortUrl);
             });
@@ -2424,6 +2391,90 @@ function get_file(path, file, callback) {
     }
 }
 
+// ── Shared file metadata renderer ────────────────────────────────────────────
+// Called by both fallback() (POST /0:fallback) and file() (POST "").
+// obj: server response with name, mimeType, fileExtension, size, link, etc.
+// cookie_folder_id: drive root for copy-to-drive feature.
+// showTitle: if true, update the page <title> with obj.name (only fallback does this).
+// ─────────────────────────────────────────────────────────────────────────────
+function _renderFileFromMeta(obj, cookie_folder_id, showTitle = false) {
+    const mimeType = obj.mimeType;
+    const fileExtension = obj.fileExtension ? obj.fileExtension.toLowerCase() : 'GoogleApps';
+    const createdTime = utc2jakarta(obj.createdTime);
+    const code  = ["php", "css", "go", "java", "js", "json", "txt", "sh", "md", "html", "xml", "py", "rb", "c", "cpp", "h", "hpp"];
+    const video = ["mp4", "webm", "avi", "mpg", "mpeg", "mkv", "rm", "rmvb", "mov", "wmv", "asf", "ts", "flv", "3gp", "m4v"];
+    const audio = ["mp3", "flac", "wav", "ogg", "m4a", "aac", "wma", "alac"];
+
+    if (mimeType === "application/vnd.google-apps.folder") {
+        window.location.href = window.location.pathname + "/";
+        return;
+    }
+    if (!fileExtension) return;
+
+    if (showTitle) title(obj.name);
+    const name = obj.name;
+    const bytes = Number(obj.size) || 0;  // obj.size is a string from API — must coerce to Number for >= comparison
+    const md5Checksum = obj.md5Checksum || '—';
+    const size = formatFileSize(obj.size) || '—';
+    const encoded_name = encodeURIComponent(name);
+    const url = UI.random_domain_for_dl ? UI.downloaddomain + obj.link : window.location.origin + obj.link;
+    const file_id = obj.fid;
+    var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
+
+    if (mimeType.includes("video") || video.includes(fileExtension)) {
+        poster = obj.thumbnailLink ? poster : UI.poster;
+        file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+    } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
+        file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+    } else if (code.includes(fileExtension)) {
+        file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+    } else {
+        file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+    }
+}
+
+// ── Shared file metadata renderer ────────────────────────────────────────────
+// Called by both fallback() (POST /0:fallback) and file() (POST "").
+// obj: server response with name, mimeType, fileExtension, size, link, etc.
+// cookie_folder_id: drive root for copy-to-drive feature.
+// showTitle: if true, update the page <title> with obj.name (only fallback does this).
+// ─────────────────────────────────────────────────────────────────────────────
+function _renderFileFromMeta(obj, cookie_folder_id, showTitle = false) {
+    const mimeType = obj.mimeType;
+    const fileExtension = obj.fileExtension ? obj.fileExtension.toLowerCase() : 'GoogleApps';
+    const createdTime = utc2jakarta(obj.createdTime);
+    const code  = ["php", "css", "go", "java", "js", "json", "txt", "sh", "md", "html", "xml", "py", "rb", "c", "cpp", "h", "hpp"];
+    const video = ["mp4", "webm", "avi", "mpg", "mpeg", "mkv", "rm", "rmvb", "mov", "wmv", "asf", "ts", "flv", "3gp", "m4v"];
+    const audio = ["mp3", "flac", "wav", "ogg", "m4a", "aac", "wma", "alac"];
+
+    if (mimeType === "application/vnd.google-apps.folder") {
+        window.location.href = window.location.pathname + "/";
+        return;
+    }
+    if (!fileExtension) return;
+
+    if (showTitle) title(obj.name);
+    const name = obj.name;
+    const bytes = Number(obj.size) || 0;  // obj.size is a string from API — must coerce to Number for >= comparison
+    const md5Checksum = obj.md5Checksum || '—';
+    const size = formatFileSize(obj.size) || '—';
+    const encoded_name = encodeURIComponent(name);
+    const url = UI.random_domain_for_dl ? UI.downloaddomain + obj.link : window.location.origin + obj.link;
+    const file_id = obj.fid;
+    var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
+
+    if (mimeType.includes("video") || video.includes(fileExtension)) {
+        poster = obj.thumbnailLink ? poster : UI.poster;
+        file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+    } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
+        file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+    } else if (code.includes(fileExtension)) {
+        file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+    } else {
+        file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+    }
+}
+
 async function fallback(id, type) {
     if (type) { // is a file id
         var cookie_folder_id = getCookie("root_id") || '';
@@ -2445,35 +2496,7 @@ async function fallback(id, type) {
             })
             .then(function(obj) {
                 log(obj);
-                title(obj.name);
-                const mimeType = obj.mimeType;
-                const fileExtension = obj.fileExtension ? obj.fileExtension.toLowerCase() : 'GoogleApps';
-                const createdTime = utc2jakarta(obj.createdTime);
-                const code = ["php", "css", "go", "java", "js", "json", "txt", "sh", "md", "html", "xml", "py", "rb", "c", "cpp", "h", "hpp"];
-                const video = ["mp4", "webm", "avi", "mpg", "mpeg", "mkv", "rm", "rmvb", "mov", "wmv", "asf", "ts", "flv", "3gp", "m4v"];
-                const audio = ["mp3", "flac", "wav", "ogg", "m4a", "aac", "wma", "alac"];
-                if (mimeType === "application/vnd.google-apps.folder") {
-                    window.location.href = window.location.pathname + "/";
-                } else if (fileExtension) {
-                    const name = obj.name;
-                    const bytes = Number(obj.size) || 0;  // obj.size is a string from API — must coerce to Number for >= comparison
-                    const md5Checksum = obj.md5Checksum || '—';
-                    const size = formatFileSize(obj.size) || '—';
-                    const encoded_name = encodeURIComponent(name);
-                    const url = UI.random_domain_for_dl ? UI.downloaddomain + obj.link : window.location.origin + obj.link;
-                    const file_id = obj.fid;
-                    var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
-                    if (mimeType.includes("video") || video.includes(fileExtension)) {
-                        poster = obj.thumbnailLink ? poster : UI.poster;
-                        file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                    } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
-                        file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                    } else if (code.includes(fileExtension)) {
-                        file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                    } else {
-                        file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                    }
-                }
+                _renderFileFromMeta(obj, cookie_folder_id, true /* showTitle */);
             })
             .catch(function(error) {
                 var content = `
@@ -2497,7 +2520,6 @@ async function fallback(id, type) {
 // File display ?a=view
 async function file(path) {
     var cookie_folder_id = getCookie("root_id") || '';
-    var name = path.split('/').pop();
     $('#content').html(`<div class="d-flex justify-content-center" style="height: 150px"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`);
     fetch("", {
             method: "POST",
@@ -2516,34 +2538,7 @@ async function file(path) {
         })
         .then(function(obj) {
             log(obj);
-            const mimeType = obj.mimeType;
-            const createdTime = utc2jakarta(obj.createdTime);
-            const fileExtension = obj.fileExtension ? obj.fileExtension.toLowerCase() : 'GoogleApps';
-            const code = ["php", "css", "go", "java", "js", "json", "txt", "sh", "md", "html", "xml", "py", "rb", "c", "cpp", "h", "hpp"];
-            const video = ["mp4", "webm", "avi", "mpg", "mpeg", "mkv", "rm", "rmvb", "mov", "wmv", "asf", "ts", "flv", "3gp", "m4v"];
-            const audio = ["mp3", "flac", "wav", "ogg", "m4a", "aac", "wma", "alac"];
-            if (mimeType === "application/vnd.google-apps.folder") {
-                window.location.href = window.location.pathname + "/";
-            } else if (fileExtension) {
-                const name = obj.name;
-                const bytes = Number(obj.size) || 0;  // obj.size is a string from API — must coerce to Number for >= comparison
-                const md5Checksum = obj.md5Checksum || '—';
-                const size = formatFileSize(obj.size) || '—';
-                const encoded_name = encodeURIComponent(name);
-                const url = UI.random_domain_for_dl ? UI.downloaddomain + obj.link : window.location.origin + obj.link;
-                const file_id = obj.fid;
-                var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
-                if (mimeType.includes("video") || video.includes(fileExtension)) {
-                    poster = obj.thumbnailLink ? poster : UI.poster;
-                    file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
-                    file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                } else if (code.includes(fileExtension)) {
-                    file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                } else {
-                    file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
-                }
-            }
+            _renderFileFromMeta(obj, cookie_folder_id);
         })
         .catch(function(error) {
             var content = `
@@ -3342,45 +3337,6 @@ window.onpopstate = function() {
     render(path);
 }
 
-$(function() {
-    init();
-    if (window.UI?.show_quota) fetchQuota();
-    var path = window.location.pathname;
-    /*$("body").on("click", '.folder', function () {
-        var url = $(this).attr('href');
-        history.pushState(null, null, url);
-        render(url);
-        return false;
-    });
-    $("body").on("click", '.view', function () {
-        var url = $(this).attr('href');
-        history.pushState(null, null, url);
-        render(url);
-        return false;
-    });*/
-
-    render(path);
-});
-
-// Copy to Clipboard for Direct Links, This will be modified soon with other UI
-function copyFunction() {
-    var copyText = document.getElementById("dlurl");
-    copyText.select();
-    copyText.setSelectionRange(0, 99999);
-
-    navigator.clipboard.writeText(copyText.value)
-        .then(function() {
-            var tooltip = document.getElementById("myTooltip");
-            tooltip.innerHTML = `<i class="fas fa-check fa-fw"></i>Copied`;
-        })
-        .catch(function(error) {
-            logError("Failed to copy text: ", error);
-            // ✅ FIX: navigator.clipboard is only available in secure contexts (HTTPS).
-            // Fall back to the legacy execCommand copy so the user still gets feedback.
-            _legacyCopy(copyText.value);
-        });
-}
-
 function outFunc() {
     var tooltip = document.getElementById("myTooltip");
     tooltip.innerHTML = `<i class="fas fa-copy fa-fw"></i>Copy`;
@@ -3561,35 +3517,33 @@ function openExtraLink(fileId) {
     });
 }
 
-// GDFlix Link Generation — via Worker proxy (/generate-gdflix)
-// ── Why proxy? ───────────────────────────────────────────────────────────────
-// The browser CANNOT call GDFlix API directly — GDFlix blocks cross-origin
-// requests (CORS). The worker's /generate-gdflix route handles:
-//   • Discovering the current live GDFlix domain (auto-updated)
-//   • Making the /v2/share API call server-side (no CORS issue)
-//   • Auto-retry with fresh domain if the cached one is stale/dead
-// The browser only ever talks to /generate-gdflix on tamizhan-movies.in.
-// ─────────────────────────────────────────────────────────────────────────────
+// GDFlix Link Generation
 function generateGDFlixLink(fileId) {
     return new Promise((resolve, reject) => {
         fileId = String(fileId || '').trim();
         if (!fileId) { reject(new Error('No file ID')); return; }
+        const key = (window.UI && window.UI.gdflix_api_key) || '';
         const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         const tab = isSafari ? window.open('', '_blank') : null;
-
-        fetch(`/generate-gdflix?id=${encodeURIComponent(fileId)}`, { cache: 'no-store' })
-        .then(r => r.json())
+        // Domain: from window.UI (worker-injected) or fetch worker proxy /api/gdflix-domain
+        const getDomain = () => window.UI && window.UI.gdflix_domain
+            ? Promise.resolve(window.UI.gdflix_domain)
+            : fetch('/api/gdflix-domain').then(r => r.json()).then(d => {
+                if (!d.ok || !d.domain) throw new Error(d.error || 'No domain');
+                if (window.UI) window.UI.gdflix_domain = d.domain;
+                return d.domain;
+              });
+        getDomain()
+        .then(domain => fetch(`${domain}/v2/share?id=${encodeURIComponent(fileId)}&key=${encodeURIComponent(key)}`, { headers: { Accept: 'application/json' } }))
+        .then(r => { if (!r.ok) throw new Error(`GDFlix error: ${r.status}`); return r.json(); })
         .then(data => {
-            if (!data.ok || !data.link) throw new Error(data.error || 'No link returned');
-            const link = data.link;
+            const link = data.error === 0 && (data.key || data.id)
+                ? `https://gdflix.dev/file/${data.key || data.id}`
+                : (() => { throw new Error(data.message || 'Unexpected GDFlix response'); })();
             isSafari ? (tab && !tab.closed ? tab.location.href = link : window.open(link, '_blank')) : window.open(link, '_blank');
             resolve(link);
         })
-        .catch(e => {
-            if (tab && !tab.closed) tab.close();
-            alert('Failed to generate GDFlix link: ' + e.message);
-            reject(e);
-        });
+        .catch(e => { if (tab && !tab.closed) tab.close(); alert('Failed to generate GDFlix link: ' + e.message); reject(e); });
     });
 }
 
