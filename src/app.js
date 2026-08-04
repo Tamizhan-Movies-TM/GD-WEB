@@ -2162,93 +2162,42 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         log('Showing CPMShort and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
         function _rotateNowshortUrl(nowshortUrl) {
-            // Use nowshort URL directly — no rotator
-            log('Nowshort URL:', nowshortUrl);
             return nowshortUrl;
         }
-        // ── End Rotator ───────────────────────────────────────────────────────
 
-        // Style adjustments
         $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
-        // ── Prefetch cache: window._shortenerCache[directUrl] = { cpmshort, nowshort } ──
-        // Links are fetched in the background as soon as file rows render.
-        // By the time user clicks, the cache is almost always already warm → instant display.
         const cached = window._shortenerCache && window._shortenerCache[directUrl];
 
         function _buildAndShowButtons(cpmshortUrl, nowshortUrl) {
-            // Shortener buttons displayed prominently inside the modal body
-            const cpmBtn = cpmshortUrl
-                ? `<a href="${getChromeOpenUrl(cpmshortUrl)}" target="_blank"
-                      style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;
-                             border-radius:8px;text-decoration:none;font-weight:700;font-size:0.9rem;
-                             color:#fff;background:linear-gradient(135deg,#0ea5e9,#0284c7);
-                             border:none;box-shadow:0 2px 8px rgba(14,165,233,0.4);">
-                      <i class="fa-solid fa-link"></i> CPMShort
-                   </a>`
-                : `<button style="padding:10px 20px;border-radius:8px;border:1px solid #555;
-                                  background:#333;color:#888;font-size:0.9rem;" disabled>
-                      CPMShort Failed
-                   </button>`;
+            let buttonsHtml = '';
 
-            const nowBtn = nowshortUrl
-                ? `<a href="${getChromeOpenUrl(_rotateNowshortUrl(nowshortUrl))}" target="_blank"
-                      style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;
-                             border-radius:8px;text-decoration:none;font-weight:700;font-size:0.9rem;
-                             color:#fff;background:linear-gradient(135deg,#22c55e,#16a34a);
-                             border:none;box-shadow:0 2px 8px rgba(34,197,94,0.4);">
-                      <i class="fa-solid fa-link"></i> Nowshort
-                   </a>`
-                : `<button style="padding:10px 20px;border-radius:8px;border:1px solid #555;
-                                  background:#333;color:#888;font-size:0.9rem;" disabled>
-                      Nowshort Failed
-                   </button>`;
+            buttonsHtml += nowshortUrl
+                ? `<a href="${getChromeOpenUrl(_rotateNowshortUrl(nowshortUrl))}" target="_blank" class="btn btn-primary d-flex align-items-center gap-2">Nowshort</a>`
+                : `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
 
-            // Inject shortener buttons at top of modal body (above file info table)
-            const shortenerBar = `
-                <div style="background:rgba(255,255,255,0.05);border-radius:10px;
-                            padding:14px 16px;margin-bottom:14px;text-align:center;">
-                    <div style="font-size:0.75rem;color:#9ca3af;margin-bottom:10px;letter-spacing:.5px;">
-                        🔗 SHARE VIA SHORTENER
-                    </div>
-                    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-                        ${cpmBtn}
-                        ${nowBtn}
-                    </div>
-                </div>`;
-            $('#modal-body-space').prepend(shortenerBar);
-            $('#modal-body-space-buttons').html(close_btn);
+            buttonsHtml += cpmshortUrl
+                ? `<a href="${getChromeOpenUrl(cpmshortUrl)}" target="_blank" class="btn btn-success d-flex align-items-center gap-2">CPMShort</a>`
+                : `<button class="btn btn-secondary" disabled>CPMShort Failed</button>`;
+
+            $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
         }
 
         if (cached && (cached.cpmshort || cached.nowshort)) {
             log('Shortener cache hit for:', directUrl);
             _buildAndShowButtons(cached.cpmshort, cached.nowshort);
         } else {
-            // Show loading spinner in modal body while fetching
-            const loadingBar = `
-                <div style="background:rgba(255,255,255,0.05);border-radius:10px;
-                            padding:14px 16px;margin-bottom:14px;text-align:center;">
-                    <div style="font-size:0.75rem;color:#9ca3af;margin-bottom:10px;letter-spacing:.5px;">
-                        🔗 SHARE VIA SHORTENER
-                    </div>
-                    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-                        <button style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;
-                                       border-radius:8px;border:none;background:linear-gradient(135deg,#0ea5e9,#0284c7);
-                                       color:#fff;font-weight:700;font-size:0.9rem;opacity:.7;" disabled>
-                            <div class="spinner-border spinner-border-sm" role="status"></div> CPMShort
-                        </button>
-                        <button style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;
-                                       border-radius:8px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);
-                                       color:#fff;font-weight:700;font-size:0.9rem;opacity:.7;" disabled>
-                            <div class="spinner-border spinner-border-sm" role="status"></div> Nowshort
-                        </button>
-                    </div>
-                </div>`;
-            $('#modal-body-space').prepend(loadingBar);
-            $('#modal-body-space-buttons').html(close_btn);
+            // Show loading spinners while fetching
+            $('#modal-body-space-buttons').html(`
+                <button class="btn btn-primary d-flex align-items-center gap-2" disabled>
+                    <div class="spinner-border spinner-border-sm" role="status"></div> Nowshort
+                </button>
+                <button class="btn btn-success d-flex align-items-center gap-2" disabled>
+                    <div class="spinner-border spinner-border-sm" role="status"></div> CPMShort
+                </button>
+                ${close_btn}`);
 
-            // Fetch both in parallel
             const _fetchShortUrl = async (endpoint) => {
                 let retries = 3;
                 while (retries > 0) {
@@ -2277,8 +2226,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                 const _cacheKeys = Object.keys(window._shortenerCache);
                 if (_cacheKeys.length > 200) { delete window._shortenerCache[_cacheKeys[0]]; }
                 window._shortenerCache[directUrl] = { cpmshort: cpmshortUrl, nowshort: nowshortUrl };
-                // Remove loading bar and rebuild with real buttons
-                $('#modal-body-space div[style*="SHARE VIA SHORTENER"]').parent().remove();
                 _buildAndShowButtons(cpmshortUrl, nowshortUrl);
             });
         }
