@@ -2190,11 +2190,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         } else {
             // Show loading spinners while fetching
             $('#modal-body-space-buttons').html(`
-                <button class="btn btn-primary d-flex align-items-center gap-2" disabled>
-                    <div class="spinner-border spinner-border-sm" role="status"></div> Nowshort
+                <button class="btn btn-info d-flex align-items-center gap-2" disabled>
+                    <div class="spinner-border spinner-border-sm" role="status"></div> 𝗡𝗼𝘄𝘀𝗵𝗼𝗿𝘁
                 </button>
                 <button class="btn btn-success d-flex align-items-center gap-2" disabled>
-                    <div class="spinner-border spinner-border-sm" role="status"></div> CPMShort
+                    <div class="spinner-border spinner-border-sm" role="status"></div> 𝗖𝗣𝗠𝗦𝗵𝗼𝗿𝘁
                 </button>
                 ${close_btn}`);
 
