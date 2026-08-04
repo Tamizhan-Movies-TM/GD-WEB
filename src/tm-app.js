@@ -1,5 +1,5 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
-// v2.7.0-merged
+// v2.6.1
 
 // =============================================================================
 // OPTIMIZATION: Conditional Logging
@@ -112,31 +112,6 @@ function _legacyCopy(text) {
     try { document.execCommand('copy'); } catch (_) {}
     document.body.removeChild(el);
     alert('Selected items copied to clipboard!');
-}
-
-// =============================================================================
-// PLAYER VISIBILITY HELPER
-// Decides whether the inline audio/video player should be hidden.
-//
-// Logic controlled by UI config flags (set in worker.js):
-//   disable_player                     — master switch. If true → ALWAYS hide the player,
-//                                         regardless of file size.
-//   extralink_large_file_threshold_gb  — size threshold in GB (default 5). Files AT or
-//                                         ABOVE this size get the player hidden too — for
-//                                         EVERYONE, login and non-login — nudging large
-//                                         files towards the ExtraLink instead of inline
-//                                         streaming.
-// =============================================================================
-function shouldDisablePlayer(bytes) {
-    if (UI.disable_player) return true;
-    // Use player_disable_threshold_gb when set, fall back to
-    // extralink_large_file_threshold_gb, then old gdflix key for backward compat, then 10 GB.
-    const thresholdGb = UI.player_disable_threshold_gb
-        || UI.extralink_large_file_threshold_gb
-        || UI.gdflix_large_file_threshold_gb
-        || 10;
-    const thresholdBytes = thresholdGb * 1024 * 1024 * 1024;
-    return bytes >= thresholdBytes;
 }
 
 // Initialize the page
@@ -850,10 +825,6 @@ function initializeLoginModal() {
             return;
         }
 
-        // FIX §1.4: added submitBtn guard + finally so button is always re-enabled
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="loading"></span> Signing in...';
-
         try {
             const formData = new URLSearchParams();
             formData.append('username', username);
@@ -871,9 +842,10 @@ function initializeLoginModal() {
             const data = await response.json();
 
             if (data.ok) {
+                // Success - redirect to home or reload page
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
-                    window.location.href = '/home';
+                    window.location.href = '/';
                 }, 1000);
             } else {
                 const errMsg = data.error || 'Invalid username or password';
@@ -882,9 +854,6 @@ function initializeLoginModal() {
         } catch (error) {
             showError('Network error. Please try again.');
             logError('Login error:', error);
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
         }
     });
 
@@ -994,6 +963,10 @@ function render(path) {
         const can_preview = getQueryVariable('a');
         const id = getQueryVariable('id');
         if (can_preview) {
+            // ✅ Show password expiry warning only on file info page (&a=view), not folder list
+            if (typeof checkPasswordExpiryWarning === 'function') {
+                checkPasswordExpiryWarning();
+            }
             return fallback(id, true)
         } else {
             return list(null, id, true);
@@ -1043,14 +1016,14 @@ function nav(path) {
     var cur = window.current_drive_order || 0;
     html += `<nav class="navbar navbar-expand-lg${UI.fixed_header ?' fixed-top': ''} ${UI.header_style_class} container">
     <div class="container-fluid mx-2">
-  <a class="navbar-brand d-flex align-items-center gap-2" href="/home">${UI.logo_image ? '<img border="0" alt="'+UI.company_name+'" src="'+UI.logo_link_name+'" height="'+UI.logo_height+'" width="'+UI.logo_width+'">'+UI.siteName : UI.logo_link_name}</a>
+  <a class="navbar-brand d-flex align-items-center gap-2" href="/">${UI.logo_image ? '<img border="0" alt="'+UI.company_name+'" src="'+UI.logo_link_name+'" height="'+UI.logo_height+'" width="'+UI.logo_width+'">'+UI.siteName : UI.logo_link_name}</a>
   <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
       <li class="nav-item">
-        <a class="nav-link" href="/home"><i class="fas fa-home fa-fw"></i>${UI.nav_link_1}</a>
+        <a class="nav-link" href="/${cur}:/"><i class="fas fa-home fa-fw"></i>${UI.nav_link_1}</a>
       </li>`;
     var names = window.drive_names;
     var drive_name = window.drive_names[cur];
@@ -1106,12 +1079,8 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
         page_token: params['page_token'] || '',
         page_index: params['page_index'] || 0
     };
-    // ⚡ PERF: Delay the "Connecting..." banner by 400ms — if the server responds fast
-    // (warm Cloudflare isolate) the user never sees it. Only shows on slow/cold starts.
-    const _connectingTimer = setTimeout(() => {
-        const _upd = document.getElementById('update');
-        if (_upd) { _upd.style.display = ''; _upd.innerHTML = `<div class='alert alert-info' role='alert'> Connecting...</div>`; }
-    }, 400);
+    $('#update').show();
+    document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Connecting...</div>`;
     if (fallback) {
         path = "/0:fallback"
     }
@@ -1136,7 +1105,7 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
                     <p>The requested URL was not found on this server. That’s all we know.</p>
                     <div class="card-text text-center">
                       <div class="btn-group text-center">
-                        <a href="/home" type="button" class="btn btn-success">Homepage</a>
+                        <a href="/" type="button" class="btn btn-success">Homepage</a>
                       </div>
                     </div><br>
                   </div>`;
@@ -1152,7 +1121,6 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
                 return response.json();
             })
             .then(function(res) {
-                clearTimeout(_connectingTimer);
                 if (res && res.error && res.error.code === 401) {
                     // Password verification failed
                     askPassword(path);
@@ -1168,10 +1136,9 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
             .catch(async function(error) {
                 if (remainingRetries > 0) {
                     document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Retrying...</div>`;
-                    await sleep(500); // ⚡ was 2000ms
+                    await sleep(2000);
                     performRequest(remainingRetries - 1);
                 } else {
-                    clearTimeout(_connectingTimer);
                     document.getElementById('update').innerHTML = `<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong.</div>`;
                     document.getElementById('list').innerHTML = `<div class='alert alert-danger' role='alert'> We were unable to get data from the server. ` + error + `</div>`;
                     $('#update').hide();
@@ -1195,20 +1162,13 @@ function requestSearch(params, resultCallback, retries = 3) {
         page_index: params['page_index'] || 0
     };
 
-    // ⚡ PERF: Only show "Connecting..." if the server takes more than 400ms
-    const _srchConnectTimer = setTimeout(() => {
-        const _upd = document.getElementById('update');
-        if (_upd) _upd.innerHTML = `<div class='alert alert-info' role='alert'> Connecting...</div>`;
-    }, 400);
-
     function performRequest(retries) {
         fetch(`/${window.current_drive_order}:search`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(p),
-                signal: AbortSignal.timeout(12000) // ⚡ 12s hard timeout
+                body: JSON.stringify(p)
             })
             .then(function(response) {
                 if (!response.ok) {
@@ -1217,7 +1177,6 @@ function requestSearch(params, resultCallback, retries = 3) {
                 return response.json();
             })
             .then(function(res) {
-                clearTimeout(_srchConnectTimer);
                 if (res && res.data === null) {
                     $('#spinner').remove();
                     $('#list').html(`<div class='alert alert-danger' role='alert'> Server didn't send any data.</div>`);
@@ -1230,11 +1189,10 @@ function requestSearch(params, resultCallback, retries = 3) {
             })
             .catch(async function(error) {
                 if (retries > 0) {
-                    await sleep(500); // ⚡ was 2000ms
+                    await sleep(2000);
                     $('#update').html(`<div class='alert alert-info' role='alert'> Retrying...</div>`);
                     performRequest(retries - 1);
                 } else {
-                    clearTimeout(_srchConnectTimer);
                     $('#update').html(`<div class='alert alert-danger' role='alert'> Unable to get data from the server. Something went wrong. 3 Failures</div>`);
                     $('#list').html(`<div class='alert alert-danger' role='alert'> We were unable to get data from the server.</div>`);
                     $('#spinner').remove();
@@ -1242,6 +1200,7 @@ function requestSearch(params, resultCallback, retries = 3) {
             });
     }
 
+    $('#update').html(`<div class='alert alert-info' role='alert'> Connecting...</div>`);
     performRequest(retries);
 }
 
@@ -1257,7 +1216,6 @@ function list(path, id = '', fallback = false) {
         folder_ico = gdrive_icon;
         folder_name = drive_name;
     }
-    _resetTMSort(); // FIX Bug J: reset sort state for each new folder
     var containerContent = `
     <div id="update"></div>
     <div id="head_md" style="display:none; padding: 20px 20px;"></div>
@@ -1307,30 +1265,6 @@ function list(path, id = '', fallback = false) {
             .data('curPageIndex', res['curPageIndex']);
 
         $('#spinner').remove();
-
-        // ⚡ Cache-first save: store files for instant display on next visit.
-        // Strip `link` (expiring signed URL) before saving — links are regenerated fresh
-        // on each real load. Cache only the metadata needed to render the list skeleton.
-        if (fallback && id && res['data'] && Array.isArray(res['data']['files']) && res['data']['files'].length > 0) {
-            try {
-                const _fbCacheKey = 'fb:' + id;
-                const _toCache = res['data']['files'].map(function(f) {
-                    const c = Object.assign({}, f);
-                    delete c.link; // expiring — regenerated on real load
-                    return c;
-                });
-                const _existing = localStorage.getItem(_fbCacheKey);
-                let _merged = _toCache;
-                if (_existing && res['curPageIndex'] > 0) {
-                    try { _merged = JSON.parse(_existing).concat(_toCache); } catch(_) {}
-                }
-                try {
-                    localStorage.setItem(_fbCacheKey, JSON.stringify(_merged));
-                } catch(_e) {
-                    try { localStorage.clear(); localStorage.setItem(_fbCacheKey, JSON.stringify(_toCache)); } catch(_) {}
-                }
-            } catch(_) {}
-        }
 
         if (res['nextPageToken'] === null) {
             $(window).off('scroll');
@@ -1396,37 +1330,14 @@ function list(path, id = '', fallback = false) {
         }
     }
 
-    // ⚡ Cache-first: show stale folder listing instantly while fresh data loads in background.
-    // Works for BOTH regular paths (/0:/Tamil/) AND fallback folder listings (/fallback?id=XXX).
-    // Cache key for fallback uses the folder ID; for regular paths uses the URL path.
-    const _cacheKey = fallback ? ('fb:' + id) : path;
-    if (_cacheKey) {
-        try {
-            const _cachedFiles = localStorage.getItem(_cacheKey);
-            if (_cachedFiles) {
-                const _files = JSON.parse(_cachedFiles);
-                if (Array.isArray(_files) && _files.length > 0) {
-                    $('#spinner').remove();
-                    $('#update').hide();
-                    if (fallback) {
-                        append_files_to_fallback_list(path, _files);
-                    } else {
-                        append_files_to_list(path, _files);
-                    }
-                }
-            }
-        } catch(_) {}
-    }
-
     if (fallback) {
         log('fallback inside list');
-        // FIX §5.4: was passing null for retries — null > 0 is false → 0 retries.
         requestListPath(path, {
                 id: id,
                 password: password
             },
             handleSuccessResult,
-            null, 3, true);
+            null, null, true);
     } else {
         log("handling this")
         requestListPath(path, {
@@ -1501,6 +1412,7 @@ function append_files_to_fallback_list(path, files) {
         var is_firstpage = '0' == $list.data('curPageIndex');
 
         let html = "";
+        let targetFiles = [];
         let totalsize = 0;
         let is_file = false;
         // Extract episode number from filename (EP01, E01, S01E01, Episode 1, etc.)
@@ -1560,6 +1472,7 @@ function append_files_to_fallback_list(path, files) {
                 const rawBytesF = Number(files[i].size || 0);
                 const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
                 let pn = path + epn.replace(_reHash, '%23').replace(_reQ, '%3F');
+                let c = "file";
                 // README is displayed after the last page is loaded, otherwise it will affect the scroll event
                 if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
                     get_file(p, item, function(data) {
@@ -1577,8 +1490,9 @@ function append_files_to_fallback_list(path, files) {
                 //if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
                 //targetFiles.push(filepath);
                 pn += "?a=view";
+                c += " view";
                 //}
-                // Archive files (zip/rar/7z/tar/gz) → show CPMShort+Nowshort modal on click, same as search results
+                // Archive files (zip/rar/7z/tar/gz) → show GPLinks+Nowshort modal on click, same as search results
                 const _isArchive = ext && ['zip','rar','7z','tar','gz'].includes(ext.toLowerCase());
                 const _fItemForModal = Object.assign({}, item, { md5Checksum: item.md5Checksum || '—' });
                 const _fItemJson = JSON.stringify(_fItemForModal).replace(/"/g, '&quot;');
@@ -1596,7 +1510,48 @@ function append_files_to_fallback_list(path, files) {
         if (is_file && UI.allow_selecting_files) {
             document.getElementById('select_items').style.display = 'block';
         }
-        // FIX §1.5: targetFiles block removed — push was commented out, array always empty.
+
+
+        /*let targetObj = {};
+        targetFiles.forEach((myFilepath, myIndex) => {
+            if (!targetObj[myFilepath]) {
+                targetObj[myFilepath] = {
+                    filepath: myFilepath,
+                    prev: myIndex === 0 ? null : targetFiles[myIndex - 1],
+                    next: myIndex === targetFiles.length - 1 ? null : targetFiles[myIndex + 1],
+                }
+            }
+        })
+        // log(targetObj)
+        if (Object.keys(targetObj).length) {
+            localStorage.setItem(path, JSON.stringify(targetObj));
+            // log(path)
+        }*/
+
+        if (targetFiles.length > 0) {
+            let old = localStorage.getItem(path);
+            let new_children = targetFiles;
+            // Reset on page 1; otherwise append
+            if (!is_firstpage && old) {
+                let old_children;
+                try {
+                    old_children = JSON.parse(old);
+                    if (!Array.isArray(old_children)) {
+                        old_children = []
+                    }
+                } catch (e) {
+                    old_children = [];
+                }
+                new_children = old_children.concat(targetFiles)
+            }
+
+            try {
+                localStorage.setItem(path, JSON.stringify(new_children));
+            } catch (e) {
+                // QuotaExceededError: clear cache and retry once
+                try { localStorage.clear(); localStorage.setItem(path, JSON.stringify(new_children)); } catch (_) { /* ignore */ }
+            }
+        }
 
     // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
@@ -1636,6 +1591,7 @@ function append_files_to_list(path, files) {
     var is_firstpage = '0' == $list.data('curPageIndex');
 
     let html = "";
+    let targetFiles = [];
     let totalsize = 0;
     let is_file = false;
     // Sort: folders by folderSize desc (largest first), then files by size desc
@@ -1671,6 +1627,7 @@ function append_files_to_list(path, files) {
             const epn = item.name;
             const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
             let pn = path + epn.replace(_reHash, '%23').replace(_reQ, '%3F');
+            let c = "file";
             // README is displayed after the last page is loaded, otherwise it will affect the scroll event
             if (is_lastpage_loaded && item.name == "README.md" && UI.render_readme_md) {
                 get_file(p, item, function(data) {
@@ -1688,6 +1645,7 @@ function append_files_to_list(path, files) {
             //if ("|html|php|css|go|java|js|json|txt|sh|md|mp4|webm|avi|bmp|jpg|jpeg|png|gif|m4a|mp3|flac|wav|ogg|mpg|mpeg|mkv|rm|rmvb|mov|wmv|asf|ts|flv|pdf|".indexOf(`|${ext}|`) >= 0) {
             //targetFiles.push(filepath);
             pn += "?a=view";
+            c += " view";
             //}
             html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytes}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};" href="${pn}"><span>`
 
@@ -1702,8 +1660,46 @@ function append_files_to_list(path, files) {
     }
 
 
+    /*let targetObj = {};
+    targetFiles.forEach((myFilepath, myIndex) => {
+        if (!targetObj[myFilepath]) {
+            targetObj[myFilepath] = {
+                filepath: myFilepath,
+                prev: myIndex === 0 ? null : targetFiles[myIndex - 1],
+                next: myIndex === targetFiles.length - 1 ? null : targetFiles[myIndex + 1],
+            }
+        }
+    })
+    // log(targetObj)
+    if (Object.keys(targetObj).length) {
+        localStorage.setItem(path, JSON.stringify(targetObj));
+        // log(path)
+    }*/
 
-    // FIX §1.5: targetFiles block removed — push was commented out, array always empty.
+    if (targetFiles.length > 0) {
+        let old = localStorage.getItem(path);
+        let new_children = targetFiles;
+        // Reset on page 1; otherwise append
+        if (!is_firstpage && old) {
+            let old_children;
+            try {
+                old_children = JSON.parse(old);
+                if (!Array.isArray(old_children)) {
+                    old_children = []
+                }
+            } catch (e) {
+                old_children = [];
+            }
+            new_children = old_children.concat(targetFiles)
+        }
+
+        try {
+            localStorage.setItem(path, JSON.stringify(new_children));
+        } catch (e) {
+            // QuotaExceededError: clear cache and retry once
+            try { localStorage.clear(); localStorage.setItem(path, JSON.stringify(new_children)); } catch (_) { /* ignore */ }
+        }
+    }
 
     // When it is page 1, remove the horizontal loading bar
     // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
@@ -1733,7 +1729,6 @@ function append_files_to_list(path, files) {
  */
 function render_search_result_list() {
     var model = window.MODEL;
-    _resetTMSort(); // FIX Bug J: reset sort state for each new search page
 
     // Add search bar to the card header with white background
     var searchBar = `
@@ -1784,7 +1779,7 @@ function render_search_result_list() {
         if (!ticking) {
             requestAnimationFrame(() => {
                 const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                const scrollHeight = getDocumentHeight();
+                const scrollHeight = document.documentElement.scrollHeight;
                 const windowHeight = window.innerHeight;
 
                 // Preload at 400px from bottom
@@ -1849,63 +1844,10 @@ function render_search_result_list() {
         loading_lock: false
     };
 
-    // ⚡ INSTANT SEARCH via localStorage:
-    // - First search ever: loads normally (1-3s), result saved to localStorage
-    // - Every search after (same browser, any future session): shows instantly from cache (<50ms),
-    //   then background-refreshes and silently swaps in fresh data
-    const _srchCacheKey = 'tm_srch:' + (window.MODEL.q || '').toLowerCase().trim();
-    let _cacheWasShown = false;
-    try {
-        const _raw = localStorage.getItem(_srchCacheKey);
-        if (_raw) {
-            const _cached = JSON.parse(_raw);
-            if (_cached && _cached.data && Array.isArray(_cached.data.files) && _cached.data.files.length > 0) {
-                $('#spinner').remove();
-                $('#update').hide();
-                $('#list').data('nextPageToken', _cached.nextPageToken || null)
-                         .data('curPageIndex', _cached.curPageIndex || 0);
-                append_search_result_to_list(_cached.data.files);
-                _cacheWasShown = true;
-            }
-        }
-    } catch(_) {}
+    // Start first request immediately
+    requestSearch({ q: window.MODEL.q }, searchSuccessCallback);
 
-    // Always fetch fresh from server (background when cache shown, foreground on first visit)
-    requestSearch({ q: window.MODEL.q }, function(res, params) {
-        // Save result to localStorage for instant display next time.
-        // ⚡ Strip `link` (expiring signed download URLs) before caching — they are
-        // regenerated on each real server response. Storing them causes dead links on
-        // cache replay when the 1-day expiry has passed.
-        try {
-            const _resToCache = {
-                nextPageToken: res.nextPageToken,
-                curPageIndex: res.curPageIndex,
-                data: {
-                    files: (res.data.files || []).map(function(f) {
-                        const c = Object.assign({}, f);
-                        delete c.link;
-                        return c;
-                    })
-                }
-            };
-            localStorage.setItem(_srchCacheKey, JSON.stringify(_resToCache));
-        } catch(e) {
-            try {
-                // localStorage full — clear old search caches only, then retry
-                Object.keys(localStorage).filter(k => k.startsWith('tm_srch:')).forEach(k => localStorage.removeItem(k));
-                const _resToCache2 = { nextPageToken: res.nextPageToken, curPageIndex: res.curPageIndex, data: { files: (res.data.files || []).map(function(f) { const c = Object.assign({}, f); delete c.link; return c; }) } };
-                localStorage.setItem(_srchCacheKey, JSON.stringify(_resToCache2));
-            } catch(_) {}
-        }
-        // If cache was already shown, clear list first to prevent duplicates
-        if (_cacheWasShown) {
-            $('#list').html('');
-            $('#list').data('nextPageToken', null).data('curPageIndex', 0);
-        }
-        searchSuccessCallback(res, params);
-    });
-
-    // Copy handler — uses _legacyCopy utility for fallback consistency
+    // Fast copy handler with modern API
     document.getElementById("handle-multiple-items-copy").addEventListener("click", () => {
         const checked = document.querySelectorAll('input[type="checkbox"]:checked');
 
@@ -1920,13 +1862,31 @@ function render_search_result_list() {
             navigator.clipboard.writeText(data).then(() => {
                 alert("Selected items copied to clipboard!");
             }).catch(() => {
-                _legacyCopy(data);
+                const el = document.createElement("textarea");
+                el.value = data;
+                el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand("copy");
+                document.body.removeChild(el);
+                alert("Selected items copied to clipboard!");
             });
         } else {
-            _legacyCopy(data);
+            const el = document.createElement("textarea");
+            el.value = data;
+            el.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand("copy");
+            document.body.removeChild(el);
+            alert("Selected items copied to clipboard!");
         }
     }, { passive: true });
 
+    // ✅ Show password expiry warning on search result page as well
+    if (typeof checkPasswordExpiryWarning === 'function') {
+        checkPasswordExpiryWarning();
+    }
 }
 
 /**
@@ -2003,11 +1963,8 @@ function append_search_result_to_list(files) {
             try {
                 const _shouldPrefetch = typeof UI !== 'undefined' && UI.show_url_shortener === true && !isUserLoggedIn();
                 if (!_shouldPrefetch) return;
-                // Guard: cap shortener cache at 200 entries to prevent unbounded memory growth
                 if (!window._shortenerCache) window._shortenerCache = {};
-                const _cacheKeys = Object.keys(window._shortenerCache);
-                if (_cacheKeys.length > 200) { delete window._shortenerCache[_cacheKeys[0]]; }
-                const _publicOrigin = (window.UI && window.UI.public_origin) || 'https://tm.play-streams.workers.dev';
+                const _publicOrigin = 'https://tm.play-streams.workers.dev';
 
                 files.forEach(function(item) {
                     if (item['mimeType'] === 'application/vnd.google-apps.folder') return;
@@ -2028,15 +1985,11 @@ function append_search_result_to_list(files) {
                     };
 
                     Promise.all([
-                        _fetchShort('/generate-cpmshort'),
+                        _fetchShort('/generate-gplinks'),
                         _fetchShort('/generate-nowshort')
                     ]).then(function(results) {
-                        window._shortenerCache[url] = { cpmshort: results[0], nowshort: results[1] };
+                        window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
                         log('Prefetch cached:', url);
-                    }).catch(function() {
-                        // FIX: _pending:true was never cleared on rejection — next click
-                        // would skip re-fetch and show spinners forever. Delete so it retries.
-                        delete window._shortenerCache[url];
                     });
                 });
             } catch(e) { /* silent — never break file listing */ }
@@ -2066,7 +2019,7 @@ function append_search_result_to_list(files) {
 
 // Modified onSearchResultItemClick function
 // Button display logic based on UI.show_url_shortener config and login status:
-// - If show_url_shortener is TRUE and user is NOT logged in → CPMShort/Nowshort buttons
+// - If show_url_shortener is TRUE and user is NOT logged in → GPLinks/Nowshort buttons
 // - Otherwise (logged in OR show_url_shortener is FALSE) → "Open in Chrome" button
 async function onSearchResultItemClick(file_id, can_preview, file) {
     var cur = window.current_drive_order;
@@ -2075,9 +2028,12 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     var title = `<i class="fas fa-file-alt fa-fw"></i> File Information`;
     $('#SearchModelLabel').html(title);
 
-    // Create the direct URL using UI.public_origin (set by worker) or fallback to known domain
+    // Create the direct URL
+    // FIX: Use tm.play-streams.workers.dev (public domain) for shortener links.
+    // window.location.origin is tamizhan-movies.site (login-protected) — shorteners
+    // must point to the public workers.dev domain so unauthenticated users can open them.
     const encodedFileId = encodeURIComponent(file_id);
-    const _publicOrigin = (window.UI && window.UI.public_origin) || 'https://tm.play-streams.workers.dev';
+    const _publicOrigin = 'https://tm.play-streams.workers.dev';
     const isFolder = file['mimeType'] === 'application/vnd.google-apps.folder';
     const directUrl = isFolder
         ? `${_publicOrigin}/fallback?id=${encodedFileId}`
@@ -2093,7 +2049,6 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     }
 
     // Generate file info content
-    // FIX: createdTime and mimeType were inserted raw — escapeHtml all dynamic fields.
     let content = `
     <table class="table table-dark" style="margin-bottom: 0 !important;">
         <tbody>
@@ -2109,14 +2064,14 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     <i class="fa-regular fa-clock fa-fw"></i>
                     <span class="tth">Datetime</span>
                 </th>
-                <td>${escapeHtml(file['createdTime'] || '')}</td>
+                <td>${file['createdTime']}</td>
             </tr>
             <tr>
                 <th>
                     <i class="fa-solid fa-tag fa-fw"></i>
                     <span class="tth">Type</span>
                 </th>
-                <td>${escapeHtml(file['mimeType'] || '')}</td>
+                <td>${file['mimeType']}</td>
             </tr>`;
 
     if (file['mimeType'] !== 'application/vnd.google-apps.folder') {
@@ -2126,7 +2081,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     <i class="fa-solid fa-box-archive fa-fw"></i>
                     <span class="tth">Size</span>
                 </th>
-                <td>${escapeHtml(String(file['size'] || '—'))}</td>
+                <td>${file['size']}</td>
             </tr>`;
     }
     content += `
@@ -2142,7 +2097,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     const showUrlShortener = typeof UI !== 'undefined' && UI.show_url_shortener === true;
 
     // Decision logic:
-    // - If show_url_shortener is true AND user is NOT logged in → Show CPMShort/Nowshort
+    // - If show_url_shortener is true AND user is NOT logged in → Show GPLinks/Nowshort
     // - Otherwise → Show Chrome button
     const shouldShowShorteners = showUrlShortener && !userLoggedIn;
 
@@ -2236,8 +2191,8 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
     } else {
-        // ===== Show CPMShort and Nowshort =====
-        log('Showing CPMShort and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
+        // ===== Show GPLinks and Nowshort =====
+        log('Showing GPLinks and Nowshort (logged in: ' + userLoggedIn + ', config: ' + showUrlShortener + ')');
 
         function _rotateNowshortUrl(nowshortUrl) {
             // Use nowshort URL directly — no rotator
@@ -2250,24 +2205,24 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
-        // ── Prefetch cache: window._shortenerCache[directUrl] = { cpmshort, nowshort } ──
+        // ── Prefetch cache: window._shortenerCache[directUrl] = { gplinks, nowshort } ──
         // Links are fetched in the background as soon as file rows render.
         // By the time user clicks, the cache is almost always already warm → instant display.
         const cached = window._shortenerCache && window._shortenerCache[directUrl];
 
-        function _buildAndShowButtons(cpmshortUrl, nowshortUrl) {
+        function _buildAndShowButtons(gplinksUrl, nowshortUrl) {
             let buttonsHtml = '';
 
-            if (cpmshortUrl) {
+            if (gplinksUrl) {
                 buttonsHtml += `
-                    <a href="${getChromeOpenUrl(cpmshortUrl)}"
+                    <a href="${getChromeOpenUrl(gplinksUrl)}"
                        class="btn btn-info d-flex align-items-center gap-2"
                        target="_blank"
-                       title="Open via CPMShort">
-                        𝗖𝗣𝗠𝗦𝗵𝗼𝗿𝘁
+                       title="Open via GPLinks">
+                        𝗚𝗣𝗟𝗶𝗻𝗸𝘀
                     </a>`;
             } else {
-                buttonsHtml += `<button class="btn btn-secondary" disabled>CPMShort Failed</button>`;
+                buttonsHtml += `<button class="btn btn-secondary" disabled>GPLinks Failed</button>`;
             }
 
             if (nowshortUrl) {
@@ -2286,10 +2241,10 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
         }
 
-        if (cached && (cached.cpmshort || cached.nowshort)) {
+        if (cached && (cached.gplinks || cached.nowshort)) {
             // ✅ Cache hit — show buttons instantly, no spinner
             log('Shortener cache hit for:', directUrl);
-            _buildAndShowButtons(cached.cpmshort, cached.nowshort);
+            _buildAndShowButtons(cached.gplinks, cached.nowshort);
         } else {
             // Cache miss — show slim loading placeholders while fetching
             const loadingButtons = `
@@ -2297,7 +2252,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     <div class="spinner-border spinner-border-sm" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    CPMShort
+                    GPLinks
                 </button>
                 <button class="btn btn-success d-flex align-items-center gap-2" disabled>
                     <div class="spinner-border spinner-border-sm" role="status">
@@ -2329,45 +2284,24 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             };
 
             Promise.all([
-                _fetchShortUrl('/generate-cpmshort'),
+                _fetchShortUrl('/generate-gplinks'),
                 _fetchShortUrl('/generate-nowshort')
-            ]).then(([cpmshortUrl, nowshortUrl]) => {
+            ]).then(([gplinksUrl, nowshortUrl]) => {
                 // Store in cache for next time this file is clicked
-                // Guard: cap shortener cache at 200 entries to prevent unbounded memory growth
                 if (!window._shortenerCache) window._shortenerCache = {};
-                const _cacheKeys = Object.keys(window._shortenerCache);
-                if (_cacheKeys.length > 200) { delete window._shortenerCache[_cacheKeys[0]]; }
-                window._shortenerCache[directUrl] = { cpmshort: cpmshortUrl, nowshort: nowshortUrl };
+                window._shortenerCache[directUrl] = { gplinks: gplinksUrl, nowshort: nowshortUrl };
                 log('Shortener cache stored for:', directUrl);
-                _buildAndShowButtons(cpmshortUrl, nowshortUrl);
+                _buildAndShowButtons(gplinksUrl, nowshortUrl);
             });
         }
     }
 
     // Optional: Fetch path in background (for all users)
-    // ⚡ Circuit-breaker: skip if id2path has failed 3+ times in last 5 min
-    const _id2pFails = parseInt(sessionStorage.getItem('_id2p_fails') || '0');
-    const _id2pLastFail = parseInt(sessionStorage.getItem('_id2p_last_fail') || '0');
-    const _id2pCooldown = Date.now() - _id2pLastFail < 300000; // 5 min
-    if (_id2pFails < 3 || !_id2pCooldown) {
-        fetch(`/${cur}:id2path`, {
-            method: 'POST',
-            body: JSON.stringify({ id: file_id }),
-            headers: { 'Content-Type': 'application/json' },
-            signal: AbortSignal.timeout(10000)
-        }).then(r => {
-            if (!r.ok) throw new Error('id2path ' + r.status);
-            // Reset fail counter on success
-            sessionStorage.removeItem('_id2p_fails');
-            sessionStorage.removeItem('_id2p_last_fail');
-        }).catch(error => {
-            log('Path fetch error:', error);
-            sessionStorage.setItem('_id2p_fails', Math.min(_id2pFails + 1, 10));
-            sessionStorage.setItem('_id2p_last_fail', Date.now());
-        });
-    } else {
-        log('id2path skipped — circuit breaker active');
-    }
+    fetch(`/${cur}:id2path`, {
+        method: 'POST',
+        body: JSON.stringify({ id: file_id }),
+        headers: { 'Content-Type': 'application/json' }
+    }).catch(error => log('Path fetch error:', error));
 }
 
 function get_file(path, file, callback) {
@@ -2443,7 +2377,7 @@ async function fallback(id, type) {
                     <div class="card-body text-center">
                         <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>404.</b> That’s an error. ` + error + `</div>
                         <p>The requested URL was not found on this server. That’s all we know.</p>
-                        <a href="/home" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i>Home</a>
+                        <a href="/" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i>Home</a>
                     </div>
                 </div>`;
                 $("#content").html(content);
@@ -2513,7 +2447,7 @@ async function file(path) {
                 <div class="card-body text-center">
                     <div class="${UI.file_view_alert_class}" id="file_details" role="alert"><b>404.</b> That’s an error. ` + error + `</div>
                     <p>The requested URL was not found on this server. That’s all we know.</p>
-                    <a href="/home" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i>Home</a>
+                    <a href="/" type="button" class="btn btn-success"><i class="fas fa-home fa-fw"></i>Home</a>
                 </div>
             </div>`;
             $("#content").html(content);
@@ -2643,6 +2577,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
                 <span class="tth">Size</span>
                 </th>
                 <td>${size}</td>
+               </td>
                         </tr>
                     </tbody>
                 </table>
@@ -2692,6 +2627,9 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
         img.src = poster;
     }
 }
+
+// Also update the file_code function to include GDFlix button
+// Replace the download section in file_code function with this:
 
 function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
@@ -2745,6 +2683,7 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
                  <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
+                  </td>
                            </tr>
                      </tbody>
                  </table>
@@ -2819,6 +2758,31 @@ function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Ch
     }
 }
 
+
+// =============================================================================
+// PLAYER VISIBILITY HELPER
+// Decides whether the inline audio/video player should be hidden.
+//
+// Logic controlled by UI config flags (set in worker.js):
+//   disable_player                     — master switch. If true → ALWAYS hide the player,
+//                                         regardless of file size.
+//   extralink_large_file_threshold_gb  — size threshold in GB (default 5). Files AT or
+//                                         ABOVE this size get the player hidden too — for
+//                                         EVERYONE, login and non-login — nudging large
+//                                         files towards the ExtraLink instead of inline
+//                                         streaming.
+// =============================================================================
+function shouldDisablePlayer(bytes) {
+    if (UI.disable_player) return true;
+    // Use player_disable_threshold_gb when set, fall back to
+    // extralink_large_file_threshold_gb, then old gdflix key for backward compat, then 10 GB.
+    const thresholdGb = UI.player_disable_threshold_gb
+        || UI.extralink_large_file_threshold_gb
+        || UI.gdflix_large_file_threshold_gb
+        || 10;
+    const thresholdBytes = thresholdGb * 1024 * 1024 * 1024;
+    return bytes >= thresholdBytes;
+}
 
 // Document display video  mkv|mp4|webm|avi|
 function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
@@ -2987,6 +2951,7 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
                   <span class="tth">Size</span>
                     </th>
                     <td>${size}</td>
+                    </td>
                              </tr>
                          </tbody>
                     </table>
@@ -3271,7 +3236,6 @@ function formatFileSize(bytes) {
     if (bytes >= 1024)          return (bytes / 1024).toFixed(2) + ' KB';
     if (bytes > 1)              return bytes + ' bytes';
     if (bytes === 1)            return '1 byte';
-    if (bytes === 0)            return '0 bytes'; // FIX: was returning '' for 0-byte files
     return '';
 }
 
@@ -3322,9 +3286,6 @@ $(function() {
 // Copy to Clipboard for Direct Links, This will be modified soon with other UI
 function copyFunction() {
     var copyText = document.getElementById("dlurl");
-    // FIX: #dlurl only exists on file_code and file_others pages. Guard against null
-    // to prevent TypeError if called from a page without this element (e.g. video page).
-    if (!copyText) { logError('copyFunction: #dlurl element not found'); return; }
     copyText.select();
     copyText.setSelectionRange(0, 99999);
 
@@ -3542,7 +3503,7 @@ function generateGDFlixLink(fileId) {
         .then(r => { if (!r.ok) throw new Error(`GDFlix error: ${r.status}`); return r.json(); })
         .then(data => {
             const link = data.error === 0 && (data.key || data.id)
-                ? `https://gdflix.dev/file/${data.key || data.id}`
+                ? `https://gdlink.dev/file/${data.key || data.id}`
                 : (() => { throw new Error(data.message || 'Unexpected GDFlix response'); })();
             isSafari ? (tab && !tab.closed ? tab.location.href = link : window.open(link, '_blank')) : window.open(link, '_blank');
             resolve(link);
@@ -3612,35 +3573,25 @@ $(document).on('click', '.download-via-extralink', function() {
 // COLUMN SORT — Name & Size only
 // =============================================================================
 let _tmSortState = { col: null, dir: 1 };
-// FIX Bug J: reset sort state on each new folder load so users see server-default order
-// when navigating to a new folder, not the previous folder's sort preference.
-function _resetTMSort() { _tmSortState = { col: null, dir: 1 }; }
 
 function initTMSort() {
     const bar = document.getElementById('tm-sort-bar');
     if (!bar) return;
-    // FIX: was registering new onclick on every button on every click — wasteful.
-    // Now: register handlers only once (guarded by _tmSortHandlersSet flag),
-    // and update only the icons on subsequent calls.
+    // Reset icons
     bar.querySelectorAll('.tm-sort-btn').forEach(btn => {
         const icon = btn.querySelector('.tm-sort-icon');
         const col = btn.dataset.col;
-        // Update icon to reflect current sort state
         if (icon) icon.textContent = _tmSortState.col === col ? (_tmSortState.dir === 1 ? ' ▲' : ' ▼') : '';
-        // Register handler only once
-        if (!btn._tmSortBound) {
-            btn._tmSortBound = true;
-            btn.addEventListener('click', function () {
-                if (_tmSortState.col === col) {
-                    _tmSortState.dir *= -1;
-                } else {
-                    _tmSortState.col = col;
-                    _tmSortState.dir = 1;
-                }
-                tmSortList();
-                initTMSort(); // refresh icons only
-            });
-        }
+        btn.onclick = function () {
+            if (_tmSortState.col === col) {
+                _tmSortState.dir *= -1;
+            } else {
+                _tmSortState.col = col;
+                _tmSortState.dir = 1;
+            }
+            tmSortList();
+            initTMSort(); // refresh icons
+        };
     });
 }
 
@@ -3947,13 +3898,8 @@ $(document).ready(function () {
 
 // =============================================================================
 // create a MutationObserver to listen for changes to the DOM
-// FIX: was calling updateCheckboxes() on every DOM mutation — during a 50-file
-// list render this fired 50+ times, each doing a full querySelectorAll scan.
-// Debounced to 100ms so it only runs once after the DOM settles.
-let _cbDebounce = null;
 const observer = new MutationObserver(() => {
-    clearTimeout(_cbDebounce);
-    _cbDebounce = setTimeout(updateCheckboxes, 100);
+    updateCheckboxes();
 });
 
 // define the options for the observer (listen for changes to child elements)
