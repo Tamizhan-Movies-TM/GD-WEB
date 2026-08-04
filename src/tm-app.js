@@ -1,5 +1,5 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
-// v2.6.1
+// v2.7.0
 
 // =============================================================================
 // OPTIMIZATION: Conditional Logging
@@ -2042,7 +2042,7 @@ function append_search_result_to_list(files) {
                         _fetchShort('/generate-cpmshort'),
                         _fetchShort('/generate-nowshort')
                     ]).then(function(results) {
-                        window._shortenerCache[url] = { gplinks: results[0], nowshort: results[1] };
+                        window._shortenerCache[url] = { cpmshort: results[0], nowshort: results[1] };
                         log('Prefetch cached:', url);
                     });
                 });
@@ -2259,7 +2259,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         $('#modal-body-space').attr('style', 'padding-bottom: 0 !important; margin-bottom: 0 !important; border-bottom: none !important;');
         $('#modal-body-space-buttons').attr('style', 'padding-top: 10px !important; margin-top: 0 !important; border-top: none !important; text-align: center !important; display: flex !important; justify-content: center !important; gap: 10px !important; flex-wrap: wrap !important;');
 
-        // ── Prefetch cache: window._shortenerCache[directUrl] = { gplinks, nowshort } ──
+        // ── Prefetch cache: window._shortenerCache[directUrl] = { cpmshort, nowshort } ──
         // Links are fetched in the background as soon as file rows render.
         // By the time user clicks, the cache is almost always already warm → instant display.
         const cached = window._shortenerCache && window._shortenerCache[directUrl];
@@ -2295,10 +2295,10 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
         }
 
-        if (cached && (cached.gplinks || cached.nowshort)) {
+        if (cached && (cached.cpmshort || cached.nowshort)) {
             // ✅ Cache hit — show buttons instantly, no spinner
             log('Shortener cache hit for:', directUrl);
-            _buildAndShowButtons(cached.gplinks, cached.nowshort);
+            _buildAndShowButtons(cached.cpmshort, cached.nowshort);
         } else {
             // Cache miss — show slim loading placeholders while fetching
             const loadingButtons = `
@@ -2343,7 +2343,7 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
             ]).then(([cpmshortUrl, nowshortUrl]) => {
                 // Store in cache for next time this file is clicked
                 if (!window._shortenerCache) window._shortenerCache = {};
-                window._shortenerCache[directUrl] = { gplinks: cpmshortUrl, nowshort: nowshortUrl };
+                window._shortenerCache[directUrl] = { cpmshort: cpmshortUrl, nowshort: nowshortUrl };
                 log('Shortener cache stored for:', directUrl);
                 _buildAndShowButtons(cpmshortUrl, nowshortUrl);
             });
@@ -3575,7 +3575,7 @@ function generateGDFlixLink(fileId) {
         .then(r => { if (!r.ok) throw new Error(`GDFlix error: ${r.status}`); return r.json(); })
         .then(data => {
             const link = data.error === 0 && (data.key || data.id)
-                ? `https://gdlink.dev/file/${data.key || data.id}`
+                ? `https://gdflix.dev/file/${data.key || data.id}`
                 : (() => { throw new Error(data.message || 'Unexpected GDFlix response'); })();
             isSafari ? (tab && !tab.closed ? tab.location.href = link : window.open(link, '_blank')) : window.open(link, '_blank');
             resolve(link);
