@@ -47,17 +47,10 @@ function _getIcon(ext, mimeType, iconLink) {
 
 // Check if user is logged in by verifying session cookie
 function isUserLoggedIn() {
-    const cookies = document.cookie.split(';');
-    for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === 'session') {
-            const sessionValue = value ? value.trim() : '';
-            // Check if session has a valid value
-            if (sessionValue && sessionValue !== 'null' && sessionValue !== '' && sessionValue !== 'undefined') {
-                log('User is logged in, session:', sessionValue);
-                return true;
-            }
-        }
+    const sessionValue = getCookie('session');
+    if (sessionValue && sessionValue !== 'null' && sessionValue !== 'undefined') {
+        log('User is logged in, session:', sessionValue);
+        return true;
     }
     log('User is not logged in');
     return false;
@@ -3401,15 +3394,11 @@ function updateCheckboxes() {
     selectAllCheckbox.addEventListener('click', selectAllCheckbox._selectAllHandler);
 }
 
-function getCookie(name) { // ✅ FIX: removed unnecessary async (no await inside)
-    var nameEQ = name + "=";
-    var ca = document.cookie.split(';');
-    for (var i = 0; i < ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
-    }
-    return null;
+function getCookie(name) {
+    const match = document.cookie.match(
+        new RegExp('(?:^|;\\s*)' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)')
+    );
+    return match ? decodeURIComponent(match[1]) : null;
 }
 
 // Copy File to User Drive
@@ -3425,9 +3414,7 @@ async function copyFile(driveid) {
         }
 
         document.getElementById('spinner').style.display = 'block';
-        const _cookieExpiry = new Date();
-        _cookieExpiry.setFullYear(_cookieExpiry.getFullYear() + 1);
-        document.cookie = `root_id=${user_folder_id}; expires=${_cookieExpiry.toUTCString()}; path=/`;
+        document.cookie = `root_id=${encodeURIComponent(user_folder_id)}; Max-Age=${365 * 24 * 60 * 60}; path=/; SameSite=Lax`;
         const time = Math.floor(Date.now() / 1000);
         const response = await fetch('/copy', {
             method: 'POST',
