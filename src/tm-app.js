@@ -560,16 +560,16 @@ strong {
       </div>
       <div class="card-body d-flex flex-wrap gap-2 justify-content-evenly align-items-center">
         <a href="${UI.telegram_channel_main}" target="_blank" title="𝕋ꪖꪑⅈ𝕫ꫝꪖꪀ 𝕄ꪮꪑⅈꫀડ">
-            <img class="image" alt="tamizhan" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tm-icon.png">
+            <img class="image" alt="tamizhan" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@kings/images/tm-icon.png">
         </a>
         <a href="${UI.telegram_channel_hollywood}" target="_blank" title="Hollywood Tamizhan Movies">
-            <img class="image" alt="Movies" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/htm-icon.png">
+            <img class="image" alt="Movies" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@kings/images/htm-icon.png">
         </a>
         <a href="${UI.telegram_channel_series}" target="_blank" title="Tamizhan Web Series">
-            <img class="image" alt="Series" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/tws-icon.png">
+            <img class="image" alt="Series" style="height: 45px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@kings/images/tws-icon.png">
         </a>
         <a href="${UI.telegram_channel_backup}" target="_blank" title="Tamizhan Movies Backup">
-            <img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/telegram.png">
+            <img class="image" alt="telegram" style="height: 50px;" src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@kings/images/telegram.png">
         </a>
       </div>
     </div>
@@ -2615,7 +2615,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
                     </div>
                 </div>` : `
                 <div class="h-100 border border-dark rounded d-flex justify-content-center align-items-center flex-column gap-3 pt-4 pb-4" style="--bs-border-opacity: .5;">
-                    <span><img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/zip-icon.png" alt="Zip Icon" style="max-width: 200px; height: auto; object-fit: contain;"></span>
+                    <span><img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@kings/images/zip-icon.png" alt="Zip Icon" style="max-width: 200px; height: auto; object-fit: contain;"></span>
                     <span><a href="${UI.telegram_guide_zip}" target="_blank" style="text-decoration: none; color: #00d4ff;">👉🏻 How to Extract Zip file ✅</a></span>
                 </div>`}
             </div>
@@ -2859,14 +2859,14 @@ function shouldDisablePlayer(bytes) {
 // Document display video  mkv|mp4|webm|avi|
 function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
     // Define all player icons
-    const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@kings/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@kings/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const xplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@kings/images/xplayer-icon.png" alt="XPlayer" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const playit_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@kings/images/playit-icon.png" alt="Playit" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const new_download_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@kings/images/download-icon.png" alt="Download" style="height: 32px; width: 32px; margin-right: 5px;">`;
     // iPhone player icons
-    const vlc_ios_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC for iOS" style="height: 32px; width: 32px; margin-right: 5px;">`;
-    const infuse_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Infuse.png" alt="Infuse" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const vlc_ios_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@kings/images/vlc.png" alt="VLC for iOS" style="height: 32px; width: 32px; margin-right: 5px;">`;
+    const infuse_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@kings/images/Infuse.png" alt="Infuse" style="height: 32px; width: 32px; margin-right: 5px;">`;
 
     const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
       let player = '';
@@ -2918,7 +2918,7 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
                      style="display:flex;align-items:center;gap:12px;padding:12px 16px;
                             border-radius:12px;text-decoration:none;color:#fff;
                             background:rgba(255,165,0,0.18);border:1.5px solid #FFA500;">
-                    <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png"
+                    <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@kings/images/vlc.png"
                          style="height:28px;width:28px;border-radius:6px;"
                          onerror="this.style.display='none'">
                     <div style="text-align:left;">
@@ -2933,7 +2933,7 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
                      style="display:flex;align-items:center;gap:12px;padding:12px 16px;
                             border-radius:12px;text-decoration:none;color:#fff;
                             background:rgba(251,191,36,0.18);border:1.5px solid #fbbf24;">
-                    <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Infuse.png"
+                    <img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@kings/images/Infuse.png"
                          style="height:28px;width:28px;border-radius:6px;"
                          onerror="this.style.display='none'">
                     <div style="text-align:left;">
