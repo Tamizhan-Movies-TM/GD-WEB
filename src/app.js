@@ -3595,7 +3595,7 @@ function generateGDFlixLink(fileId) {
         .then(r => { if (!r.ok) throw new Error(`GDFlix error: ${r.status}`); return r.json(); })
         .then(data => {
             const link = data.error === 0 && (data.key || data.id)
-                ? `https://gdlink.dev/file/${data.key || data.id}`
+                ? `https://gdflix.dev/file/${data.key || data.id}`
                 : (() => { throw new Error(data.message || 'Unexpected GDFlix response'); })();
             isSafari ? (tab && !tab.closed ? tab.location.href = link : window.open(link, '_blank')) : window.open(link, '_blank');
             resolve(link);
