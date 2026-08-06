@@ -1,5 +1,5 @@
 // Redesigned by telegram.dog/TheFirstSpeedster at https://www.npmjs.com/package/@googledrive/index which was written by someone else, credits are given on Source Page.More actions
-// v2.6.1
+// v2.7.2
 
 // =============================================================================
 // OPTIMIZATION: Conditional Logging
@@ -1526,8 +1526,10 @@ function append_files_to_fallback_list(path, files) {
                 ${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
             }
         }
+        // FIX: guard against null — element only exists when UI.allow_selecting_files is true
         if (is_file && UI.allow_selecting_files) {
-            document.getElementById('select_items').style.display = 'block';
+            const _si = document.getElementById('select_items');
+            if (_si) _si.style.display = 'block';
         }
 
 
@@ -1567,8 +1569,13 @@ function append_files_to_fallback_list(path, files) {
             try {
                 localStorage.setItem(path, JSON.stringify(new_children));
             } catch (e) {
-                // QuotaExceededError: clear cache and retry once
-                try { localStorage.clear(); localStorage.setItem(path, JSON.stringify(new_children)); } catch (_) { /* ignore */ }
+                // FIX: QuotaExceededError — only evict folder listing caches, not passwords/search caches
+                try {
+                    Object.keys(localStorage)
+                        .filter(k => !k.startsWith('password') && !k.startsWith('tm_pw_') && !k.startsWith('tm_srch:'))
+                        .forEach(k => localStorage.removeItem(k));
+                    localStorage.setItem(path, JSON.stringify(new_children));
+                } catch (_) { /* ignore */ }
             }
         }
 
@@ -1674,8 +1681,10 @@ function append_files_to_list(path, files) {
         ${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
         }
     }
+    // FIX: guard against null — element only exists when UI.allow_selecting_files is true
     if (is_file && UI.allow_selecting_files) {
-        document.getElementById('select_items').style.display = 'block';
+        const _si = document.getElementById('select_items');
+        if (_si) _si.style.display = 'block';
     }
 
 
@@ -1715,8 +1724,13 @@ function append_files_to_list(path, files) {
         try {
             localStorage.setItem(path, JSON.stringify(new_children));
         } catch (e) {
-            // QuotaExceededError: clear cache and retry once
-            try { localStorage.clear(); localStorage.setItem(path, JSON.stringify(new_children)); } catch (_) { /* ignore */ }
+            // FIX: QuotaExceededError — only evict folder listing caches, not passwords/search caches
+            try {
+                Object.keys(localStorage)
+                    .filter(k => !k.startsWith('password') && !k.startsWith('tm_pw_') && !k.startsWith('tm_srch:'))
+                    .forEach(k => localStorage.removeItem(k));
+                localStorage.setItem(path, JSON.stringify(new_children));
+            } catch (_) { /* ignore */ }
         }
     }
 
@@ -2005,8 +2019,10 @@ function append_search_result_to_list(files) {
             html += `</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">` + item['size'] + `</span>` : ``}<span class="d-flex gap-2">
             ${UI.display_download ? `<a class="d-flex align-items-center" href="${link}" title="via Index"><svg xmlns="http://www.w3.org/2000/svg" width="23" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"></path> <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"></path></svg></a>` : ``}</span></div>`;
         }
+        // FIX: guard against null — element only exists when UI.allow_selecting_files is true
         if (is_file && UI.allow_selecting_files) {
-            document.getElementById('select_items').style.display = 'block';
+            const _si = document.getElementById('select_items');
+            if (_si) _si.style.display = 'block';
         }
         // When it is page 1, remove the horizontal loading bar
         // PERF: Use append() on pages > 0 — avoids reading then rewriting entire innerHTML
