@@ -2287,29 +2287,29 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
         function _buildAndShowButtons(cpmshortUrl, nowshortUrl) {
             let buttonsHtml = '';
 
-            if (cpmshortUrl) {
-                buttonsHtml += `
-                    <a href="${getChromeOpenUrl(cpmshortUrl)}"
-                       class="btn btn-info d-flex align-items-center gap-2"
-                       target="_blank"
-                       title="Open via CPMShort">
-                        𝗖𝗣𝗠𝗦𝗵𝗼𝗿𝘁
-                    </a>`;
-            } else {
-                buttonsHtml += `<button class="btn btn-secondary" disabled>CPMShort Failed</button>`;
-            }
-
             if (nowshortUrl) {
                 const rotatedNowshortUrl = _rotateNowshortUrl(nowshortUrl);
                 buttonsHtml += `
                     <a href="${getChromeOpenUrl(rotatedNowshortUrl)}"
-                       class="btn btn-success d-flex align-items-center gap-2"
+                       class="btn btn-info d-flex align-items-center gap-2"
                        target="_blank"
                        title="Open via Nowshort">
                         𝗡𝗼𝘄𝘀𝗵𝗼𝗿𝘁
                     </a>`;
             } else {
                 buttonsHtml += `<button class="btn btn-secondary" disabled>Nowshort Failed</button>`;
+            }
+
+            if (cpmshortUrl) {
+                buttonsHtml += `
+                    <a href="${getChromeOpenUrl(cpmshortUrl)}"
+                       class="btn btn-success d-flex align-items-center gap-2"
+                       target="_blank"
+                       title="Open via CPMShort">
+                        𝗖𝗣𝗠𝗦𝗵𝗼𝗿𝘁
+                    </a>`;
+            } else {
+                buttonsHtml += `<button class="btn btn-secondary" disabled>CPMShort Failed</button>`;
             }
 
             $('#modal-body-space-buttons').html(buttonsHtml + close_btn);
@@ -2326,13 +2326,13 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
                     <div class="spinner-border spinner-border-sm" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    CPMShort
+                    Nowshort
                 </button>
                 <button class="btn btn-success d-flex align-items-center gap-2" disabled>
                     <div class="spinner-border spinner-border-sm" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    Nowshort
+                    CPMShort
                 </button>`;
             $('#modal-body-space-buttons').html(loadingButtons + close_btn);
 
@@ -3595,7 +3595,7 @@ function generateGDFlixLink(fileId) {
         .then(r => { if (!r.ok) throw new Error(`GDFlix error: ${r.status}`); return r.json(); })
         .then(data => {
             const link = data.error === 0 && (data.key || data.id)
-                ? `https://gdflix.dev/file/${data.key || data.id}`
+                ? `https://gdlink.dev/file/${data.key || data.id}`
                 : (() => { throw new Error(data.message || 'Unexpected GDFlix response'); })();
             isSafari ? (tab && !tab.closed ? tab.location.href = link : window.open(link, '_blank')) : window.open(link, '_blank');
             resolve(link);
