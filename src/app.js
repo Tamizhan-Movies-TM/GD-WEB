@@ -2037,7 +2037,8 @@ function append_search_result_to_list(files) {
                 const _shouldPrefetch = typeof UI !== 'undefined' && UI.show_url_shortener === true && !isUserLoggedIn();
                 if (!_shouldPrefetch) return;
                 if (!window._shortenerCache) window._shortenerCache = {};
-                const _publicOrigin = 'https://tm.play-streams.workers.dev';
+                // Read from worker config — update uiConfig.public_worker_url to change the CF subdomain
+                const _publicOrigin = (window.UI && window.UI.public_worker_url) || window.location.origin;
 
                 files.forEach(function(item) {
                     if (item['mimeType'] === 'application/vnd.google-apps.folder') return;
@@ -2102,11 +2103,11 @@ async function onSearchResultItemClick(file_id, can_preview, file) {
     $('#SearchModelLabel').html(title);
 
     // Create the direct URL
-    // FIX: Use tm.play-streams.workers.dev (public domain) for shortener links.
-    // window.location.origin is tamizhan-movies.site (login-protected) — shorteners
-    // must point to the public workers.dev domain so unauthenticated users can open them.
+    // Public worker URL — no login required. Read from uiConfig.public_worker_url (set in worker.js).
+    // Using window.location.origin would be wrong here: the main domain is login-protected.
+    // To switch CF subdomain, update public_worker_url in uiConfig and redeploy the worker.
     const encodedFileId = encodeURIComponent(file_id);
-    const _publicOrigin = 'https://tm.play-streams.workers.dev';
+    const _publicOrigin = (window.UI && window.UI.public_worker_url) || window.location.origin;
     const isFolder = file['mimeType'] === 'application/vnd.google-apps.folder';
     const directUrl = isFolder
         ? `${_publicOrigin}/fallback?id=${encodedFileId}`
