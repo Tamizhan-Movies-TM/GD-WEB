@@ -1954,10 +1954,19 @@ function render_search_result_list() {
         }
     }, { passive: true });
 
-    // ✅ Show password expiry warning on search result page as well
-    if (typeof checkPasswordExpiryWarning === 'function') {
-        checkPasswordExpiryWarning();
-    }
+    // Fetch expiry from worker API — search page bypasses the auth block so
+    // window.PW_EXPIRES_IN may be null. This call gets the real value.
+    fetch('/api/expiry', { method: 'GET', credentials: 'include' })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+            if (data && typeof data.days === 'number' && data.days > 0 && data.days <= 3) {
+                window.PW_EXPIRES_IN = data.days;
+                if (typeof checkPasswordExpiryWarning === 'function') {
+                    checkPasswordExpiryWarning();
+                }
+            }
+        })
+        .catch(function() {});
 }
 
 /**
