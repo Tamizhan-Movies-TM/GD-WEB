@@ -3179,21 +3179,7 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
                     <div class="text-center">
                         <p class="mb-2">Download via</p>
                         <div class="btn-group text-center">
-                           <button type="button" class="btn btn-success tm-download-btn"
-               data-url="${url}" data-name="${encoded_name}">
-         <i class="fa-solid fa-circle-down"></i>𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱
-       </button>
-                            ${_canSeePlayerMenu(bytes) ? `
-                            <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split"
-                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span class="sr-only"></span>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.playit.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">Playit</a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=video.player.videoplayer;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">XPlayer</a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=com.mxtech.videoplayer.ad;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">MX Player</a>
-                                <a class="dropdown-item" href="intent:${url}#Intent;package=org.videolan.vlc;category=android.intent.category.DEFAULT;type=video/*;S.title=${encoded_name};end">VLC Player</a>
-                            </div>` : ''}
+                            ${getDownloadButton(url, encoded_name, file_id, bytes)}
                         </div>
                     </div>
                 </div>
@@ -3400,17 +3386,6 @@ function updateCheckboxes() {
         });
     };
     selectAllCheckbox.addEventListener('click', selectAllCheckbox._selectAllHandler);
-}
-
-function getCookie(name) { // ✅ FIX: removed unnecessary async (no await inside)
-    var nameEQ = name + "=";
-    var ca = document.cookie.split(';');
-    for (var i = 0; i < ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
-    }
-    return null;
 }
 
 // =============================================================================
