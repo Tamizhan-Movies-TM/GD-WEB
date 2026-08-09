@@ -1954,19 +1954,10 @@ function render_search_result_list() {
         }
     }, { passive: true });
 
-    // Fetch expiry from worker API — search page bypasses the auth block so
-    // window.PW_EXPIRES_IN may be null. This call gets the real value.
-    fetch('/api/expiry', { method: 'GET', credentials: 'include' })
-        .then(function(r) { return r.ok ? r.json() : null; })
-        .then(function(data) {
-            if (data && typeof data.days === 'number' && data.days > 0 && data.days <= 3) {
-                window.PW_EXPIRES_IN = data.days;
-                if (typeof checkPasswordExpiryWarning === 'function') {
-                    checkPasswordExpiryWarning();
-                }
-            }
-        })
-        .catch(function() {});
+    // ✅ Show password expiry warning on search result page as well
+    if (typeof checkPasswordExpiryWarning === 'function') {
+        checkPasswordExpiryWarning();
+    }
 }
 
 /**
@@ -2420,7 +2411,6 @@ function get_file(path, file, callback) {
 
 async function fallback(id, type) {
     if (type) { // is a file id
-        var cookie_folder_id = getCookie("root_id") || '';
         $('#content').html(`<div class="d-flex justify-content-center" style="height: 150px"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`);
         fetch("/0:fallback", {
                 method: "POST",
@@ -2459,13 +2449,13 @@ async function fallback(id, type) {
                     var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
                     if (mimeType.includes("video") || video.includes(fileExtension)) {
                         poster = obj.thumbnailLink ? poster : UI.poster;
-                        file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id);
                     } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
-                        file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id);
                     } else if (code.includes(fileExtension)) {
-                        file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id);
                     } else {
-                        file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                        file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id);
                     }
                 }
             })
@@ -2490,7 +2480,6 @@ async function fallback(id, type) {
 
 // File display ?a=view
 async function file(path) {
-    var cookie_folder_id = getCookie("root_id") || '';
     var name = path.split('/').pop();
     $('#content').html(`<div class="d-flex justify-content-center" style="height: 150px"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`);
     fetch("", {
@@ -2529,13 +2518,13 @@ async function file(path) {
                 var poster = obj.thumbnailLink ? obj.thumbnailLink.replace("s220", "s0") : null;
                 if (mimeType.includes("video") || video.includes(fileExtension)) {
                     poster = obj.thumbnailLink ? poster : UI.poster;
-                    file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id);
                 } else if (mimeType.includes("audio") || audio.includes(fileExtension)) {
-                    file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id);
                 } else if (code.includes(fileExtension)) {
-                    file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id);
                 } else {
-                    file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id);
+                    file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id);
                 }
             }
         })
@@ -2556,16 +2545,6 @@ async function file(path) {
    }
 
 const copyButton = `<button onclick="copyFunction()" onmouseout="outFunc()" class="btn btn-primary"><span class="tooltiptext" id="myTooltip"><i class="fas fa-copy fa-fw"></i>Copy</span></button>`
-
-function generateCopyFileBox(file_id, cookie_folder_id) {
-    const copyFileBox = `<div class="row justify-content-center mt-3" id="copyresult">
-  <div class="col-12 col-md-8" id="copystatus"><div class='alert alert-secondary' role='alert'> Send Request to Copy File </div></div>
-  <div class="col-12 col-md-8"> <input id="user_folder_id" type="text" class="form-control" placeholder="Enter Your Folder ID to Copy this File" value="${cookie_folder_id}" required></div>
-  <div class="col-12 col-md-8 mt-2"> <button id="copy_file" onclick="copyFile('${file_id}')" style="margin-top: 5px;" class="btn btn-danger btn-block">Copy File to Own Drive</button></div>
-  </div>`;
-
-    return copyFileBox;
-}
 
 // Document display |zip|.exe/others direct downloads
 // =============================================================================
@@ -2624,9 +2603,7 @@ function getDownloadButton(url, encoded_name, file_id, bytes) {
     }
 }
 
-function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-
+function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id) {
     // Add the container and card elements // wait until image is loaded and then hide spinner
     var content = `
     <div class="card">
@@ -2732,8 +2709,7 @@ function file_others(name, encoded_name, size, bytes, poster, url, mimeType, md5
 // Also update the file_code function to include GDFlix button
 // Replace the download section in file_code function with this:
 
-function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
+function file_code(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id) {
     // Add the container and card elements
     var content = `
     <div class="card">
@@ -2886,7 +2862,7 @@ function shouldDisablePlayer(bytes) {
 }
 
 // Document display video  mkv|mp4|webm|avi|
-function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
+function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5Checksum, createdTime, file_id) {
     // Define all player icons
     const vlc_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const mxplayer_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Mxplayer-icon.png" alt="MX Player" style="height: 32px; width: 32px; margin-right: 5px;">`;
@@ -2897,7 +2873,6 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
     const vlc_ios_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/vlc.png" alt="VLC for iOS" style="height: 32px; width: 32px; margin-right: 5px;">`;
     const infuse_icon = `<img src="https://cdn.jsdelivr.net/gh/Tamizhan-Movies-TM/GD-WEB@master/images/Infuse.png" alt="Infuse" style="height: 32px; width: 32px; margin-right: 5px;">`;
 
-    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
       let player = '';
       let player_js = '';
       let player_css = '';
@@ -3152,9 +3127,7 @@ function file_video(name, encoded_name, size, bytes, poster, url, mimeType, md5C
 }
 
 // File display Audio |mp3|flac|m4a|wav|ogg|
-function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id, cookie_folder_id) {
-    const copyFileBox = UI.allow_file_copy ? generateCopyFileBox(file_id, cookie_folder_id) : '';
-
+function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum, createdTime, file_id) {
     // Add the container and card elements
     var player = `<video id="aplayer" poster="${UI.audioposter}" class="video-js vjs-default-skin rounded" controls preload="none" width="100%" height="100%" data-setup='{"fill": true}' style="--plyr-captions-text-color: #ffffff;--plyr-captions-background: #000000; object-fit: cover; min-height: 200px;">
                     <source src="${url}" type="audio/mpeg" />
@@ -3165,7 +3138,6 @@ function file_audio(name, encoded_name, size, bytes, url, mimeType, md5Checksum,
     const content = `
     <div class="card">
         <div class="card-header ${UI.file_view_alert_class}">
-            ${copyFileBox}
             <i class="fas fa-file-alt fa-fw"></i>File Information
         </div>
         <div class="card-body row g-3">
@@ -3439,59 +3411,6 @@ function getCookie(name) { // ✅ FIX: removed unnecessary async (no await insid
         if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
     }
     return null;
-}
-
-// Copy File to User Drive
-async function copyFile(driveid) {
-    try {
-        const copystatus = document.getElementById('copystatus');
-        copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> Processing... </div>`;
-
-        const user_folder_id = document.getElementById('user_folder_id').value;
-        if (user_folder_id === '') {
-            copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> Empty ID </div>`;
-            return null;
-        }
-
-        document.getElementById('spinner').style.display = 'block';
-        const _cookieExpiry = new Date();
-        _cookieExpiry.setFullYear(_cookieExpiry.getFullYear() + 1);
-        document.cookie = `root_id=${user_folder_id}; expires=${_cookieExpiry.toUTCString()}; path=/`;
-        const time = Math.floor(Date.now() / 1000);
-        const response = await fetch('/copy', {
-            method: 'POST',
-            cache: 'no-cache',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: `id=${encodeURIComponent(driveid)}&root_id=${user_folder_id}&resourcekey=null&time=${time}`
-        });
-
-        if (response.status === 500) {
-            copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> Unable to Copy File, Make Sure you've added system@zindex.eu.org to your Destination Folder </div>`;
-        } else if (response.status === 401) {
-            copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> Unauthorized </div>`;
-        } else if (response.ok) {
-            const data = await response.json();
-            if (data && data.name) {
-                const link = `https://drive.google.com/file/d/${data.id}/view?usp=share_link`;
-                const copyresult = document.getElementById('copyresult');
-                copyresult.innerHTML = `<div class="col-12 col-md-12"> <input type="text" id="usercopiedfile" class="form-control" placeholder="Enter Your Folder ID to Copy this File" value="${link}" readonly></div> <div class="col-12 col-md-12"> <a href="${link}" target="_blank" style="margin-top: 5px;" class="btn btn-danger btn-block">Open Copied File</a></div>`;
-            } else if (data && data.error && data.error.message) {
-                copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> ` + data.error.message + ` </div>`;
-            } else {
-                copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> Unable to Copy File </div>`;
-            }
-        } else {
-            copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> Unable to Copy File </div>`;
-        }
-
-        document.getElementById('spinner').style.display = 'none';
-    } catch (error) {
-        const copystatus = document.getElementById('copystatus');
-        copystatus.innerHTML = `<div class='alert alert-danger' role='alert'> An error occurred ` + error + `</div>`;
-        document.getElementById('spinner').style.display = 'none';
-    }
 }
 
 // =============================================================================
