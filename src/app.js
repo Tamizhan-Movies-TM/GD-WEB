@@ -1083,6 +1083,8 @@ function nav(path) {
     }
 
     $('#nav').html(html);
+    // Wire smart search to navbar input
+    if (typeof window.wireSmartSearch === 'function') window.wireSmartSearch();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1367,39 +1369,35 @@ function nav(path) {
         return true;
     }
 
-    // ── Wire up after DOM + dynamic nav are ready ─────────────────────────────
-    document.addEventListener('DOMContentLoaded', function() {
+    // Track which inputs are already wired to avoid double-binding
+    const _wired = {};
 
-        // Hide any open dropdown on outside click (covers both dropdowns)
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('#search_bar_form') &&
-                !e.target.closest('#search_result_bar_form')) {
-                hideDropdown('smart_search_dropdown');
-                hideDropdown('smart_search_dropdown_results');
-            }
-        }, { passive: true });
-
-        // Navbar input — injected dynamically by init(), poll for it
-        let _att1 = 0;
-        const _w1 = setInterval(function() {
-            if (++_att1 > 50) { clearInterval(_w1); return; }
+    // ── Expose global so init() and render_search_result_list() can call directly
+    window.wireSmartSearch = function() {
+        // Navbar bar
+        if (!_wired['nav'] && document.getElementById('smart_search_input')) {
             if (wireInput('smart_search_input', 'smart_search_dropdown', 'search_bar_form')) {
-                clearInterval(_w1);
-                log('[SmartSearch] navbar wired');
+                _wired['nav'] = true;
+                console.log('[SmartSearch] navbar wired');
             }
-        }, 200);
-
-        // Results page input — injected by render_search_result_list(), poll for it
-        let _att2 = 0;
-        const _w2 = setInterval(function() {
-            if (++_att2 > 75) { clearInterval(_w2); return; }
+        }
+        // Results page bar
+        if (!_wired['results'] && document.getElementById('smart_search_input_results')) {
             if (wireInput('smart_search_input_results', 'smart_search_dropdown_results', 'search_result_bar_form')) {
-                clearInterval(_w2);
-                log('[SmartSearch] results bar wired');
+                _wired['results'] = true;
+                console.log('[SmartSearch] results bar wired');
             }
-        }, 200);
+        }
+    };
 
-    });
+    // ── Outside click hides both dropdowns ────────────────────────────────────
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#search_bar_form') &&
+            !e.target.closest('#search_result_bar_form')) {
+            hideDropdown('smart_search_dropdown');
+            hideDropdown('smart_search_dropdown_results');
+        }
+    }, { passive: true });
 
 })();
 
@@ -2308,6 +2306,9 @@ function render_search_result_list() {
     if (typeof checkPasswordExpiryWarning === 'function') {
         checkPasswordExpiryWarning();
     }
+
+    // Wire smart search to results page input (called after HTML is injected)
+    if (typeof window.wireSmartSearch === 'function') window.wireSmartSearch();
 }
 
 /**
