@@ -1097,14 +1097,15 @@ function requestListPath(path, params, resultCallback, authErrorCallback, retrie
     };
     $('#update').show();
     document.getElementById('update').innerHTML = `<div class='alert alert-info' role='alert'> Connecting...</div>`;
+    const _fallbackEndpoint = `/${window.current_drive_order || 0}:fallback`;
     if (fallback) {
-        path = "/0:fallback"
+        path = _fallbackEndpoint;
     }
 
     function performRequest(remainingRetries) {
         // Add 15s timeout so a hung server doesn't stall
         // the request until Cloudflare Worker's CPU limit is hit.
-        fetch(fallback ? "/0:fallback" : path, {
+        fetch(fallback ? _fallbackEndpoint : path, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
