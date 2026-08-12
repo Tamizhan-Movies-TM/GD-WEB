@@ -1183,9 +1183,9 @@ function nav(path) {
     }
 
     // ── Render dropdown ───────────────────────────────────────────────────────
-    function renderDropdown(query) {
-        const input    = document.getElementById('smart_search_input');
-        const dropdown = document.getElementById('smart_search_dropdown');
+    function renderDropdown(query, dropdownId) {
+        dropdownId = dropdownId || 'smart_search_dropdown';
+        const dropdown = document.getElementById(dropdownId);
         if (!input || !dropdown) return;
 
         ensureHoverStyle();
@@ -1268,14 +1268,16 @@ function nav(path) {
         dropdown.style.display = 'block';
     }
 
-    function hideDropdown() {
-        const d = document.getElementById('smart_search_dropdown');
+    function hideDropdown(dropdownId) {
+        dropdownId = dropdownId || 'smart_search_dropdown';
+        const d = document.getElementById(dropdownId);
         if (d) d.style.display = 'none';
     }
 
     // ── Keyboard navigation ───────────────────────────────────────────────────
-    function handleKeyNav(e, input) {
-        const items = Array.from(document.querySelectorAll('#smart_search_dropdown .ss-item'));
+    function handleKeyNav(e, input, dropdownId) {
+        dropdownId = dropdownId || 'smart_search_dropdown';
+        const items = Array.from(document.querySelectorAll('#' + dropdownId + ' .ss-item'));
         if (!items.length) return;
         let idx = items.findIndex(el => el.classList.contains('ss-active'));
 
@@ -1301,89 +1303,102 @@ function nav(path) {
         query = (query || '').trim();
         if (!query) return;
         saveHistory(query);
-        hideDropdown();
+        hideDropdown('smart_search_dropdown');
+        hideDropdown('smart_search_dropdown_results');
         const cur = window.current_drive_order || 0;
         window.location.href = '/' + cur + ':search?q=' + encodeURIComponent(query);
     };
 
-    // ── Wire up after DOM is ready (nav is injected dynamically) ─────────────
+    // ── Core: wire one input + dropdown pair ────────────────────────────────────
+    function wireInput(inputId, dropdownId, formId) {
+        const input    = document.getElementById(inputId);
+        const dropdown = document.getElementById(dropdownId);
+        if (!input || !dropdown) return false;
+
+        // Save history on form submit
+        const form = formId ? document.getElementById(formId) : null;
+        if (form) {
+            form.addEventListener('submit', function() { saveHistory(input.value.trim()); });
+        }
+
+        // Debounced input — instant local render + live server fetch
+        input.addEventListener('input', function() {
+            clearTimeout(_debounceTimer);
+            const q = this.value.trim();
+            _debounceTimer = setTimeout(function() {
+                if (q === _lastQuery) return;
+                _lastQuery = q;
+                renderDropdown(q, dropdownId);
+                if (q.length >= MIN_CHARS) {
+                    const cur = window.current_drive_order || 0;
+                    fetch('/' + cur + ':autocomplete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ q: q }),
+                        signal: AbortSignal.timeout(4000)
+                    })
+                    .then(r => r.ok ? r.json() : null)
+                    .then(data => {
+                        if (!data || !data.suggestions || !data.suggestions.length) return;
+                        if (q !== _lastQuery) return;
+                        const _liveKey = 'tm_srch:__ac__' + q.toLowerCase();
+                        try {
+                            localStorage.setItem(_liveKey, JSON.stringify({
+                                data: { files: data.suggestions.map(s => ({ name: s.name, mimeType: s.mimeType })) }
+                            }));
+                        } catch(_) {}
+                        renderDropdown(q, dropdownId);
+                    })
+                    .catch(() => {});
+                }
+            }, DEBOUNCE_MS);
+        });
+
+        // Show on focus
+        input.addEventListener('focus', function() {
+            renderDropdown(this.value.trim(), dropdownId);
+        });
+
+        // Keyboard nav
+        input.addEventListener('keydown', function(e) {
+            handleKeyNav(e, input, dropdownId);
+        });
+
+        return true;
+    }
+
+    // ── Wire up after DOM + dynamic nav are ready ─────────────────────────────
     document.addEventListener('DOMContentLoaded', function() {
-        let _attempts = 0;
-        const _wire = setInterval(function() {
-            _attempts++;
-            if (_attempts > 50) { clearInterval(_wire); return; } // 10s timeout
 
-            const input = document.getElementById('smart_search_input');
-            if (!input) return;
-            clearInterval(_wire);
-
-            // Save history on form submit
-            const form = document.getElementById('search_bar_form');
-            if (form) {
-                form.addEventListener('submit', function() {
-                    saveHistory(input.value.trim());
-                });
+        // Hide any open dropdown on outside click (covers both dropdowns)
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#search_bar_form') &&
+                !e.target.closest('#search_result_bar_form')) {
+                hideDropdown('smart_search_dropdown');
+                hideDropdown('smart_search_dropdown_results');
             }
+        }, { passive: true });
 
-            // Debounced input handler — renders local cache instantly,
-            // then fires a lightweight /autocomplete request for live results
-            input.addEventListener('input', function() {
-                clearTimeout(_debounceTimer);
-                const q = this.value.trim();
-                _debounceTimer = setTimeout(function() {
-                    if (q === _lastQuery) return;
-                    _lastQuery = q;
-                    // Always render local/cached results immediately (zero latency)
-                    renderDropdown(q);
-                    // Then hit the server for live Drive suggestions
-                    if (q.length >= MIN_CHARS) {
-                        const cur = window.current_drive_order || 0;
-                        fetch('/' + cur + ':autocomplete', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ q: q }),
-                            signal: AbortSignal.timeout(4000)
-                        })
-                        .then(r => r.ok ? r.json() : null)
-                        .then(data => {
-                            if (!data || !data.suggestions || !data.suggestions.length) return;
-                            // Only apply if the query hasn't changed while we waited
-                            if (q !== _lastQuery) return;
-                            // Merge live suggestions into the global cache pool so
-                            // future keystrokes benefit from them instantly
-                            const _liveKey = 'tm_srch:__ac__' + q.toLowerCase();
-                            try {
-                                localStorage.setItem(_liveKey, JSON.stringify({
-                                    data: { files: data.suggestions.map(s => ({
-                                        name: s.name, mimeType: s.mimeType
-                                    })) }
-                                }));
-                            } catch(_) {}
-                            // Re-render with the merged results
-                            renderDropdown(q);
-                        })
-                        .catch(() => {}); // silently ignore network errors
-                    }
-                }, DEBOUNCE_MS);
-            });
-
-            // Show on focus
-            input.addEventListener('focus', function() {
-                renderDropdown(this.value.trim());
-            });
-
-            // Keyboard nav
-            input.addEventListener('keydown', function(e) {
-                handleKeyNav(e, input);
-            });
-
-            // Hide on outside click
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('#search_bar_form')) hideDropdown();
-            }, { passive: true });
-
-            log('[SmartSearch] wired up');
+        // Navbar input — injected dynamically by init(), poll for it
+        let _att1 = 0;
+        const _w1 = setInterval(function() {
+            if (++_att1 > 50) { clearInterval(_w1); return; }
+            if (wireInput('smart_search_input', 'smart_search_dropdown', 'search_bar_form')) {
+                clearInterval(_w1);
+                log('[SmartSearch] navbar wired');
+            }
         }, 200);
+
+        // Results page input — injected by render_search_result_list(), poll for it
+        let _att2 = 0;
+        const _w2 = setInterval(function() {
+            if (++_att2 > 75) { clearInterval(_w2); return; }
+            if (wireInput('smart_search_input_results', 'smart_search_dropdown_results', 'search_result_bar_form')) {
+                clearInterval(_w2);
+                log('[SmartSearch] results bar wired');
+            }
+        }, 200);
+
     });
 
 })();
@@ -2092,14 +2107,20 @@ function render_search_result_list() {
 
     // Add search bar to the card header with white background
     var searchBar = `
-    <form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:search" autocomplete="off">
-    <div class="input-group">
-        <input class="form-control bg-white text-dark" name="q" type="search" 
-               placeholder="Search to Type Movies Name + Year" aria-label="Search" 
-               value="${model.q}" style="border-right:0;" required autocomplete="off">
-              <button class="btn btn-success" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;">
-                <i class="fas fa-search" style="margin: 0"></i>
+    <form class="d-flex mt-2" id="search_result_bar_form" method="get" action="/${window.current_drive_order}:search" autocomplete="off">
+        <div class="input-group position-relative">
+            <input class="form-control bg-white text-dark" id="smart_search_input_results" name="q" type="search"
+                placeholder="Search to Type Movies Name + Year" aria-label="Search"
+                value="${model.q}" style="border-right:0;" required autocomplete="off">
+            <button class="btn btn-success" type="submit" style="border-color:rgba(140,130,115,0.13);border-left:0;">
+                <i class="fas fa-search" style="margin:0"></i>
             </button>
+            <div id="smart_search_dropdown_results" style="
+                display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;
+                background:#1e1e2e;border:1px solid rgba(255,255,255,0.15);
+                border-radius:0 0 8px 8px;max-height:340px;overflow-y:auto;
+                box-shadow:0 8px 32px rgba(0,0,0,0.65);">
+            </div>
         </div>
     </form>`;
 
