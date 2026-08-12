@@ -39,8 +39,13 @@ function _getIcon(ext, mimeType, iconLink) {
 
 // LOGIN DETECTION FUNCTION
 
+// Module-level cache for login state — cookie doesn't change mid-page,
+// so we parse document.cookie once and reuse the result on every call.
+let _loginStateCached = null;
+
 // Check if user is logged in by verifying session cookie
 function isUserLoggedIn() {
+    if (_loginStateCached !== null) return _loginStateCached;
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
         const [name, value] = cookie.trim().split('=');
@@ -49,11 +54,13 @@ function isUserLoggedIn() {
             // Check if session has a valid value
             if (sessionValue && sessionValue !== 'null' && sessionValue !== '' && sessionValue !== 'undefined') {
                 log('User is logged in, session:', sessionValue);
+                _loginStateCached = true;
                 return true;
             }
         }
     }
     log('User is not logged in');
+    _loginStateCached = false;
     return false;
 }
 
@@ -87,6 +94,20 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#x27;');
 }
+
+// Safely serialize a file object for embedding in an HTML attribute (onclick="...").
+// Escapes double-quotes, single-quotes, backticks, and angle brackets inside string
+// values so filenames like "Movie's <2024> Title" don't break the attribute context.
+function _safeJsonAttr(obj) {
+    return JSON.stringify(obj)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/`/g, '&#x60;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
 
 // UTILITY: Legacy clipboard copy fallback
 function _legacyCopy(text) {
@@ -624,15 +645,21 @@ function checkPasswordExpiryWarning() {
     // Don't show if already visible
     if (document.getElementById('tm-pw-expiry-overlay')) return;
 
-    // 6-hour throttle via localStorage
+    // 6-hour throttle via localStorage with in-memory fallback for private/restricted contexts
     const STORAGE_KEY = 'tm_pw_expiry_shown';
     const INTERVAL_MS = 6 * 60 * 60 * 1000;
+    const now = Date.now();
     try {
         const lastShown = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
-        const now = Date.now();
         if (now - lastShown < INTERVAL_MS) return;
         localStorage.setItem(STORAGE_KEY, String(now));
-    } catch (e) {}
+    } catch (e) {
+        // localStorage unavailable (private browsing, WebView, quota) —
+        // use in-memory flag so the overlay does not spam on every page load.
+        if (!checkPasswordExpiryWarning._shownAt) checkPasswordExpiryWarning._shownAt = 0;
+        if (now - checkPasswordExpiryWarning._shownAt < INTERVAL_MS) return;
+        checkPasswordExpiryWarning._shownAt = now;
+    }
 
     // Urgency theme
     const isLastDay  = days === 1;
@@ -828,10 +855,10 @@ function initializeLoginModal() {
             const data = await response.json();
 
             if (data.ok) {
-                // Success - redirect to home or reload page
+                // Success - redirect to /home (explicit post-login page, consistent with login_html)
                 showError('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
-                    window.location.href = '/';
+                    window.location.href = '/home';
                 }, 1000);
             } else {
                 const errMsg = data.error || 'Invalid username or password';
@@ -1466,15 +1493,17 @@ function append_files_to_fallback_list(path, files) {
                 const folderSizeStr = item.folderSize ? (formatFileSize(item.folderSize) || '—') : '—';
                 // Set size/md5 fields the modal expects.
                 const _fItem = Object.assign({}, item, { size: folderSizeStr, md5Checksum: '—' });
-                const _fItemJson = JSON.stringify(_fItem).replace(/"/g, '&quot;');
+                const _fItemJson = _safeJsonAttr(_fItem);
                 html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" data-name="${escapeHtml(item.name)}" data-bytes="${item.folderSize || 0}"><a href="#" onclick="onSearchResultItemClick('${item['id']}', false, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel" style="color: ${UI.folder_text_color};" class="countitems w-100 d-flex align-items-start align-items-xl-center gap-2"><span>${folder_icon}</span>${escapeHtml(item.name)}</a>${UI.display_time ? `<span class="badge bg-info" style="margin-left: 2rem;">` + item['createdTime'] + `</span>` : ``}${UI.display_size ? `<span class="badge my-1 text-center" style="min-width: 85px; background: rgba(76, 156, 127, 0.15) !important; border: 2px solid #4c9c7f; color: #ffffff; border-radius: 8px; text-align: center;">${folderSizeStr}</span>` : ``}<span class="d-flex gap-2">
                 ${UI.display_download ? `<a class="d-flex align-items-center" href="${p}" title="Open Folder"><i class="far fa-folder-open fa-lg"></i></a>` : ``}</span></div>`;
             } else {
-                totalsize = totalsize + Number(item.size || 0);
+                const rawBytesF = Number(item.size || 0);
+                totalsize = totalsize + rawBytesF;
+                // Snapshot before reformatting size — used for localStorage cache
+                targetFiles.push(Object.assign({}, item));
                 item['size'] = formatFileSize(item['size']) || '—';
                 is_file = true;
                 const epn = item.name;
-                const rawBytesF = Number(files[i].size || 0);
                 const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
                 let pn = path + epn.replace(_reHash, '%23').replace(_reQ, '%3F');
                 let c = "file";
@@ -1498,7 +1527,7 @@ function append_files_to_fallback_list(path, files) {
                 // Archives open the CPMShort/Nowshort modal, like search results.
                 const _isArchive = ext && ['zip','rar','7z','tar','gz'].includes(ext.toLowerCase());
                 const _fItemForModal = Object.assign({}, item, { md5Checksum: item.md5Checksum || '—' });
-                const _fItemJson = JSON.stringify(_fItemForModal).replace(/"/g, '&quot;');
+                const _fItemJson = _safeJsonAttr(_fItemForModal);
                 const _fileLink = _isArchive
                     ? `href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${_fItemJson})" data-bs-toggle="modal" data-bs-target="#SearchModel"`
                     : `href="${p}&a=view"`;
@@ -1632,6 +1661,8 @@ function append_files_to_list(path, files) {
         } else {
             const rawBytes = Number(item.size || 0);
             totalsize = totalsize + rawBytes;
+            // Snapshot before reformatting size — used for localStorage cache
+            targetFiles.push(Object.assign({}, item));
             item['size'] = formatFileSize(item['size']) || '—';
             is_file = true;
             const epn = item.name;
@@ -1970,7 +2001,8 @@ function append_search_result_to_list(files) {
         for (let i = 0; i < files.length; i++) {
             const item = files[i];
 
-            // Render folders — clicking opens the folder directly (navigates into it)
+            // Render folders — clicking opens the folder directly (navigates into it).
+            // Uses `continue` to skip the file-only code block below; files fall through naturally.
             if (item['mimeType'] == 'application/vnd.google-apps.folder') {
                 item['createdTime'] = utc2jakarta(item['createdTime']);
                 item['size'] = item['size'] ? (formatFileSize(item['size']) || '—') : '—';
@@ -1994,7 +2026,7 @@ function append_search_result_to_list(files) {
             item['md5Checksum'] = item['md5Checksum'] || '—';
             const ext = item.fileExtension;
             const link = UI.random_domain_for_dl ? UI.downloaddomain + item.link : _origin + item.link;
-            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytesS}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${JSON.stringify(item).replace(/"/g, "&quot;")})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
+            html += `<div class="list-group-item list-group-item-action d-flex align-items-center flex-md-nowrap flex-wrap justify-sm-content-between column-gap-2 tm-row" gd-type="${item['mimeType']}" data-name="${escapeHtml(item.name)}" data-bytes="${rawBytesS}">${UI.allow_selecting_files ? '<input class="form-check-input" style="margin-top: 0.3em;margin-right: 0.5em;" type="checkbox" value="'+link+'" id="flexCheckDefault">' : ''}<a href="#" onclick="onSearchResultItemClick('${item['id']}', true, ${_safeJsonAttr(item)})" data-bs-toggle="modal" data-bs-target="#SearchModel" class="countitems size_items w-100 d-flex align-items-start align-items-xl-center gap-2" style="text-decoration: none; color: ${UI.css_a_tag_color};"><span>`
 
             html += _getIcon(ext, item.mimeType, item.iconLink);
 
@@ -2012,12 +2044,15 @@ function append_search_result_to_list(files) {
         initTMSort();
 
         // Background prefetch: warm _shortenerCache for all visible files
-        // Only runs when show_url_shortener=true and user is NOT logged in.
+        // Only runs on page 0 (first page), when show_url_shortener=true and user is NOT logged in.
+        // Skipping pagination pages avoids a burst of parallel POST requests for large result sets.
         // Fire-and-forget — errors are silently ignored so file listing is unaffected.
         (function _prefetchShortenerLinks() {
             try {
                 const _shouldPrefetch = typeof UI !== 'undefined' && UI.show_url_shortener === true && !isUserLoggedIn();
                 if (!_shouldPrefetch) return;
+                // Only prefetch on the first page — pagination pages reuse the same cache
+                if (($list.data('curPageIndex') || 0) > 0) return;
                 if (!window._shortenerCache) window._shortenerCache = {};
                 // Set uiConfig.public_worker_url in worker.js to change the domain.
                 const _publicOrigin = (window.UI && window.UI.public_worker_url) || window.location.origin;
@@ -2384,17 +2419,28 @@ function get_file(path, file, callback) {
     if (data != undefined) {
         return callback(data);
     } else {
-        $.get(path, function(d) {
-            localStorage.setItem(key, d);
-            callback(d);
-        });
+        // Use fetch with an 8-second timeout and error handler instead of bare $.get()
+        fetch(path, { signal: AbortSignal.timeout(8000) })
+            .then(function(r) {
+                if (!r.ok) throw new Error('get_file HTTP ' + r.status);
+                return r.text();
+            })
+            .then(function(d) {
+                try { localStorage.setItem(key, d); } catch (_) {}
+                callback(d);
+            })
+            .catch(function(e) {
+                log('get_file error for', path, e.message);
+                // Silently skip — README/HEAD.md failure should not break the listing
+            });
     }
 }
 
 async function fallback(id, type) {
     if (type) { // is a file id
         $('#content').html(`<div class="d-flex justify-content-center" style="height: 150px"><div class="spinner-border ${UI.loading_spinner_class} m-5" role="status" id="spinner"><span class="sr-only"></span></div></div>`);
-        fetch("/0:fallback", {
+        const _fallbackEndpoint = `/${window.current_drive_order || 0}:fallback`;
+        fetch(_fallbackEndpoint, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
