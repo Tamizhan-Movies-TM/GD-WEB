@@ -1055,20 +1055,10 @@ function nav(path) {
     var search_text = model.is_search_page ? (model.q || '') : '';
     var search_bar = `
 </ul>
-<form class="d-flex" id="search_bar_form" method="get" action="/${cur}:search" autocomplete="off">
-<div class="input-group position-relative">
-    <input class="form-control" name="q" id="smart_search_input" type="search"
-        placeholder="Search movies, files..." aria-label="Search"
-        value="${search_text}" style="border-right:0;" required autocomplete="off">
-    <button class="btn ${UI.search_button_class}" type="submit" style="border-color:rgba(140,130,115,0.13);border-left:0;">
-        <i class="fas fa-search" style="margin:0"></i>
-    </button>
-    <div id="smart_search_dropdown" style="
-        display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;
-        background:#1e1e2e;border:1px solid rgba(255,255,255,0.15);
-        border-radius:0 0 8px 8px;max-height:340px;overflow-y:auto;
-        box-shadow:0 8px 32px rgba(0,0,0,0.65);">
-    </div>
+<form class="d-flex" id="search_bar_form" method="get" action="/${cur}:search">
+<div class="input-group">
+    <input class="form-control" name="q" type="search" placeholder="Search" aria-label="Search" value="${search_text}" style="border-right:0;" required>
+    <button class="btn ${UI.search_button_class}" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;"><i class="fas fa-search" style="margin: 0"></i></button>
 </div>
 </form>
 </div>
@@ -1083,323 +1073,7 @@ function nav(path) {
     }
 
     $('#nav').html(html);
-    // Wire smart search to navbar input
-    if (typeof window.wireSmartSearch === 'function') window.wireSmartSearch();
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  SMART SEARCH — Autocomplete + History + Fuzzy suggestions + Filter chips
-// ─────────────────────────────────────────────────────────────────────────────
-(function initSmartSearch() {
-
-    const HISTORY_KEY = 'tm_srch_hist';
-    const MAX_HISTORY = 8;
-    const DEBOUNCE_MS = 260;
-    const MIN_CHARS   = 2;
-
-    let _debounceTimer = null;
-    let _lastQuery     = '';
-
-    // ── History helpers ───────────────────────────────────────────────────────
-    function getHistory() {
-        try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
-        catch(_) { return []; }
-    }
-
-    function saveHistory(q) {
-        q = (q || '').trim();
-        if (q.length < MIN_CHARS) return;
-        let hist = getHistory().filter(h => h.toLowerCase() !== q.toLowerCase());
-        hist.unshift(q);
-        if (hist.length > MAX_HISTORY) hist = hist.slice(0, MAX_HISTORY);
-        try { localStorage.setItem(HISTORY_KEY, JSON.stringify(hist)); } catch(_) {}
-    }
-
-    window.clearSmartHistory = function() {
-        localStorage.removeItem(HISTORY_KEY);
-        const input = document.getElementById('smart_search_input');
-        renderDropdown(input ? input.value.trim() : '');
-    };
-
-    // ── Fuzzy scorer ──────────────────────────────────────────────────────────
-    function fuzzyScore(query, target) {
-        query  = query.toLowerCase().trim();
-        target = target.toLowerCase();
-        if (target.includes(query)) return 1;
-        let qi = 0, score = 0;
-        for (let i = 0; i < target.length && qi < query.length; i++) {
-            if (target[i] === query[qi]) { score++; qi++; }
-        }
-        return qi === query.length ? score / target.length : 0;
-    }
-
-    // ── Pull candidate titles from all localStorage search caches ─────────────
-    function getCachedTitles(query) {
-        const results = [];
-        try {
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (!key || !key.startsWith('tm_srch:')) continue;
-                const raw = localStorage.getItem(key);
-                if (!raw) continue;
-                const parsed = JSON.parse(raw);
-                const files  = parsed?.data?.files || [];
-                files.forEach(f => {
-                    if (!f.name) return;
-                    const score = fuzzyScore(query, f.name);
-                    if (score > 0) results.push({ name: f.name, score, mimeType: f.mimeType });
-                });
-            }
-        } catch(_) {}
-        const seen = new Set();
-        return results
-            .sort((a, b) => b.score - a.score)
-            .filter(r => { if (seen.has(r.name)) return false; seen.add(r.name); return true; })
-            .slice(0, 7);
-    }
-
-    // ── Mime → emoji ──────────────────────────────────────────────────────────
-    function mimeIcon(mimeType) {
-        if (!mimeType) return '📄';
-        if (mimeType.startsWith('video/'))                           return '🎬';
-        if (mimeType.startsWith('audio/'))                           return '🎵';
-        if (mimeType.startsWith('image/'))                           return '🖼️';
-        if (mimeType.includes('folder'))                             return '📁';
-        if (mimeType.includes('pdf'))                                return '📕';
-        if (mimeType.includes('zip') || mimeType.includes('rar'))   return '📦';
-        return '📄';
-    }
-
-    // ── Inject hover CSS once ─────────────────────────────────────────────────
-    function ensureHoverStyle() {
-        if (document.getElementById('ss-style')) return;
-        const s = document.createElement('style');
-        s.id = 'ss-style';
-        s.textContent = `
-            .ss-item:hover { background: rgba(255,255,255,0.08) !important; }
-            .ss-item.ss-active { background: rgba(255,255,255,0.11) !important; }
-            #smart_search_dropdown::-webkit-scrollbar { width:4px; }
-            #smart_search_dropdown::-webkit-scrollbar-thumb { background:rgba(255,255,255,.2); border-radius:4px; }
-        `;
-        document.head.appendChild(s);
-    }
-
-    // ── Render dropdown ───────────────────────────────────────────────────────
-    function renderDropdown(query, dropdownId) {
-        dropdownId = dropdownId || 'smart_search_dropdown';
-        const dropdown = document.getElementById(dropdownId);
-        if (!input || !dropdown) return;
-
-        ensureHoverStyle();
-        query = (query || '').trim();
-        let html = '';
-
-        // Section: recent history
-        const hist = getHistory();
-        const matchHist = query.length >= 1
-            ? hist.filter(h => h.toLowerCase().includes(query.toLowerCase()))
-            : hist;
-
-        if (matchHist.length) {
-            html += `<div style="padding:7px 12px 4px;font-size:10px;color:rgba(255,255,255,.38);
-                letter-spacing:.07em;display:flex;justify-content:space-between;align-items:center;
-                text-transform:uppercase;">
-                Recent Searches
-                <span onclick="clearSmartHistory()" style="cursor:pointer;color:#e74c3c;
-                    font-size:10px;text-transform:none;letter-spacing:0;">Clear</span>
-            </div>`;
-            matchHist.forEach(h => {
-                const esc = h.replace(/'/g, "\\'");
-                html += `<div class="ss-item" onclick="smartSearchGo('${esc}')"
-                    style="padding:8px 14px;cursor:pointer;display:flex;align-items:center;
-                    gap:9px;font-size:13px;color:rgba(255,255,255,.82);">
-                    <i class="fas fa-history fa-fw" style="color:rgba(255,255,255,.28);font-size:11px;"></i>
-                    <span>${escapeHtml(h)}</span>
-                </div>`;
-            });
-        }
-
-        // Section: fuzzy suggestions from cache
-        if (query.length >= MIN_CHARS) {
-            const suggestions = getCachedTitles(query);
-            if (suggestions.length) {
-                html += `<div style="padding:7px 12px 4px;font-size:10px;color:rgba(255,255,255,.38);
-                    letter-spacing:.07em;text-transform:uppercase;
-                    border-top:1px solid rgba(255,255,255,.06);">Suggestions</div>`;
-                const reEsc = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                suggestions.forEach(s => {
-                    const highlighted = escapeHtml(s.name).replace(
-                        new RegExp(`(${reEsc})`, 'gi'),
-                        '<strong style="color:#4ecca3;font-weight:600;">$1</strong>'
-                    );
-                    const esc = s.name.replace(/'/g, "\\'");
-                    html += `<div class="ss-item" onclick="smartSearchGo('${esc}')"
-                        style="padding:8px 14px;cursor:pointer;display:flex;align-items:center;
-                        gap:9px;font-size:13px;color:rgba(255,255,255,.72);">
-                        <span style="font-size:15px;line-height:1;">${mimeIcon(s.mimeType)}</span>
-                        <span>${highlighted}</span>
-                    </div>`;
-                });
-            }
-        }
-
-        // Section: filter chips
-        if (query.length >= MIN_CHARS) {
-            const chips = [
-                { label: '🎬 Videos',  suffix: ' mkv'  },
-                { label: '🎵 Audio',   suffix: ' mp3'  },
-                { label: '📦 Archive', suffix: ' zip'  },
-                { label: '📕 PDF',     suffix: ' pdf'  },
-            ];
-            html += `<div style="padding:7px 12px 9px;display:flex;gap:6px;flex-wrap:wrap;
-                border-top:1px solid rgba(255,255,255,.06);">`;
-            chips.forEach(c => {
-                const q2 = (query + c.suffix).replace(/'/g, "\\'");
-                html += `<span onclick="smartSearchGo('${q2}')"
-                    style="cursor:pointer;padding:3px 11px;border-radius:20px;font-size:11px;
-                    border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.58);
-                    background:rgba(255,255,255,.05);transition:background .15s;"
-                    onmouseover="this.style.background='rgba(255,255,255,0.12)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.05)'">${c.label}</span>`;
-            });
-            html += `</div>`;
-        }
-
-        if (!html) { dropdown.style.display = 'none'; return; }
-        dropdown.innerHTML = html;
-        dropdown.style.display = 'block';
-    }
-
-    function hideDropdown(dropdownId) {
-        dropdownId = dropdownId || 'smart_search_dropdown';
-        const d = document.getElementById(dropdownId);
-        if (d) d.style.display = 'none';
-    }
-
-    // ── Keyboard navigation ───────────────────────────────────────────────────
-    function handleKeyNav(e, input, dropdownId) {
-        dropdownId = dropdownId || 'smart_search_dropdown';
-        const items = Array.from(document.querySelectorAll('#' + dropdownId + ' .ss-item'));
-        if (!items.length) return;
-        let idx = items.findIndex(el => el.classList.contains('ss-active'));
-
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            if (idx >= 0) items[idx].classList.remove('ss-active');
-            idx = (idx + 1) % items.length;
-            items[idx].classList.add('ss-active');
-            input.value = items[idx].textContent.trim();
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            if (idx >= 0) items[idx].classList.remove('ss-active');
-            idx = (idx - 1 + items.length) % items.length;
-            items[idx].classList.add('ss-active');
-            input.value = items[idx].textContent.trim();
-        } else if (e.key === 'Escape') {
-            hideDropdown();
-        }
-    }
-
-    // ── Public: navigate to search ────────────────────────────────────────────
-    window.smartSearchGo = function(query) {
-        query = (query || '').trim();
-        if (!query) return;
-        saveHistory(query);
-        hideDropdown('smart_search_dropdown');
-        hideDropdown('smart_search_dropdown_results');
-        const cur = window.current_drive_order || 0;
-        window.location.href = '/' + cur + ':search?q=' + encodeURIComponent(query);
-    };
-
-    // ── Core: wire one input + dropdown pair ────────────────────────────────────
-    function wireInput(inputId, dropdownId, formId) {
-        const input    = document.getElementById(inputId);
-        const dropdown = document.getElementById(dropdownId);
-        if (!input || !dropdown) return false;
-
-        // Save history on form submit
-        const form = formId ? document.getElementById(formId) : null;
-        if (form) {
-            form.addEventListener('submit', function() { saveHistory(input.value.trim()); });
-        }
-
-        // Debounced input — instant local render + live server fetch
-        input.addEventListener('input', function() {
-            clearTimeout(_debounceTimer);
-            const q = this.value.trim();
-            _debounceTimer = setTimeout(function() {
-                if (q === _lastQuery) return;
-                _lastQuery = q;
-                renderDropdown(q, dropdownId);
-                if (q.length >= MIN_CHARS) {
-                    const cur = window.current_drive_order || 0;
-                    fetch('/' + cur + ':autocomplete', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ q: q }),
-                        signal: AbortSignal.timeout(4000)
-                    })
-                    .then(r => r.ok ? r.json() : null)
-                    .then(data => {
-                        if (!data || !data.suggestions || !data.suggestions.length) return;
-                        if (q !== _lastQuery) return;
-                        const _liveKey = 'tm_srch:__ac__' + q.toLowerCase();
-                        try {
-                            localStorage.setItem(_liveKey, JSON.stringify({
-                                data: { files: data.suggestions.map(s => ({ name: s.name, mimeType: s.mimeType })) }
-                            }));
-                        } catch(_) {}
-                        renderDropdown(q, dropdownId);
-                    })
-                    .catch(() => {});
-                }
-            }, DEBOUNCE_MS);
-        });
-
-        // Show on focus
-        input.addEventListener('focus', function() {
-            renderDropdown(this.value.trim(), dropdownId);
-        });
-
-        // Keyboard nav
-        input.addEventListener('keydown', function(e) {
-            handleKeyNav(e, input, dropdownId);
-        });
-
-        return true;
-    }
-
-    // Track which inputs are already wired to avoid double-binding
-    const _wired = {};
-
-    // ── Expose global so init() and render_search_result_list() can call directly
-    window.wireSmartSearch = function() {
-        // Navbar bar
-        if (!_wired['nav'] && document.getElementById('smart_search_input')) {
-            if (wireInput('smart_search_input', 'smart_search_dropdown', 'search_bar_form')) {
-                _wired['nav'] = true;
-                console.log('[SmartSearch] navbar wired');
-            }
-        }
-        // Results page bar
-        if (!_wired['results'] && document.getElementById('smart_search_input_results')) {
-            if (wireInput('smart_search_input_results', 'smart_search_dropdown_results', 'search_result_bar_form')) {
-                _wired['results'] = true;
-                console.log('[SmartSearch] results bar wired');
-            }
-        }
-    };
-
-    // ── Outside click hides both dropdowns ────────────────────────────────────
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('#search_bar_form') &&
-            !e.target.closest('#search_result_bar_form')) {
-            hideDropdown('smart_search_dropdown');
-            hideDropdown('smart_search_dropdown_results');
-        }
-    }, { passive: true });
-
-})();
 
 // Sleep Function to Retry API Calls — non-blocking async version
 function sleep(milliseconds) {
@@ -2105,20 +1779,12 @@ function render_search_result_list() {
 
     // Add search bar to the card header with white background
     var searchBar = `
-    <form class="d-flex mt-2" id="search_result_bar_form" method="get" action="/${window.current_drive_order}:search" autocomplete="off">
-        <div class="input-group position-relative">
-            <input class="form-control bg-white text-dark" id="smart_search_input_results" name="q" type="search"
-                placeholder="Search to Type Movies Name + Year" aria-label="Search"
-                value="${model.q}" style="border-right:0;" required autocomplete="off">
-            <button class="btn btn-success" type="submit" style="border-color:rgba(140,130,115,0.13);border-left:0;">
-                <i class="fas fa-search" style="margin:0"></i>
+    <form class="d-flex mt-2" method="get" action="/${window.current_drive_order}:search">
+        <div class="input-group">
+            <input class="form-control bg-white text-dark" name="q" type="search" placeholder="Search to Type Movies Name + Year" aria-label="Search" value="${model.q}" style="border-right:0;" required>
+              <button class="btn btn-success" type="submit" style="border-color: rgba(140, 130, 115, 0.13); border-left:0;">
+                <i class="fas fa-search" style="margin: 0"></i>
             </button>
-            <div id="smart_search_dropdown_results" style="
-                display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;
-                background:#1e1e2e;border:1px solid rgba(255,255,255,0.15);
-                border-radius:0 0 8px 8px;max-height:340px;overflow-y:auto;
-                box-shadow:0 8px 32px rgba(0,0,0,0.65);">
-            </div>
         </div>
     </form>`;
 
@@ -2306,9 +1972,6 @@ function render_search_result_list() {
     if (typeof checkPasswordExpiryWarning === 'function') {
         checkPasswordExpiryWarning();
     }
-
-    // Wire smart search to results page input (called after HTML is injected)
-    if (typeof window.wireSmartSearch === 'function') window.wireSmartSearch();
 }
 
 /**
