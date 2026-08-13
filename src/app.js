@@ -527,7 +527,7 @@ strong {
 </div>
 
 <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
-<div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: 60px;">
+<div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: ${UI.fixed_footer ? '120px' : '60px'};">
     <div class="row align-items-start g-3">
         `;
         html += `
