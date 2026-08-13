@@ -527,11 +527,11 @@ strong {
 </div>
 
 <div class="loading" id="spinner" style="display:none;">Loading&#8230;</div>
-<div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: ${UI.fixed_footer ? '120px' : '60px'};">
+<div class="container" style="margin-top: ${UI.header_padding}px; margin-bottom: ${UI.fixed_footer ? '70px' : '60px'};">
     <div class="row align-items-start g-3">
         `;
         html += `
-    <div id="content" style="${UI.fixed_footer ? 'padding-bottom: clamp(170px, 100%, 300px);' : ''}"></div>
+    <div id="content"></div>
   </div>
   <div class="row g-3 mt-0">
      <div class="col-lg-6 col-md-12">
