@@ -1074,29 +1074,7 @@ function nav(path) {
 
     $('#nav').html(html);
 
-    // Inject top banner ad for non-logged-in users
-    if (!isUserLoggedIn()) {
-        if (!$('#top-ad-banner').length) {
-            var bannerDiv = document.createElement('div');
-            bannerDiv.id = 'top-ad-banner';
-            bannerDiv.style.cssText = 'width:100%;background:#000;text-align:center;padding:5px 0;';
-            document.body.insertBefore(bannerDiv, document.body.firstChild);
-            window.atOptions = {
-                'key': 'fbf1b0e12b848180f017b0fec3f15d93',
-                'format': 'iframe',
-                'height': 90,
-                'width': 728,
-                'params': {}
-            };
-            var sc = document.createElement('script');
-            sc.src = 'https://www.highperformanceformat.com/fbf1b0e12b848180f017b0fec3f15d93/invoke.js';
-            bannerDiv.appendChild(sc);
-        }
-    } else {
-        if (document.getElementById('top-ad-banner')) {
-            document.getElementById('top-ad-banner').style.display = 'none';
-        }
-    }
+    // Banner ad handled by worker HTML
 }
 
 // Sleep Function to Retry API Calls — non-blocking async version
