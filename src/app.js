@@ -1077,18 +1077,25 @@ function nav(path) {
     // Inject top banner ad for non-logged-in users
     if (!isUserLoggedIn()) {
         if (!$('#top-ad-banner').length) {
-            var bannerDiv = $('<div id="top-ad-banner" style="width:100%;background:#000;text-align:center;padding:5px 0;"></div>');
-            $('body').prepend(bannerDiv);
-        }
-        if (!$('#top-ad-banner script').length) {
-            window.atOptions = {'key':'f4ad182db25fa0e24acb22e0df95299d','format':'iframe','height':90,'width':728,'params':{}};
+            var bannerDiv = document.createElement('div');
+            bannerDiv.id = 'top-ad-banner';
+            bannerDiv.style.cssText = 'width:100%;background:#000;text-align:center;padding:5px 0;';
+            document.body.insertBefore(bannerDiv, document.body.firstChild);
+            window.atOptions = {
+                'key': 'fbf1b0e12b848180f017b0fec3f15d93',
+                'format': 'iframe',
+                'height': 90,
+                'width': 728,
+                'params': {}
+            };
             var sc = document.createElement('script');
-            sc.src = 'https://pl30842314.effectivecpmnetwork.com/f4ad182db25fa0e24acb22e0df95299d/invoke.js';
-            sc.async = true;
-            document.getElementById('top-ad-banner').appendChild(sc);
+            sc.src = 'https://www.highperformanceformat.com/fbf1b0e12b848180f017b0fec3f15d93/invoke.js';
+            bannerDiv.appendChild(sc);
         }
     } else {
-        $('#top-ad-banner').hide();
+        if (document.getElementById('top-ad-banner')) {
+            document.getElementById('top-ad-banner').style.display = 'none';
+        }
     }
 }
 
