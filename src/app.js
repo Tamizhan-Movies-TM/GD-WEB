@@ -1064,6 +1064,11 @@ function nav(path) {
 </div>
 </div>
 </nav>
+${!isUserLoggedIn() ? `
+<div class="container" style="padding:4px 0;text-align:center;">
+  <script async="async" data-cfasync="false" src="https://pl30842314.effectivecpmnetwork.com/5d82338cf51fc69e106e62a87ac16510/invoke.js"><\/script>
+  <div id="container-5d82338cf51fc69e106e62a87ac16510"></div>
+</div>` : ''}
 `;
 
     // Personal or team
