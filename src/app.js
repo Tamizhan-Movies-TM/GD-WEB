@@ -1030,11 +1030,7 @@ function nav(path) {
     var model = window.MODEL;
     var html = "";
     var cur = window.current_drive_order || 0;
-    html += `${!isUserLoggedIn() ? `<div style="width:100%;background:#000;text-align:center;padding:5px 0;position:${UI.fixed_header?'fixed':'relative'};top:0;left:0;z-index:9999;">
-  <script>atOptions={'key':'f4ad182db25fa0e24acb22e0df95299d','format':'iframe','height':90,'width':728,'params':{}};<\/script>
-  <script src="//www.highperformanceformat.com/f4ad182db25fa0e24acb22e0df95299d/invoke.js"><\/script>
-</div>` : ''}
-<nav class="navbar navbar-expand-lg${UI.fixed_header ?' fixed-top': ''} ${UI.header_style_class} container">
+    html += `<nav class="navbar navbar-expand-lg${UI.fixed_header ?' fixed-top': ''} ${UI.header_style_class} container">
     <div class="container-fluid mx-2">
   <a class="navbar-brand d-flex align-items-center gap-2" href="/">${UI.logo_image ? '<img border="0" alt="'+UI.company_name+'" src="'+UI.logo_link_name+'" height="'+UI.logo_height+'" width="'+UI.logo_width+'">'+UI.siteName : UI.logo_link_name}</a>
   <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -1077,6 +1073,23 @@ function nav(path) {
     }
 
     $('#nav').html(html);
+
+    // Inject top banner ad for non-logged-in users
+    if (!isUserLoggedIn()) {
+        if (!$('#top-ad-banner').length) {
+            var bannerDiv = $('<div id="top-ad-banner" style="width:100%;background:#000;text-align:center;padding:5px 0;"></div>');
+            $('body').prepend(bannerDiv);
+        }
+        if (!$('#top-ad-banner script').length) {
+            window.atOptions = {'key':'f4ad182db25fa0e24acb22e0df95299d','format':'iframe','height':90,'width':728,'params':{}};
+            var sc = document.createElement('script');
+            sc.src = 'https://pl30842314.effectivecpmnetwork.com/f4ad182db25fa0e24acb22e0df95299d/invoke.js';
+            sc.async = true;
+            document.getElementById('top-ad-banner').appendChild(sc);
+        }
+    } else {
+        $('#top-ad-banner').hide();
+    }
 }
 
 // Sleep Function to Retry API Calls — non-blocking async version
