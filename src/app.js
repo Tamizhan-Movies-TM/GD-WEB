@@ -1073,8 +1073,6 @@ function nav(path) {
     }
 
     $('#nav').html(html);
-
-    // Banner ad handled by worker HTML
 }
 
 // Sleep Function to Retry API Calls — non-blocking async version
