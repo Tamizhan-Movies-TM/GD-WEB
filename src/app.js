@@ -1065,9 +1065,17 @@ function nav(path) {
 </div>
 </nav>
 ${!isUserLoggedIn() ? `
-<div class="container" style="padding:4px 0;text-align:center;">
-  <script async="async" data-cfasync="false" src="https://pl30842314.effectivecpmnetwork.com/5d82338cf51fc69e106e62a87ac16510/invoke.js"><\/script>
-  <div id="container-5d82338cf51fc69e106e62a87ac16510"></div>
+<div style="width:100%;background:rgba(0,0,0,0.2);text-align:center;padding:6px 0;">
+  <script>
+    atOptions = {
+      'key' : 'f4ad182db25fa0e24acb22e0df95299d',
+      'format' : 'iframe',
+      'height' : 90,
+      'width' : 728,
+      'params' : {}
+    };
+  <\/script>
+  <script src="//www.highperformanceformat.com/f4ad182db25fa0e24acb22e0df95299d/invoke.js"><\/script>
 </div>` : ''}
 `;
 
