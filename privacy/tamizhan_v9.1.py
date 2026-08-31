@@ -1307,14 +1307,15 @@ def _tracks_need_fix(fp, sorted_audio, eng_subs):
       3.  Audio language tags correct on every track
       4.  Audio default flag: track 0 = True, rest = False
       5.  Audio forced flag: track 0 = True, rest = False
-      6.  Audio track title = language display name (e.g. "Tamil")
+      6.  Audio track title is blank (we never write titles)
       7.  Subtitle count matches expected (already filtered to keep-list)
       8.  Subtitle language tags correct on every track
       9.  Subtitle default flag = False on every track
       10. Subtitle forced flag = False on every track
-      11. Subtitle track title = language display name (e.g. "English")
+      11. Subtitle track title is blank (we never write titles)
       12. Video track name is blank
       13. Container title is blank
+      14. No audio/video sync delay detected
     """
     try:
         a_tracks = _audio_tracks(fp)
@@ -1343,11 +1344,10 @@ def _tracks_need_fix(fp, sorted_audio, eng_subs):
         if bool(on_disk.get("is_forced", False)) != want_forced:
             return True, (f"audio[{i}] forced flag wrong "
                           f"(is {on_disk.get('is_forced', False)}, want {want_forced})")
-        # 6. Track title must equal the language display name
-        want_title = _lang_display(expected["language"])
-        got_title  = (on_disk.get("title") or "").strip()
-        if got_title != want_title:
-            return True, (f"audio[{i}] title {got_title!r} ≠ expected {want_title!r}")
+        # 6. Track title must be blank (we always write blank titles)
+        got_title = (on_disk.get("title") or "").strip()
+        if got_title:
+            return True, f"audio[{i}] title {got_title!r} should be blank"
 
     # ── 7. Subtitle count ─────────────────────────────────────────────
     if len(s_tracks) != len(eng_subs):
@@ -1367,11 +1367,10 @@ def _tracks_need_fix(fp, sorted_audio, eng_subs):
         # 10. Forced flag must be False
         if bool(on_disk.get("is_forced", False)):
             return True, f"sub[{i}] forced flag should be False"
-        # 11. Track title must equal the language display name
-        want_title = _lang_display(exp_lang)
-        got_title  = (on_disk.get("title") or "").strip()
-        if got_title != want_title:
-            return True, (f"sub[{i}] title {got_title!r} ≠ expected {want_title!r}")
+        # 11. Subtitle track title must be blank (we always write blank titles)
+        got_title = (on_disk.get("title") or "").strip()
+        if got_title:
+            return True, f"sub[{i}] title {got_title!r} should be blank"
 
     # ── 12+13. Container/video title via ffprobe ──────────────────────
     try:
@@ -1392,6 +1391,16 @@ def _tracks_need_fix(fp, sorted_audio, eng_subs):
             return True, f"container title not blank: {fmt_title!r}"
     except Exception:
         pass  # ffprobe unavailable — skip these two checks
+
+    # ── 14. Audio/Video sync check ────────────────────────────────────
+    # If any audio track has a detectable delay, remux is needed to fix sync.
+    try:
+        delays = _probe_audio_delays(fp)
+        if delays:
+            parts = ", ".join(f"idx {k}: {v:+d} ms" for k, v in sorted(delays.items()))
+            return True, f"audio sync delay detected ({parts}) — remux needed"
+    except Exception:
+        pass
 
     return False, "already correct"
 
