@@ -1504,7 +1504,6 @@ def _run_remux_with_titles(src, tmp, sorted_audio, eng_subs, engine,
             sub_args = ["--subtitle-tracks", sub_sel]
             for s in eng_subs:
                 sid   = str(s["abs_index"])
-                sname = _sub_title(s)
                 slang = s.get("language") or "eng"
                 sub_args += [
                     "--default-track-flag", f"{sid}:no",
