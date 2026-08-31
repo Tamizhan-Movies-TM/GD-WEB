@@ -13,6 +13,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -360,12 +361,12 @@ class LiveBar:
             eta    = (self.total - self.done) / spd if spd > 0 else 0
             ela    = int(time.time() - self._t0)
             ph     = f" {D}{self.phase}{X}" if self.phase else ""
-            print(
-                f"\r  {C}{self.label:<26}{X}{ph} [{bar}] "
+            sys.stdout.write(
+                f"\r\033[K  {C}{self.label:<26}{X}{ph} [{bar}] "
                 f"{pct * 100:5.1f}%  {_fmt_size(self.done)}/{_fmt_size(self.total)}  "
-                f"{Y}{spd_s}{X}  ETA {_fmt_eta(eta)}  {ela}s   ",
-                end="", flush=True,
+                f"{Y}{spd_s}{X}  ETA {_fmt_eta(eta)}  {ela}s   "
             )
+            sys.stdout.flush()
 
     def finish(self, ok=True):
         self._alive = False
@@ -374,10 +375,11 @@ class LiveBar:
         avg = self.total / ela / 1_048_576 if ela else 0
         ph  = f" {D}{self.phase}{X}" if self.phase else ""
         st  = f"{G}✔ Done{X}" if ok else f"{R}✘ Failed{X}"
-        print(
-            f"\r  {C}{self.label:<26}{X}{ph}  {st}  "
-            f"{_fmt_size(self.total)}  avg {avg:.1f} MB/s  {int(ela)}s          "
+        sys.stdout.write(
+            f"\r\033[K  {C}{self.label:<26}{X}{ph}  {st}  "
+            f"{_fmt_size(self.total)}  avg {avg:.1f} MB/s  {int(ela)}s\n"
         )
+        sys.stdout.flush()
 
 
 # ══════════════════════════════════════════════════════════════════════
